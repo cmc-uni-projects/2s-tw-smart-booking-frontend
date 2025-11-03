@@ -1,18 +1,17 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8386/api/v1/auth"; // đổi khi deploy
+const API_URL = "http://localhost:8386/api/v1/auth";
 
 export const authService = {
   login: (email, password) =>
     axios.post(`${API_URL}/login`, { email, password }),
 
-  register: (fullName, email, password, confirmPassword, phoneNumber) =>
+  register: (fullName, email, password, confirmPassword) =>
     axios.post(`${API_URL}/register`, {
       fullName,
       email,
       password,
       confirmPassword,
-      phoneNumber,
     }),
 
   // gửi mail chứa link reset password (?token=...)

@@ -1,6 +1,9 @@
+/*
+ * bquang016/smart_booking_system_frontend/Smart_Booking_System_Frontend-feature-login-reg/src/context/AuthContext.jsx
+ * (Đã sửa lỗi)
+ */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/auth.service';
-import axios from 'axios';
 
 // 1. Tạo Context
 export const AuthContext = createContext();
@@ -17,16 +20,25 @@ export const AuthContextProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await authService.login({ email, password });
-      if (res.success && res.data) {
-        setCurrentUser(res.data.user);
-        // authService đã tự lưu vào localStorage
+      // authService.login trả về response của axios (res)
+      const res = await authService.login(email, password);
+
+      // Dữ liệu ApiResponse của backend nằm trong res.data
+      // Dữ liệu LoginResponse (chứa token + user) nằm trong res.data.data
+      if (res.data.success && res.data.data) {
+        const { user, accessToken } = res.data.data;
+        
+        setCurrentUser(user);
+        localStorage.setItem('accessToken', accessToken); // Lưu token
+        // useEffect bên dưới sẽ tự động lưu user
         return true;
       } else {
-        setError(res.message || 'Login failed');
+        // Trường hợp backend trả về success: false
+        setError(res.data.message || 'Login failed');
         return false;
       }
     } catch (err) {
+      // Trường hợp axios ném lỗi (4xx, 5xx)
       setError(err.response?.data?.message || err.message || 'Login failed');
       return false;
     } finally {
@@ -35,8 +47,10 @@ export const AuthContextProvider = ({ children }) => {
   };
 
   const logout = () => {
-    authService.logout();
+    // authService.logout(); // (Nếu bạn có API logout)
     setCurrentUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('accessToken');
   };
 
   // Cập nhật localStorage khi currentUser thay đổi
@@ -44,8 +58,9 @@ export const AuthContextProvider = ({ children }) => {
     if (currentUser) {
       localStorage.setItem('user', JSON.stringify(currentUser));
     } else {
-      localStorage.removeItem('user');
-      localStorage.removeItem('accessToken');
+       // Đảm bảo xóa khi logout
+       localStorage.removeItem('user');
+       localStorage.removeItem('accessToken');
     }
   }, [currentUser]);
 
@@ -57,6 +72,7 @@ export const AuthContextProvider = ({ children }) => {
         logout,
         loading,
         error
+        // Không cần truyền 'setCurrentUser' nếu chỉ login/logout mới thay đổi
       }}
     >
       {children}
@@ -65,7 +81,6 @@ export const AuthContextProvider = ({ children }) => {
 };
 
 // 3. Tạo Hook (Để component con sử dụng)
-// (Đây là phiên bản ĐÚNG, chỉ có MỘT phiên bản)
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
