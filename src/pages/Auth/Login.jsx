@@ -1,143 +1,125 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { authService } from '../../services/auth.service';
-import { useAuth } from '../../context/AuthContext';
-import './Login.css';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Plane, Eye, EyeOff } from "lucide-react";
+import { authService } from "../../services/auth.service";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-  const [errors, setErrors] = useState({});
+
+  const [email, setEmail] = useState("");
+  const [pw, setPw] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
+    setError("");
     setLoading(true);
     try {
-      const response = await authService.login(formData);
-      login(response.data);
-
-      // Redirect based on user role
-      const roles = response.data.user.roles;
-      if (roles.includes('ADMIN')) {
-        navigate('/admin/dashboard');
-      } else if (roles.includes('OWNER')) {
-        navigate('/owner/dashboard');
-      } else {
-        navigate('/');
-      }
-    } catch (error) {
-      setErrors({
-        general: error.response?.data?.message || 'Login failed. Please check your credentials.'
-      });
+      const res = await authService.login(email.trim(), pw);
+      const { token } = res.data;
+      localStorage.setItem("accessToken", token);
+      navigate("/");
+    } catch (err) {
+      setError(err.response?.data?.message || "Đăng nhập thất bại. Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <h2>Welcome Back</h2>
-          <p>Sign in to continue to Smart Booking</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#696cff] via-blue-500 to-indigo-600 overflow-hidden">
+      <div className="absolute inset-0">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-white/10 blur-3xl rounded-full animate-pulse"></div>
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-300/20 blur-3xl rounded-full animate-pulse delay-2000"></div>
+      </div>
+
+      <div className="relative z-10 flex w-[900px] h-[560px] bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden animate-fadeIn">
+        <div
+          className="hidden lg:flex w-1/2 bg-cover bg-center relative"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80')",
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+          <div className="absolute bottom-10 left-8 text-white">
+            <h1 className="text-3xl font-bold">TravelMate</h1>
+            <p className="text-sm text-gray-200 max-w-xs mt-1">
+              Trải nghiệm du lịch thông minh & trọn vẹn.
+            </p>
+          </div>
         </div>
 
-        {errors.general && (
-          <div className="alert alert-error">
-            {errors.general}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className={errors.email ? 'error' : ''}
-              placeholder="Enter your email"
-            />
-            {errors.email && <span className="error-message">{errors.email}</span>}
+        <div className="w-full lg:w-1/2 flex flex-col justify-center items-center px-10 py-8">
+          <img src="/assets/logo/travelmate_logo.png" alt="TravelMate" className="h-14 mb-6 animate-float" />
+          <div className="flex items-center mb-4">
+            <Plane className="text-[#696cff] mr-2" size={26} />
+            <h2 className="text-2xl font-bold text-gray-800">Đăng nhập</h2>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className={errors.password ? 'error' : ''}
-              placeholder="Enter your password"
-            />
-            {errors.password && <span className="error-message">{errors.password}</span>}
-          </div>
+          <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4">
+            {error && <p className="text-red-500 text-sm">{error}</p>}
 
-          <div className="form-options">
-            <label className="remember-me">
-              <input type="checkbox" />
-              <span>Remember me</span>
-            </label>
-            <Link to="/forgot-password" className="forgot-password">
-              Forgot Password?
+            <div>
+              <label className="text-sm text-gray-600 mb-1 block">Email</label>
+              <input
+                autoFocus
+                inputMode="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#696cff] focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-600 mb-1 block">Mật khẩu</label>
+              <div className="relative">
+                <input
+                  type={showPw ? "text" : "password"}
+                  placeholder="Nhập mật khẩu của bạn"
+                  value={pw}
+                  onChange={(e) => setPw(e.target.value)}
+                  required
+                  className="w-full pr-11 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#696cff] focus:outline-none"
+                />
+                <button
+                  type="button"
+                  aria-label={showPw ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  onClick={() => setShowPw((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPw ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-between text-sm text-gray-600">
+              <Link to="/forgot-password" className="text-[#696cff] hover:underline">
+                Quên mật khẩu?
+              </Link>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full bg-[#696cff] text-white py-2.5 rounded-lg font-semibold transition-all ${
+                loading ? "opacity-70 cursor-not-allowed" : "hover:bg-[#5853e0] shadow-sm hover:shadow-md"
+              }`}
+            >
+              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+            </button>
+          </form>
+
+          <p className="text-gray-600 text-sm mt-5">
+            Chưa có tài khoản?{" "}
+            <Link to="/register" className="text-[#696cff] hover:underline font-medium">
+              Đăng ký ngay
             </Link>
-          </div>
-
-          <button 
-            type="submit" 
-            className="btn-login" 
-            disabled={loading}
-          >
-            {loading ? 'Signing In...' : 'Sign In'}
-          </button>
-        </form>
-
-        <div className="login-footer">
-          <p>
-            Don't have an account? 
-            <Link to="/register"> Create Account</Link>
           </p>
         </div>
       </div>

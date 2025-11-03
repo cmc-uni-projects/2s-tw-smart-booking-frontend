@@ -1,70 +1,74 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/auth.service';
+import axios from 'axios';
 
-const AuthContext = createContext(null);
+// 1. Tạo Context
+export const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+// 2. Tạo Provider (Component cha)
+export const AuthContextProvider = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState(
+    JSON.parse(localStorage.getItem('user')) || null
+  );
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    // Check if user is logged in on mount
-    const currentUser = authService.getCurrentUser();
-    const token = authService.getAccessToken();
-    
-    if (currentUser && token) {
-      setUser(currentUser);
+  const login = async (email, password) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await authService.login({ email, password });
+      if (res.success && res.data) {
+        setCurrentUser(res.data.user);
+        // authService đã tự lưu vào localStorage
+        return true;
+      } else {
+        setError(res.message || 'Login failed');
+        return false;
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Login failed');
+      return false;
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  }, []);
-
-  const login = (loginData) => {
-    setUser(loginData.user);
   };
 
   const logout = () => {
     authService.logout();
-    setUser(null);
+    setCurrentUser(null);
   };
 
-  const updateUser = (userData) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-  };
-
-  const isAuthenticated = () => {
-    return !!user && !!authService.getAccessToken();
-  };
-
-  const hasRole = (role) => {
-    return user?.roles?.includes(role) || false;
-  };
-
-  const hasAnyRole = (roles) => {
-    return roles.some(role => hasRole(role));
-  };
-
-  const value = {
-    user,
-    loading,
-    login,
-    logout,
-    updateUser,
-    isAuthenticated,
-    hasRole,
-    hasAnyRole
-  };
+  // Cập nhật localStorage khi currentUser thay đổi
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('user', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
+    }
+  }, [currentUser]);
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        currentUser,
+        login,
+        logout,
+        loading,
+        error
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
+// 3. Tạo Hook (Để component con sử dụng)
+// (Đây là phiên bản ĐÚNG, chỉ có MỘT phiên bản)
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

@@ -1,207 +1,173 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { authService } from '../../services/auth.service';
-import './Register.css';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { UserPlus, Eye, EyeOff } from "lucide-react";
+import { authService } from "../../services/auth.service";
 
 const Register = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    phoneNumber: ''
+  const [form, setForm] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phoneNumber: "",
   });
-  const [errors, setErrors] = useState({});
+  const [showPw, setShowPw] = useState(false);
+  const [showPw2, setShowPw2] = useState(false);
+  const [error, setError] = useState("");
+  const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when user types
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
+  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
-    } else if (formData.fullName.length < 2) {
-      newErrors.fullName = 'Full name must be at least 2 characters';
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
-    }
-
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (!passwordRegex.test(formData.password)) {
-      newErrors.password = 'Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character';
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    if (formData.phoneNumber) {
-      const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/;
-      if (!phoneRegex.test(formData.phoneNumber)) {
-        newErrors.phoneNumber = 'Invalid phone number format';
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-
-    if (!validateForm()) {
+    setError("");
+    setMsg("");
+    if (form.password !== form.confirmPassword) {
+      setError("Mật khẩu xác nhận không khớp!");
       return;
     }
-
     setLoading(true);
     try {
-      await authService.register(formData);
-      setSuccessMessage('Registration successful! Please check your email to verify your account.');
-      setFormData({
-        fullName: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        phoneNumber: ''
-      });
-      
-      // Redirect to login after 3 seconds
-      setTimeout(() => {
-        navigate('/login');
-      }, 3000);
-    } catch (error) {
-      setErrors({
-        general: error.response?.data?.message || 'Registration failed. Please try again.'
-      });
+      await authService.register(
+        form.fullName.trim(),
+        form.email.trim(),
+        form.password,
+        form.confirmPassword,
+        form.phoneNumber.trim()
+      );
+      setMsg("🎉 Đăng ký thành công! Hãy kiểm tra email để xác minh tài khoản.");
+      setTimeout(() => navigate("/login"), 2500);
+    } catch (err) {
+      setError(err.response?.data?.message || "Đăng ký thất bại, vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="register-container">
-      <div className="register-card">
-        <div className="register-header">
-          <h2>Create Account</h2>
-          <p>Join Smart Booking today</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 via-[#696cff] to-indigo-600 overflow-hidden">
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-white/10 blur-3xl rounded-full animate-pulse"></div>
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-300/20 blur-3xl rounded-full animate-pulse delay-1000"></div>
+      </div>
+
+      <div className="relative z-10 flex w-[900px] h-[560px] bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden animate-fadeIn">
+        <div
+          className="hidden lg:flex w-1/2 bg-cover bg-center relative"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80')",
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+          <div className="absolute bottom-10 left-8 text-white">
+            <h1 className="text-3xl font-bold">TravelMate</h1>
+            <p className="text-sm text-gray-200 max-w-xs mt-1">
+              Tạo tài khoản để bắt đầu hành trình thông minh.
+            </p>
+          </div>
         </div>
 
-        {successMessage && (
-          <div className="alert alert-success">
-            {successMessage}
+        <div className="w-full lg:w-1/2 flex flex-col justify-center items-center px-10 py-8">
+          <img src="/assets/logo/travelmate_logo.png" alt="TravelMate" className="h-14 mb-6 animate-float" />
+          <div className="flex items-center mb-4">
+            <UserPlus className="text-[#696cff] mr-2" size={26} />
+            <h2 className="text-2xl font-bold text-gray-800">Đăng ký tài khoản</h2>
           </div>
-        )}
 
-        {errors.general && (
-          <div className="alert alert-error">
-            {errors.general}
-          </div>
-        )}
+          <form onSubmit={onSubmit} className="w-full max-w-sm space-y-3">
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+            {msg && <p className="text-green-600 text-sm">{msg}</p>}
 
-        <form onSubmit={handleSubmit} className="register-form">
-          <div className="form-group">
-            <label htmlFor="fullName">Full Name *</label>
             <input
-              type="text"
-              id="fullName"
               name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
-              className={errors.fullName ? 'error' : ''}
-              placeholder="Enter your full name"
+              placeholder="Họ và tên (VD: Nguyễn Văn A)"
+              value={form.fullName}
+              onChange={onChange}
+              required
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#696cff]"
             />
-            {errors.fullName && <span className="error-message">{errors.fullName}</span>}
-          </div>
 
-          <div className="form-group">
-            <label htmlFor="email">Email Address *</label>
             <input
-              type="email"
-              id="email"
               name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className={errors.email ? 'error' : ''}
-              placeholder="Enter your email"
+              type="email"
+              inputMode="email"
+              placeholder="Email để nhận xác minh (VD: you@example.com)"
+              value={form.email}
+              onChange={onChange}
+              required
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#696cff]"
             />
-            {errors.email && <span className="error-message">{errors.email}</span>}
-          </div>
 
-          <div className="form-group">
-            <label htmlFor="phoneNumber">Phone Number</label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="relative">
+                <input
+                  name="password"
+                  type={showPw ? "text" : "password"}
+                  placeholder="Mật khẩu từ 8 ký tự"
+                  value={form.password}
+                  onChange={onChange}
+                  required
+                  className="w-full pr-11 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#696cff]"
+                />
+                <button
+                  type="button"
+                  aria-label={showPw ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  onClick={() => setShowPw((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPw ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+
+              <div className="relative">
+                <input
+                  name="confirmPassword"
+                  type={showPw2 ? "text" : "password"}
+                  placeholder="Nhập lại mật khẩu"
+                  value={form.confirmPassword}
+                  onChange={onChange}
+                  required
+                  className="w-full pr-11 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#696cff]"
+                />
+                <button
+                  type="button"
+                  aria-label={showPw2 ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  onClick={() => setShowPw2((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPw2 ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </div>
+
             <input
-              type="tel"
-              id="phoneNumber"
               name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              className={errors.phoneNumber ? 'error' : ''}
-              placeholder="Enter your phone number"
+              inputMode="tel"
+              placeholder="Số điện thoại (tùy chọn)"
+              value={form.phoneNumber}
+              onChange={onChange}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#696cff]"
             />
-            {errors.phoneNumber && <span className="error-message">{errors.phoneNumber}</span>}
-          </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password *</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className={errors.password ? 'error' : ''}
-              placeholder="Create a password"
-            />
-            {errors.password && <span className="error-message">{errors.password}</span>}
-          </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full bg-[#696cff] text-white py-2.5 rounded-lg font-semibold transition-all ${
+                loading ? "opacity-70 cursor-not-allowed" : "hover:bg-[#5853e0] shadow-sm hover:shadow-md"
+              }`}
+            >
+              {loading ? "Đang đăng ký..." : "Đăng ký"}
+            </button>
+          </form>
 
-          <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password *</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              className={errors.confirmPassword ? 'error' : ''}
-              placeholder="Confirm your password"
-            />
-            {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
-          </div>
-
-          <button 
-            type="submit" 
-            className="btn-register" 
-            disabled={loading}
-          >
-            {loading ? 'Creating Account...' : 'Create Account'}
-          </button>
-        </form>
-
-        <div className="register-footer">
-          <p>
-            Already have an account? 
-            <Link to="/login"> Sign In</Link>
+          <p className="text-gray-600 text-sm mt-5">
+            Đã có tài khoản?{" "}
+            <Link to="/login" className="text-[#696cff] hover:underline font-medium">
+              Đăng nhập
+            </Link>
           </p>
         </div>
       </div>
