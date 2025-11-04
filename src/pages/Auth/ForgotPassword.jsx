@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, CheckCircle2, ArrowLeft } from "lucide-react";
 import { authService } from "../../services/auth.service";
+import Button from "../../components/common/Button/Button";
+import TextField from "../../components/common/Input/TextField";
+import Badge from "../../components/common/Badge/Badge";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -56,57 +59,49 @@ const ForgotPassword = () => {
           <div className="text-center">
             <CheckCircle2 className="text-green-500 w-14 h-14 mx-auto mb-4" />
             <p className="text-gray-700 text-sm">{message}</p>
-            <Link
-              to="/login"
-              className="inline-block mt-6 bg-[#28A9E0] text-white px-5 py-2 rounded-lg font-semibold hover:bg-[#1b8dc4] transition-all"
-            >
-              Quay lại đăng nhập
+            <Link to="/login" className="mt-6 inline-block">
+              <Button>
+                Quay lại đăng nhập
+              </Button>
             </Link>
           </div>
         ) : (
           <form onSubmit={onSubmit} className="space-y-4">
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Địa chỉ email
-              </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#28A9E0]"
-                />
-                <Mail
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                  size={18}
-                />
+            {error && (
+              <div className="text-center">
+                <Badge color="danger">{error}</Badge>
               </div>
-            </div>
+            )}
 
-            <button
+            <TextField
+              label="Địa chỉ email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              icon={<Mail size={18} />}
+            />
+
+            <Button
               type="submit"
               disabled={loading}
-              className={`w-full bg-[#28A9E0] text-white py-2.5 rounded-lg font-semibold transition-all ${
-                loading
-                  ? "opacity-70 cursor-not-allowed"
-                  : "hover:bg-[#1b8dc4] shadow-sm hover:shadow-md"
-              }`}
+              isLoading={loading}
+              className="w-full"
             >
               {loading ? "Đang gửi..." : "Gửi liên kết đặt lại"}
-            </button>
+            </Button>
 
             {/* Nút quay lại */}
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={() => navigate("/login")}
-              className="w-full flex items-center justify-center gap-2 mt-2 text-[#006494] border border-[#006494]/50 py-2.5 rounded-lg font-medium hover:bg-[#006494]/10 transition-all"
+              className="w-full"
+              leftIcon={<ArrowLeft size={18} />}
             >
-              <ArrowLeft size={18} /> Quay lại đăng nhập
-            </button>
+              Quay lại đăng nhập
+            </Button>
           </form>
         )}
       </div>

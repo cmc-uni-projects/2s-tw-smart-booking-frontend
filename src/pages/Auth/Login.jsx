@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Plane, Eye, EyeOff, Facebook, Chrome } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import Button from "../../components/common/Button/Button";
+import TextField from "../../components/common/Input/TextField";
+import Badge from "../../components/common/Badge/Badge";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -54,19 +57,21 @@ const Login = () => {
 
           <form onSubmit={onSubmit} className="space-y-4">
             {authError && (
-              <p className="text-red-500 text-sm text-center">{authError}</p>
+              <div className="text-center">
+                <Badge color="danger">{authError}</Badge>
+              </div>
             )}
 
-            <input
+            <TextField
+              label="Email của bạn"
               type="email"
-              placeholder="Email của bạn"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#28A9E0]"
             />
 
             <div className="relative">
+              {/* Giữ nguyên input này vì TextField không hỗ trợ toggle */}
               <input
                 type={showPw ? "text" : "password"}
                 placeholder="Mật khẩu"
@@ -90,17 +95,14 @@ const Login = () => {
               </Link>
             </div>
 
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className={`w-full bg-[#28A9E0] text-white py-3 rounded-lg font-semibold transition-all ${
-                loading
-                  ? "opacity-70 cursor-not-allowed"
-                  : "hover:bg-[#1b8dc4] shadow-sm hover:shadow-md"
-              }`}
+              isLoading={loading}
+              className="w-full"
             >
               {loading ? "Đang đăng nhập..." : "Đăng nhập"}
-            </button>
+            </Button>
           </form>
 
           <p className="text-gray-600 text-sm mt-6 text-center">
@@ -121,6 +123,7 @@ const Login = () => {
           </h3>
 
           <div className="flex flex-col gap-4 w-full max-w-xs">
+            {/* Giữ nguyên button này vì styling đặc thù */}
             <button
               onClick={handleGoogleLogin}
               className="flex items-center justify-center gap-2 py-2.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-all"
@@ -129,6 +132,7 @@ const Login = () => {
               <span className="text-gray-700 font-medium text-sm">Tiếp tục với Google</span>
             </button>
 
+            {/* Giữ nguyên button này vì styling đặc thù */}
             <button
               onClick={handleFacebookLogin}
               className="flex items-center justify-center gap-2 py-2.5 bg-[#1877F2] text-white rounded-lg hover:bg-[#145db2] transition-all"
