@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { UserPlus, Eye, EyeOff, Facebook, Chrome } from "lucide-react";
 import { authService } from "../../services/auth.service";
+import Button from "../../components/common/Button/Button";
+import TextField from "../../components/common/Input/TextField";
+import Badge from "../../components/common/Badge/Badge";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -75,30 +78,37 @@ const Register = () => {
           </h2>
 
           <form onSubmit={onSubmit} className="space-y-4">
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-            {msg && <p className="text-green-600 text-sm text-center">{msg}</p>}
+            {error && (
+              <div className="text-center">
+                <Badge color="danger">{error}</Badge>
+              </div>
+            )}
+            {msg && (
+              <div className="text-center">
+                <Badge color="success">{msg}</Badge>
+              </div>
+            )}
 
-            <input
+            <TextField
+              label="Họ và tên"
               name="fullName"
               type="text"
-              placeholder="Họ và tên"
               value={form.fullName}
               onChange={onChange}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#28A9E0]"
             />
 
-            <input
+            <TextField
+              label="you@example.com"
               name="email"
               type="email"
-              placeholder="you@example.com"
               value={form.email}
               onChange={onChange}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#28A9E0]"
             />
 
             <div className="relative">
+              {/* Giữ nguyên input này vì TextField không hỗ trợ toggle */}
               <input
                 name="password"
                 type={showPw ? "text" : "password"}
@@ -118,6 +128,7 @@ const Register = () => {
             </div>
 
             <div className="relative">
+              {/* Giữ nguyên input này vì TextField không hỗ trợ toggle */}
               <input
                 name="confirmPassword"
                 type={showPw2 ? "text" : "password"}
@@ -136,17 +147,14 @@ const Register = () => {
               </button>
             </div>
 
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className={`w-full bg-[#28A9E0] text-white py-3 rounded-lg font-semibold transition-all ${
-                loading
-                  ? "opacity-70 cursor-not-allowed"
-                  : "hover:bg-[#1b8dc4] shadow-sm hover:shadow-md"
-              }`}
+              isLoading={loading}
+              className="w-full"
             >
               {loading ? "Đang đăng ký..." : "Đăng ký tài khoản"}
-            </button>
+            </Button>
           </form>
 
           <p className="text-gray-600 text-sm mt-6 text-center">
@@ -167,6 +175,7 @@ const Register = () => {
           </h3>
 
           <div className="flex flex-col gap-4 w-full max-w-xs">
+            {/* Giữ nguyên button này vì styling đặc thù */}
             <button
               onClick={handleGoogleLogin}
               className="flex items-center justify-center gap-2 py-2.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-all"
@@ -175,6 +184,7 @@ const Register = () => {
               <span className="text-gray-700 font-medium text-sm">Tiếp tục với Google</span>
             </button>
 
+            {/* Giữ nguyên button này vì styling đặc thù */}
             <button
               onClick={handleFacebookLogin}
               className="flex items-center justify-center gap-2 py-2.5 bg-[#1877F2] text-white rounded-lg hover:bg-[#145db2] transition-all"

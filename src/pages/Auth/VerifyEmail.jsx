@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { authService } from "../../services/auth.service";
 import { CheckCircle2, XCircle, Loader2, ArrowLeft } from "lucide-react";
+import Button from "../../components/common/Button/Button";
 
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
@@ -76,11 +77,10 @@ const VerifyEmail = () => {
             <CheckCircle2 className="text-green-500 mx-auto mb-4" size={52} />
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Xác minh thành công!</h2>
             <p className="text-gray-600 text-sm mb-6">{message}</p>
-            <Link
-              to="/login"
-              className="inline-block bg-[#28A9E0] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-[#1b8dc4] transition-all"
-            >
-              Đăng nhập ngay
+            <Link to="/login" className="inline-block">
+              <Button>
+                Đăng nhập ngay
+              </Button>
             </Link>
           </>
         ) : (
@@ -90,19 +90,20 @@ const VerifyEmail = () => {
             <p className="text-gray-600 text-sm mb-6">{message}</p>
 
             <div className="flex flex-col gap-3 items-center">
-              <Link
-                to="/register"
-                className="w-full bg-[#28A9E0] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-[#1b8dc4] transition-all"
-              >
-                Đăng ký lại
+              <Link to="/register" className="w-full">
+                <Button className="w-full">
+                  Đăng ký lại
+                </Button>
               </Link>
 
-              <button
+              <Button
+                variant="outline"
                 onClick={() => navigate("/login")}
-                className="w-full flex items-center justify-center gap-2 text-[#006494] border border-[#006494]/50 py-2.5 rounded-lg font-medium hover:bg-[#006494]/10 transition-all"
+                className="w-full"
+                leftIcon={<ArrowLeft size={18} />}
               >
-                <ArrowLeft size={18} /> Quay lại đăng nhập
-              </button>
+                Quay lại đăng nhập
+              </Button>
             </div>
           </>
         )}
