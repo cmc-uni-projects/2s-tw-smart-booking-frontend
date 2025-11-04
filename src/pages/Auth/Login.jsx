@@ -1,11 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Facebook, Chrome } from "lucide-react";
+import { Plane, Eye, EyeOff, Facebook, Chrome } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import Button from "../../components/common/Button/Button";
-import TextField from "../../components/common/Input/TextField";
-import PasswordField from "../../components/common/Input/PasswordField"; // MỚI
-import Badge from "../../components/common/Badge/Badge";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,7 +9,7 @@ const Login = () => {
 
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
-  // const [showPw, setShowPw] = useState(false); // Không cần nữa
+  const [showPw, setShowPw] = useState(false);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -58,25 +54,35 @@ const Login = () => {
 
           <form onSubmit={onSubmit} className="space-y-4">
             {authError && (
-              <div className="text-center">
-                <Badge color="danger">{authError}</Badge>
-              </div>
+              <p className="text-red-500 text-sm text-center">{authError}</p>
             )}
 
-            <TextField
-              label="Email của bạn"
+            <input
               type="email"
+              placeholder="Email của bạn"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required // THÊM REQUIRED
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#28A9E0]"
             />
 
-            <PasswordField
-              label="Mật khẩu"
-              value={pw}
-              onChange={(e) => setPw(e.target.value)}
-              required // THÊM REQUIRED
-            />
+            <div className="relative">
+              <input
+                type={showPw ? "text" : "password"}
+                placeholder="Mật khẩu"
+                value={pw}
+                onChange={(e) => setPw(e.target.value)}
+                required
+                className="w-full pr-10 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#28A9E0]"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showPw ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
 
             <div className="flex justify-end text-sm text-gray-600">
               <Link to="/forgot-password" className="text-[#006494] hover:underline">
@@ -84,15 +90,17 @@ const Login = () => {
               </Link>
             </div>
 
-            <Button
+            <button
               type="submit"
               disabled={loading}
-              isLoading={loading}
-              className="w-full"
-              variant="primary" // CẬP NHẬT VARIANT
+              className={`w-full bg-[#28A9E0] text-white py-3 rounded-lg font-semibold transition-all ${
+                loading
+                  ? "opacity-70 cursor-not-allowed"
+                  : "hover:bg-[#1b8dc4] shadow-sm hover:shadow-md"
+              }`}
             >
               {loading ? "Đang đăng nhập..." : "Đăng nhập"}
-            </Button>
+            </button>
           </form>
 
           <p className="text-gray-600 text-sm mt-6 text-center">
@@ -103,14 +111,16 @@ const Login = () => {
           </p>
         </div>
 
-        {/* ... (Phần social login bên phải giữ nguyên) ... */}
+        {/* Vertical divider */}
         <div className="hidden lg:flex w-px bg-gray-300/30 my-10"></div>
+
+        {/* Right side - Social login */}
         <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-10 bg-white/80">
           <h3 className="text-xl font-semibold text-gray-800 mb-6">
             Đăng nhập bằng mạng xã hội
           </h3>
+
           <div className="flex flex-col gap-4 w-full max-w-xs">
-            {/* (Giữ nguyên các nút social) */}
             <button
               onClick={handleGoogleLogin}
               className="flex items-center justify-center gap-2 py-2.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-all"
@@ -118,6 +128,7 @@ const Login = () => {
               <Chrome className="text-[#db4437]" size={20} />
               <span className="text-gray-700 font-medium text-sm">Tiếp tục với Google</span>
             </button>
+
             <button
               onClick={handleFacebookLogin}
               className="flex items-center justify-center gap-2 py-2.5 bg-[#1877F2] text-white rounded-lg hover:bg-[#145db2] transition-all"
@@ -126,8 +137,17 @@ const Login = () => {
               <span className="font-medium text-sm">Tiếp tục với Facebook</span>
             </button>
           </div>
+
           <p className="text-gray-500 text-xs mt-6 text-center max-w-xs leading-snug">
-            {/* ... (Giữ nguyên text) ... */}
+            Bằng cách đăng nhập, bạn đồng ý với{" "}
+            <span className="text-[#006494] hover:underline cursor-pointer">
+              Điều khoản dịch vụ
+            </span>{" "}
+            và{" "}
+            <span className="text-[#006494] hover:underline cursor-pointer">
+              Chính sách bảo mật
+            </span>{" "}
+            của TravelMate.
           </p>
         </div>
       </div>
