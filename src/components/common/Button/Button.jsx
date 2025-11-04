@@ -1,53 +1,47 @@
-import React from "react";
-import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
-
 export default function Button({
   children,
   variant = "primary",
   size = "md",
-  disabled = false,
+  fullWidth = false,
   isLoading = false,
   leftIcon,
   rightIcon,
+  className = "",
   ...props
 }) {
   const base =
-    "inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 select-none active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[rgb(40,169,224,0.3)]";
+    "inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[rgb(40,169,224,0.2)] disabled:opacity-70 disabled:cursor-not-allowed";
+  
+  const sizes = {
+    sm: "px-3 py-1.5 text-sm",
+    md: "px-4 py-2 text-sm",
+    lg: "px-5 py-3 text-base",
+  };
 
   const variants = {
-    primary:
-      "bg-[rgb(40,169,224)] hover:bg-[rgb(30,140,190)] text-white shadow-sm hover:shadow-md",
+    primary: "bg-[rgb(40,169,224)] text-white hover:bg-[rgb(26,140,189)]",
     outline:
-      "border border-[rgb(40,169,224)] text-[rgb(40,169,224)] hover:bg-[rgb(40,169,224)] hover:text-white",
+      "border border-[rgb(40,169,224)] text-[rgb(40,169,224)] bg-white hover:bg-[rgb(40,169,224,0.08)]",
     ghost:
-      "text-[rgb(40,169,224)] hover:bg-[rgb(40,169,224,0.1)]",
-    disabled:
-      "bg-gray-300 text-gray-500 cursor-not-allowed opacity-70",
+      "text-[rgb(40,169,224)] hover:bg-[rgb(40,169,224,0.08)]",
   };
-
-  const sizes = {
-    sm: "text-sm px-3 py-1.5 gap-1",
-    md: "text-base px-5 py-2.5 gap-2",
-    lg: "text-lg px-6 py-3 gap-2.5",
-  };
-
-  const cls = `${base} ${variants[disabled ? "disabled" : variant]} ${sizes[size]}`;
 
   return (
-    <motion.button
-      whileTap={!disabled ? { scale: 0.97 } : {}}
-      disabled={disabled || isLoading}
-      className={cls}
+    <button
       {...props}
+      className={`${base} ${sizes[size]} ${variants[variant]} ${
+        fullWidth ? "w-full" : ""
+      } ${className}`}
     >
       {isLoading ? (
-        <Loader2 className="animate-spin mr-2" size={18} />
+        <span className="animate-pulse">Đang xử lý...</span>
       ) : (
-        leftIcon && <span className="mr-2">{leftIcon}</span>
+        <>
+          {leftIcon && <span className="mr-2">{leftIcon}</span>}
+          {children}
+          {rightIcon && <span className="ml-2">{rightIcon}</span>}
+        </>
       )}
-      {children}
-      {rightIcon && !isLoading && <span className="ml-2">{rightIcon}</span>}
-    </motion.button>
+    </button>
   );
 }
