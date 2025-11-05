@@ -1,5 +1,7 @@
+// src/pages/Customer/Home/HotDestinations.jsx
 import React from "react";
-import Card from "@/components/common/Card/Card";
+// ✅ Import component con mới
+import DestinationCard from "@/components/common/Card/DestinationCard";
 
 const HotDestinations = () => {
   const destinations = [
@@ -7,7 +9,7 @@ const HotDestinations = () => {
       id: 1,
       name: "Đà Nẵng",
       image:
-        "https://images.unsplash.com/photo-1603331242992-3a3f2e93b6ce?auto=format&fit=crop&w=900&q=80",
+        "https://tourism.danang.vn/wp-content/uploads/2023/02/tour-du-lich-da-nang-1.jpg",
       hotels: 320,
     },
     {
@@ -21,22 +23,15 @@ const HotDestinations = () => {
       id: 3,
       name: "Hà Nội",
       image:
-        "https://images.unsplash.com/photo-1542370285-b8eb8317691a?auto=format&fit=crop&w=900&q=80",
+        "https://bvhttdl.mediacdn.vn/291773308735864832/2024/3/8/webdscf2302-1709868801363-1709868804633548541249.jpg",
       hotels: 480,
     },
     {
       id: 4,
       name: "Đà Lạt",
       image:
-        "https://images.unsplash.com/photo-1617704716324-0dcb7e4a6888?auto=format&fit=crop&w=900&q=80",
+        "https://media.vneconomy.vn/images/upload/2023/07/06/1688465738-grasp-the-rainy-season-travel-tips-to-da-lat.jpg",
       hotels: 260,
-    },
-    {
-      id: 5,
-      name: "Hồ Chí Minh",
-      image:
-        "https://images.unsplash.com/photo-1596526131083-e8c633c948d3?auto=format&fit=crop&w=900&q=80",
-      hotels: 510,
     },
   ];
 
@@ -50,47 +45,11 @@ const HotDestinations = () => {
           Khám phá những thành phố du lịch được yêu thích nhất tại Việt Nam 🌏
         </p>
 
-        {/* Grid layout rõ ràng */}
+        {/* ✅ Grid layout đã được dọn dẹp */}
         <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {destinations.map((item) => (
-            <Card
-              key={item.id}
-              className="group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-xl border border-gray-100 transition-all bg-white"
-            >
-              {/* Hình ảnh điểm đến */}
-              <div className="relative w-full h-56 overflow-hidden">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                {/* Overlay nhẹ dưới để dễ đọc chữ */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent group-hover:opacity-70 transition-all"></div>
-
-                {/* Tên điểm đến */}
-                <div className="absolute bottom-4 left-4 text-left">
-                  <h3 className="text-xl font-bold text-white drop-shadow">
-                    {item.name}
-                  </h3>
-                  <p className="text-gray-200 text-sm">
-                    {item.hotels.toLocaleString("vi-VN")} khách sạn
-                  </p>
-                </div>
-              </div>
-
-              {/* Phần dưới card */}
-              <div className="p-4 flex justify-between items-center">
-                <p className="text-gray-600 text-sm">
-                  <span className="text-[rgb(40,169,224)] font-semibold">
-                    Ưu đãi hot
-                  </span>{" "}
-                  đang chờ bạn!
-                </p>
-                <button className="px-3 py-1 text-sm font-medium bg-[rgb(40,169,224)] text-white rounded-lg hover:bg-[#1b98d6] transition">
-                  Xem ngay
-                </button>
-              </div>
-            </Card>
+            // Gọi component con cho mỗi item
+            <DestinationCard key={item.id} item={item} />
           ))}
         </div>
       </div>
