@@ -9,6 +9,9 @@ import ResetPassword from "./pages/Auth/ResetPassword.jsx";
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
 import './styles/global.css';
 
+import About from "@/pages/Customer/About/About.jsx";
+
+
 // Component trang chủ tạm thời để test
 const HomePage = () => {
   const { currentUser, logout } = useAuth();
@@ -58,7 +61,12 @@ function App() {
         path="/reset-password/:token" 
         element={<ResetPassword />} 
       />
-      
+        {/*tới about */}
+        <Route
+            path="/about"
+            element={<About />}
+        />
+
       {/* CÁC ĐƯỜNG DẪN ĐƯỢC BẢO VỆ (PROTECTED ROUTES) */}
       <Route 
         path="/"
