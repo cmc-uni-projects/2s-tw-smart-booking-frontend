@@ -12,6 +12,14 @@ const dirname =
 
 export default defineConfig({
   plugins: [react()],
+
+  // thêm alias để dùng "@/"
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+
   server: {
     proxy: {
       '/api': {
