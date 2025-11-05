@@ -1,7 +1,9 @@
+// src/layouts/CustomerLayout/Header.jsx
+
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  ChevronDown, // Đã xóa 'Globe' vì không cần nữa
+  ChevronDown,
   User,
   LogOut,
   History,
@@ -10,25 +12,21 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import Button from "../../components/common/Button/Button";
 import ConfirmModal from "../../components/common/Modal/ConfirmModal";
-// ✅ (Yêu cầu 1) Import component mới
 import LanguageSwitcher from "./LanguageSwitcher";
 
 const Header = () => {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
   
-  // State cho dropdowns (ĐÃ XÓA langOpen)
   const [supportOpen, setSupportOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  // Refs (ĐÃ XÓA langRef)
   const supportRef = useRef(null);
   const profileRef = useRef(null);
 
-  // Xử lý click outside (ĐÃ XÓA logic của langRef)
   useEffect(() => {
     const handler = (e) => {
       if (
@@ -43,14 +41,12 @@ const Header = () => {
     return () => document.removeEventListener("click", handler);
   }, []);
 
-  // Xử lý header scroll effect
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Hàm này sẽ được gọi khi xác nhận đăng xuất
   const handleConfirmLogout = () => {
     logout();
     setProfileOpen(false);
@@ -58,8 +54,10 @@ const Header = () => {
     navigate("/login");
   };
   
-  // Class chung để đồng nhất styling cho các link nav
   const navLinkClass = "flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-[rgb(40,169,224)] transition-colors";
+  
+  // ✅ (YÊU CẦU CỦA BẠN) Class mới cho link trong dropdown hỗ trợ
+  const dropdownLinkClass = "block px-4 py-2 text-sm text-gray-700 hover:bg-[rgb(40,169,224)]/10 hover:text-[rgb(40,169,224)] transition-colors";
 
   return (
     <>
@@ -84,7 +82,6 @@ const Header = () => {
           {/* Nav */}
           <nav className="hidden lg:flex items-center gap-6">
             
-            {/* ✅ (Yêu cầu 1) Sử dụng Component LanguageSwitcher */}
             <LanguageSwitcher navLinkClass={navLinkClass} />
 
             {/* Khuyến mãi */}
@@ -109,14 +106,17 @@ const Header = () => {
                   <Link
                     to="/help"
                     onClick={() => setSupportOpen(false)}
-                    className="block px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                    // ✅ (YÊU CẦU CỦA BẠN) Cập nhật class
+                    className={dropdownLinkClass}
                   >
                     Trợ giúp
                   </Link>
                   <Link
-                    to="/contact"
+                    // ✅ (YÊU CẦU CỦA BẠN) Cập nhật link
+                    to="/about#contact" 
                     onClick={() => setSupportOpen(false)}
-                    className="block px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                    // ✅ (YÊU CẦU CỦA BẠN) Cập nhật class
+                    className={dropdownLinkClass}
                   >
                     Liên hệ với chúng tôi
                   </Link>
