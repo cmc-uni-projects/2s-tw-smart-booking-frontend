@@ -7,7 +7,6 @@ import FeaturedHotels from "./FeaturedHotels";
 import HotDestinations from "./HotDestinations";
 import PromotionBanner from "./PromotionBanner";
 import AIRecommendations from "./AIRecommendations";
-import PartnerSection from "./PartnerSection";
 import TestimonialSection from "./TestimonialSection";
 
 const HomePage = () => {
@@ -19,7 +18,6 @@ const HomePage = () => {
         <HotDestinations />
         <PromotionBanner />
         <AIRecommendations />
-        <PartnerSection />
         <TestimonialSection />
       </main>
     </CustomerLayout>
