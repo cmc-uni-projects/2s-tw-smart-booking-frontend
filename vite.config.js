@@ -3,7 +3,8 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { playwright } from '@vitest/browser-playwright';
+
+// ✅ Tính toán dirname an toàn (khi dùng ES Modules)
 const dirname =
   typeof __dirname !== 'undefined'
     ? __dirname
@@ -12,19 +13,20 @@ const dirname =
 export default defineConfig({
   plugins: [react()],
 
-  // thêm alias để dùng "@/"
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
-
+  // ✅ Proxy API backend (Spring Boot chạy ở cổng 8386)
   server: {
     proxy: {
       '/api': {
         target: 'http://localhost:8386',
         changeOrigin: true,
       },
+    },
+  },
+
+  // ✅ Alias cho import ngắn gọn
+  resolve: {
+    alias: {
+      '@': path.resolve(dirname, './src'),
     },
   },
 });
