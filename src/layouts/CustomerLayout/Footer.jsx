@@ -1,4 +1,7 @@
+// src/layouts/CustomerLayout/Footer.jsx
+
 import React from "react";
+import { Link } from "react-router-dom"; // ✅ 1. Import Link
 import { Facebook, Instagram, Mail, Phone } from "lucide-react";
 
 const Footer = () => {
@@ -19,24 +22,26 @@ const Footer = () => {
           <h4 className="font-semibold mb-3">Liên kết nhanh</h4>
           <ul className="space-y-2 text-sm">
             <li>
-              <a href="/" className="hover:underline">
+              {/* ✅ 2. Đổi <a> thành <Link> và href thành to */}
+              <Link to="/" className="hover:underline">
                 Trang chủ
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/hotels" className="hover:underline">
+              <Link to="/hotels" className="hover:underline">
                 Khách sạn
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/about" className="hover:underline">
+              <Link to="/about" className="hover:underline">
                 Giới thiệu
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/contact" className="hover:underline">
+              {/* ✅ 3. Đổi link "Liên hệ" */}
+              <Link to="/about#contact" className="hover:underline">
                 Liên hệ
-              </a>
+              </Link>
             </li>
           </ul>
         </div>

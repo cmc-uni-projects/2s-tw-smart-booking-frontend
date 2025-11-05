@@ -12,6 +12,7 @@ import "./styles/global.css";
 
 // Trang Home thật (Customer)
 import HomePage from "./pages/Customer/Home/HomePage.jsx"; 
+import About from "./pages/Customer/About/About.jsx"; // ✅ 1. Import trang About
 
 // Các trang sau đăng nhập (dashboard)
 import ProfilePage from "./pages/Customer/Profile/ProfilePage.jsx";
@@ -24,6 +25,8 @@ function App() {
     <Routes>
       {/* 🔹 PUBLIC ROUTES - KHÔNG CẦN ĐĂNG NHẬP */}
       <Route path="/" element={<HomePage />} />
+      <Route path="/about" element={<About />} /> {/* ✅ 2. Thêm Route cho /about */}
+      
       <Route
         path="/login"
         element={currentUser ? <Navigate to="/" replace /> : <Login />}
@@ -54,7 +57,6 @@ function App() {
         }
       />
 
-      {/* ❗ Fallback cho đường dẫn không tồn tại */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
