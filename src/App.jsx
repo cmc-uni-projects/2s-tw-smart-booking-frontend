@@ -12,11 +12,14 @@ import "./styles/global.css";
 
 // Trang Home thật (Customer)
 import HomePage from "./pages/Customer/Home/HomePage.jsx"; 
-import About from "./pages/Customer/About/About.jsx"; // ✅ 1. Import trang About
+import About from "./pages/Customer/About/About.jsx";
 
 // Các trang sau đăng nhập (dashboard)
 import ProfilePage from "./pages/Customer/Profile/ProfilePage.jsx";
 import BookingHistory from "./pages/Customer/Booking/BookingHistory.jsx";
+
+// ✅ THÊM MỚI
+import AdminRoutes from "./routes/AdminRoutes.jsx";
 
 function App() {
   const { currentUser } = useAuth();
@@ -25,7 +28,7 @@ function App() {
     <Routes>
       {/* 🔹 PUBLIC ROUTES - KHÔNG CẦN ĐĂNG NHẬP */}
       <Route path="/" element={<HomePage />} />
-      <Route path="/about" element={<About />} /> {/* ✅ 2. Thêm Route cho /about */}
+      <Route path="/about" element={<About />} />
       
       <Route
         path="/login"
@@ -37,7 +40,7 @@ function App() {
       />
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password/:token" element={<ResetPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* 🔐 PROTECTED ROUTES - CẦN ĐĂNG NHẬP */}
       <Route
@@ -53,6 +56,16 @@ function App() {
         element={
           <ProtectedRoute>
             <BookingHistory />
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* ✅ ADMIN ROUTES */}
+      <Route
+        path="/admin/*"
+        element={
+          <ProtectedRoute requiredRole="ADMIN">
+            <AdminRoutes />
           </ProtectedRoute>
         }
       />
