@@ -1,6 +1,6 @@
 /*
  * bquang016/smart_booking_system_frontend/Smart_Booking_System_Frontend-feature-login-reg/src/context/AuthContext.jsx
- * (Đã sửa lỗi)
+ * (Đã sửa lỗi và thêm hasRole)
  */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/auth.service';
@@ -13,32 +13,26 @@ export const AuthContextProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(
     JSON.parse(localStorage.getItem('user')) || null
   );
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // Sửa: nên là false ban đầu
   const [error, setError] = useState(null);
 
   const login = async (email, password) => {
     setLoading(true);
     setError(null);
     try {
-      // authService.login trả về response của axios (res)
       const res = await authService.login(email, password);
 
-      // Dữ liệu ApiResponse của backend nằm trong res.data
-      // Dữ liệu LoginResponse (chứa token + user) nằm trong res.data.data
       if (res.data.success && res.data.data) {
         const { user, accessToken } = res.data.data;
         
         setCurrentUser(user);
-        localStorage.setItem('accessToken', accessToken); // Lưu token
-        // useEffect bên dưới sẽ tự động lưu user
+        localStorage.setItem('accessToken', accessToken); 
         return true;
       } else {
-        // Trường hợp backend trả về success: false
         setError(res.data.message || 'Login failed');
         return false;
       }
     } catch (err) {
-      // Trường hợp axios ném lỗi (4xx, 5xx)
       setError(err.response?.data?.message || err.message || 'Login failed');
       return false;
     } finally {
@@ -47,18 +41,26 @@ export const AuthContextProvider = ({ children }) => {
   };
 
   const logout = () => {
-    // authService.logout(); // (Nếu bạn có API logout)
     setCurrentUser(null);
     localStorage.removeItem('user');
     localStorage.removeItem('accessToken');
   };
 
-  // Cập nhật localStorage khi currentUser thay đổi
+  // ✅ THÊM MỚI HÀM NÀY
+  // Kiểm tra xem user hiện tại có role được yêu cầu không
+  // Dựa trên LoginResponse.java, user.roles là một Set<String>
+  const hasRole = (role) => {
+    if (!currentUser || !currentUser.roles) {
+      return false;
+    }
+    return currentUser.roles.includes(role);
+  };
+
+
   useEffect(() => {
     if (currentUser) {
       localStorage.setItem('user', JSON.stringify(currentUser));
     } else {
-       // Đảm bảo xóa khi logout
        localStorage.removeItem('user');
        localStorage.removeItem('accessToken');
     }
@@ -71,8 +73,8 @@ export const AuthContextProvider = ({ children }) => {
         login,
         logout,
         loading,
-        error
-        // Không cần truyền 'setCurrentUser' nếu chỉ login/logout mới thay đổi
+        error,
+        hasRole // ✅ THÊM MỚI
       }}
     >
       {children}
