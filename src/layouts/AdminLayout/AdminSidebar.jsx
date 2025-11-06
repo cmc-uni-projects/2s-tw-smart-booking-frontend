@@ -10,9 +10,8 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Plane,
 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext"; // Dùng để logout
+import { useAuth } from "../../context/AuthContext";
 
 const AdminSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -29,7 +28,8 @@ const AdminSidebar = () => {
   ];
 
   const NavLink = ({ item }) => {
-    const isActive = location.pathname === item.path;
+    const isActive = location.pathname === item.path || (item.path !== "/admin" && location.pathname.startsWith(item.path));
+    
     return (
       <Link
         to={item.path}
@@ -40,7 +40,7 @@ const AdminSidebar = () => {
               ? "bg-[rgb(40,169,224)] text-white shadow-sm"
               : "text-gray-600 hover:bg-gray-100"
           }
-          ${collapsed ? "justify-center" : ""}`}
+          ${collapsed ? "justify-center" : ""}`} // <-- Icon đã được căn giữa
       >
         {item.icon}
         {!collapsed && <span className="font-medium text-sm">{item.name}</span>}
@@ -54,13 +54,18 @@ const AdminSidebar = () => {
         ${collapsed ? "w-20" : "w-64"}`}
     >
       {/* Logo */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      {/* ✅ SỬA ĐỔI: Thêm logic căn giữa khi collapse */}
+      <div 
+        className={`flex items-center p-4 border-b border-gray-200 h-16 
+          ${collapsed ? "justify-center" : "justify-between"}`}
+      >
         {!collapsed && (
           <Link to="/" className="flex items-center gap-2">
             <img
               src="/assets/logo/logo_travelmate_xoafont.png"
               alt="TravelMate"
-              className="h-10 object-contain"
+              style={{ width: "135px", height: "43px" }}
+              className="object-contain"
             />
           </Link>
         )}
@@ -82,11 +87,15 @@ const AdminSidebar = () => {
       {/* Logout */}
       <div className="p-3 border-t border-gray-200">
         <button
-          onClick={logout}
+          onClick={() => {
+            if (confirm("Bạn có chắc muốn đăng xuất?")) {
+              logout();
+            }
+          }}
           title="Đăng xuất"
           className={`flex items-center gap-3 py-2.5 px-4 rounded-lg transition-all w-full
             text-red-500 hover:bg-red-50
-            ${collapsed ? "justify-center" : ""}`}
+            ${collapsed ? "justify-center" : ""}`} // <-- Icon đã được căn giữa
         >
           <LogOut size={20} />
           {!collapsed && <span className="font-medium text-sm">Đăng xuất</span>}
