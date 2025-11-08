@@ -10,37 +10,46 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  CheckSquare, // Icon cho mục phê duyệt
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const AdminSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout } = useAuth(); // Lấy hàm logout từ context
 
+  // Danh sách các mục menu
   const menuItems = [
     { name: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/admin" },
     { name: "Quản lý Users", icon: <Users size={20} />, path: "/admin/users" },
     { name: "Quản lý Hotels", icon: <Building2 size={20} />, path: "/admin/hotels" },
+    { 
+      name: "Phê duyệt (KS)", 
+      icon: <CheckSquare size={20} />, 
+      path: "/admin/approvals" // Mục mới đã thêm
+    },
     { name: "Quản lý Bookings", icon: <CalendarCheck size={20} />, path: "/admin/bookings" },
     { name: "Quản lý Reviews", icon: <Star size={20} />, path: "/admin/reviews" },
     { name: "Cài đặt Hệ thống", icon: <Settings size={20} />, path: "/admin/settings" },
   ];
 
+  // Component NavLink nội bộ để xử lý trạng thái active
   const NavLink = ({ item }) => {
+    // Kiểm tra active chính xác, kể cả route con
     const isActive = location.pathname === item.path || (item.path !== "/admin" && location.pathname.startsWith(item.path));
     
     return (
       <Link
         to={item.path}
-        title={item.name}
+        title={item.name} // Tooltip khi thu gọn
         className={`flex items-center gap-3 py-2.5 px-4 rounded-lg transition-all
           ${
             isActive
-              ? "bg-[rgb(40,169,224)] text-white shadow-sm"
-              : "text-gray-600 hover:bg-gray-100"
+              ? "bg-[rgb(40,169,224)] text-white shadow-sm" // Active
+              : "text-gray-600 hover:bg-gray-100" // Default
           }
-          ${collapsed ? "justify-center" : ""}`} // <-- Icon đã được căn giữa
+          ${collapsed ? "justify-center" : ""}`} // Căn giữa icon khi thu gọn
       >
         {item.icon}
         {!collapsed && <span className="font-medium text-sm">{item.name}</span>}
@@ -51,24 +60,25 @@ const AdminSidebar = () => {
   return (
     <aside
       className={`sticky top-0 h-screen flex flex-col bg-white border-r border-gray-200 transition-all duration-300
-        ${collapsed ? "w-20" : "w-64"}`}
+        ${collapsed ? "w-20" : "w-64"}`} // Logic thu gọn/mở rộng
     >
-      {/* Logo */}
-      {/* ✅ SỬA ĐỔI: Thêm logic căn giữa khi collapse */}
+      {/* 1. Phần Logo & Nút Toggle */}
       <div 
         className={`flex items-center p-4 border-b border-gray-200 h-16 
-          ${collapsed ? "justify-center" : "justify-between"}`}
+          ${collapsed ? "justify-center" : "justify-between"}`} // Căn giữa nút toggle khi thu gọn
       >
+        {/* Logo (chỉ hiện khi mở rộng) */}
         {!collapsed && (
           <Link to="/" className="flex items-center gap-2">
             <img
               src="/assets/logo/logo_travelmate_xoafont.png"
               alt="TravelMate"
-              style={{ width: "135px", height: "43px" }}
+              style={{ width: "135px", height: "43px" }} // Kích thước chuẩn
               className="object-contain"
             />
           </Link>
         )}
+        {/* Nút Toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="p-1 rounded-full text-gray-500 hover:bg-gray-100"
@@ -77,17 +87,18 @@ const AdminSidebar = () => {
         </button>
       </div>
 
-      {/* Menu */}
+      {/* 2. Phần Menu (Cuộn được) */}
       <nav className="flex-1 p-3 space-y-2 overflow-y-auto">
         {menuItems.map((item) => (
           <NavLink key={item.name} item={item} />
         ))}
       </nav>
 
-      {/* Logout */}
+      {/* 3. Phần Đăng xuất (ở dưới cùng) */}
       <div className="p-3 border-t border-gray-200">
         <button
           onClick={() => {
+            // (Bạn có thể thay bằng modal xác nhận của AdminProfileDropdown sau)
             if (confirm("Bạn có chắc muốn đăng xuất?")) {
               logout();
             }
@@ -95,7 +106,7 @@ const AdminSidebar = () => {
           title="Đăng xuất"
           className={`flex items-center gap-3 py-2.5 px-4 rounded-lg transition-all w-full
             text-red-500 hover:bg-red-50
-            ${collapsed ? "justify-center" : ""}`} // <-- Icon đã được căn giữa
+            ${collapsed ? "justify-center" : ""}`} // Căn giữa icon khi thu gọn
         >
           <LogOut size={20} />
           {!collapsed && <span className="font-medium text-sm">Đăng xuất</span>}
