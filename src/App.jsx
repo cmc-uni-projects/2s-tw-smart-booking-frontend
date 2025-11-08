@@ -14,13 +14,13 @@ import "./styles/global.css";
 import HomePage from "./pages/Customer/Home/HomePage.jsx";
 import About from "./pages/Customer/About/About.jsx";
 
-// Các trang sau đăng nhập (dashboard)
+// Các trang sau đăng nhập (dashboardd)
 import ProfilePage from "./pages/Customer/Profile/ProfilePage.jsx";
 import BookingHistory from "./pages/Customer/Booking/BookingHistory.jsx";
 
-// ✅ THÊM MỚI TỪ NHÁNH FEATURE
-import BecomeOwnerPage from "./pages/Customer/Profile/BecomeOwnerPage.jsx";
+// ✅ THÊM MỚI
 import AdminRoutes from "./routes/AdminRoutes.jsx";
+import OwnerRoutes from "./routes/OwnerRoutes.jsx";
 
 function App() {
     const { currentUser } = useAuth();
@@ -60,14 +60,12 @@ function App() {
                     </ProtectedRoute>
                 }
             />
-
-            {/* ✅ THÊM ROUTE CỦA BẠN VÀO ĐÂY */}
             <Route
-                path="/become-owner"
+                path="/owner/*"
                 element={
-
-                        <BecomeOwnerPage />
-
+                    <ProtectedRoute requiredRole="OWNER">
+                        <OwnerRoutes />
+                    </ProtectedRoute>
                 }
             />
 
@@ -83,6 +81,9 @@ function App() {
 
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+
+
+
     );
 }
 

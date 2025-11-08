@@ -1,16 +1,25 @@
 import React from "react";
 
-import HotelStatCards from "./components/HotelStatCards";
+// Import các component con từ thư mục ./components/
+// Đây là các component được thiết kế riêng cho dashboard của Quản lý Khách sạn
 
-import HotelRevenueChart from "./components/HotelRevenueChart";
-import DailyActivityFeed from "./components/DailyActivityFeed";
+// Hàng 1
+import HotelStatCards from "./components/HotelStatCards"; // Ví dụ: Công suất phòng, Check-in/out hôm nay, Doanh thu ngày
 
-import OccupancyForecastChart from "./components/OccupancyForecastChart";
-import RoomStatusOverview from "./components/RoomStatusOverview";
+// Hàng 2
+import HotelRevenueChart from "./components/HotelRevenueChart"; // Biểu đồ doanh thu CỦA KHÁCH SẠN NÀY
+import DailyActivityFeed from "./components/DailyActivityFeed"; // Feed: "Khách A check-in", "Phòng 201 đã dọn"
 
-import RecentReviewsWidget from "./components/RecentReviewsWidget";
-import HousekeepingTasks from "./components/HousekeepingTasks";
-import UpcomingArrivalsTable from "./components/UpcomingArrivalsTable";
+// Hàng 3
+import OccupancyForecastChart from "./components/OccupancyForecastChart"; // Biểu đồ dự báo công suất phòngh
+import RoomStatusOverview from "./components/RoomStatusOverview"; // Biểu đồ tròn (Sạch/Bẩn/Đang sửa)
+
+// Hàng 4
+import RecentReviewsWidget from "./components/RecentReviewsWidget"; // Hiển thị vài đánh giá mới nhất
+import HousekeepingTasks from "./components/HousekeepingTasks"; // Danh sách phòng cần dọn
+
+// Hàng 5
+import UpcomingArrivalsTable from "./components/UpcomingArrivalsTable"; // Bảng khách sắp check-in
 
 const OwnerDashboard = () => {
     return (
