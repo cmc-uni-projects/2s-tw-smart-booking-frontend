@@ -9,18 +9,16 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
-    ClipboardList, // Icon cho Tác vụ
+    ClipboardList, 
 } from "lucide-react";
-// Giả sử bạn cũng dùng AuthContext cho Ownerr
+
 import { useAuth } from "../../context/AuthContext";
 
 const OwnerSidebar = () => {
     const [collapsed, setCollapsed] = useState(false);
     const location = useLocation();
-    // Giả sử hook `useAuth` cũng áp dụng cho Owner
     const { logout } = useAuth();
 
-    // Menu này dành riêng cho Owner
     const menuItems = [
         { name: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/owner/dashboard" },
         { name: "Bookings", icon: <CalendarCheck size={20} />, path: "/owner/bookings" },
@@ -31,7 +29,6 @@ const OwnerSidebar = () => {
     ];
 
     const NavLink = ({ item }) => {
-        // Logic active link giống hệt AdminSidebar
         const isActive = location.pathname === item.path || (item.path !== "/owner/dashboard" && location.pathname.startsWith(item.path));
 
         return (
@@ -40,7 +37,7 @@ const OwnerSidebar = () => {
                 title={item.name}
                 className={`flex items-center gap-3 py-2.5 px-4 rounded-lg transition-all
           ${isActive
-                        ? "bg-[rgb(40,169,224)] text-white shadow-sm" // Style active giống Admin
+                        ? "bg-[rgb(40,169,224)] text-white shadow-sm"
                         : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                     }
           ${collapsed ? "justify-center" : ""}`}
@@ -56,14 +53,12 @@ const OwnerSidebar = () => {
             className={`sticky top-0 h-screen flex flex-col bg-white border-r border-gray-200 transition-all duration-300 dark:bg-gray-800 dark:border-gray-700
         ${collapsed ? "w-20" : "w-64"}`}
         >
-            {/* Logo và Nút Collapse (giống Admin) */}
             <div
                 className={`flex items-center p-4 border-b border-gray-200 h-16 dark:border-gray-700
           ${collapsed ? "justify-center" : "justify-between"}`}
             >
                 {!collapsed && (
                     <Link to="/owner/dashboard" className="flex items-center gap-2">
-                        {/* ✅ Thay bằng Logo khách sạn của bạn */}
                         <span className="text-2xl">🏨</span>
                         <span className="font-bold text-xl text-gray-800 dark:text-white">MyHotel</span>
                     </Link>
@@ -76,18 +71,15 @@ const OwnerSidebar = () => {
                 </button>
             </div>
 
-            {/* Menu (giống Admin) */}
             <nav className="flex-1 p-3 space-y-2 overflow-y-auto">
                 {menuItems.map((item) => (
                     <NavLink key={item.name} item={item} />
                 ))}
             </nav>
 
-            {/* Logout (giống Admin) */}
             <div className="p-3 border-t border-gray-200 dark:border-gray-700">
                 <button
                     onClick={() => {
-                        // Giả sử bạn có ConfirmModal
                         if (confirm("Bạn có chắc muốn đăng xuất?")) {
                             logout();
                         }

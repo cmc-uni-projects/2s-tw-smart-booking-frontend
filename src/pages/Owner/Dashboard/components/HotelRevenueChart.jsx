@@ -7,7 +7,6 @@ const HotelRevenueChart = () => {
                 Doanh thu khách sạn (7 ngày qua)
             </h3>
             <div className="flex items-center justify-center h-80 bg-gray-50 dark:bg-gray-700 rounded-md">
-                {/* Thẻ [Image] này sẽ hiển thị một biểu đồ cột mẫuu */}
 
                 <p className="text-gray-500 dark:text-gray-400">
                     (Placeholder cho Biểu đồ doanh thu)

@@ -8,7 +8,6 @@ const RoomStatusOverview = () => {
             </h3>
             <div className="flex flex-col md:flex-row items-center justify-around">
                 <div className="flex items-center justify-center h-52 w-52 bg-gray-50 dark:bg-gray-700 rounded-full">
-                    {/* Thẻ [Image] này sẽ hiển thị một biểu đồ tròn mẫuu */}
 
                     <span className="text-gray-500 dark:text-gray-400"> (Biểu đồ) </span>
                 </div>

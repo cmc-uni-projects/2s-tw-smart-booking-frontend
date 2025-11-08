@@ -6,40 +6,37 @@ import OwnerDashboard from "../pages/Owner/Dashboard/OwnerDashboard";
 
 const OwnerRoutes = () => {
     return (
-        <OwnerLayout> {/* ✅ Đổi layoutt */}
+        <OwnerLayout>
             <Routes>
-                {/* Tất cả routes bên trong đều yêu cầu role "OWNER" */}
                 <Route
                     path="/"
                     element={
-                        <ProtectedRoute requiredRole="OWNER"> {/* ✅ Đổi role */}
-                            <OwnerDashboard /> {/* ✅ Đổi trang dashboard */}
+                        <ProtectedRoute requiredRole="OWNER">
+                            <OwnerDashboard />
                         </ProtectedRoute>
                     }
                 />
                 {/* <Route
-          path="/rooms"
-          element={
-            <ProtectedRoute requiredRole="OWNER">
-              <RoomListPage />
-            </ProtectedRoute>
-          }
-        /> 
-        <Route
-          path="/bookings"
-          element={
-            <ProtectedRoute requiredRole="OWNER">
-              <OwnerBookingList />
-            </ProtectedRoute>
-          }
-        />
-        */}
-
-                {/* Fallback về dashboard owner nếu gõ sai URL */}
-                <Route path="*" element={<Navigate to="/owner" replace />} /> {/* ✅ Đổi fallback */}
+          path="/rooms"
+          element={
+            <ProtectedRoute requiredRole="OWNER">
+              <RoomListPage />
+            </ProtectedRoute>
+          }
+        /> 
+        <Route
+          path="/bookings"
+          element={
+            <ProtectedRoute requiredRole="OWNER">
+              <OwnerBookingList />
+            </ProtectedRoute>
+          }
+        />
+        */}
+                <Route path="*" element={<Navigate to="/owner" replace />} />
             </Routes>
         </OwnerLayout>
     );
 };
 
-export default OwnerRoutes; 
+export default OwnerRoutes;

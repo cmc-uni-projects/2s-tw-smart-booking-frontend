@@ -1,5 +1,3 @@
-// OwnerProfileDropdown.jsx
-
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { User, Settings, LogOut } from "lucide-react";
@@ -15,7 +13,6 @@ const OwnerProfileDropdown = () => {
     const navigate = useNavigate();
     const ref = useRef(null);
 
-    // Logic đóng khi click ra ngoài
     useEffect(() => {
         const onClickOutside = (e) => {
             if (ref.current && !ref.current.contains(e.target)) {
@@ -56,7 +53,6 @@ const OwnerProfileDropdown = () => {
     return (
         <>
             <div className="relative" ref={ref}>
-                {/* Nút bấm là Avatar và Tên */}
                 <button
                     onClick={() => setOpen((prev) => !prev)}
                     className="flex items-center gap-2 cursor-pointer p-1 rounded-lg hover:bg-gray-100"
@@ -69,23 +65,21 @@ const OwnerProfileDropdown = () => {
                         <div className="font-semibold text-gray-800">
                             {currentUser?.fullName}
                         </div>
-                        {/* ✅ THAY ĐỔI: Sửa vai trò */}
                         <div className="text-xs text-gray-500">Chủ khách sạn</div>
                     </div>
                 </button>
 
-                {/* Menu Dropdown */}
                 {open && (
                     <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-xl z-50 p-2">
                         <DropdownItem
                             icon={<User size={16} className="text-gray-500" />}
                             label="Hồ sơ của tôi"
-                            path="/owner/profile" // ✅ Sửa đường dẫn
+                            path="/owner/profile"
                         />
                         <DropdownItem
                             icon={<Settings size={16} className="text-gray-500" />}
                             label="Cài đặt khách sạn"
-                            path="/owner/settings" // ✅ Sửa đường dẫn
+                            path="/owner/settings"
                         />
                         <div className="h-[1px] bg-gray-100 my-1"></div>
                         <DropdownItem
@@ -98,7 +92,6 @@ const OwnerProfileDropdown = () => {
                 )}
             </div>
 
-            {/* Modal xác nhận đăng xuấtt */}
             <ConfirmModal
                 open={showLogoutConfirm}
                 onClose={() => setShowLogoutConfirm(false)}
