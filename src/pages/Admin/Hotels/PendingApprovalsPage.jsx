@@ -84,7 +84,7 @@ const PendingApprovalsPage = () => {
         />
         
         {/* Phần hiển thị các Card con */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(340px,1fr))] gap-5 mt-4">
           {mockApplications.map((app) => (
             <ApprovalCard
               key={app.id}
