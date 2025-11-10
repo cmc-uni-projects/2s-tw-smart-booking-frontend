@@ -128,9 +128,10 @@ const Header = () => {
           {/* Auth actions */}
           <div className="hidden lg:flex items-center gap-3">
             <Button
-              variant="outline"
-              onClick={() => navigate("/partner/register")}
-              className="border-[rgb(40,169,224)] text-[rgb(40,169,224)] hover:bg-[rgb(40,169,224)] hover:text-white font-medium"
+              variant="primary-outline" 
+              onClick={() => navigate("/partner-with-us")}
+              className="font-medium
+                         transform hover:scale-105 transition-all duration-300"
             >
               Hợp tác với chúng tôi
             </Button>

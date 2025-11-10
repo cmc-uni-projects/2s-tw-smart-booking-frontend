@@ -1,239 +1,227 @@
 import React, { useState } from "react";
-import { useAuth } from "../../../context/AuthContext";
-import { ownerService } from "../../../services/owner.service";
-import Card from "../../../components/common/Card/Card";
-import Button from "../../../components/common/Button/Button";
-import Toast from "../../../components/common/Notification/Toast";
-import ToastPortal from "../../../components/common/Notification/ToastPortal";
+import { useNavigate } from "react-router-dom";
+import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
 import Stepper from "./BecomeOwnerSteps/Stepper";
-// ❌ Xóa import Step1_HotelInfo
-import Step2_PersonalInfo from "./BecomeOwnerSteps/Step2_PersonalInfo";
-import Step3_BusinessInfo from "./BecomeOwnerSteps/Step3_BusinessInfo";
-import Step4_Success from "./BecomeOwnerSteps/Step4_Success";
-import { ArrowLeft, ArrowRight, Send } from "lucide-react";
-import { isAfter, subYears } from "date-fns";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { ownerService } from "@/services/owner.service"; 
 
-// ✅ THAY ĐỔI TẠI ĐÂY: Xóa các trường của Step 1
-const INITIAL_STATE = {
-    // Step 1 (trước là Step 2)
-    fullName: "",
-    dob: "",
-    gender: "",
-    idNumber: "",
-    idFrontImage: null,
-    idBackImage: null,
-    // Step 2 (trước là Step 3)
-    businessLicenseNumber: "",
-    businessLicenseImage: null,
-};
+// 1. Import đúng 4 component Step
+import Step1_PersonalInfo from "./BecomeOwnerSteps/Step1_PersonalInfo";
+import Step2_BusinessInfo from "./BecomeOwnerSteps/Step2_BusinessInfo";
+import Step3_Review from "./BecomeOwnerSteps/Step3_Review"; 
+import Step4_Success from "./BecomeOwnerSteps/Step4_Success";
+
+import Button from "@/components/common/Button/Button";
+import { ArrowLeft, ArrowRight, Send } from "lucide-react";
+import LoadingOverlay from "@/components/common/Loading/LoadingOverlay";
+
+// Validation cho file ảnh (JPG, PNG, WEBP)
+const fileValidation = yup
+  .mixed()
+  .test("required", "Vui lòng tải lên file", (value) => value && value.length > 0)
+  .test("fileType", "Chỉ chấp nhận file JPG, PNG, WEBP", (value) => {
+    if (!value || value.length === 0) return true;
+    const file = value[0];
+    return file && ["image/jpeg", "image/png", "image/webp"].includes(file.type);
+  });
+
+// 2. Định nghĩa 3 schemas cho 3 bước nhập liệu đầu tiên
+const schemas = [
+  // Schema cho Step 0 (Step1_PersonalInfo)
+  yup.object().shape({
+    personalFullName: yup.string().required("Họ tên là bắt buộc"),
+    personalEmail: yup
+      .string()
+      .email("Email không hợp lệ")
+      .required("Email là bắt buộc"),
+    personalPhone: yup.string().required("Số điện thoại là bắt buộc"),
+    personalIdCard: yup.string().required("Số CCCD/Passport là bắt buộc"),
+    personalDob: yup.date().required("Ngày sinh là bắt buộc").typeError("Ngày sinh không hợp lệ"),
+    personalHometown: yup.string().required("Quê quán là bắt buộc"),
+    personalAddress: yup.string().required("Địa chỉ thường trú là bắt buộc"),
+    personalIdFront: fileValidation,
+    personalIdBack: fileValidation,
+  }),
+  // Schema cho Step 1 (Step2_BusinessInfo)
+  yup.object().shape({
+    businessLicenseNumber: yup.string().required("Mã số ĐKKD là bắt buộc"),
+    businessLicenseFile: yup
+      .mixed()
+      .test("required", "Vui lòng tải lên giấy phép", (value) => value && value.length > 0),
+  }),
+  // Schema cho Step 2 (Step3_Review)
+  yup.object().shape({}), // Không cần validation ở bước review
+];
 
 export default function BecomeOwnerPage() {
-    const { currentUser } = useAuth();
-    const [currentStep, setCurrentStep] = useState(1); // Vẫn bắt đầu = 1
-    const [formData, setFormData] = useState(INITIAL_STATE);
-    const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState({});
+  const [currentStep, setCurrentStep] = useState(0); // Bắt đầu từ index 0
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null); 
+  const navigate = useNavigate();
 
-    const [toastMsg, setToastMsg] = useState("");
-    const [toastType, setToastType] = useState("info");
-    const [showToast, setShowToast] = useState(false);
+  // 'currentStep' là 0, 1, hoặc 2 (tương ứng với 3 schemas)
+  const currentSchema = schemas[currentStep];
 
-    const showToastOnce = (msg, type = "error") => {
-        setToastMsg(msg);
-        setToastType(type);
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 3000);
-    };
+  const {
+    register,
+    handleSubmit,
+    trigger,
+    watch, 
+    setValue,
+    getValues, 
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(currentSchema), 
+    mode: "onChange",
+  });
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-        if (errors[name]) {
-            setErrors((prev) => ({ ...prev, [name]: null }));
-        }
-    };
+  // 3. Định nghĩa 4 bước (steps) cho Stepper
+  const steps = [
+    { name: "Thông tin cá nhân" }, // index 0
+    { name: "Thông tin kinh doanh" }, // index 1
+    { name: "Kiểm tra" }, // index 2
+    { name: "Hoàn tất" }, // index 3
+  ];
 
-    const handleFileChange = (name, file) => {
-        setFormData((prev) => ({ ...prev, [name]: file }));
-        if (errors[name]) {
-            setErrors((prev) => ({ ...prev, [name]: null }));
-        }
-    };
+  // Hàm "Tiếp theo"
+  const handleNext = async () => {
+    const isValid = await trigger(); // Kiểm tra validation của bước hiện tại
+    
+    // 4. CHỈ CHUYỂN KHI HỢP LỆ VÀ CHƯA PHẢI BƯỚC CUỐI (Step3_Review)
+    //    (currentStep < 2 nghĩa là 0 hoặc 1)
+    if (isValid && currentStep < 2) { 
+      setCurrentStep((prev) => prev + 1);
+    }
+  };
 
-    // ❌ Xóa hàm validateStep1 (Hotel Info)
+  // Hàm "Thử lại" (khi submit lỗi)
+  const handleRetry = () => {
+    setError(null);
+    setCurrentStep(2); // Quay lại bước Review (index 2)
+  };
 
-    // ✅ THAY ĐỔI TẠI ĐÂY: Đổi tên validateStep2 -> validateStep1_Personal
-    const validateStep1_Personal = () => {
-        const newErrors = {};
-        if (!formData.fullName) newErrors.fullName = "Vui lòng nhập họ và tên.";
+  // Hàm "Quay lại"
+  const handleBack = () => {
+    if (currentStep === 0) {
+      navigate("/"); // Về trang chủ nếu ở bước 1
+    } else {
+      setCurrentStep((prev) => prev - 1); // Quay lại bước trước
+    }
+  };
 
-        if (!formData.idNumber) {
-            newErrors.idNumber = "Vui lòng nhập số CCCD / CMT.";
-        } else if (!/^\d{12}$/.test(formData.idNumber)) {
-            newErrors.idNumber = "Số CCCD/CMT phải có đúng 12 chữ số.";
-        }
+  // Hàm "Gửi đơn" (chỉ chạy khi ở bước Review và nhấn Submit)
+  const onFinalSubmit = async (data) => {
+    setIsLoading(true);
+    setError(null); 
 
-        if (!formData.dob) {
-            newErrors.dob = "Vui lòng chọn ngày sinh.";
-        } else {
-            const dobDate = new Date(formData.dob);
-            const today = new Date();
-            const eighteenYearsAgo = subYears(today, 18);
+    const formData = new FormData();
 
-            if (isAfter(dobDate, today)) {
-                newErrors.dob = "Ngày sinh không được ở tương lai.";
-            } else if (isAfter(dobDate, eighteenYearsAgo)) {
-                newErrors.dob = "Bạn phải đủ 18 tuổi để đăng ký.";
-            }
-        }
+    // Dữ liệu cá nhân (từ Step 1)
+    formData.append("personalFullName", data.personalFullName);
+    formData.append("personalEmail", data.personalEmail);
+    formData.append("personalPhone", data.personalPhone);
+    formData.append("personalIdCard", data.personalIdCard);
+    formData.append("personalDob", data.personalDob.toISOString()); // Gửi dạng ISO
+    formData.append("personalHometown", data.personalHometown);
+    formData.append("personalAddress", data.personalAddress);
 
-        if (!formData.idFrontImage) newErrors.idFrontImage = "Vui lòng tải ảnh mặt trước CCCD.";
-        if (!formData.idBackImage) newErrors.idBackImage = "Vui lòng tải ảnh mặt sau CCCD.";
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    // ✅ THAY ĐỔI TẠI ĐÂY: Đổi tên validateStep3 -> validateStep2_Business
-    const validateStep2_Business = () => {
-        const newErrors = {};
-        if (!formData.businessLicenseNumber) newErrors.businessLicenseNumber = "Vui lòng nhập mã số kinh doanh.";
-        if (!formData.businessLicenseImage) newErrors.businessLicenseImage = "Vui lòng tải ảnh giấy phép kinh doanh.";
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    // ✅ THAY ĐỔI TẠI ĐÂY: Cập nhật logic
-    const handleNextStep = () => {
-        let isValid = false;
-
-        if (currentStep === 1) {
-            isValid = validateStep1_Personal(); // Chỉ validate bước 1 (cá nhân)
-        }
-
-        if (isValid) {
-            setCurrentStep((prev) => prev + 1);
-        } else {
-            showToastOnce("Vui lòng điền đầy đủ thông tin bắt buộc.", "warning");
-        }
-    };
-
-    const handlePrevStep = () => {
-        setCurrentStep((prev) => prev - 1);
-    };
-
-    // ✅ THAY ĐỔI TẠI ĐÂY: Cập nhật logic
-    const handleSubmit = async () => {
-        // Validate bước cuối (step 2)
-        if (!validateStep2_Business()) {
-            showToastOnce("Vui lòng kiểm tra lại thông tin.", "warning");
-            return;
-        }
-
-        setLoading(true);
-        const data = new FormData();
-
-        if (currentUser) {
-            data.append("userId", currentUser.id);
-        }
-
-        Object.entries(formData).forEach(([key, value]) => {
-            if (typeof value === "string") {
-                data.append(key, value);
-            }
-        });
-
-        if (formData.idFrontImage) data.append("idFrontImage", formData.idFrontImage);
-        if (formData.idBackImage) data.append("idBackImage", formData.idBackImage);
-        if (formData.businessLicenseImage) data.append("businessLicenseImage", formData.businessLicenseImage);
-
-        try {
-            await ownerService.submitApplication(data);
-            setCurrentStep(3); // Chuyển sang trang thành công (bước 3 mới)
-        } catch (err) {
-            console.error("Submit error:", err);
-            showToastOnce(err.response?.data?.message || "Gửi đơn thất bại, vui lòng thử lại.", "error");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // ✅ THAY ĐỔI TẠI ĐÂY: Cập nhật logic
-    const renderButtons = () => {
-        if (currentStep === 3) return null; // Bước 3 mới là trang Success
-
-        return (
-            <div className="flex justify-between items-center pt-6 border-t border-gray-200 mt-8">
-                <Button
-                    variant="ghost"
-                    onClick={handlePrevStep}
-                    disabled={currentStep === 1 || loading}
-                    leftIcon={<ArrowLeft size={16} />}
-                >
-                    Quay lại
-                </Button>
-
-                {currentStep === 2 ? ( // Gửi đơn ở bước 2
-                    <Button
-                        onClick={handleSubmit}
-                        isLoading={loading}
-                        disabled={loading}
-                        leftIcon={<Send size={16} />}
-                    >
-                        Gửi đơn đăng ký
-                    </Button>
-                ) : ( // Nút "Tiếp theo" ở bước 1
-                    <Button
-                        onClick={handleNextStep}
-                        rightIcon={<ArrowRight size={16} />}
-                    >
-                        Tiếp theo
-                    </Button>
-                )}
-            </div>
-        );
-    };
-
-    // ✅ THAY ĐỔI TẠI ĐÂY: Cập nhật logic
-    const renderCurrentStep = () => {
-        switch (currentStep) {
-            case 1:
-                return <Step2_PersonalInfo formData={formData} onChange={handleChange} onFileChange={handleFileChange} errors={errors} />;
-            case 2:
-                return <Step3_BusinessInfo formData={formData} onChange={handleChange} onFileChange={handleFileChange} errors={errors} />;
-            case 3:
-                return <Step4_Success />;
-            default:
-                return <Step2_PersonalInfo formData={formData} onChange={handleChange} onFileChange={handleFileChange} errors={errors} />;
-        }
+    // Dữ liệu kinh doanh (từ Step 2)
+    formData.append("businessLicenseNumber", data.businessLicenseNumber);
+    
+    // Files (từ Step 1 và 2)
+    if (data.businessLicenseFile && data.businessLicenseFile.length > 0) {
+      formData.append("businessLicenseFile", data.businessLicenseFile[0]);
+    }
+    if (data.personalIdFront && data.personalIdFront.length > 0) {
+      formData.append("personalIdFront", data.personalIdFront[0]);
+    }
+    if (data.personalIdBack && data.personalIdBack.length > 0) {
+      formData.append("personalIdBack", data.personalIdBack[0]);
     }
 
-    return (
-        <div className="min-h-screen bg-gray-50 py-10">
-            <div className="max-w-3xl mx-auto">
-                <Card>
-                    <div className="p-4 md:p-6">
-                        <h1 className="text-2xl font-bold text-gray-800 text-center mb-6">
-                            Đăng ký trở thành đối tác
-                        </h1>
+    try {
+      // Gửi FormData lên backend
+      await ownerService.registerAsOwner(formData);
+    } catch (err) {
+      console.error("Lỗi đăng ký:", err);
+      const message = err.response?.data?.message || "Lỗi kết nối. Vui lòng thử lại.";
+      setError(message); // Lưu lỗi để hiển thị ở Step 4
+    } finally {
+      setIsLoading(false);
+      setCurrentStep(3); // 5. Luôn chuyển sang bước 3 (Hoàn tất/Success)
+    }
+  };
+  
+  // 6. Mảng 4 component tương ứng với 4 bước
+  const stepComponents = [
+    <Step1_PersonalInfo
+      register={register}
+      errors={errors}
+      watch={watch}
+      setValue={setValue}
+    />,
+    <Step2_BusinessInfo
+      register={register}
+      errors={errors}
+      setValue={setValue}
+      watch={watch}
+    />,
+    <Step3_Review watch={watch} />,
+    <Step4_Success error={error} onRetry={handleRetry} />,
+  ];
 
-                        <div className="mb-10">
-                            <Stepper currentStep={currentStep} />
-                        </div>
+  return (
+    <CustomerLayout>
+      {isLoading && <LoadingOverlay message="Đang gửi đơn đăng ký..." />}
+      <div className="max-w-4xl mx-auto py-12 px-6">
+        
+        {/* Stepper sẽ nhận mảng 4 bước */}
+        <Stepper steps={steps} currentStep={currentStep} />
 
-                        {renderCurrentStep()}
-                        {renderButtons()}
-                    </div>
-                </Card>
-            </div>
+        <div className="bg-white p-8 rounded-2xl shadow-lg mt-8 border border-gray-100">
+          <form
+            // 7. handleSubmit SẼ CHỈ CHẠY KHI BẠN NHẤN NÚT "GỬI ĐƠN" (type="submit")
+            onSubmit={handleSubmit(onFinalSubmit)}
+          >
+            {/* Hiển thị component của bước hiện tại */}
+            {stepComponents[currentStep]}
 
-            <ToastPortal>
-                {showToast && (
-                    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999]">
-                        <Toast message={toastMsg} type={toastType} />
-                    </div>
+            {/* 8. Chỉ hiển thị nút khi CHƯA ở bước cuối (step < 3) */}
+            {currentStep < 3 && (
+              <div className="flex justify-between items-center pt-8 mt-8 border-t border-gray-100">
+                
+                <Button
+                  type="button" // Quan trọng: type="button"
+                  variant="outline"
+                  onClick={handleBack}
+                  leftIcon={<ArrowLeft size={18} />}
+                >
+                  {currentStep === 0 ? "Quay về trang chủ" : "Quay lại"}
+                </Button>
+
+                {currentStep < 3 ? ( // Nếu là bước 0 hoặc 1
+                  <Button
+                    type="button" // Quan trọng: type="button"
+                    onClick={handleNext}
+                    rightIcon={<ArrowRight size={18} />}
+                  >
+                    Tiếp theo
+                  </Button>
+                ) : ( // Nếu là bước 2 (Review)
+                  <Button
+                    type="submit" // Quan trọng: type="submit"
+                    leftIcon={<Send size={18} />}
+                  >
+                    Gửi đơn đăng ký
+                  </Button>
                 )}
-            </ToastPortal>
+              </div>
+            )}
+          </form>
         </div>
-    );
+      </div>
+    </CustomerLayout>
+  );
 }
