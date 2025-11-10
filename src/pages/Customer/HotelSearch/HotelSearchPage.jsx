@@ -95,7 +95,7 @@ export default function HotelSearchPage() {
       <CustomerLayout>
         <main className="max-w-7xl mx-auto px-6">
 
-          {/* ✅ Thanh tìm kiếm STICKY (dính vào top-16) */}
+          {/* ✅ Thanh tìm kiếm STICKY (dính vào top-16, tương ứng 64px) */}
           <div className="sticky top-16 z-20 flex justify-center py-6 bg-gray-50 -mx-6 px-6 border-b border-gray-200">
             <SearchBar onSearchClick={handleSearch} loading={loading} />
           </div>
@@ -103,9 +103,13 @@ export default function HotelSearchPage() {
           {/* Layout Grid 2 cột */}
           <div className="w-full mt-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
 
-            {/* ✅ Cột 1: Bộ lọc STICKY (dính vào top-60) */}
+            {/* ✅ Cột 1: Bộ lọc STICKY (ĐÃ CẬP NHẬT: top-64, tương ứng 16rem) */}
+            {/* Giá trị 'top-64' này (16rem) sẽ khớp với chiều cao của Header (sticky top-0)
+              cộng với chiều cao của thanh SearchBar (sticky top-16)
+              và khoảng padding của nó, làm cho nó "dính" cố định ở vị trí mong muốn.
+            */}
             {hasSearched && (
-                <div className="lg:col-span-1 sticky top-60 self-start">
+                <div className="lg:col-span-1 sticky top-64 self-start">
                   <FilterSidebar />
                 </div>
             )}
