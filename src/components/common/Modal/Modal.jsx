@@ -4,17 +4,17 @@ import { X } from "lucide-react";
 // 1. Import ModalPortal để đảm bảo modal hiển thị đúng cấp
 import ModalPortal from "./ModalPortal"; 
 
-// 2. Nhận thêm props { title, children }
+// 2. Nhận thêm props { title, children, maxWidth }
 export default function Modal({
   open,
   onClose,
   title = "Thông báo", // Thêm title mặc định
   children, // Thêm children
+  maxWidth = "max-w-md", // 3. ✅ Thêm prop maxWidth, gán giá trị mặc định là 'max-w-md'
 }) {
   if (!open) return null;
 
   return (
-    // 3. Bọc trong ModalPortal
     <ModalPortal>
       <AnimatePresence>
         {open && (
@@ -23,7 +23,6 @@ export default function Modal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            // Thêm sự kiện click nền để đóng
             onClick={onClose} 
           >
             <motion.div
@@ -31,14 +30,14 @@ export default function Modal({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 40, opacity: 0 }}
               transition={{ duration: 0.25 }}
-              className="bg-white rounded-2xl shadow-2xl w-[95%] max-w-md overflow-hidden"
-              // Ngăn sự kiện click lan ra nền
+              // 4. ✅ Sử dụng biến 'maxWidth' thay vì hard-code 'max-w-md'
+              className={`bg-white rounded-2xl shadow-2xl w-[95%] ${maxWidth} overflow-hidden`}
               onClick={(e) => e.stopPropagation()} 
             >
               {/* Header */}
               <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                 <h3 className="text-lg font-semibold text-[rgb(40,169,224)]">
-                  {title} {/* 4. Sử dụng prop 'title' */}
+                  {title}
                 </h3>
                 <button
                   onClick={onClose}
@@ -49,11 +48,10 @@ export default function Modal({
               </div>
 
               {/* Body */}
-              <div className="px-6 py-5 space-y-4 text-gray-700 max-h-[70vh] overflow-y-auto">
-                {children} {/* 5. Sử dụng prop 'children' */}
+              {/* 5. ✅ Tăng max-h (chiều cao tối đa) để phù hợp với modal rộng hơn */}
+              <div className="px-6 py-5 space-y-4 text-gray-700 max-h-[80vh] overflow-y-auto">
+                {children}
               </div>
-
-              {/* 6. Xóa phần Footer demo bị hard-code */}
             </motion.div>
           </motion.div>
         )}

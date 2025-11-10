@@ -4,8 +4,10 @@ import ProtectedRoute from "./ProtectedRoute";
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";
 import AdminDashboard from "../pages/Admin/Dashboard/AdminDashboard";
 
-// ✅ 1. Import trang mới
 import PendingApprovalsPage from "../pages/Admin/Hotels/PendingApprovalsPage"; 
+// ✅ 1. Import trang duyệt khách sạn mới
+import HotelSubmissionsPage from "../pages/Admin/Hotels/HotelSubmissionsPage"; 
+
 // Import các trang admin khác sau này
 // import UserListPage from "../pages/Admin/Users/UserListPage";
 
@@ -23,12 +25,22 @@ const AdminRoutes = () => {
           }
         />
         
-        {/* ✅ 2. Thêm route mới */}
+        {/* Route duyệt đơn ĐĂNG KÝ (owner) */}
         <Route
           path="/approvals"
           element={
             <ProtectedRoute requiredRole="ADMIN">
               <PendingApprovalsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ✅ 2. Thêm route mới cho trang duyệt KHÁCH SẠN */}
+        <Route
+          path="/hotels/submissions"
+          element={
+            <ProtectedRoute requiredRole="ADMIN">
+              <HotelSubmissionsPage />
             </ProtectedRoute>
           }
         />
