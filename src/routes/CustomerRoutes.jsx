@@ -9,11 +9,17 @@ import ProtectedRoute from "./ProtectedRoute";
 // 1. IMPORT TRANG MỚI TỪ NHÁNH FEATURE
 import BecomeOwnerPage from "@/pages/Customer/Profile/BecomeOwnerPage";
 
+// +++ ĐÃ THÊM: IMPORT TRANG TÌM KIẾM MỚI +++
+import HotelSearchPage from "@/pages/Customer/HotelSearch/HotelSearchPage";
+
 const CustomerRoutes = () => {
     return (
         <Routes>
             <Route index element={<HomePage />} />
             <Route path="/about" element={<About />} />
+
+            {/* +++ ĐÃ THÊM: ROUTE CHO TRANG TÌM KIẾM +++ */}
+            <Route path="/hotels" element={<HotelSearchPage />} />
 
             {/* 2. THÊM ROUTE /become-owner MỚI TẠI ĐÂY */}
             <Route
