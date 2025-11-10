@@ -5,6 +5,7 @@ import GuestSelector from "@/components/search/GuestSelector";
 
 const HeroSection = () => {
   return (
+    // ✅ Giữ nguyên pb-24
     <section className="relative w-full bg-gradient-to-b from-white to-[#f4fbff] pb-24">
       {/* Ảnh nền */}
       <div className="relative h-[500px] overflow-hidden">
@@ -15,8 +16,8 @@ const HeroSection = () => {
         />
       </div>
 
-      {/* nội dung trung tâm */}
-      <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-4">
+      {/* ✅ (Yêu cầu 1) Thêm z-10 vào đây */}
+      <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-4 z-10">
         <h1 className="text-4xl md:text-5xl font-extrabold text-[#006494] mb-4">
           Đặt phòng dễ dàng cùng{" "}
           <span className="text-[rgb(40,169,224)]">TravelMate</span>
