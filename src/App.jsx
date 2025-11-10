@@ -10,6 +10,8 @@ import ResetPassword from "./pages/Auth/ResetPassword.jsx";
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 import "./styles/global.css";
 
+import HotelSearchPage from "@/pages/Customer/HotelSearch/HotelSearchPage";
+
 // Trang Home thật (Customer)
 import HomePage from "./pages/Customer/Home/HomePage.jsx"; 
 import About from "./pages/Customer/About/About.jsx";
@@ -39,7 +41,7 @@ function App() {
       {/* 2. Thêm route công khai cho trang giới thiệu đối tác */}
       <Route path="/partner-with-us" element={<PartnerLandingPage />} />
       {/* ----------------------- */}
-      
+      <Route path="/hotels" element={<HotelSearchPage />} />
       <Route
         path="/login"
         element={currentUser ? <Navigate to="/" replace /> : <Login />}
