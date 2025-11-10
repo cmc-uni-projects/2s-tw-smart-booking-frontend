@@ -143,7 +143,8 @@ export default function BecomeOwnerPage() {
 
     try {
       // Gửi FormData lên backend
-      await ownerService.registerAsOwner(formData);
+      // ✅ SỬA LỖI TÊN HÀM
+      await ownerService.submitApplication(formData); 
     } catch (err) {
       console.error("Lỗi đăng ký:", err);
       const message = err.response?.data?.message || "Lỗi kết nối. Vui lòng thử lại.";
@@ -181,19 +182,18 @@ export default function BecomeOwnerPage() {
         <Stepper steps={steps} currentStep={currentStep} />
 
         <div className="bg-white p-8 rounded-2xl shadow-lg mt-8 border border-gray-100">
-          <form
-            // 7. handleSubmit SẼ CHỈ CHẠY KHI BẠN NHẤN NÚT "GỬI ĐƠN" (type="submit")
-            onSubmit={handleSubmit(onFinalSubmit)}
-          >
+          
+          {/* ✅ SỬA LỖI 1: XÓA onSubmit ra khỏi thẻ form */}
+          <form>
             {/* Hiển thị component của bước hiện tại */}
             {stepComponents[currentStep]}
 
             {/* 8. Chỉ hiển thị nút khi CHƯA ở bước cuối (step < 3) */}
-            {currentStep < 3 && (
+            {currentStep < 3 && ( 
               <div className="flex justify-between items-center pt-8 mt-8 border-t border-gray-100">
                 
                 <Button
-                  type="button" // Quan trọng: type="button"
+                  type="button" 
                   variant="outline"
                   onClick={handleBack}
                   leftIcon={<ArrowLeft size={18} />}
@@ -201,22 +201,26 @@ export default function BecomeOwnerPage() {
                   {currentStep === 0 ? "Quay về trang chủ" : "Quay lại"}
                 </Button>
 
-                {currentStep < 3 ? ( // Nếu là bước 0 hoặc 1
+                {currentStep < 2 ? ( 
                   <Button
-                    type="button" // Quan trọng: type="button"
+                    type="button" 
                     onClick={handleNext}
                     rightIcon={<ArrowRight size={18} />}
                   >
                     Tiếp theo
                   </Button>
-                ) : ( // Nếu là bước 2 (Review)
+                ) : ( 
+                  // ✅ SỬA LỖI 2: Đổi type="submit" thành type="button"
+                  // và thêm onClick={handleSubmit(onFinalSubmit)}
                   <Button
-                    type="submit" // Quan trọng: type="submit"
+                    type="button" 
                     leftIcon={<Send size={18} />}
+                    onClick={handleSubmit(onFinalSubmit)}
                   >
                     Gửi đơn đăng ký
                   </Button>
                 )}
+                
               </div>
             )}
           </form>
