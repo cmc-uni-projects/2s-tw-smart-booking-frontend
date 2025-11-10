@@ -19,16 +19,16 @@ const OwnerSidebar = () => {
   const { logout } = useAuth(); 
 
   const menuItems = [
-    { name: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/owner/dashboard" },
+    { name: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/owner" },
     { name: "Bookings", icon: <CalendarCheck size={20} />, path: "/owner/bookings" },
-    { name: "Quản lý Phòng", icon: <BedDouble size={20} />, path: "/owner/rooms" },
+    { name: "Cơ sở lưu trú", icon: <BedDouble size={20} />, path: "/owner/rooms" },
     { name: "Tác vụ", icon: <ClipboardList size={20} />, path: "/owner/tasks" },
     { name: "Đánh giá", icon: <Star size={20} />, path: "/owner/reviews" },
     { name: "Cài đặt Khách sạn", icon: <Settings size={20} />, path: "/owner/settings" },
   ];
 
   const NavLink = ({ item }) => {
-    const isActive = location.pathname === item.path || (item.path !== "/owner/dashboard" && location.pathname.startsWith(item.path));
+    const isActive = location.pathname === item.path || (item.path !== "/owner" && location.pathname.startsWith(item.path));
     
     return (
       <Link
@@ -58,7 +58,7 @@ const OwnerSidebar = () => {
           ${collapsed ? "justify-center" : "justify-between"}`}
       >
         {!collapsed && (
-          <Link to="/owner/dashboard" className="flex items-center gap-2">
+          <Link to="/owner" className="flex items-center gap-2">
             <img
               src="/assets/logo/logo_travelmate_xoafont.png"
               alt="TravelMate"
