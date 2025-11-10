@@ -1,3 +1,4 @@
+// src/pages/Customer/HotelSearch/HotelSearchPage.jsx
 import React, { useState } from "react";
 import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
 import Button from "@/components/common/Button/Button";
@@ -124,28 +125,32 @@ export default function HotelSearchPage() {
 
   return (
     <CustomerLayout>
-      {/* +++ 2. BỎ flex-col VÀ items-center KHỎI <main> +++ */}
-      <main className="max-w-7xl mx-auto px-6 py-10">
+      {/* ✅ 1. Xóa padding `py-10` ở main */}
+      <main className="max-w-7xl mx-auto px-6">
 
-        {/* 1. Thanh tìm kiếm (bọc trong div để căn giữa) */}
-        <div className="flex justify-center">
+        {/* ✅ 2. Bọc SearchBar trong div sticky
+          - `sticky top-16`: Giả sử Header cao 4rem (64px)
+          - `z-20`: Đảm bảo nó nổi lên trên
+          - `py-6 bg-gray-50`: Tạo khoảng đệm và nền để che nội dung khi cuộn
+        */}
+        <div className="sticky top-16 z-20 flex justify-center py-6 bg-gray-50 -mx-6 px-6 border-b border-gray-200">
           <SearchBar onSearchClick={handleSearch} loading={loading} />
         </div>
 
-        {/* +++ 3. TẠO LAYOUT GRID 2 CỘT CHO FILTER VÀ KẾT QUẢ +++ */}
-        <div className="w-full mt-12 grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* ✅ 3. TẠO LAYOUT GRID 2 CỘT CHO FILTER VÀ KẾT QUẢ
+          - Thêm `mt-8` (thay cho mt-12)
+        */}
+        <div className="w-full mt-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
 
           {/* Cột Filter (bên trái) */}
-          {/* Chỉ hiển thị cột này SAU KHI đã tìm kiếm */}
           {hasSearched && (
             <div className="lg:col-span-1">
+              {/* FilterSidebar sẽ được làm sticky ở file của nó */}
               <FilterSidebar />
             </div>
           )}
 
           {/* Cột Kết quả (bên phải) */}
-          {/* Cột này sẽ co lại (col-span-3) khi có filter,
-              hoặc chiếm toàn bộ (col-span-4) nếu chưa tìm kiếm */}
           <div className={hasSearched ? "lg:col-span-3" : "lg:col-span-4"}>
             {/* Tiêu đề kết quả */}
             {hasSearched && (

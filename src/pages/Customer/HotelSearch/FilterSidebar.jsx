@@ -1,3 +1,4 @@
+// src/pages/Customer/HotelSearch/FilterSidebar.jsx
 import React from "react";
 import Card from "@/components/common/Card/Card";
 import Button from "@/components/common/Button/Button";
@@ -30,8 +31,10 @@ const CheckboxOption = ({ label, count }) => (
 
 export default function FilterSidebar() {
   return (
-    // Dùng Card để tạo nền trắng và bo góc
-    <Card className="p-0 overflow-hidden sticky top-24">
+    // ✅ SỬA Ở ĐÂY: Thêm `sticky top-44`
+    // (Giá trị 44 = 11rem = 176px, là khoảng cách đủ để nằm dưới SearchBar
+    // bạn có thể điều chỉnh 44 thành 40, 48... cho vừa ý)
+    <Card className="p-0 overflow-hidden sticky top-44">
       {/* Header của Filter */}
       <div className="flex justify-between items-center p-4 border-b border-gray-200">
         <h2 className="text-lg font-bold text-gray-900">Bộ lọc</h2>
@@ -46,7 +49,10 @@ export default function FilterSidebar() {
       </div>
 
       {/* Thân của Filter */}
-      <div className="p-4 overflow-y-auto max-h-[calc(100vh-200px)]">
+      {/* ✅ Thêm max-h để nếu filter quá dài, nó sẽ cuộn nội bộ
+          (100vh - 176px(top) - 70px(header) - 50px(padding))
+      */}
+      <div className="p-4 overflow-y-auto max-h-[calc(100vh-300px)]">
 
         {/* Lọc theo Thành phố (mock data) */}
         <FilterSection title="Thành phố">
