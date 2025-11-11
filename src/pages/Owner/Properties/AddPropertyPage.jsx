@@ -12,15 +12,15 @@ import Button from "@/components/common/Button/Button";
 import LoadingOverlay from "@/components/common/Loading/LoadingOverlay";
 import { ArrowLeft, ArrowRight, Send } from "lucide-react";
 
-// Import các steps
+// Import các steps (ĐÃ CẬP NHẬT)
 import Step0_PropertyType from "./AddPropertySteps/Step0_PropertyType";
 import Step1_Location from "./AddPropertySteps/Step1_Location"; 
 import Step2_Amenities from "./AddPropertySteps/Step2_Amenities";
-import Step3_RoomTypes from "./AddPropertySteps/Step3_RoomTypes";
-import Step4_Images from "./AddPropertySteps/Step4_Images";
-import Step5_Details from "./AddPropertySteps/Step5_Details";
-import Step6_Review from "./AddPropertySteps/Step6_Review";
-import Step7_Status from "./AddPropertySteps/Step7_Status"; // --- 1. IMPORT STEP 7 ---
+// BỎ Step 3 (Phòng)
+import Step3_Images from "./AddPropertySteps/Step3_Images"; // Đổi tên từ Step4
+import Step4_Details from "./AddPropertySteps/Step4_Details"; // Đổi tên từ Step5
+import Step5_Review from "./AddPropertySteps/Step5_Review"; // Đổi tên từ Step6
+import Step6_Status from "./AddPropertySteps/Step6_Status"; // Đổi tên từ Step7
 
 // --- Validation Schemas ---
 const fileListValidation = (min = 3) => yup
@@ -33,7 +33,7 @@ const fileListValidation = (min = 3) => yup
     );
   });
 
-// 2. TẬP HỢP TẤT CẢ SCHEMA
+// 2. CẬP NHẬT MẢNG SCHEMA (CÒN 5 BƯỚC VALIDATE)
 const stepSchemas = [
   // Step 0: Type (index 0)
   yup.object({
@@ -50,58 +50,37 @@ const stepSchemas = [
   yup.object({
     amenities: yup.object().nullable(), 
   }),
-  // Step 3: Room Types (index 3)
-  yup.object({
-    roomTypes: yup.array().of(
-      yup.object({
-        name: yup.string().required("Tên phòng là bắt buộc"),
-        roomCount: yup.number().min(1, "Số phòng phải > 0").required("Bắt buộc").typeError("Phải là số nguyên"),
-        maxGuests: yup.number().min(1, "Số khách phải > 0").required("Bắt buộc").typeError("Phải là số nguyên"),
-        size: yup.number().min(1, "Kích thước phải > 0").required("Bắt buộc").typeError("Phải là số"),
-        price: yup.number().min(1000, "Giá phải ít nhất 1,000 VNĐ").required("Bắt buộc").typeError("Phải là số"),
-        allowPets: yup.boolean(),
-      })
-    ).min(1, "Bạn phải thêm ít nhất 1 loại phòng."),
-  }),
-  // Step 4: Images (index 4)
+  // Step 3: Images (index 3) (Đơn giản hóa: Bỏ validation cho roomTypes.images)
   yup.object({
     propertyImages: fileListValidation(3),
-    roomTypes: yup.array().of(
-      yup.object({
-        images: fileListValidation(3) 
-      })
-    ),
   }),
-  // Step 5: Details (index 5)
+  // Step 4: Details (index 4)
   yup.object({
     propertyName: yup.string().required("Tên cơ sở là bắt buộc"),
     description: yup.string().min(50, "Mô tả phải có ít nhất 50 ký tự").required("Mô tả là bắt buộc"),
     area: yup.number().min(1, "Diện tích phải > 0").required("Bắt buộc").typeError("Phải là số"),
   }),
-  // Step 6: Review (index 6)
+  // Step 5: Review (index 5)
   yup.object({
     terms: yup.boolean().oneOf([true], "Bạn phải đồng ý với điều khoản dịch vụ"),
   }),
 ];
 
-// Tên các bước cho Stepper Dọc
+// 3. CẬP NHẬT MẢNG TÊN BƯỚC (CÒN 5 BƯỚC)
 const STEPPER_ITEMS = [
   { name: "Vị trí", description: "Cơ sở của bạn ở đâu?" }, 
   { name: "Tiện nghi", description: "Cơ sở của bạn có gì?" }, 
-  { name: "Phòng", description: "Thiết lập các loại phòng" },
   { name: "Hình ảnh", description: "Tải lên ảnh cơ sở" },
   { name: "Chi tiết", description: "Tên và mô tả" },
   { name: "Kiểm tra", description: "Xác nhận & Gửi đơn" }, 
 ];
 
 export default function AddPropertyPage() {
-  const [currentStep, setCurrentStep] = useState(0); 
+  const [currentStep, setCurrentStep] = useState(0); // 0 = Type, 1-5 = Stepper, 6 = Status
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null); // Lưu lỗi submit
+  const [error, setError] = useState(null); 
   const navigate = useNavigate();
 
-  // 3. HỢP NHẤT TẤT CẢ SCHEMA
-  // Chúng ta cần validation của TẤT CẢ các bước khi ở bước cuối
   const currentSchema = stepSchemas
     .slice(0, currentStep + 1) 
     .reduce((acc, schema) => acc.concat(schema), yup.object()); 
@@ -118,8 +97,8 @@ export default function AddPropertyPage() {
     resolver: yupResolver(currentSchema), 
     mode: "onChange",
     defaultValues: {
+      // 4. BỎ roomTypes KHỎI DEFAULT VALUES
       country: "Việt Nam",
-      roomTypes: [], 
       amenities: {},
       province: "", 
       city: "",     
@@ -132,7 +111,7 @@ export default function AddPropertyPage() {
     }
   });
 
-  // Hàm render component cho bước hiện tại
+  // 5. CẬP NHẬT HÀM RENDER
   const renderStepComponent = () => {
     const props = { register, errors, watch, setValue, control }; 
     switch (currentStep) {
@@ -143,28 +122,26 @@ export default function AddPropertyPage() {
       case 2:
         return <Step2_Amenities {...props} />;
       case 3:
-        return <Step3_RoomTypes {...props} />;
+        return <Step3_Images {...props} />; // Đổi từ Step4
       case 4:
-        return <Step4_Images {...props} />;
+        return <Step4_Details {...props} />; // Đổi từ Step5
       case 5:
-        return <Step5_Details {...props} />;
-      case 6:
-        return <Step6_Review {...props} />;
-      // --- 4. THÊM CASE CHO STEP 7 ---
-      case 7: 
-        return <Step7_Status 
+        return <Step5_Review {...props} />; // Đổi từ Step6
+      case 6: // Step 6 bây giờ là Status
+        return <Step6_Status 
                   error={error} 
-                  onRetry={() => { setError(null); setCurrentStep(6); }} // Quay lại bước 6 (Review)
+                  onRetry={() => { setError(null); setCurrentStep(5); }} // Quay lại bước 5 (Review)
                 />;
       default:
         return <div>Lỗi: Bước không xác định</div>;
     }
   };
 
+  // 6. CẬP NHẬT LOGIC NÚT "TIẾP THEO"
   const handleNext = async () => {
     const isValid = await trigger(); 
     if (isValid) {
-      if (currentStep < 6) { 
+      if (currentStep < 5) { // Review bây giờ là bước 5
         setCurrentStep((prev) => prev + 1);
       }
     }
@@ -178,54 +155,38 @@ export default function AddPropertyPage() {
     }
   };
 
-  // --- 5. HOÀN THIỆN LOGIC SUBMIT (Luồng 11) ---
+  // 7. CẬP NHẬT LOGIC SUBMIT (Đơn giản hóa FormData)
   const onFinalSubmit = async (data) => {
     setIsLoading(true);
     setError(null);
 
-    // 1. Tách dữ liệu JSON và File
+    // 1. Tách JSON (không cần xóa roomTypes nữa)
     const jsonData = { ...data };
-    // Xóa key ảnh khỏi bản sao JSON
     delete jsonData.propertyImages; 
-    // Tạo mảng roomTypes mới không chứa key "images"
-    jsonData.roomTypes = data.roomTypes.map(room => {
-      const roomCopy = { ...room };
-      delete roomCopy.images;
-      return roomCopy;
-    });
 
     // 2. Tạo FormData
     const formData = new FormData();
-    
-    // Thêm JSON data (backend sẽ parse chuỗi này)
     formData.append("propertyData", new Blob([JSON.stringify(jsonData)], { 
       type: "application/json"
     }));
 
-    // 3. Thêm ảnh chung (dùng chung 1 key "propertyImages")
+    // 3. Thêm ảnh chung
     if (data.propertyImages) {
       Array.from(data.propertyImages).forEach(file => {
         formData.append("propertyImages", file);
       });
     }
 
-    // 4. Thêm ảnh phòng (dùng key động "room_INDEX_images")
-    data.roomTypes.forEach((room, roomIndex) => {
-      if (room.images) {
-        Array.from(room.images).forEach(file => {
-          formData.append(`room_${roomIndex}_images`, file);
-        });
-      }
-    });
+    // (KHÔNG CẦN LOGIC THÊM ẢNH PHÒNG NỮA)
 
-    // 5. Gọi API
+    // 4. Gọi API
     try {
       await propertyService.submitPropertyApplication(formData);
     } catch (err) {
       setError(err.message || "Một lỗi không xác định đã xảy ra.");
     } finally {
       setIsLoading(false);
-      setCurrentStep(7); // Luôn chuyển đến trang Status
+      setCurrentStep(6); // Chuyển đến trang Status (bước 6)
     }
   };
 
@@ -233,8 +194,8 @@ export default function AddPropertyPage() {
     <>
       {isLoading && <LoadingOverlay message="Đang gửi đơn đăng ký..." />}
       
-      {/* 6. ẨN NÚT "QUAY LẠI" KHI Ở TRANG STATUS */}
-      {currentStep < 7 && (
+      {/* 8. CẬP NHẬT ĐIỀU KIỆN ẨN NÚT QUAY LẠI */}
+      {currentStep < 6 && (
          <Button
             type="button"
             variant="ghost"
@@ -249,31 +210,26 @@ export default function AddPropertyPage() {
       <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
         
         {currentStep === 0 ? (
-          // --- GIAO DIỆN CHỌN LOẠI ---
           <form onSubmit={handleSubmit(handleNext)}>
             {renderStepComponent()}
             <div className="flex justify-end mt-8">
-              <Button
-                type="submit"
-                rightIcon={<ArrowRight size={18} />}
-                disabled={!watch("propertyType")}
-              >
+              <Button type="submit" rightIcon={<ArrowRight size={18} />} disabled={!watch("propertyType")}>
                 Tiếp theo
               </Button>
             </div>
           </form>
 
-        ) : currentStep < 7 ? (
-          // --- GIAO DIỆN STEPPER DỌC ---
+        // 9. CẬP NHẬT ĐIỀU KIỆN RENDER
+        ) : currentStep < 6 ? (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-            
             <div className="md:col-span-1">
+              {/* Stepper bây giờ là 0-4 (tương ứng step 1-5) */}
               <VerticalStepper steps={STEPPER_ITEMS} currentStep={currentStep - 1} />
             </div>
             
             <div className="md:col-span-3">
-              {/* 7. SỬ DỤNG onFinalSubmit KHI Ở BƯỚC 6 */}
-              <form onSubmit={handleSubmit(currentStep === 6 ? onFinalSubmit : handleNext)}>
+              {/* 10. CẬP NHẬT LOGIC SUBMIT (step 5 là cuối) */}
+              <form onSubmit={handleSubmit(currentStep === 5 ? onFinalSubmit : handleNext)}>
                 <h2 className="text-2xl font-semibold text-gray-800 mb-6">
                   {STEPPER_ITEMS[currentStep - 1].name}
                 </h2>
@@ -281,12 +237,8 @@ export default function AddPropertyPage() {
                 {renderStepComponent()}
 
                 <div className="flex justify-end pt-8 mt-8 border-t border-gray-100">
-                  {currentStep === 6 ? ( 
-                    <Button
-                      type="submit"
-                      leftIcon={<Send size={18} />}
-                      disabled={!watch("terms")} // Vô hiệu hóa nếu chưa tick
-                    >
+                  {currentStep === 5 ? ( 
+                    <Button type="submit" leftIcon={<Send size={18} />} disabled={!watch("terms")}>
                       Gửi đơn đăng ký
                     </Button>
                   ) : (
@@ -300,7 +252,7 @@ export default function AddPropertyPage() {
           </div>
 
         ) : (
-           // --- GIAO DIỆN TRẠNG THÁI (STEP 7) ---
+           // Giao diện Status (step 6)
            renderStepComponent()
         )}
       </div>
