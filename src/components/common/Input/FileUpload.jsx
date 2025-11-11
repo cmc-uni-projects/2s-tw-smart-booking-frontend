@@ -1,107 +1,95 @@
-import React, { useState, useRef, useEffect } from "react";
-import { UploadCloud, File, X } from "lucide-react";
+import React from "react";
+// 1. Import thêm icon
+import { X, FileText } from "lucide-react";
 
 export default function FileUpload({
-                                       label,
-                                       required = false,
-                                       onChange,
-                                       name,
-                                       error = "",
-                                   }) {
-    const [file, setFile] = useState(null);
-    const inputRef = useRef(null);
+  label,
+  icon,
+  multiple = false,
+  accept = "*",
+  helpText = "",
+  onChange,
+  value, // 2. Thêm prop 'value' (từ react-hook-form watch)
+  onClear, // 3. Thêm prop 'onClear' (để gọi setValue(null))
+  error = "",
+}) {
+  // Lấy file đầu tiên từ danh sách (vì chúng ta không cho multiple)
+  const file = value && value.length > 0 ? value[0] : null;
+  const fileName = file ? file.name : null;
 
-    // Xử lý khi file bị xóa từ bên ngoài (reset form)
-    useEffect(() => {
-        // Logic này có thể không chạy đúng như mong đợi vì onChange là một function,
-        // nhưng tôi giữ nguyên theo file gốc bạn cung cấp.
-        if (onChange === null) {
-            setFile(null);
-            if (inputRef.current) {
-                inputRef.current.value = null;
-            }
-        }
-    }, [onChange]);
-
-    const handleFileChange = (e) => {
-        const selectedFile = e.target.files[0];
-        if (selectedFile) {
-            setFile(selectedFile);
-            if (onChange) {
-                onChange(name, selectedFile);
-            }
-        }
-    };
-
-    const removeFile = () => {
-        setFile(null);
-        if (onChange) {
-            onChange(name, null);
-        }
-        if (inputRef.current) {
-            inputRef.current.value = null;
-        }
-    };
-
+  // 4. Nếu CÓ file, hiển thị giao diện xem trước
+  if (fileName) {
     return (
-        <div className="w-full">
-            <label className="block mb-1 text-sm font-medium text-gray-700">
-                {label} {required && <span className="text-red-500">*</span>}
-            </label>
-
-            {!file ? (
-                <>
-                    <label
-                        className={`relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer bg-white hover:bg-gray-50 transition-colors
-            ${error ? "border-red-400 text-red-500" : "border-gray-300"}
-          `}
-                    >
-                        <UploadCloud
-                            size={24}
-                            className={error ? "text-red-400" : "text-gray-400"}
-                        />
-                        <span
-                            className={`mt-2 text-sm ${
-                                error ? "text-red-600" : "text-gray-600"
-                            }`}
-                        >
-              {error ? error : "Nhấn để tải lên"}
-            </span>
-
-                        {/* ✅ THAY ĐỔI 1: Cập nhật text hiển thị (bỏ PDF) */}
-                        {!error && (
-                            <p className="text-xs text-gray-500">PNG, JPG hoặc WebP</p>
-                        )}
-
-                        <input
-                            ref={inputRef}
-                            type="file"
-                            name={name}
-                            className="opacity-0 absolute inset-0 w-full h-full"
-                            onChange={handleFileChange}
-
-                            // ✅ THAY ĐỔI 2: Cập nhật prop 'accept' (thêm webp, bỏ pdf)
-                            accept="image/png, image/jpeg, image/webp"
-                        />
-                    </label>
-                </>
-            ) : (
-                <div className="flex items-center justify-between w-full h-16 px-4 py-2 border border-green-300 rounded-xl bg-green-50">
-                    <div className="flex items-center gap-2 overflow-hidden">
-                        <File size={20} className="text-green-600 flex-shrink-0" />
-                        <span className="text-sm text-green-800 font-medium truncate">
-              {file.name}
-            </span>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={removeFile}
-                        className="text-red-500 hover:text-red-700"
-                    >
-                        <X size={18} />
-                    </button>
-                </div>
-            )}
+      <div className="w-full">
+        <div
+          className={`flex items-center justify-between w-full h-auto p-4 
+                     border-2 border-dashed rounded-xl 
+                     transition-colors
+                     ${
+                       error
+                         ? "border-red-400 bg-red-50 text-red-700"
+                         : "border-green-500 bg-green-50 text-green-800" // Đổi sang màu xanh khi thành công
+                     }
+                    `}
+        >
+          <div className="flex items-center gap-3 overflow-hidden">
+            <FileText size={20} className="flex-shrink-0" />
+            <div className="flex flex-col overflow-hidden">
+              <span className="text-sm font-semibold truncate" title={fileName}>
+                {fileName}
+              </span>
+              <span className="text-xs">{label}</span>
+            </div>
+          </div>
+          {/* Nút "X" để xóa file */}
+          <button
+            type="button"
+            onClick={onClear} 
+            className="flex-shrink-0 p-1 rounded-full text-gray-500 hover:bg-red-100 hover:text-red-600 transition-colors"
+          >
+            <X size={18} />
+          </button>
         </div>
+        {/* Vẫn hiển thị lỗi nếu file sai định dạng */}
+        {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      </div>
     );
+  }
+
+  // 5. Nếu KHÔNG có file, hiển thị giao diện upload (code cũ)
+  return (
+    <div className="w-full">
+      <label
+        htmlFor={`file-upload-${label}`}
+        className={`flex flex-col items-center justify-center w-full h-32 
+                   border-2 border-dashed rounded-xl cursor-pointer 
+                   bg-gray-50 transition-colors
+                   ${
+                     error
+                       ? "border-red-400 text-red-500 hover:bg-red-50"
+                       : "border-gray-300 text-gray-500 hover:border-[rgb(40,169,224)] hover:bg-[rgb(40,169,224,0.05)] hover:text-[rgb(40,169,224)]"
+                   }
+                  `}
+      >
+        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+          <div className={`${error ? "text-red-500" : ""}`}>{icon}</div>
+          <p className="mb-1 text-sm font-semibold">{label}</p>
+          <input
+            type="file"
+            multiple={multiple}
+            accept={accept}
+            onChange={onChange}
+            className="hidden"
+            id={`file-upload-${label}`}
+          />
+        </div>
+      </label>
+
+      {error ? (
+        <p className="text-xs text-red-500 mt-1">{error}</p>
+      ) : (
+        <p className="text-xs text-gray-400 mt-1">{helpText}</p>
+      )}
+    </div>
+  );
 }

@@ -1,12 +1,14 @@
 // src/components/common/Card/HotelCard.jsx
 import React from "react";
 import { Link } from "react-router-dom"; // Để click vào card
-import { Eye, MapPin } from "lucide-react";
+// ✅ Thêm icon Star
+import { Eye, MapPin, Star } from "lucide-react";
 import Card from "./Card"; // Component Card nền
 import Badge from "../Badge/Badge"; // Component Badge
 
 export default function HotelCard({ hotel }) {
-  const { id, name, location, price, image } = hotel;
+  // ✅ Lấy thêm rating và reviews
+  const { id, name, location, price, image, rating, reviews } = hotel;
 
   return (
     // Sử dụng 'group' của Tailwind để kích hoạt hover
@@ -20,7 +22,7 @@ export default function HotelCard({ hotel }) {
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
           
-          {/* 2. Lớp Overlay (Yêu cầu của bạn) */}
+          {/* 2. Lớp Overlay */}
           <Link 
             to={`/hotels/${id}`} 
             className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center cursor-pointer"
@@ -41,6 +43,20 @@ export default function HotelCard({ hotel }) {
             <MapPin size={16} />
             <span className="truncate">{location}</span>
           </div>
+          
+          {/* ✅ (Yêu cầu 1) Thêm hiển thị Rating/Reviews */}
+          {rating && (
+            <div className="flex items-center gap-2 text-sm mt-1">
+              <Badge 
+                color="primary" 
+                icon={<Star size={12} className="fill-current" />}
+              >
+                {rating}
+              </Badge>
+              <span className="text-gray-500">({reviews.toLocaleString('vi-VN')} đánh giá)</span>
+            </div>
+          )}
+
           <div className="mt-2">
             <Badge color="primary" icon={false}>
               {price}

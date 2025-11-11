@@ -10,80 +10,111 @@ import ResetPassword from "./pages/Auth/ResetPassword.jsx";
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 import "./styles/global.css";
 
+import HotelSearchPage from "@/pages/Customer/HotelSearch/HotelSearchPage";
+
 // Trang Home thật (Customer)
-import HomePage from "./pages/Customer/Home/HomePage.jsx";
+import HomePage from "./pages/Customer/Home/HomePage.jsx"; 
 import About from "./pages/Customer/About/About.jsx";
 
-// Các trang sau đăng nhập (dashboard)
+// Các trang sau đăng nhập (dashboardd)
 import ProfilePage from "./pages/Customer/Profile/ProfilePage.jsx";
 import BookingHistory from "./pages/Customer/Booking/BookingHistory.jsx";
 
-// ✅ THÊM MỚI TỪ NHÁNH FEATURE
+// ✅ ---- THÊM IMPORT ----
+// 1. Import 2 trang đối tác
+import PartnerLandingPage from "./pages/Partner/PartnerLandingPage.jsx";
 import BecomeOwnerPage from "./pages/Customer/Profile/BecomeOwnerPage.jsx";
+// -----------------------
+
+// ✅ ---- THÊM IMPORT CHO TRANG CHI TIẾT ----
+import HotelDetailPage from "@/pages/Customer/HotelDetail/HotelDetailPage";
+// ----------------------------------------
+
 import AdminRoutes from "./routes/AdminRoutes.jsx";
+import OwnerRoutes from "./routes/OwnerRoutes.jsx";
 
 function App() {
-    const { currentUser } = useAuth();
+  const { currentUser } = useAuth();
 
-    return (
-        <Routes>
-            {/* 🔹 PUBLIC ROUTES - KHÔNG CẦN ĐĂNG NHẬP */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/about" element={<About />} />
+  return (
+    <Routes>
+      {/* 🔹 PUBLIC ROUTES - KHÔNG CẦN ĐĂNG NHẬP */}
+      <Route path="/" element={<HomePage />} />
+      <Route path="/about" element={<About />} />
 
-            <Route
-                path="/login"
-                element={currentUser ? <Navigate to="/" replace /> : <Login />}
-            />
-            <Route
-                path="/register"
-                element={currentUser ? <Navigate to="/" replace /> : <Register />}
-            />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
+      {/* ✅ ---- THÊM ROUTE ---- */}
+      {/* 2. Thêm route công khai cho trang giới thiệu đối tác */}
+      <Route path="/partner-with-us" element={<PartnerLandingPage />} />
+      {/* ----------------------- */}
+      <Route path="/hotels" element={<HotelSearchPage />} />
 
-            {/* 🔐 PROTECTED ROUTES - CẦN ĐĂNG NHẬP */}
-            <Route
-                path="/customer/profile"
-                element={
-                    <ProtectedRoute>
-                        <ProfilePage />
-                    </ProtectedRoute>
-                }
-            />
-            <Route
-                path="/customer/bookings"
-                element={
-                    <ProtectedRoute>
-                        <BookingHistory />
-                    </ProtectedRoute>
-                }
-            />
+      {/* ✅ ---- THÊM ROUTE CHO TRANG CHI TIẾT (ROOM DETAILS) ---- */}
+      <Route path="/hotels/:hotelId" element={<HotelDetailPage />} />
+      {/* ----------------------------------------------------- */}
 
-            {/* ✅ THÊM ROUTE CỦA BẠN VÀO ĐÂY */}
-            <Route
-                path="/become-owner"
-                element={
+      <Route
+        path="/login"
+        element={currentUser ? <Navigate to="/" replace /> : <Login />}
+      />
+      <Route
+        path="/register"
+        element={currentUser ? <Navigate to="/" replace /> : <Register />}
+      />
+      <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
-                        <BecomeOwnerPage />
+      {/* 🔐 PROTECTED ROUTES - CẦN ĐĂNG NHẬP */}
+      <Route
+        path="/customer/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/customer/bookings"
+        element={
+          <ProtectedRoute>
+            <BookingHistory />
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* ✅ ---- THÊM ROUTE ---- */}
+      {/* 3. Thêm route bảo vệ cho form đăng ký (người dùng phải đăng nhập) */}
+      <Route
+        path="/partner/register"
+        element={
+          <ProtectedRoute>
+            <BecomeOwnerPage />
+          </ProtectedRoute>
+        }
+      />
+      {/* ✅ OWNER ROUTES */}
+      <Route
+        path="/owner/*"
+        element={
+          <ProtectedRoute requiredRole="OWNER">
+            <OwnerRoutes />
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* ✅ ADMIN ROUTES */}
+      <Route
+        path="/admin/*"
+        element={
+          <ProtectedRoute requiredRole="ADMIN">
+            <AdminRoutes />
+          </ProtectedRoute>
+        }
+      />
 
-                }
-            />
-
-            {/* ✅ ADMIN ROUTES */}
-            <Route
-                path="/admin/*"
-                element={
-                    <ProtectedRoute requiredRole="ADMIN">
-                        <AdminRoutes />
-                    </ProtectedRoute>
-                }
-            />
-
-            <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-    );
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
 
 export default App;

@@ -9,6 +9,7 @@ import {
   History,
   CreditCard,
 } from "lucide-react";
+// 1. Lấy thêm 'hasRole' từ context
 import { useAuth } from "../../context/AuthContext";
 import Button from "../../components/common/Button/Button";
 import ConfirmModal from "../../components/common/Modal/ConfirmModal";
@@ -16,7 +17,8 @@ import LanguageSwitcher from "./LanguageSwitcher";
 
 const Header = () => {
   const navigate = useNavigate();
-  const { currentUser, logout } = useAuth();
+  // 2. Lấy 'hasRole'
+  const { currentUser, logout, hasRole } = useAuth();
   
   const [supportOpen, setSupportOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -56,7 +58,6 @@ const Header = () => {
   
   const navLinkClass = "flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-[rgb(40,169,224)] transition-colors";
   
-  // ✅ (YÊU CẦU CỦA BẠN) Class mới cho link trong dropdown hỗ trợ
   const dropdownLinkClass = "block px-4 py-2 text-sm text-gray-700 hover:bg-[rgb(40,169,224)]/10 hover:text-[rgb(40,169,224)] transition-colors";
 
   return (
@@ -106,16 +107,13 @@ const Header = () => {
                   <Link
                     to="/help"
                     onClick={() => setSupportOpen(false)}
-                    // ✅ (YÊU CẦU CỦA BẠN) Cập nhật class
                     className={dropdownLinkClass}
                   >
                     Trợ giúp
                   </Link>
                   <Link
-                    // ✅ (YÊU CẦU CỦA BẠN) Cập nhật link
                     to="/about#contact" 
                     onClick={() => setSupportOpen(false)}
-                    // ✅ (YÊU CẦU CỦA BẠN) Cập nhật class
                     className={dropdownLinkClass}
                   >
                     Liên hệ với chúng tôi
@@ -127,13 +125,37 @@ const Header = () => {
 
           {/* Auth actions */}
           <div className="hidden lg:flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={() => navigate("/partner/register")}
-              className="border-[rgb(40,169,224)] text-[rgb(40,169,224)] hover:bg-[rgb(40,169,224)] hover:text-white font-medium"
-            >
-              Hợp tác với chúng tôi
-            </Button>
+            
+            {/* 3. (THAY ĐỔI) Logic hiển thị nút dựa trên role */}
+            {hasRole("ADMIN") ? (
+              // (Req #2) Nếu là ADMIN
+              <Button
+                variant="primary-outline"
+                onClick={() => navigate("/admin")}
+                className="font-medium transform hover:scale-105 transition-all duration-300"
+              >
+                Đi đến trang quản trị tổng quan
+              </Button>
+            ) : hasRole("OWNER") ? (
+              // (Req #1) Nếu là OWNER
+              <Button
+                variant="primary-outline"
+                onClick={() => navigate("/owner")}
+                className="font-medium transform hover:scale-105 transition-all duration-300"
+              >
+                Đi đến trang quản lý chỗ nghỉ
+              </Button>
+            ) : (
+              // Mặc định (guest hoặc customer thường)
+              <Button
+                variant="primary-outline" 
+                onClick={() => navigate("/partner-with-us")}
+                className="font-medium
+                           transform hover:scale-105 transition-all duration-300"
+              >
+                Hợp tác với chúng tôi
+              </Button>
+            )}
             
             {!currentUser ? (
               <>

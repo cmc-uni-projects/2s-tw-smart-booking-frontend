@@ -1,53 +1,42 @@
-// src/components/common/Input/DatePicker.jsx
-import React, { useRef } from "react"; // 1. Import useRef
-import { Calendar } from "lucide-react"; // 2. Import lại Calendar
+import React from "react";
+import { Calendar } from "lucide-react";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
-export default function DatePicker({ label, value, onChange }) {
+export default function DatePicker({ label, value, onChange, error = "" }) {
+  const formatDate = (date) => (date ? format(new Date(date), "dd/MM/yyyy", { locale: vi }) : "");
 
-    // 3. Tạo một ref để tham chiếu đến input
-    const inputRef = useRef(null);
-
-    // 4. Tạo hàm để "ra lệnh" cho input mở lịch
-    const handleIconClick = () => {
-        if (inputRef.current) {
-            try {
-                // Hàm chuẩn của trình duyệt để mở cửa sổ chọn ngày
-                inputRef.current.showPicker();
-            } catch (e) {
-                console.error("Trình duyệt này không hỗ trợ showPicker().");
+  return (
+    <div className="flex flex-col w-full">
+      {label && <label className="mb-1 text-sm font-medium text-gray-700">{label}</label>}
+      <div className="relative">
+        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+        <input
+          type="date"
+          value={value || ""} 
+          onChange={(e) => onChange(e.target.value)}
+          
+          // ✅ SỬA DÒNG NÀY:
+          // Thay 'pr-3' (padding-right: 0.75rem) bằng 'pr-28' (padding-right: 7rem)
+          className={`w-full rounded-xl border bg-white py-3 pl-10 pr-28 text-gray-700 shadow-sm transition-all
+            ${
+              error
+                ? "border-red-400 focus:border-red-400 focus:ring-red-100" 
+                : "border-gray-300 focus:border-[rgb(40,169,224)] focus:ring-[rgb(40,169,224,0.2)]"
             }
-        }
-    };
+          `}
+        />
+        
+        {/* Phần xem trước này sẽ nằm trong khoảng padding 'pr-28' mới */}
+        {value && (
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-[rgb(40,169,224)] pointer-events-none">
+            {formatDate(value)}
+          </span>
+        )}
+      </div>
+      
+      {error && <p className="text-xs text-red-500 mt-1 ml-1">{error}</p>}
 
-    return (
-        <div className="flex flex-col w-full">
-            {label && <label className="mb-1 text-sm font-medium text-gray-700">{label}</label>}
-            <div className="relative">
-
-                {/* 5. THÊM LẠI ICON TĨNH (NHƯNG DÙNG <button>) */}
-                <button
-                    type="button"
-                    onClick={handleIconClick}
-                    // ✅ 6. THAY ĐỔI: Thêm màu xanh (nổi bật) và hover
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(40,169,224)] cursor-pointer p-1"
-                    tabIndex={-1} // Để không bị focus khi bấm Tab
-                >
-                    <Calendar size={18} />
-                </button>
-
-                <input
-                    ref={inputRef} // 7. Gán ref vào input
-                    type="date"
-                    value={value}
-                    onChange={(e) => onChange(e.target.value)}
-
-                    // ✅ 8. SỬA LẠI PADDING:
-                    // 'pl-10' (chừa 10 padding bên trái cho icon)
-                    // 'pr-4' (chừa 4 padding bên phải)
-                    className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-10 pr-4 text-gray-700 shadow-sm focus:border-[rgb(40,169,224)] focus:ring-2 focus:ring-[rgb(40,169,224,0.2)] transition-all"
-                />
-
-            </div>
-        </div>
-    );
+    </div>
+  );
 }
