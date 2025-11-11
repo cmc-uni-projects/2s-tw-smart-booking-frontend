@@ -1,11 +1,18 @@
 import React from "react";
+// 1. Import useNavigate và Search
+import { useNavigate } from "react-router-dom";
+import { Search } from "lucide-react";
+
 import Button from "@/components/common/Button/Button";
 import DateSelector from "@/components/search/DateSelector";
 import GuestSelector from "@/components/search/GuestSelector";
+import DestinationSelector from "@/components/search/DestinationSelector";
 
 const HeroSection = () => {
+  // 2. Khởi tạo hook
+  const navigate = useNavigate();
+
   return (
-    // ✅ Giữ nguyên pb-24
     <section className="relative w-full bg-gradient-to-b from-white to-[#f4fbff] pb-24">
       {/* Ảnh nền */}
       <div className="relative h-[500px] overflow-hidden">
@@ -16,8 +23,8 @@ const HeroSection = () => {
         />
       </div>
 
-      {/* ✅ (Yêu cầu 1) Thêm z-10 vào đây */}
-      <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-4 z-10">
+      {/* Sửa z-index (từ 10 lên 30) */}
+      <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-4 z-30">
         <h1 className="text-4xl md:text-5xl font-extrabold text-[#006494] mb-4">
           Đặt phòng dễ dàng cùng{" "}
           <span className="text-[rgb(40,169,224)]">TravelMate</span>
@@ -25,31 +32,21 @@ const HeroSection = () => {
         <p className="text-gray-700 text-lg mb-10">
         </p>
 
-        {/* 🧭 form ngay dưới tiêu đề */}
-        <div className="bg-white shadow-xl rounded-2xl border border-gray-100 p-6 md:p-8 grid grid-cols-1 md:grid-cols-4 gap-4 max-w-6xl w-[90%]">
-          {/* Điểm đến */}
-          <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-600 mb-1">
-              Điểm đến
-            </label>
-            <input
-              type="text"
-              placeholder="Nhập thành phố hoặc khách sạn"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[rgb(40,169,224)] outline-none"
-            />
-          </div>
-
-          {/* Khoảng thời gian */}
+        <div className="relative z-10 bg-white shadow-xl rounded-2xl border border-gray-100 p-6 md:p-8 grid grid-cols-1 md:grid-cols-4 gap-4 max-w-6xl w-[90%]">
+          
+          <DestinationSelector />
           <DateSelector />
-
-          {/* Số lượng */}
           <GuestSelector />
 
-          {/* Nút tìm */}
+          {/* 3. Cập nhật Nút tìm */}
           <div className="flex items-end justify-center">
             <Button
               size="lg"
               className="w-full bg-[rgb(40,169,224)] hover:bg-[#1b98d6] text-white font-semibold shadow-md rounded-lg"
+              // (Req #2) Thêm onClick để chuyển trang
+              onClick={() => navigate("/hotels")}
+              // (Req #1) Thêm icon Search
+              leftIcon={<Search size={18} />}
             >
               Tìm phòng
             </Button>

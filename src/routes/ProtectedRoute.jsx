@@ -12,7 +12,7 @@ const ProtectedRoute = ({ children, requiredRole }) => {
     return <LoadingOverlay message="Đang tải thông tin xác thực..." />;
   }
 
-  // ✅ SỬA Ở ĐÂY: Đổi 'user' thành 'currentUser'
+  // ✅ SỬA Ở ĐÂY: Đổi 'user' thành 'currentUserr'
   if (!currentUser) {
     // Nếu không có user, chuyển về trang login
     return <Navigate to="/login" replace />;
