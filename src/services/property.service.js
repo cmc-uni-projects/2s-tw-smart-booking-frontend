@@ -1,37 +1,30 @@
-// src/services/property.service.js
-// TODO: Kết nối API thật. Hiện tại đây là file mock.
+import axios from "axios";
 
-// Hàm tiện ích để giả lập thời gian chờ của mạng
-const fakeApiCall = (duration) => new Promise(resolve => setTimeout(resolve, duration));
+// ✅ SỬA 1: Đổi cổng (port) mặc định sang 8386 của bạn
+const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1";
 
-export const propertyService = {
-  /**
-   * (Mocked) Gửi đơn đăng ký cơ sở lưu trú mới
-   * @param {FormData} formData Đối tượng FormData
-   */
-  submitPropertyApplication: async (formData) => {
-
-    console.log("=========================================");
-    console.log("🚀 [MOCK API] GỬI ĐƠN ĐĂNG KÝ CƠ SỞ LƯU TRÚ...");
-    console.log("=========================================");
-
-    // In ra toàn bộ dữ liệu bạn đã thu thập để kiểm tra
-    for (let [key, value] of formData.entries()) {
-      console.log(key, ":", value);
+const searchProperties = async (params) => {
+  // Lọc ra các params không rỗng
+  const cleanParams = Object.keys(params).reduce((acc, key) => {
+    if (params[key] !== null && params[key] !== undefined && params[key] !== "") {
+      acc[key] = params[key];
     }
+    return acc;
+  }, {});
 
-    // Giả lập thời gian chờ
-    await fakeApiCall(2000);
-
-    // --- Giả lập lỗi (bạn có thể uncomment để test luồng lỗi) ---
-    // throw new Error("403 - Missing required documents (Mocked)");
-    // ---
-
-    console.log("✅ [MOCK API] GỬI THÀNH CÔNG!");
-
-    return {
-      success: true,
-      message: "Property application submitted (Mocked)"
-    };
-  },
+  // 'await' ở đây để lấy 'response'
+  const response = await axios.get(`${API_URL}/properties/search`, {
+    params: cleanParams,
+  });
+  
+  // ✅ SỬA 2: Trả về 'response.data' (mảng)
+  // File HotelSearchPage.jsx của bạn cần mảng 'results'
+  return response.data;
 };
+
+// Gom hàm vào đối tượng và 'export default'
+const propertyService = {
+  searchProperties,
+};
+
+export default propertyService;

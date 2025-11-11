@@ -7,17 +7,17 @@ const mockSuggestions = [
   { type: "city", name: "Hà Nội" },
   { type: "city", name: "Đà Nẵng" },
   { type: "city", name: "TP. Hồ Chí Minh" },
+  { type: "city", name: "Vũng Tàu" }, // (Thêm Vũng Tàu để dễ test)
   { type: "hotel", name: "The Ocean Resort" },
   { type: "hotel", name: "Mountain Retreat" },
 ];
 
-// 1. Cập nhật SuggestionItem để nhận prop `onClick`
 const SuggestionItem = ({ item, onClick }) => {
   const isCity = item.type === "city";
   return (
     <button
       type="button"
-      onClick={onClick} // 2. Gắn hàm onClick vào button
+      onClick={onClick} 
       className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
     >
       {isCity ? <MapPin size={16} className="text-gray-400" /> : <Hotel size={16} className="text-gray-400" />}
@@ -28,8 +28,10 @@ const SuggestionItem = ({ item, onClick }) => {
 
 export default function DestinationSelector({ value, onChange }) {
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState(value || "");
   const ref = useRef(null);
+  
+  // ✅ 1. XÓA STATE NỘI BỘ 'query'
+  // const [query, setQuery] = useState(value || ""); // <-- XÓA DÒNG NÀY
 
   // Xử lý click ra ngoài để đóng dropdown
   useEffect(() => {
@@ -40,14 +42,15 @@ export default function DestinationSelector({ value, onChange }) {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
+  // ✅ 2. LỌC DỰA TRÊN 'value' (prop từ cha) THAY VÌ 'query'
   const filteredSuggestions = mockSuggestions.filter((s) =>
-    s.name.toLowerCase().includes(query.toLowerCase())
+    s.name.toLowerCase().includes((value || "").toLowerCase())
   );
 
-  // 3. (MỚI) Hàm xử lý khi chọn một mục
+  // Hàm xử lý khi chọn một mục
   const handleSelect = (item) => {
-    setQuery(item.name);     // Cập nhật text trong input
-    onChange?.(item.name); // Thông báo cho component cha (HeroSection)
+    // setQuery(item.name); // <-- XÓA DÒNG NÀY
+    onChange?.(item.name); // Thông báo cho component cha
     setOpen(false);         // Đóng dropdown
   };
 
@@ -69,10 +72,14 @@ export default function DestinationSelector({ value, onChange }) {
           type="text"
           placeholder="Nhập thành phố hoặc khách sạn"
           className="w-full h-full outline-none border-none p-0 ml-2 text-sm text-gray-700"
-          value={query}
+          
+          // ✅ 3. SỬ DỤNG 'value' TỪ PROP
+          value={value || ""}
+          
+          // ✅ 4. CẬP NHẬT TRỰC TIẾP STATE CỦA CHA (HotelSearchPage) KHI GÕ
           onChange={(e) => {
-            setQuery(e.target.value); // Cập nhật query khi gõ
-            if (!open) setOpen(true);    // Mở dropdown khi bắt đầu gõ
+            onChange?.(e.target.value); // Cập nhật state của cha
+            if (!open) setOpen(true);      // Mở dropdown khi bắt đầu gõ
           }}
           onFocus={() => setOpen(true)} // Mở khi focus
         />
@@ -87,7 +94,6 @@ export default function DestinationSelector({ value, onChange }) {
           <div className="p-2 max-h-60 overflow-y-auto">
             {filteredSuggestions.length > 0 ? (
               filteredSuggestions.map((item, index) => (
-                // 4. (CẬP NHẬT) Truyền hàm handleSelect vào SuggestionItem
                 <SuggestionItem 
                   key={index} 
                   item={item} 
