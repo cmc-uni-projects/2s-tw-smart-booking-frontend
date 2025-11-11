@@ -18,7 +18,8 @@ import Step1_Location from "./AddPropertySteps/Step1_Location";
 import Step2_Amenities from "./AddPropertySteps/Step2_Amenities";
 import Step3_RoomTypes from "./AddPropertySteps/Step3_RoomTypes";
 import Step4_Images from "./AddPropertySteps/Step4_Images";
-import Step5_Details from "./AddPropertySteps/Step5_Details"; // --- 1. IMPORT STEP 5 ---
+import Step5_Details from "./AddPropertySteps/Step5_Details";
+import Step6_Review from "./AddPropertySteps/Step6_Review"; // --- 1. IMPORT STEP 6 ---
 // ... (Các steps khác sẽ được import ở đây)
 
 // --- Validation Schemas ---
@@ -70,12 +71,16 @@ const stepSchemas = [
       })
     ),
   }),
-  // --- 2. THÊM SCHEMA CHO STEP 5 ---
   // Step 5: Details (index 5)
   yup.object({
     propertyName: yup.string().required("Tên cơ sở là bắt buộc"),
-    description: yup.string().required("Mô tả là bắt buộc"),
+    description: yup.string().min(50, "Mô tả phải có ít nhất 50 ký tự").required("Mô tả là bắt buộc"),
     area: yup.number().min(1, "Diện tích phải > 0").required("Bắt buộc").typeError("Phải là số"),
+  }),
+  // --- 2. THÊM SCHEMA CHO STEP 6 ---
+  // Step 6: Review (index 6)
+  yup.object({
+    terms: yup.boolean().oneOf([true], "Bạn phải đồng ý với điều khoản dịch vụ"),
   }),
 ];
 
@@ -111,7 +116,6 @@ export default function AddPropertyPage() {
     resolver: yupResolver(currentSchema), 
     mode: "onChange",
     defaultValues: {
-      // --- 3. THÊM DEFAULT VALUES ---
       country: "Việt Nam",
       roomTypes: [], 
       amenities: {},
@@ -122,6 +126,7 @@ export default function AddPropertyPage() {
       propertyName: "",
       description: "",
       area: "",
+      terms: false, // --- 3. THÊM DEFAULT VALUE ---
     }
   });
 
@@ -139,9 +144,11 @@ export default function AddPropertyPage() {
         return <Step3_RoomTypes {...props} />;
       case 4:
         return <Step4_Images {...props} />;
-      // --- 4. THÊM CASE CHO STEP 5 ---
       case 5:
         return <Step5_Details {...props} />;
+      // --- 4. THÊM CASE CHO STEP 6 ---
+      case 6:
+        return <Step6_Review {...props} />;
       case 7: 
         return <div>Trang thái (sẽ làm sau)</div>
       default:
@@ -149,7 +156,6 @@ export default function AddPropertyPage() {
     }
   };
 
-  // --- (Không cần thay đổi các hàm handleNext, handleBack, onFinalSubmit) ---
   const handleNext = async () => {
     const isValid = await trigger(); 
     if (isValid) {
@@ -167,6 +173,7 @@ export default function AddPropertyPage() {
     }
   };
 
+  // --- 5. HÀM SUBMIT SẼ ĐƯỢC KÍCH HOẠT TỪ <FORM> ---
   const onFinalSubmit = async (data) => {
     setIsLoading(true);
     setError(null);
@@ -176,7 +183,7 @@ export default function AddPropertyPage() {
     // ...
 
     setIsLoading(false);
-    setCurrentStep(7); 
+    setCurrentStep(7); // Chuyển đến trang Status
   };
 
   return (
@@ -221,6 +228,7 @@ export default function AddPropertyPage() {
             </div>
             
             <div className="md:col-span-3">
+              {/* 6. GỌI onFinalSubmit KHI Ở BƯỚC 6 */}
               <form onSubmit={handleSubmit(currentStep === 6 ? onFinalSubmit : handleNext)}>
                 <h2 className="text-2xl font-semibold text-gray-800 mb-6">
                   {STEPPER_ITEMS[currentStep - 1].name}
@@ -233,7 +241,8 @@ export default function AddPropertyPage() {
                     <Button
                       type="submit"
                       leftIcon={<Send size={18} />}
-                      // disabled={!watch("terms")} 
+                      // 7. NÚT SUBMIT SẼ BỊ VÔ HIỆU HÓA NẾU CHƯA TICK
+                      disabled={!watch("terms")} 
                     >
                       Gửi đơn đăng ký
                     </Button>
