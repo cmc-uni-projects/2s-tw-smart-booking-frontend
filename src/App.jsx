@@ -13,8 +13,9 @@ import "./styles/global.css";
 import HotelSearchPage from "@/pages/Customer/HotelSearch/HotelSearchPage";
 
 // Trang Home thật (Customer)
-import HomePage from "./pages/Customer/Home/HomePage.jsx"; 
+import HomePage from "./pages/Customer/Home/HomePage.jsx";
 import About from "./pages/Customer/About/About.jsx";
+import MyInboxPage from "@/pages/Customer/About/MyInboxPage";
 
 // Các trang sau đăng nhập (dashboardd)
 import ProfilePage from "./pages/Customer/Profile/ProfilePage.jsx";
@@ -37,7 +38,7 @@ function App() {
       {/* 🔹 PUBLIC ROUTES - KHÔNG CẦN ĐĂNG NHẬP */}
       <Route path="/" element={<HomePage />} />
       <Route path="/about" element={<About />} />
-      
+
       {/* ✅ ---- THÊM ROUTE ---- */}
       {/* 2. Thêm route công khai cho trang giới thiệu đối tác */}
       <Route path="/partner-with-us" element={<PartnerLandingPage />} />
@@ -72,7 +73,16 @@ function App() {
           </ProtectedRoute>
         }
       />
-      
+
+      <Route
+        path="/customer/my-inbox"
+        element={
+          <ProtectedRoute>
+            <MyInboxPage />
+          </ProtectedRoute>
+        }
+      />
+
       {/* ✅ ---- THÊM ROUTE ---- */}
       {/* 3. Thêm route bảo vệ cho form đăng ký (người dùng phải đăng nhập) */}
       <Route
@@ -84,7 +94,7 @@ function App() {
         }
       />
       {/* ----------------------- */}
-      
+
       {/* ✅ ADMIN ROUTES */}
       <Route
         path="/admin/*"
@@ -101,3 +111,4 @@ function App() {
 }
 
 export default App;
+

@@ -3,8 +3,8 @@ import { Routes, Route } from "react-router-dom";
 import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
 import Home from "@/pages/Customer/Home/HomePage";
 import About from "@/pages/Customer/About/About";
+import MyInboxPage from "@/pages/Customer/About/MyInboxPage";
 
-// +++ ĐÃ THÊM: IMPORT TRANG TÌM KIẾM MỚI +++
 import HotelSearchPage from "@/pages/Customer/HotelSearch/HotelSearchPage";
 
 const CustomerRoutes = () => {
@@ -37,6 +37,7 @@ const CustomerRoutes = () => {
             >
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="bookings" element={<BookingHistory />} />
+                <Route path="my-inbox" element={<MyInboxPage />} />
                 {/* Add more customer-specific routes here */}
             </Route>
         </Routes>
@@ -44,3 +45,4 @@ const CustomerRoutes = () => {
 };
 
 export default CustomerRoutes;
+
