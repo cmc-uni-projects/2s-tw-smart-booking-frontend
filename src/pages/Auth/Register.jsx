@@ -6,7 +6,8 @@ import { FaFacebook } from "react-icons/fa";
 import { authService } from "../../services/auth.service";
 
 // Common Components
-import TextField from "../../components/common/Input/TextField";
+// ✅ THAY ĐỔI: Bỏ import TextField, thêm import AuthTextField
+import AuthTextField from "../../components/common/Input/AuthTextField"; 
 import PasswordField from "../../components/common/Input/PasswordField";
 import ConfirmPasswordField from "../../components/common/Input/ConfirmPasswordField";
 import Button from "../../components/common/Button/Button";
@@ -14,7 +15,7 @@ import Divider from "../../components/common/Divider/Divider";
 import Toast from "../../components/common/Notification/Toast";
 import ToastPortal from "../../components/common/Notification/ToastPortal";
 
-// Component SVG cho icon Google
+// Component SVG cho icon Google (Giữ nguyên)
 const GoogleIcon = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -23,6 +24,7 @@ const GoogleIcon = ({ className }) => (
     height="20px"
     className={className}
   >
+    {/* ... (paths của icon Google) ... */}
     <path
       fill="#FFC107"
       d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
@@ -56,6 +58,7 @@ const Register = () => {
   const [toastType, setToastType] = useState("info");
   const [showToast, setShowToast] = useState(false);
 
+  // ... (Giữ nguyên các hàm showToastOnce, onChange, onSubmit, handleGoogleLogin, handleFacebookLogin) ...
   const showToastOnce = (msg, type = "error") => {
     setToastMsg(msg);
     setToastType(type);
@@ -121,6 +124,7 @@ const Register = () => {
     window.location.href = "http://localhost:8080/oauth2/authorization/facebook";
   };
 
+
   return (
     <>
       <div
@@ -130,16 +134,11 @@ const Register = () => {
             "url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80')",
         }}
       >
+        {/* ... (Giữ nguyên phần Giao diện) ... */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#00A8E8]/60 via-[#0090C1]/50 to-[#006494]/70 backdrop-blur-sm"></div>
-
-        {/* 2. Thêm max-h-[90vh] (hoặc một giá trị cố định) để giới hạn chiều cao card */}
         <div className="relative z-10 w-full max-w-4xl bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl flex flex-col lg:flex-row animate-fadeIn border border-white/30 overflow-hidden max-h-[90vh]">
           {/* Left: Register Form */}
-          {/* 3. Thêm overflow-y-auto để thanh cuộn xuất hiện khi cần */}
           <div className="w-full lg:w-1/2 p-10 flex flex-col justify-start overflow-y-auto">
-            {/* Sử dụng justify-start thay vì justify-center 
-              để thanh cuộn bắt đầu từ trên cùng 
-            */}
             <img
               src="/assets/logo/logo_travelmate_xoafont.png"
               alt="TravelMate"
@@ -151,8 +150,8 @@ const Register = () => {
             </h2>
 
             <form onSubmit={onSubmit} className="space-y-5">
-              {/* 4. Thêm icon User */}
-              <TextField
+              {/* ✅ THAY ĐỔI: Sử dụng AuthTextField */}
+              <AuthTextField
                 name="fullName"
                 label="Họ và tên"
                 value={form.fullName}
@@ -161,7 +160,8 @@ const Register = () => {
                 icon={<User size={18} />}
               />
 
-              <TextField
+              {/* ✅ THAY ĐỔI: Sử dụng AuthTextField */}
+              <AuthTextField
                 name="email"
                 label="Email"
                 type="email"

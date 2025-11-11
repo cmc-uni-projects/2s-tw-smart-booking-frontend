@@ -82,8 +82,8 @@ const FeaturedHotels = () => {
   ];
 
   return (
-    // ✅ (Yêu cầu) Thay max-w-6xl thành max-w-7xl
-    <section className="max-w-7xl mx-auto px-6 -mt-24 relative z-20">
+    // ✅ (Yêu cầu) Sửa -mt-24 (âm 6rem) thành -mt-16 (âm 4rem)
+    <section className="max-w-7xl mx-auto px-6 -mt-16 relative z-20">
       <div className="flex justify-between items-center mb-6">
         
         {/* Tiêu đề nổi bật (giữ nguyên) */}

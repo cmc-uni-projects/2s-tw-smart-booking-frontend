@@ -83,7 +83,15 @@ function App() {
           </ProtectedRoute>
         }
       />
-      {/* ----------------------- */}
+      {/* ✅ OWNER ROUTES */}
+      <Route
+        path="/owner/*"
+        element={
+          <ProtectedRoute requiredRole="OWNER">
+            <OwnerRoutes />
+          </ProtectedRoute>
+        }
+      />
       
       {/* ✅ ADMIN ROUTES */}
       <Route
