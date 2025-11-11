@@ -16,10 +16,23 @@ import { ArrowLeft, ArrowRight, Send } from "lucide-react";
 import Step0_PropertyType from "./AddPropertySteps/Step0_PropertyType";
 import Step1_Location from "./AddPropertySteps/Step1_Location"; 
 import Step2_Amenities from "./AddPropertySteps/Step2_Amenities";
-import Step3_RoomTypes from "./AddPropertySteps/Step3_RoomTypes"; // --- 1. IMPORT STEP 3 ---
+import Step3_RoomTypes from "./AddPropertySteps/Step3_RoomTypes";
+import Step4_Images from "./AddPropertySteps/Step4_Images"; 
 // ... (Các steps khác sẽ được import ở đây)
 
 // --- Validation Schemas ---
+
+// (Validation cho file không đổi)
+const fileListValidation = (min = 3) => yup
+  .mixed() 
+  .test("required", `Yêu cầu tải lên ít nhất ${min} ảnh`, (value) => value && value.length >= min)
+  .test("fileType", "Chỉ chấp nhận file JPG, PNG, WEBP", (value) => {
+    if (!value || value.length === 0) return true; 
+    return Array.from(value).every(file => 
+      ["image/jpeg", "image/png", "image/webp"].includes(file.type)
+    );
+  });
+
 const stepSchemas = [
   // Step 0: Type (index 0)
   yup.object({
@@ -36,7 +49,6 @@ const stepSchemas = [
   yup.object({
     amenities: yup.object().nullable(), 
   }),
-  // --- 2. THÊM SCHEMA CHO STEP 3 ---
   // Step 3: Room Types (index 3)
   yup.object({
     roomTypes: yup.array().of(
@@ -48,13 +60,22 @@ const stepSchemas = [
         price: yup.number().min(1000, "Giá phải ít nhất 1,000 VNĐ").required("Bắt buộc").typeError("Phải là số"),
         allowPets: yup.boolean(),
       })
-    ).min(1, "Bạn phải thêm ít nhất 1 loại phòng."), // Bắt buộc phải có 1 phòng
+    ).min(1, "Bạn phải thêm ít nhất 1 loại phòng."),
   }),
   // Step 4: Images (index 4)
   yup.object({
+    propertyImages: fileListValidation(3), // Ít nhất 3 ảnh chung
+    roomTypes: yup.array().of(
+      yup.object({
+        // Validation cho ảnh của TỪNG loại phòng
+        images: fileListValidation(3) // Ít nhất 3 ảnh phòng
+      })
+    ),
+  }),
+  // Step 5: Details (index 5)
+  yup.object({
     // (Sẽ thêm ở giai đoạn sau)
   }),
-  // ... (Các schemas khác)
 ];
 
 // Tên các bước cho Stepper Dọc
@@ -73,13 +94,9 @@ export default function AddPropertyPage() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // 3. CHỈ ĐỊNH SCHEMA CHO BƯỚC HIỆN TẠI
-  // *Lưu ý: Chúng ta cần giữ cho schema của các bước trước đó
-  // (ví dụ: location) vẫn hợp lệ khi ở bước 3.
-  // Do đó, chúng ta hợp nhất (merge) các schema lại.
   const currentSchema = stepSchemas
-    .slice(0, currentStep + 1) // Lấy tất cả schema từ 0 đến bước hiện tại
-    .reduce((acc, schema) => acc.concat(schema), yup.object()); // Hợp nhất chúng lại
+    .slice(0, currentStep + 1) 
+    .reduce((acc, schema) => acc.concat(schema), yup.object()); 
 
   const {
     register,
@@ -87,24 +104,24 @@ export default function AddPropertyPage() {
     trigger,
     watch,
     setValue,
-    control, // 4. 'control' rất quan trọng cho useFieldArray
+    control,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(currentSchema), // Sử dụng schema đã hợp nhất
+    resolver: yupResolver(currentSchema), 
     mode: "onChange",
     defaultValues: {
       country: "Việt Nam",
-      roomTypes: [], // 5. Đảm bảo 'roomTypes' là một mảng
+      roomTypes: [], 
       amenities: {},
       province: "", 
       city: "",     
       address: "",
+      propertyImages: null,
     }
   });
 
   // Hàm render component cho bước hiện tại
   const renderStepComponent = () => {
-    // 6. Truyền 'control' và 'watch' xuống
     const props = { register, errors, watch, setValue, control }; 
     switch (currentStep) {
       case 0:
@@ -113,9 +130,10 @@ export default function AddPropertyPage() {
         return <Step1_Location {...props} />;
       case 2:
         return <Step2_Amenities {...props} />;
-      // --- 7. THÊM CASE CHO STEP 3 ---
       case 3:
         return <Step3_RoomTypes {...props} />;
+      case 4:
+        return <Step4_Images {...props} />;
       case 7: 
         return <div>Trang thái (sẽ làm sau)</div>
       default:
@@ -123,7 +141,7 @@ export default function AddPropertyPage() {
     }
   };
 
-  // --- (Không cần thay đổi các hàm handleNext, handleBack, onFinalSubmit) ---
+  // --- (Các hàm handleNext, handleBack, onFinalSubmit không đổi) ---
   const handleNext = async () => {
     const isValid = await trigger(); 
     if (isValid) {
