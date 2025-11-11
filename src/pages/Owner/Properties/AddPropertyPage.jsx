@@ -19,8 +19,8 @@ import Step2_Amenities from "./AddPropertySteps/Step2_Amenities";
 import Step3_RoomTypes from "./AddPropertySteps/Step3_RoomTypes";
 import Step4_Images from "./AddPropertySteps/Step4_Images";
 import Step5_Details from "./AddPropertySteps/Step5_Details";
-import Step6_Review from "./AddPropertySteps/Step6_Review"; // --- 1. IMPORT STEP 6 ---
-// ... (Các steps khác sẽ được import ở đây)
+import Step6_Review from "./AddPropertySteps/Step6_Review";
+import Step7_Status from "./AddPropertySteps/Step7_Status"; // --- 1. IMPORT STEP 7 ---
 
 // --- Validation Schemas ---
 const fileListValidation = (min = 3) => yup
@@ -33,6 +33,7 @@ const fileListValidation = (min = 3) => yup
     );
   });
 
+// 2. TẬP HỢP TẤT CẢ SCHEMA
 const stepSchemas = [
   // Step 0: Type (index 0)
   yup.object({
@@ -77,7 +78,6 @@ const stepSchemas = [
     description: yup.string().min(50, "Mô tả phải có ít nhất 50 ký tự").required("Mô tả là bắt buộc"),
     area: yup.number().min(1, "Diện tích phải > 0").required("Bắt buộc").typeError("Phải là số"),
   }),
-  // --- 2. THÊM SCHEMA CHO STEP 6 ---
   // Step 6: Review (index 6)
   yup.object({
     terms: yup.boolean().oneOf([true], "Bạn phải đồng ý với điều khoản dịch vụ"),
@@ -97,9 +97,11 @@ const STEPPER_ITEMS = [
 export default function AddPropertyPage() {
   const [currentStep, setCurrentStep] = useState(0); 
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null); // Lưu lỗi submit
   const navigate = useNavigate();
 
+  // 3. HỢP NHẤT TẤT CẢ SCHEMA
+  // Chúng ta cần validation của TẤT CẢ các bước khi ở bước cuối
   const currentSchema = stepSchemas
     .slice(0, currentStep + 1) 
     .reduce((acc, schema) => acc.concat(schema), yup.object()); 
@@ -126,7 +128,7 @@ export default function AddPropertyPage() {
       propertyName: "",
       description: "",
       area: "",
-      terms: false, // --- 3. THÊM DEFAULT VALUE ---
+      terms: false,
     }
   });
 
@@ -146,13 +148,16 @@ export default function AddPropertyPage() {
         return <Step4_Images {...props} />;
       case 5:
         return <Step5_Details {...props} />;
-      // --- 4. THÊM CASE CHO STEP 6 ---
       case 6:
         return <Step6_Review {...props} />;
+      // --- 4. THÊM CASE CHO STEP 7 ---
       case 7: 
-        return <div>Trang thái (sẽ làm sau)</div>
+        return <Step7_Status 
+                  error={error} 
+                  onRetry={() => { setError(null); setCurrentStep(6); }} // Quay lại bước 6 (Review)
+                />;
       default:
-        return <div>Bước {currentStep} (Chưa được triển khai)</div>;
+        return <div>Lỗi: Bước không xác định</div>;
     }
   };
 
@@ -173,23 +178,62 @@ export default function AddPropertyPage() {
     }
   };
 
-  // --- 5. HÀM SUBMIT SẼ ĐƯỢC KÍCH HOẠT TỪ <FORM> ---
+  // --- 5. HOÀN THIỆN LOGIC SUBMIT (Luồng 11) ---
   const onFinalSubmit = async (data) => {
     setIsLoading(true);
     setError(null);
-    console.log("Dữ liệu cuối cùng:", data);
-    
-    // (Logic tạo FormData và gọi API sẽ ở đây)
-    // ...
 
-    setIsLoading(false);
-    setCurrentStep(7); // Chuyển đến trang Status
+    // 1. Tách dữ liệu JSON và File
+    const jsonData = { ...data };
+    // Xóa key ảnh khỏi bản sao JSON
+    delete jsonData.propertyImages; 
+    // Tạo mảng roomTypes mới không chứa key "images"
+    jsonData.roomTypes = data.roomTypes.map(room => {
+      const roomCopy = { ...room };
+      delete roomCopy.images;
+      return roomCopy;
+    });
+
+    // 2. Tạo FormData
+    const formData = new FormData();
+    
+    // Thêm JSON data (backend sẽ parse chuỗi này)
+    formData.append("propertyData", new Blob([JSON.stringify(jsonData)], { 
+      type: "application/json"
+    }));
+
+    // 3. Thêm ảnh chung (dùng chung 1 key "propertyImages")
+    if (data.propertyImages) {
+      Array.from(data.propertyImages).forEach(file => {
+        formData.append("propertyImages", file);
+      });
+    }
+
+    // 4. Thêm ảnh phòng (dùng key động "room_INDEX_images")
+    data.roomTypes.forEach((room, roomIndex) => {
+      if (room.images) {
+        Array.from(room.images).forEach(file => {
+          formData.append(`room_${roomIndex}_images`, file);
+        });
+      }
+    });
+
+    // 5. Gọi API
+    try {
+      await propertyService.submitPropertyApplication(formData);
+    } catch (err) {
+      setError(err.message || "Một lỗi không xác định đã xảy ra.");
+    } finally {
+      setIsLoading(false);
+      setCurrentStep(7); // Luôn chuyển đến trang Status
+    }
   };
 
   return (
     <>
       {isLoading && <LoadingOverlay message="Đang gửi đơn đăng ký..." />}
       
+      {/* 6. ẨN NÚT "QUAY LẠI" KHI Ở TRANG STATUS */}
       {currentStep < 7 && (
          <Button
             type="button"
@@ -228,7 +272,7 @@ export default function AddPropertyPage() {
             </div>
             
             <div className="md:col-span-3">
-              {/* 6. GỌI onFinalSubmit KHI Ở BƯỚC 6 */}
+              {/* 7. SỬ DỤNG onFinalSubmit KHI Ở BƯỚC 6 */}
               <form onSubmit={handleSubmit(currentStep === 6 ? onFinalSubmit : handleNext)}>
                 <h2 className="text-2xl font-semibold text-gray-800 mb-6">
                   {STEPPER_ITEMS[currentStep - 1].name}
@@ -241,8 +285,7 @@ export default function AddPropertyPage() {
                     <Button
                       type="submit"
                       leftIcon={<Send size={18} />}
-                      // 7. NÚT SUBMIT SẼ BỊ VÔ HIỆU HÓA NẾU CHƯA TICK
-                      disabled={!watch("terms")} 
+                      disabled={!watch("terms")} // Vô hiệu hóa nếu chưa tick
                     >
                       Gửi đơn đăng ký
                     </Button>
@@ -257,7 +300,7 @@ export default function AddPropertyPage() {
           </div>
 
         ) : (
-           // --- GIAO DIỆN TRẠNG THÁI ---
+           // --- GIAO DIỆN TRẠNG THÁI (STEP 7) ---
            renderStepComponent()
         )}
       </div>
