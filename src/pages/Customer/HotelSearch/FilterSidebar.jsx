@@ -62,6 +62,24 @@ export default function FilterSidebar() {
                     <CheckboxOption label="1 sao" />
                 </FilterSection>
 
+                {/* +++ THÊM MỚI: KHOẢNG GIÁ +++ */}
+                <FilterSection title="Khoảng giá (mỗi đêm)">
+                    <CheckboxOption label="Dưới 1.000.000₫" />
+                    <CheckboxOption label="1.000.000₫ - 2.000.000₫" />
+                    <CheckboxOption label="2.000.000₫ - 3.000.000₫" />
+                    <CheckboxOption label="Trên 3.000.000₫" />
+                </FilterSection>
+
+                {/* +++ THÊM MỚI: TIỆN NGHI +++ */}
+                <FilterSection title="Tiện nghi">
+                    <CheckboxOption label="Hồ bơi" />
+                    <CheckboxOption label="Wifi miễn phí" />
+                    <CheckboxOption label="Chỗ đỗ xe" />
+                    <CheckboxOption label="Nhà hàng" />
+                    <CheckboxOption label="Lễ tân 24/7" />
+                    <CheckboxOption label="Phòng tập gym" />
+                </FilterSection>
+
                 {/* Lọc theo Địa điểm (Loại hình) */}
                 <FilterSection title="Loại hình cư trú">
                     <CheckboxOption label="Hotel" />
