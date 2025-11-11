@@ -7,6 +7,9 @@ import About from "@/pages/Customer/About/About";
 // +++ ĐÃ THÊM: IMPORT TRANG TÌM KIẾM MỚI +++
 import HotelSearchPage from "@/pages/Customer/HotelSearch/HotelSearchPage";
 
+// ✅ Thêm import cho trang chi tiết
+import HotelDetailPage from "@/pages/Customer/HotelDetail/HotelDetailPage";
+
 const CustomerRoutes = () => {
     return (
         <Routes>
@@ -15,6 +18,9 @@ const CustomerRoutes = () => {
 
             {/* +++ ĐÃ THÊM: ROUTE CHO TRANG TÌM KIẾM +++ */}
             <Route path="/hotels" element={<HotelSearchPage />} />
+
+            {/* ✅ Thêm route động cho trang chi tiết khách sạn */}
+            <Route path="/hotels/:hotelId" element={<HotelDetailPage />} />
 
             {/* 2. THÊM ROUTE /become-owner MỚI TẠI ĐÂY */}
             <Route
