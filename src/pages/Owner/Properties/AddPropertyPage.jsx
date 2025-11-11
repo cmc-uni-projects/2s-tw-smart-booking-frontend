@@ -17,12 +17,11 @@ import Step0_PropertyType from "./AddPropertySteps/Step0_PropertyType";
 import Step1_Location from "./AddPropertySteps/Step1_Location"; 
 import Step2_Amenities from "./AddPropertySteps/Step2_Amenities";
 import Step3_RoomTypes from "./AddPropertySteps/Step3_RoomTypes";
-import Step4_Images from "./AddPropertySteps/Step4_Images"; 
+import Step4_Images from "./AddPropertySteps/Step4_Images";
+import Step5_Details from "./AddPropertySteps/Step5_Details"; // --- 1. IMPORT STEP 5 ---
 // ... (Các steps khác sẽ được import ở đây)
 
 // --- Validation Schemas ---
-
-// (Validation cho file không đổi)
 const fileListValidation = (min = 3) => yup
   .mixed() 
   .test("required", `Yêu cầu tải lên ít nhất ${min} ảnh`, (value) => value && value.length >= min)
@@ -64,17 +63,19 @@ const stepSchemas = [
   }),
   // Step 4: Images (index 4)
   yup.object({
-    propertyImages: fileListValidation(3), // Ít nhất 3 ảnh chung
+    propertyImages: fileListValidation(3),
     roomTypes: yup.array().of(
       yup.object({
-        // Validation cho ảnh của TỪNG loại phòng
-        images: fileListValidation(3) // Ít nhất 3 ảnh phòng
+        images: fileListValidation(3) 
       })
     ),
   }),
+  // --- 2. THÊM SCHEMA CHO STEP 5 ---
   // Step 5: Details (index 5)
   yup.object({
-    // (Sẽ thêm ở giai đoạn sau)
+    propertyName: yup.string().required("Tên cơ sở là bắt buộc"),
+    description: yup.string().required("Mô tả là bắt buộc"),
+    area: yup.number().min(1, "Diện tích phải > 0").required("Bắt buộc").typeError("Phải là số"),
   }),
 ];
 
@@ -110,6 +111,7 @@ export default function AddPropertyPage() {
     resolver: yupResolver(currentSchema), 
     mode: "onChange",
     defaultValues: {
+      // --- 3. THÊM DEFAULT VALUES ---
       country: "Việt Nam",
       roomTypes: [], 
       amenities: {},
@@ -117,6 +119,9 @@ export default function AddPropertyPage() {
       city: "",     
       address: "",
       propertyImages: null,
+      propertyName: "",
+      description: "",
+      area: "",
     }
   });
 
@@ -134,6 +139,9 @@ export default function AddPropertyPage() {
         return <Step3_RoomTypes {...props} />;
       case 4:
         return <Step4_Images {...props} />;
+      // --- 4. THÊM CASE CHO STEP 5 ---
+      case 5:
+        return <Step5_Details {...props} />;
       case 7: 
         return <div>Trang thái (sẽ làm sau)</div>
       default:
@@ -141,7 +149,7 @@ export default function AddPropertyPage() {
     }
   };
 
-  // --- (Các hàm handleNext, handleBack, onFinalSubmit không đổi) ---
+  // --- (Không cần thay đổi các hàm handleNext, handleBack, onFinalSubmit) ---
   const handleNext = async () => {
     const isValid = await trigger(); 
     if (isValid) {
