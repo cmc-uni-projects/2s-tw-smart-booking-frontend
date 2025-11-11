@@ -4,6 +4,9 @@ import ProtectedRoute from "./ProtectedRoute";
 import OwnerLayout from "../layouts/OwnerLayout/OwnerLayout";
 import OwnerDashboard from "../pages/Owner/Dashboard/OwnerDashboard";
 
+import PropertyListPage from "@/pages/Owner/Properties/PropertyListPage";
+import AddPropertyPage from "@/pages/Owner/Properties/AddPropertyPage";
+
 const OwnerRoutes = () => {
     return (
         <OwnerLayout>
@@ -16,23 +19,27 @@ const OwnerRoutes = () => {
                         </ProtectedRoute>
                     }
                 />
-                {/* <Route
-          path="/rooms"
-          element={
-            <ProtectedRoute requiredRole="OWNER">
-              <RoomListPage />
-            </ProtectedRoute>
-          }
-        /> 
-        <Route
-          path="/bookings"
-          element={
-            <ProtectedRoute requiredRole="OWNER">
-              <OwnerBookingList />
-            </ProtectedRoute>
-          }
-        />
-        */}
+                
+                {/* --- THÊM 2 ROUTE MỚI --- */}
+                <Route
+                    path="/properties"
+                    element={
+                        <ProtectedRoute requiredRole="OWNER">
+                            <PropertyListPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/properties/new"
+                    element={
+                        <ProtectedRoute requiredRole="OWNER">
+                            <AddPropertyPage />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* (Các route khác của owner... /rooms, /bookings...) */}
+
                 <Route path="*" element={<Navigate to="/owner" replace />} />
             </Routes>
         </OwnerLayout>

@@ -1,3 +1,4 @@
+// src/layouts/OwnerLayout/OwnerSidebar.jsx
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -10,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  Building2, // --- 1. THÊM ICON MỚI ---
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext"; 
 
@@ -21,6 +23,10 @@ const OwnerSidebar = () => {
   const menuItems = [
     { name: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/owner" },
     { name: "Bookings", icon: <CalendarCheck size={20} />, path: "/owner/bookings" },
+    
+    // --- 2. THÊM MỤC MENU MỚI TẠI ĐÂY ---
+    { name: "Quản lý Chỗ nghỉ", icon: <Building2 size={20} />, path: "/owner/properties" },
+    
     { name: "Cơ sở lưu trú", icon: <BedDouble size={20} />, path: "/owner/rooms" },
     { name: "Tác vụ", icon: <ClipboardList size={20} />, path: "/owner/tasks" },
     { name: "Đánh giá", icon: <Star size={20} />, path: "/owner/reviews" },
