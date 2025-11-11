@@ -1,14 +1,25 @@
-// src/pages/Customer/Profile/AddEmailModal.jsx (Đã sửa nút "Thêm")
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // 1. Import thêm useEffect
 import Modal from "@/components/common/Modal/Modal";
 import TextField from "@/components/common/Input/TextField";
 import Button from "@/components/common/Button/Button";
 
-export default function AddEmailModal({ isOpen, onClose, onSave }) {
+// 2. Thêm prop `existingEmail`, mặc định là null
+export default function AddEmailModal({ isOpen, onClose, onSave, existingEmail = null }) {
     const [email, setEmail] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    // 3. Thêm hook để tự điền email cũ khi mở modal
+    useEffect(() => {
+        if (isOpen) {
+            if (existingEmail) {
+                setEmail(existingEmail.email); // Lấy email cũ
+            } else {
+                setEmail(''); // Nếu không là thêm mới (để rỗng)
+            }
+            setError(''); // Luôn reset lỗi khi mở
+        }
+    }, [isOpen, existingEmail]); // Chạy lại khi modal mở hoặc email prop thay đổi
 
     const validateEmail = () => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -28,25 +39,29 @@ export default function AddEmailModal({ isOpen, onClose, onSave }) {
         setError('');
         if (validateEmail()) {
             setLoading(true);
-
-            // MÔ PHỎNG API: Gửi email xác minh
             await new Promise(resolve => setTimeout(resolve, 800));
-
-            onSave(email); // Gọi hàm lưu/thay thế trong ProfilePage
+            onSave(email);
             setEmail('');
             setLoading(false);
             onClose();
         }
     };
 
+    // 4. Quyết định text dựa trên việc có `existingEmail` hay không
+    const isEditing = !!existingEmail;
+    const title = isEditing ? "CẬP NHẬT EMAIL" : "THÊM EMAIL";
+    const buttonText = isEditing ? "Lưu" : "Thêm"; // <-- ĐÚNG YÊU CẦU CỦA BẠN
+
     return (
         <Modal
             open={isOpen}
             onClose={onClose}
-            title="THÊM EMAIL"
+            title={title} // 5. Dùng title động
         >
             <p className="text-sm text-gray-600 mb-4">
-                Thêm email đang sử dụng của bạn để đăng nhập và nhận thông báo
+                {isEditing
+                    ? "Cập nhật email sẽ yêu cầu xác minh lại."
+                    : "Thêm email đang sử dụng của bạn để đăng nhập và nhận thông báo"}
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -67,7 +82,7 @@ export default function AddEmailModal({ isOpen, onClose, onSave }) {
                         disabled={loading}
                         className="bg-[rgb(40,169,224)] hover:bg-[rgb(26,140,189)] text-white"
                     >
-                        Thêm
+                        {buttonText} {/* 6. Dùng button text động */}
                     </Button>
                     <Button
                         variant="outline"

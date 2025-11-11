@@ -1,21 +1,31 @@
-// src/pages/Customer/Profile/AddPhoneModal.jsx (Đã sửa nút "Thêm")
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // 1. Import thêm useEffect
 import Modal from "@/components/common/Modal/Modal";
 import TextField from "@/components/common/Input/TextField";
 import Button from "@/components/common/Button/Button";
 
-export default function AddPhoneModal({ isOpen, onClose, onSave }) {
+// 2. Thêm prop `existingPhone`
+export default function AddPhoneModal({ isOpen, onClose, onSave, existingPhone = null }) {
     const [phone, setPhone] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    // 3. Thêm hook để tự điền SĐT cũ
+    useEffect(() => {
+        if (isOpen) {
+            if (existingPhone) {
+                setPhone(existingPhone.phone); // Lấy SĐT cũ
+            } else {
+                setPhone(''); // Thêm mới
+            }
+            setError('');
+        }
+    }, [isOpen, existingPhone]);
 
     const validatePhone = () => {
         if (!phone) {
             setError("Vui lòng nhập số điện thoại.");
             return false;
         }
-        // Giả định định dạng VN: bắt đầu bằng 0, 10-11 số
         if (!/^0\d{9,10}$/.test(phone)) {
             setError("Số điện thoại không hợp lệ (10-11 chữ số).");
             return false;
@@ -28,22 +38,24 @@ export default function AddPhoneModal({ isOpen, onClose, onSave }) {
         setError('');
         if (validatePhone()) {
             setLoading(true);
-
-            // MÔ PHỎNG API: Gửi mã xác minh
             await new Promise(resolve => setTimeout(resolve, 800));
-
-            onSave(phone); // Gọi hàm lưu/thay thế trong ProfilePage
+            onSave(phone);
             setPhone('');
             setLoading(false);
             onClose();
         }
     };
 
+    // 4. Quyết định text
+    const isEditing = !!existingPhone;
+    const title = isEditing ? "CẬP NHẬT SỐ DI ĐỘNG" : "THÊM SỐ DI ĐỘNG";
+    const buttonText = isEditing ? "Lưu" : "Thêm";
+
     return (
         <Modal
             open={isOpen}
             onClose={onClose}
-            title="THÊM SỐ DI ĐỘNG"
+            title={title} // 5. Dùng title động
         >
             <p className="text-sm text-gray-600 mb-4">
                 Thêm số di động của bạn để đăng nhập và nhận thông báo khẩn cấp
@@ -67,7 +79,7 @@ export default function AddPhoneModal({ isOpen, onClose, onSave }) {
                         disabled={loading}
                         className="bg-[rgb(40,169,224)] hover:bg-[rgb(26,140,189)] text-white"
                     >
-                        Thêm
+                        {buttonText} {/* 6. Dùng button text động */}
                     </Button>
                     <Button
                         variant="outline"
