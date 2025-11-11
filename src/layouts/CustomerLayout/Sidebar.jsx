@@ -2,32 +2,23 @@
 
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import {
-  Home,
-  User,
-  History,
-  Heart,
-  Settings,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-  Receipt,
-  DollarSign
-} from "lucide-react";
+import { Home, User, History, Heart, Settings, LogOut, Receipt, DollarSign } from "lucide-react";
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
 
   // ĐỊNH NGHĨA MENU CẤP 1 MỚI THEO YÊU CẦU
-  const menuItems = [
-    { name: "Hồ sơ cá nhân", icon: <User size={20} />, path: "/customer/profile" },
-    { name: "Lịch sử đặt phòng", icon: <History size={20} />, path: "/customer/bookings" },
-    { name: "Lịch sử giao dịch", icon: <Receipt size={20} />, path: "/customer/transactions" },
-    { name: "Refunds", icon: <DollarSign size={20} />, path: "/customer/refunds" },
-    { name: "Yêu thích", icon: <Heart size={20} />, path: "/customer/wishlist" },
-    { name: "Cài đặt", icon: <Settings size={20} />, path: "/customer/settings" },
-  ];
+
+const menuItems = [
+    { name: "Hồ sơ cá nhân", icon: User, path: "/customer/profile" }, // ✅ icon User
+    { name: "Lịch sử đặt phòng", icon: History, path: "/customer/bookings" },
+    { name: "Lịch sử giao dịch", icon: Receipt, path: "/customer/transactions" },
+    { name: "Refunds", icon: DollarSign, path: "/customer/refunds" },
+    { name: "Yêu thích", icon: Heart, path: "/customer/wishlist" },
+    { name: "Cài đặt", icon: Settings, path: "/customer/settings" }, // ✅ icon Settings
+];
+
 
   // Logic Sidebar và Menu rendering giữ nguyên (đã có logic 'collapsed')
   return (
