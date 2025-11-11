@@ -46,14 +46,14 @@ const AdminRoutes = () => {
         />
 
         {/* <Route
-          path="/users"
-          element={
-            <ProtectedRoute requiredRole="ADMIN">
-              <UserListPage />
-            </ProtectedRoute>
-          }
-        /> 
-        */}
+          path="/users"
+          element={
+            <ProtectedRoute requiredRole="ADMIN">
+              <UserListPage />
+            </ProtectedRoute>
+          }
+        /> 
+        */}
 
         {/* Fallback về dashboard admin nếu gõ sai URL */}
         <Route path="*" element={<Navigate to="/admin" replace />} />

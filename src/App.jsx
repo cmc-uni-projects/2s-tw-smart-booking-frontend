@@ -16,7 +16,7 @@ import HotelSearchPage from "@/pages/Customer/HotelSearch/HotelSearchPage";
 import HomePage from "./pages/Customer/Home/HomePage.jsx"; 
 import About from "./pages/Customer/About/About.jsx";
 
-// Các trang sau đăng nhập (dashboard)
+// Các trang sau đăng nhập (dashboardd)
 import ProfilePage from "./pages/Customer/Profile/ProfilePage.jsx";
 import BookingHistory from "./pages/Customer/Booking/BookingHistory.jsx";
 
@@ -27,6 +27,7 @@ import BecomeOwnerPage from "./pages/Customer/Profile/BecomeOwnerPage.jsx";
 // -----------------------
 
 import AdminRoutes from "./routes/AdminRoutes.jsx";
+import OwnerRoutes from "./routes/OwnerRoutes.jsx";
 
 function App() {
   const { currentUser } = useAuth();

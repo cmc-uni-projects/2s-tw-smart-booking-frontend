@@ -1,13 +1,8 @@
-import { Route, Routes } from "react-router-dom";
-import HomePage from "@/pages/Customer/Home/HomePage";
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
+import Home from "@/pages/Customer/Home/HomePage";
 import About from "@/pages/Customer/About/About";
-import ProfilePage from "@/pages/Customer/Profile/ProfilePage";
-import BookingHistory from "@/pages/Customer/Booking/BookingHistory";
-import CustomerDashboardLayout from "@/layouts/CustomerLayout/CustomerDashboardLayout";
-import ProtectedRoute from "./ProtectedRoute";
-
-// 1. IMPORT TRANG MỚI TỪ NHÁNH FEATURE
-import BecomeOwnerPage from "@/pages/Customer/Profile/BecomeOwnerPage";
 
 // +++ ĐÃ THÊM: IMPORT TRANG TÌM KIẾM MỚI +++
 import HotelSearchPage from "@/pages/Customer/HotelSearch/HotelSearchPage";
