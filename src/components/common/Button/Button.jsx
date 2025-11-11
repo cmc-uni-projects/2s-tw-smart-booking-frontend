@@ -20,8 +20,14 @@ export default function Button({
 
   const variants = {
     primary: "bg-[rgb(40,169,224)] text-white hover:bg-[rgb(26,140,189)]",
+    
+    // ✅ THÊM VARIANT MỚI NÀY
+    "primary-outline":
+      "border border-[rgb(40,169,224)] text-[rgb(40,169,224)] bg-white hover:bg-[rgb(26,140,189)] hover:text-white hover:border-[rgb(26,140,189)]",
+
     outline:
       "border border-[rgb(40,169,224)] text-[rgb(40,169,224)] bg-white hover:bg-[rgb(40,169,224,0.08)]",
+    
     ghost:
       "text-[rgb(40,169,224)] hover:bg-[rgb(40,169,224,0.08)]",
   };
