@@ -26,6 +26,10 @@ import PartnerLandingPage from "./pages/Partner/PartnerLandingPage.jsx";
 import BecomeOwnerPage from "./pages/Customer/Profile/BecomeOwnerPage.jsx";
 // -----------------------
 
+// ✅ ---- THÊM IMPORT CHO TRANG CHI TIẾT ----
+import HotelDetailPage from "@/pages/Customer/HotelDetail/HotelDetailPage";
+// ----------------------------------------
+
 import AdminRoutes from "./routes/AdminRoutes.jsx";
 import OwnerRoutes from "./routes/OwnerRoutes.jsx";
 
@@ -37,12 +41,17 @@ function App() {
       {/* 🔹 PUBLIC ROUTES - KHÔNG CẦN ĐĂNG NHẬP */}
       <Route path="/" element={<HomePage />} />
       <Route path="/about" element={<About />} />
-      
+
       {/* ✅ ---- THÊM ROUTE ---- */}
       {/* 2. Thêm route công khai cho trang giới thiệu đối tác */}
       <Route path="/partner-with-us" element={<PartnerLandingPage />} />
       {/* ----------------------- */}
       <Route path="/hotels" element={<HotelSearchPage />} />
+
+      {/* ✅ ---- THÊM ROUTE CHO TRANG CHI TIẾT (ROOM DETAILS) ---- */}
+      <Route path="/hotels/:hotelId" element={<HotelDetailPage />} />
+      {/* ----------------------------------------------------- */}
+
       <Route
         path="/login"
         element={currentUser ? <Navigate to="/" replace /> : <Login />}
