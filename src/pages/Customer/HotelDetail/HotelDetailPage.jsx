@@ -517,42 +517,40 @@ export default function HotelDetailPage() {
                         </div>
                     </Card>
 
-                    {/* Card chứa Tabs (Bọc bởi div sticky) */}
-                    <div className="sticky top-16 z-30">
-                        <Card className="p-0 overflow-hidden">
-                            {/* Thanh Tabs (Đã sửa) */}
-                            <div className="px-6 border-b border-gray-200 bg-white rounded-t-2xl">
-                                <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                                    {TABS.map((tab) => (
-                                        <button
-                                            key={tab.id}
-                                            onClick={() => setActiveTab(tab.id)}
-                                            className={`
-                                                whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-all duration-200
-                                                
-                                                ${activeTab === tab.id
-                                                ? 'border-[rgb(40,169,224)] text-[rgb(40,169,224)]'
-                                                : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-blue-300'
-                                            }
-                                                outline-none
-                                            `}
-                                            aria-current={activeTab === tab.id ? 'page' : undefined}
-                                        >
-                                            {tab.name}
-                                        </button>
-                                    ))}
-                                </nav>
-                            </div>
+                    {/* Card chứa Tabs */}
+                    <Card className="p-0 overflow-hidden">
+                        {/* ✅ ĐÃ CẬP NHẬT: 'top-16' thành 'top-0' */}
+                        <div className="sticky top-0 z-30 px-6 border-b border-gray-200 bg-white rounded-t-2xl">
+                            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                                {TABS.map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`
+                                            whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-all duration-200
+                                            
+                                            ${activeTab === tab.id
+                                            ? 'border-[rgb(40,169,224)] text-[rgb(40,169,224)]'
+                                            : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-blue-300'
+                                        }
+                                            outline-none
+                                        `}
+                                        aria-current={activeTab === tab.id ? 'page' : undefined}
+                                    >
+                                        {tab.name}
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
 
-                            {/* Nội dung Tab */}
-                            <div className="animate-fadeIn">
-                                {activeTab === 'rooms' && <RoomListSection rooms={hotel.rooms} onRoomInfoClick={handleOpenRoomDetail} />}
-                                {activeTab === 'reviews' && <ReviewsSection />}
-                                {activeTab === 'amenities' && <AmenitiesSection amenities={hotel.amenities} description={hotel.description} />}
-                                {activeTab === 'policies' && <PoliciesSection />}
-                            </div>
-                        </Card>
-                    </div>
+                        {/* Nội dung Tab */}
+                        <div className="animate-fadeIn">
+                            {activeTab === 'rooms' && <RoomListSection rooms={hotel.rooms} onRoomInfoClick={handleOpenRoomDetail} />}
+                            {activeTab === 'reviews' && <ReviewsSection />}
+                            {activeTab === 'amenities' && <AmenitiesSection amenities={hotel.amenities} description={hotel.description} />}
+                            {activeTab === 'policies' && <PoliciesSection />}
+                        </div>
+                    </Card>
                 </div>
 
                 {/* (Modal xem ảnh - Giữ nguyên) */}

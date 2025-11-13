@@ -5,7 +5,8 @@ import React from 'react';
 // TabsComponent là một thành phần điều hướng đơn giản
 export default function TabsComponent({ tabs, activeTab, onTabChange }) {
     return (
-        <div className="border-b border-gray-200 mb-6">
+        // ✅ Bỏ mb-6 (margin-bottom) để component cha (Card) tự quản lý
+        <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                 {tabs.map((tab) => (
                     <button
@@ -17,12 +18,12 @@ export default function TabsComponent({ tabs, activeTab, onTabChange }) {
                             ${activeTab === tab.id
                             // Tab đang hoạt động: border xanh, chữ xanh
                             ? 'border-[rgb(40,169,224)] text-[rgb(40,169,224)]'
-                            // Tab không hoạt động: border trong suốt, chữ xám, hover đẹp hơn
+                            // Tab không hoạt động: border trong suốt, chữ xám, hover
                             : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-blue-300'
                         }
                             
-                            /* ✅ THÊM HIỆU ỨNG FOCUS VÀ CHUYỂN ĐỘNG NHẸ */
-                            focus:outline-none focus:ring-2 focus:ring-[rgb(40,169,224,0.3)] rounded-t-lg
+                            /* ✅ ĐÃ XÓA HIỆU ỨNG FOCUS RING VÀ BO GÓC */
+                            focus:outline-none
                         `}
                         aria-current={activeTab === tab.id ? 'page' : undefined}
                     >
