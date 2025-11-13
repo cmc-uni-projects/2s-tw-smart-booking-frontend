@@ -4,7 +4,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { 
   CheckCircle2, XCircle, Bell, X, Search, 
   MoreVertical, Mail, Trash2,
-  AlertTriangle // THÊM MỚI: Icon cho cảnh báo
+  AlertTriangle 
 } from 'lucide-react';
 import inboxIllustration from '../../../assets/logo/inbox-illustration.png';
 
@@ -60,19 +60,22 @@ const MyInboxPage = () => {
   const [error, setError] = useState(null);
   const [selectedNoti, setSelectedNoti] = useState(null);
   const [filter, setFilter] = useState('ALL');
-  const [searchTerm, setSearchTerm] = useState('');
+
+  // THAY ĐỔI: Tách state cho tìm kiếm "tĩnh"
+  const [searchTerm, setSearchTerm] = useState(''); // Giá trị dùng để lọc (khi nhấn Enter)
+  const [currentSearchTerm, setCurrentSearchTerm] = useState(''); // Giá trị đang gõ trong input
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
   const [openMenuId, setOpenMenuId] = useState(null);
-
-  // THÊM MỚI: State cho modal xác nhận xoá
   const [notificationToDelete, setNotificationToDelete] = useState(null);
 
-  const activeFilterClass = "bg-[rgb(40,169,224)] text-white";
+  // THAY ĐỔI: Sửa màu active và hover cho sidebar
+  const activeFilterClass = "bg-[rgb(40,169,224)] text-white hover:bg-[#1b98d6]";
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter, searchTerm]);
+  }, [filter, searchTerm]); // Chỉ lọc lại khi searchTerm (đã Enter) thay đổi
 
   useEffect(() => {
     const fetchNotifications = () => {
@@ -99,23 +102,20 @@ const MyInboxPage = () => {
     setOpenMenuId(null); 
   };
 
-  // THAY ĐỔI: Đổi tên thành promptDelete và chỉ mở modal
   const promptDelete = (e, id) => {
     e.stopPropagation(); 
-    setOpenMenuId(null); // Đóng menu dropdown
-    setNotificationToDelete(id); // Mở modal xác nhận
+    setOpenMenuId(null); 
+    setNotificationToDelete(id); 
   };
 
-  // THÊM MỚI: Hàm xác nhận xoá
   const handleDeleteConfirm = () => {
     if (!notificationToDelete) return;
     setNotifications(prev => prev.filter(n => n.id !== notificationToDelete));
-    setNotificationToDelete(null); // Đóng modal
+    setNotificationToDelete(null); 
   };
 
-  // THÊM MỚI: Hàm huỷ xoá
   const handleDeleteCancel = () => {
-    setNotificationToDelete(null); // Đóng modal
+    setNotificationToDelete(null); 
   };
 
   const handleMenuToggle = (e, id) => {
@@ -131,7 +131,7 @@ const MyInboxPage = () => {
       return true;
     })
     .filter(n => {
-      const term = searchTerm.trim().toLowerCase();
+      const term = searchTerm.trim().toLowerCase(); // Lọc bằng searchTerm (đã Enter)
       if (!term) return true;
       const vietnameseType = (typeToVietnamese[n.type] || '').toLowerCase();
       return (
@@ -161,21 +161,29 @@ const MyInboxPage = () => {
 
     return (
       <>
+        {/* === THAY ĐỔI: Khôi phục layout cũ, thêm icon vào input === */}
         <div className="flex flex-col md:flex-row justify-between items-center p-4 border-b gap-4">
           <button onClick={markAllAsRead} className="text-sm text-blue-600 hover:underline">
             Đánh dấu tất cả là đã đọc
           </button>
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <Search size={18} className="text-gray-400" />
+          <div className="relative w-full md:w-auto">
+            <Search size={18} className="text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Tìm kiếm theo tiêu đề, nội dung hoặc loại..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="border rounded px-2 py-1 text-sm w-full md:w-64"
+              placeholder="Tìm kiếm và nhấn Enter..."
+              value={currentSearchTerm} // value là state đang gõ
+              onChange={(e) => setCurrentSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setSearchTerm(e.target.value); // Chỉ lọc khi nhấn Enter
+                }
+              }}
+              className="border rounded px-2 py-1 text-sm w-full md:w-64 pl-10" // Thêm pl-10
             />
           </div>
         </div>
+        {/* === KẾT THÚC THAY ĐỔI === */}
+
 
         <ul className="divide-y divide-gray-200 animate-fadeIn">
           {paginatedNotifications.map((noti) => {
@@ -233,7 +241,6 @@ const MyInboxPage = () => {
                           </li>
                         )}
 
-                        {/* THAY ĐỔI: Gọi hàm promptDelete */}
                         <li 
                           onClick={(e) => promptDelete(e, noti.id)} 
                           className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer"
@@ -277,26 +284,35 @@ const MyInboxPage = () => {
               <h2 className="text-lg font-bold mb-3">Trạng thái</h2>
               <ul className="space-y-2">
                 <li>
+                  {/* === THAY ĐỔI: Sửa lỗi hover và logic reset tìm kiếm === */}
                   <button 
                     onClick={() => { 
                       setFilter('ALL'); 
                       setSearchTerm('');
+                      setCurrentSearchTerm(''); // Thêm: reset cả input
                     }} 
-                    className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition hover:bg-gray-100 ${filter === 'ALL' ? activeFilterClass : ''}`}
+                    className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition ${filter === 'ALL' ? activeFilterClass : 'hover:bg-gray-100'}`}
                   >
                     <Bell size={18} /> Tất cả
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => setFilter('UNREAD')} className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition hover:bg-gray-100 ${filter === 'UNREAD' ? activeFilterClass : ''}`}>
+                  <button 
+                    onClick={() => setFilter('UNREAD')} 
+                    className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition ${filter === 'UNREAD' ? activeFilterClass : 'hover:bg-gray-100'}`}
+                  >
                     <span className="w-2.5 h-2.5 bg-blue-500 rounded-full ml-1 mr-0.5"></span> Chưa đọc
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => setFilter('READ')} className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition hover:bg-gray-100 ${filter === 'READ' ? activeFilterClass : ''}`}>
+                  <button 
+                    onClick={() => setFilter('READ')} 
+                    className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition ${filter === 'READ' ? activeFilterClass : 'hover:bg-gray-100'}`}
+                  >
                     <CheckCircle2 size={18} /> Đã đọc
                   </button>
                 </li>
+                {/* === KẾT THÚC THAY ĐỔI === */}
               </ul>
             </div>
           </aside>
@@ -311,7 +327,6 @@ const MyInboxPage = () => {
         </div>
       </div>
 
-      {/* Modal chi tiết */}
       {selectedNoti && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
@@ -325,15 +340,14 @@ const MyInboxPage = () => {
         </div>
       )}
 
-      {/* === THÊM MỚI: Modal Xác nhận xoá === */}
       {notificationToDelete && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn"
-          onClick={handleDeleteCancel} // Đóng khi click ra ngoài
+          onClick={handleDeleteCancel} 
         >
           <div 
             className="bg-white rounded-lg shadow-lg max-w-sm w-full p-6 relative"
-            onClick={(e) => e.stopPropagation()} // Ngăn click vào modal lan ra backdrop
+            onClick={(e) => e.stopPropagation()} 
           >
             <div className="flex flex-col items-center text-center">
               <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
@@ -359,7 +373,6 @@ const MyInboxPage = () => {
           </div>
         </div>
       )}
-      {/* === KẾT THÚC THÊM MỚI === */}
 
     </CustomerLayout>
   );
