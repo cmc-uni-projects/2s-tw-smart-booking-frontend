@@ -55,24 +55,23 @@ export default function HotelSearchPage() {
 
   // State cho các ô input
   const [params, setParams] = useState(() => {
-    // ... (Code state 'params' của bạn giữ nguyên) ...
     const city = searchParams.get("city") || "";
-    const checkIn = searchParams.get("checkIn");
-    const checkOut = searchParams.get("checkOut");
-    const adults = parseInt(searchParams.get("adults") || "2", 10);
-    const children = parseInt(searchParams.get("children") || "0", 10);
-    const rooms = parseInt(searchParams.get("rooms") || "1", 10);
+//     const checkIn = searchParams.get("checkIn");
+//     const checkOut = searchParams.get("checkOut");
+//     const adults = parseInt(searchParams.get("adults") || "2", 10);
+//     const children = parseInt(searchParams.get("children") || "0", 10);
+//     const rooms = parseInt(searchParams.get("rooms") || "1", 10);
 
     return {
       destination: city,
-      dates: checkIn && checkOut ? {
-        startDate: parseISO(checkIn),
-        endDate: parseISO(checkOut)
-      } : {
-        startDate: new Date(),
-        endDate: addDays(new Date(), 1)
-     },
-      guests: { adults, children, rooms },
+//       dates: checkIn && checkOut ? {
+//         startDate: parseISO(checkIn),
+//         endDate: parseISO(checkOut)
+//       } : {
+//         startDate: new Date(),
+//         endDate: addDays(new Date(), 1)
+//      },
+//       guests: { adults, children, rooms },
     };
   });
 
@@ -101,12 +100,12 @@ export default function HotelSearchPage() {
     // Cập nhật URL (phần này code bạn đã đúng)
     const urlParams = new URLSearchParams();
     urlParams.append("city", searchTerm);
-    urlParams.append("keyword", searchTerm);
-    urlParams.append("checkIn", format(params.dates.startDate, "yyyy-MM-dd"));
-    urlParams.append("checkOut", format(params.dates.endDate, "yyyy-MM-dd"));
-    urlParams.append("adults", params.guests.adults);
-    urlParams.append("children", params.guests.children);
-    urlParams.append("rooms", params.guests.rooms);
+  //     urlParams.append("keyword", searchTerm);
+//     urlParams.append("checkIn", format(params.dates.startDate, "yyyy-MM-dd"));
+//     urlParams.append("checkOut", format(params.dates.endDate, "yyyy-MM-dd"));
+//     urlParams.append("adults", params.guests.adults);
+//     urlParams.append("children", params.guests.children);
+//     urlParams.append("rooms", params.guests.rooms);
     setSearchParams(urlParams);
     
     try {
