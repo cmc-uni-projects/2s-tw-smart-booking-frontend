@@ -1,90 +1,48 @@
+// src/pages/Admin/Hotels/components/ApprovalCard.jsx
 import React from "react";
-// Import các component common
-import Button from "../../../../components/common/Button/Button";
-import Badge from "../../../../components/common/Badge/Badge";
-import Avatar from "../../../../components/common/Avatar/Avatar";
-import { Eye, Check, X, Mail, User, Calendar } from "lucide-react";
+import Button from "@/components/common/Button/Button";
+import Badge from "@/components/common/Badge/Badge";
+import { Clock, User, CheckCircle, XCircle, Eye } from "lucide-react";
 
-// Component con nội bộ để hiển thị thông tin
-const InfoRow = ({ icon, text }) => (
-  <div className="flex items-center gap-2 text-sm text-gray-600">
-    {icon}
-    <span>{text}</span>
-  </div>
-);
-
-// Component Card nhận 3 hàm: onApprove, onReject, onViewDetails
 const ApprovalCard = ({ application, onApprove, onReject, onViewDetails }) => {
-  
-  const statusText = application.status?.props?.children || "Không rõ";
-
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col">
-      
-      {/* 1. Header của Card */}
-      <div className="p-4 border-b border-gray-100">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-[rgb(40,169,224)]">
-            {application.hotelName}
-          </h3>
-          <Badge color={statusText === "Đang chờ" ? "warning" : "default"}>
-            {statusText}
-          </Badge>
-        </div>
-      </div>
-
-      {/* 2. Body của Card */}
-      <div className="p-4 space-y-3">
-        <div className="flex items-center gap-3">
-          <Avatar name={application.ownerName} size={40} />
-          <div>
-            <InfoRow 
-              icon={<User size={14} />} 
-              text={application.ownerName} 
-            />
-            <InfoRow 
-              icon={<Mail size={14} />} 
-              text={application.email} 
-            />
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-all flex flex-col h-full">
+      {/* Header Info ... */}
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <h3 className="font-bold text-lg text-gray-800 line-clamp-1">{application.hotelName}</h3>
+          <div className="flex items-center gap-2 mt-1 text-gray-500 text-sm">
+            <User size={14} /> <span>{application.ownerName}</span>
           </div>
         </div>
-        <InfoRow 
-          icon={<Calendar size={14} />} 
-          text={`Ngày nộp: ${application.submittedDate}`} 
-        />
+        <Badge color="warning">Đang chờ</Badge>
       </div>
 
-      {/* 3. Footer của Card: Các nút hành động */}
-      <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-2 justify-end">
-        {/* NÚT XEM */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onViewDetails(application)}
-          leftIcon={<Eye size={16} />}
-        >
-          Xem
+      {/* Body Info ... */}
+      <div className="space-y-2 mb-6 flex-grow">
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-500">Email:</span>
+          <span className="text-gray-700 font-medium">{application.email}</span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-500 flex items-center gap-1"><Clock size={14}/> Ngày nộp:</span>
+          <span className="text-gray-700 font-medium">{application.submittedDate}</span>
+        </div>
+      </div>
+
+      {/* Action Buttons - QUAN TRỌNG */}
+      <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-100">
+        <Button variant="outline" size="sm" className="col-span-2 w-full justify-center" 
+          onClick={onViewDetails} leftIcon={<Eye size={16} />}>
+          Xem chi tiết
         </Button>
-        
-        {/* ✅ SỬA LỖI TẠI ĐÂY: NÚT TỪ CHỐI */}
-        <Button
-          variant="danger-outline" // (Hoặc "outline" nếu "danger-outline" không tồn tại)
-          size="sm"
-          // Đảm bảo 100% gọi đúng hàm 'onReject'
-          onClick={() => onReject(application)} 
-          leftIcon={<X size={16} />}
-        >
+        <Button variant="danger" size="sm" className="justify-center" 
+          onClick={onReject} leftIcon={<XCircle size={16} />}>
           Từ chối
         </Button>
-
-        {/* NÚT PHÊ DUYỆT */}
-        <Button
-          variant="success" // (Hoặc "primary" nếu "success" không tồn tại)
-          size="sm"
-          onClick={() => onApprove(application)}
-          leftIcon={<Check size={16} />}
-        >
-          Phê duyệt
+        <Button variant="primary" size="sm" className="justify-center" 
+          onClick={onApprove} leftIcon={<CheckCircle size={16} />}>
+          Duyệt
         </Button>
       </div>
     </div>

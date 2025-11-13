@@ -1,130 +1,173 @@
-import React, { useState } from "react";
-import Card from "../../../components/common/Card/Card";
-import CardHeader from "../../../components/common/Card/CardHeader";
-import Badge from "../../../components/common/Badge/Badge"; // Cần import Badge cho mock data
-import { CheckSquare } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import Card from "@/components/common/Card/Card";
+import CardHeader from "@/components/common/Card/CardHeader";
+import { CheckSquare, Loader2 } from "lucide-react";
+import { adminService } from "@/services/admin.service";
+import Toast from "@/components/common/Notification/Toast";
 
-// Import các component con
-import ApprovalCard from "./components/ApprovalCard"; 
+// Import components (Đảm bảo đường dẫn đúng)
+import ApprovalCard from "./components/ApprovalCard";
 import ApproveHotelModal from "./components/ApproveHotelModal";
 import RejectHotelModal from "./components/RejectHotelModal";
 import ViewApplicationModal from "./components/ViewApplicationModal";
 
-// Dữ liệu mock
-const mockApplications = [
-  {
-    id: "APP-001",
-    hotelName: "Sunrise Resort",
-    ownerName: "Nguyễn Văn A",
-    email: "owner.a@gmail.com",
-    submittedDate: "2025-11-08",
-    status: <Badge color="warning">Đang chờ</Badge>,
-  },
-  {
-    id: "APP-002",
-    hotelName: "Ocean View",
-    ownerName: "Trần Thị B",
-    email: "owner.b@gmail.com",
-    submittedDate: "2025-11-07",
-    status: <Badge color="warning">Đang chờ</Badge>,
-  },
-];
-
-
 const PendingApprovalsPage = () => {
+  const [applications, setApplications] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState(null);
-  const [isApproveModalOpen, setApproveModalOpen] = useState(false);
-  const [isRejectModalOpen, setRejectModalOpen] = useState(false); // State cho modal Từ chối
-  const [isViewModalOpen, setViewModalOpen] = useState(false); // State cho modal Xem
+  const [toastData, setToastData] = useState(null);
 
-  // HÀM 1: Bật modal Phê duyệt
-  const handleApproveClick = (application) => {
-    setSelectedApp(application);
-    setApproveModalOpen(true);
-  };
+  // Tách state để tránh lỗi logic
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isApproveOpen, setIsApproveOpen] = useState(false);
+  const [isRejectOpen, setIsRejectOpen] = useState(false);
 
-  // HÀM 2: Bật modal Từ chối
-  const handleRejectClick = (application) => {
-    setSelectedApp(application);
-    setRejectModalOpen(true); // <-- Kích hoạt state 'isRejectModalOpen'
-  };
-  
-  // HÀM 3: Bật modal Xem
-  const handleViewDetails = (application) => {
-     setSelectedApp(application);
-     setViewModalOpen(true); // <-- Kích hoạt state 'isViewModalOpen'
+  // Helper hiển thị Toast
+  const showToast = (message, type = "info") => {
+    setToastData({ message, type });
+    setTimeout(() => setToastData(null), 3000);
   };
 
-  // Hàm đóng tất cả modal
-  const closeModal = () => {
-    setSelectedApp(null);
-    setApproveModalOpen(false);
-    setRejectModalOpen(false);
-    setViewModalOpen(false);
+  const fetchApplications = async () => {
+    try {
+      setIsLoading(true);
+      const data = await adminService.getPendingApplications();
+      const mappedData = data.map(app => ({
+        ...app,
+        id: app.id,
+        hotelName: "Đơn đăng ký Chủ sở hữu",
+        ownerName: app.applicantFullName || "Chưa cập nhật",
+        email: app.applicantEmail,
+        submittedDate: app.createdAt ? new Date(app.createdAt).toLocaleDateString("vi-VN") : "N/A",
+        status: "PENDING"
+      }));
+      setApplications(mappedData);
+    } catch (error) {
+      console.error(error);
+      showToast("Không thể tải danh sách đơn đăng ký", "error");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Logic khi xác nhận (giữ nguyên)
-  const onConfirmApprove = (application) => {
-    console.log("ĐÃ PHÊ DUYỆT:", application);
-    closeModal();
+  useEffect(() => {
+    fetchApplications();
+  }, []);
+
+  // --- XỬ LÝ CLICK (MỞ MODAL) ---
+  const handleViewDetails = (app) => {
+    setSelectedApp(app);
+    setIsViewOpen(true);
   };
-  const onConfirmReject = (application, reason) => {
-    console.log("ĐÃ TỪ CHỐI:", application, "Lý do:", reason);
-    closeModal();
+
+  const handleApproveClick = (app) => {
+    setSelectedApp(app);
+    setIsApproveOpen(true);
+  };
+
+  const handleRejectClick = (app) => {
+    setSelectedApp(app);
+    setIsRejectOpen(true);
+  };
+
+  // Đóng tất cả modal
+  const closeModals = () => {
+    setIsViewOpen(false);
+    setIsApproveOpen(false);
+    setIsRejectOpen(false);
+    setTimeout(() => setSelectedApp(null), 200); // Delay nhỏ để tránh giật UI
+  };
+
+  // --- XỬ LÝ API ---
+  const onConfirmApprove = async () => {
+    if (!selectedApp) return;
+    try {
+      await adminService.reviewApplication(selectedApp.id, "APPROVED", null);
+      showToast("Đã duyệt đơn thành công!", "success");
+      fetchApplications();
+      closeModals();
+    } catch (error) {
+      showToast("Có lỗi khi duyệt đơn", "error");
+    }
+  };
+
+  const onConfirmReject = async (reason) => {
+    if (!selectedApp) return;
+    try {
+      await adminService.reviewApplication(selectedApp.id, "REJECTED", reason);
+      showToast("Đã từ chối đơn đăng ký!", "success");
+      fetchApplications();
+      closeModals();
+    } catch (error) {
+      showToast("Có lỗi khi từ chối đơn", "error");
+    }
   };
 
   return (
     <>
-      {/* Card ngoài cùng */}
+      {toastData && (
+        <div className="fixed top-24 right-6 z-[9999]">
+          <Toast message={toastData.message} type={toastData.type} />
+        </div>
+      )}
+
       <Card>
         <CardHeader
           title="Phê duyệt Đăng ký Khách sạn"
-          subtitle={`Bạn có ${mockApplications.length} đơn đăng ký đang chờ xử lý`}
+          subtitle={`Bạn có ${applications.length} đơn đăng ký đang chờ xử lý`}
           icon={<CheckSquare className="text-[rgb(40,169,224)]" />}
         />
-        
-        {/* Phần hiển thị các Card con */}
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(340px,1fr))] gap-5 mt-4">
-          {mockApplications.map((app) => (
-            <ApprovalCard
-              key={app.id}
-              application={app}
-              onApprove={() => handleApproveClick(app)}
-              onReject={() => handleRejectClick(app)}     // <-- Truyền HÀM 2
-              onViewDetails={() => handleViewDetails(app)} // <-- Truyền HÀM 3
-            />
-          ))}
-        </div>
-        
-        {/* (Nếu không có đơn nào) */}
-        {mockApplications.length === 0 && (
-           <p className="text-center text-gray-500 py-10">Không có đơn đăng ký nào đang chờ.</p>
+
+        {isLoading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="animate-spin text-blue-500" size={40} />
+          </div>
+        ) : (
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(340px,1fr))] gap-5 mt-4">
+            {applications.length > 0 ? (
+              applications.map((app) => (
+                <ApprovalCard
+                  key={app.id}
+                  application={app}
+                  onViewDetails={() => handleViewDetails(app)}
+                  onApprove={() => handleApproveClick(app)}
+                  onReject={() => handleRejectClick(app)}
+                />
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-10 col-span-full">
+                Hiện tại không có đơn đăng ký nào đang chờ.
+              </p>
+            )}
+          </div>
         )}
       </Card>
 
-      {/* Các Modals (Phần này render dựa trên state) */}
-      
-      <ApproveHotelModal
-        open={isApproveModalOpen}
-        onClose={closeModal}
-        application={selectedApp}
-        onConfirm={onConfirmApprove}
-      />
-      
-      {/* Modal này chỉ hiện khi 'isRejectModalOpen' là true */}
-      <RejectHotelModal
-        open={isRejectModalOpen}
-        onClose={closeModal}
-        application={selectedApp}
-        onConfirm={onConfirmReject}
-      />
-      
-      {/* Modal này chỉ hiện khi 'isViewModalOpen' là true */}
-      <ViewApplicationModal
-        open={isViewModalOpen}
-        onClose={closeModal}
-        application={selectedApp}
-      />
+      {/* --- RENDER MODALS --- */}
+      {/* Kiểm tra selectedApp trước khi render để tránh lỗi null */}
+      {selectedApp && (
+        <>
+          <ViewApplicationModal
+            open={isViewOpen}
+            onClose={closeModals}
+            application={selectedApp}
+          />
+
+          <ApproveHotelModal
+            open={isApproveOpen}
+            onClose={closeModals}
+            application={selectedApp}
+            onConfirm={onConfirmApprove}
+          />
+
+          <RejectHotelModal
+            open={isRejectOpen}
+            onClose={closeModals}
+            application={selectedApp}
+            onConfirm={onConfirmReject}
+          />
+        </>
+      )}
     </>
   );
 };
