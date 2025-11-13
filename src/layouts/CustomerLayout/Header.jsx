@@ -8,6 +8,9 @@ import {
   LogOut,
   History,
   CreditCard,
+  Inbox, 
+  HelpCircle,
+  Phone,
 } from "lucide-react";
 // 1. Lấy thêm 'hasRole' từ context
 import { useAuth } from "../../context/AuthContext";
@@ -17,13 +20,13 @@ import LanguageSwitcher from "./LanguageSwitcher";
 
 const Header = () => {
   const navigate = useNavigate();
-  // 2. Lấy 'hasRole'
+  // 2. Lấy 'hasRole' (currentUser đã có sẵn)
   const { currentUser, logout, hasRole } = useAuth();
-  
+
   const [supportOpen, setSupportOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  
+
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const supportRef = useRef(null);
@@ -52,22 +55,22 @@ const Header = () => {
   const handleConfirmLogout = () => {
     logout();
     setProfileOpen(false);
-    setShowLogoutConfirm(false); 
+    setShowLogoutConfirm(false);
     navigate("/login");
   };
-  
+
   const navLinkClass = "flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-[rgb(40,169,224)] transition-colors";
-  
-  const dropdownLinkClass = "block px-4 py-2 text-sm text-gray-700 hover:bg-[rgb(40,169,224)]/10 hover:text-[rgb(40,169,224)] transition-colors";
+
+  const dropdownLinkClass = "flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[rgb(40,169,224)]/10 hover:text-[rgb(40,169,224)] transition-colors";
+  const dropdownIconClass = "text-gray-500"; // Class cho icon trong dropdown
 
   return (
     <>
       <header
-        className={`sticky top-0 z-50 transition-all duration-300 ${
-          scrolled
+        className={`sticky top-0 z-50 transition-all duration-300 ${scrolled
             ? "bg-white/95 backdrop-blur-lg shadow-md"
             : "bg-white/90 backdrop-blur-lg"
-        }`}
+          }`}
       >
         <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
           {/* Logo */}
@@ -82,7 +85,7 @@ const Header = () => {
 
           {/* Nav */}
           <nav className="hidden lg:flex items-center gap-6">
-            
+
             <LanguageSwitcher navLinkClass={navLinkClass} />
 
             {/* Khuyến mãi */}
@@ -104,18 +107,35 @@ const Header = () => {
 
               {supportOpen && (
                 <div className="absolute mt-2 bg-white border border-gray-100 shadow-xl rounded-lg w-56 py-2 z-50">
+
+                  {/* === THÊM MỚI: Hộp thư của tôi === */}
+                  {/* Chỉ hiển thị khi đã đăng nhập */}
+                  {currentUser && (
+                    <Link
+                      to="/customer/my-inbox"
+                      onClick={() => setSupportOpen(false)}
+                      className={dropdownLinkClass}
+                    >
+                      <Inbox size={16} className={dropdownIconClass} />
+                      Hộp thư của tôi
+                    </Link>
+                  )}
+                  {/* === KẾT THÚC THÊM MỚI === */}
+
                   <Link
                     to="/help"
                     onClick={() => setSupportOpen(false)}
                     className={dropdownLinkClass}
                   >
+                    <HelpCircle size={16} className={dropdownIconClass} />
                     Trợ giúp
                   </Link>
                   <Link
-                    to="/about#contact" 
+                    to="/about#contact"
                     onClick={() => setSupportOpen(false)}
                     className={dropdownLinkClass}
                   >
+                    <Phone size={16} className={dropdownIconClass} />
                     Liên hệ với chúng tôi
                   </Link>
                 </div>
@@ -125,7 +145,7 @@ const Header = () => {
 
           {/* Auth actions */}
           <div className="hidden lg:flex items-center gap-3">
-            
+
             {/* 3. (THAY ĐỔI) Logic hiển thị nút dựa trên role */}
             {hasRole("ADMIN") ? (
               // (Req #2) Nếu là ADMIN
@@ -148,15 +168,15 @@ const Header = () => {
             ) : (
               // Mặc định (guest hoặc customer thường)
               <Button
-                variant="primary-outline" 
+                variant="primary-outline"
                 onClick={() => navigate("/partner-with-us")}
                 className="font-medium
-                           transform hover:scale-105 transition-all duration-300"
+                           transform hover:scale-105 transition-all duration-300"
               >
                 Hợp tác với chúng tôi
               </Button>
             )}
-            
+
             {!currentUser ? (
               <>
                 <Button
@@ -189,28 +209,28 @@ const Header = () => {
                   <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-xl shadow-xl py-2 z-50">
                     <Link
                       to="/customer/profile"
-                      className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      className={dropdownLinkClass}
                       onClick={() => setProfileOpen(false)}
                     >
-                      <User size={16} className="text-gray-500"/> Chỉnh sửa hồ sơ
+                      <User size={16} className={dropdownIconClass} /> Chỉnh sửa hồ sơ
                     </Link>
                     <Link
                       to="/customer/bookings"
-                      className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      className={dropdownLinkClass}
                       onClick={() => setProfileOpen(false)}
                     >
-                      <History size={16} className="text-gray-500"/> Lịch sử đặt chỗ
+                      <History size={16} className={dropdownIconClass} /> Lịch sử đặt chỗ
                     </Link>
                     <Link
                       to="/customer/payments"
-                      className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      className={dropdownLinkClass}
                       onClick={() => setProfileOpen(false)}
                     >
-                      <CreditCard size={16} className="text-gray-500"/> Lịch sử thanh toán
+                      <CreditCard size={16} className={dropdownIconClass} /> Lịch sử thanh toán
                     </Link>
                     <button
                       onClick={() => {
-                        setProfileOpen(false); 
+                        setProfileOpen(false);
                         setShowLogoutConfirm(true);
                       }}
                       className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50"
