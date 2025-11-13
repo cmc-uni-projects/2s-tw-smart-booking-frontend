@@ -16,6 +16,7 @@ import HotelSearchPage from "@/pages/Customer/HotelSearch/HotelSearchPage";
 import HomePage from "./pages/Customer/Home/HomePage.jsx";
 import About from "./pages/Customer/About/About.jsx";
 import MyInboxPage from "@/pages/Customer/About/MyInboxPage";
+import HelpPage from "./pages/Customer/About/HelpPage.jsx";
 
 // Các trang sau đăng nhập (dashboardd)
 import ProfilePage from "./pages/Customer/Profile/ProfilePage.jsx";
@@ -81,6 +82,13 @@ function App() {
             <MyInboxPage />
           </ProtectedRoute>
         }
+      />
+
+      <Route
+      path="/help"
+      element={
+          <HelpPage />
+      }
       />
 
       {/* ✅ ---- THÊM ROUTE ---- */}

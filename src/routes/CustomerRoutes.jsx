@@ -4,6 +4,7 @@ import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
 import Home from "@/pages/Customer/Home/HomePage";
 import About from "@/pages/Customer/About/About";
 import MyInboxPage from "@/pages/Customer/About/MyInboxPage";
+import HelpPage from "@/pages/Customer/About/HelpPage";
 
 import HotelSearchPage from "@/pages/Customer/HotelSearch/HotelSearchPage";
 
@@ -12,6 +13,8 @@ const CustomerRoutes = () => {
         <Routes>
             <Route index element={<HomePage />} />
             <Route path="/about" element={<About />} />
+            <Route path="/help" element={<HelpPage />} />
+
 
             {/* +++ ĐÃ THÊM: ROUTE CHO TRANG TÌM KIẾM +++ */}
             <Route path="/hotels" element={<HotelSearchPage />} />
@@ -38,6 +41,7 @@ const CustomerRoutes = () => {
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="bookings" element={<BookingHistory />} />
                 <Route path="my-inbox" element={<MyInboxPage />} />
+
                 {/* Add more customer-specific routes here */}
             </Route>
         </Routes>
