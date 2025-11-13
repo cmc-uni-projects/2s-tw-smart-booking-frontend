@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
 import { useAuth } from '../../../context/AuthContext';
-import { CheckCircle2, XCircle, Bell, X, Search } from 'lucide-react';
+import { 
+  CheckCircle2, XCircle, Bell, X, Search, 
+  MoreVertical, Mail, Trash2,
+  AlertTriangle // THÊM MỚI: Icon cho cảnh báo
+} from 'lucide-react';
 import inboxIllustration from '../../../assets/logo/inbox-illustration.png';
 
-// === DỮ LIỆU GIẢ LẬP ===
 const DUMMY_NOTIFICATIONS = [
   { id: 1, type: 'APPROVAL', title: 'Yêu cầu được duyệt', message: "Yêu cầu 'Trở thành chủ khách sạn' của bạn đã được phê duyệt.", createdAt: '2025-11-13T09:30:00Z', isRead: false },
   { id: 2, type: 'REJECTION', title: 'Yêu cầu bị từ chối', message: "Yêu cầu thêm khách sạn 'Khách sạn Sông Hàn' đã bị từ chối.", createdAt: '2025-11-12T15:00:00Z', isRead: true },
@@ -18,7 +21,12 @@ const DUMMY_NOTIFICATIONS = [
     isRead: i % 2 === 0
   }))
 ];
-// === KẾT THÚC DỮ LIỆU GIẢ LẬP ===
+
+const typeToVietnamese = {
+  'APPROVAL': 'duyệt',
+  'REJECTION': 'từ chối',
+  'GENERAL': 'chung'
+};
 
 const formatTimeAgo = (dateString) => {
   const date = new Date(dateString);
@@ -55,13 +63,22 @@ const MyInboxPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  // THÊM MỚI: State cho modal xác nhận xoá
+  const [notificationToDelete, setNotificationToDelete] = useState(null);
+
+  const activeFilterClass = "bg-[rgb(40,169,224)] text-white";
 
   useEffect(() => {
-    const fetchNotifications = async () => {
+    setCurrentPage(1);
+  }, [filter, searchTerm]);
+
+  useEffect(() => {
+    const fetchNotifications = () => {
       if (!currentUser) return;
       setLoading(true);
       try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
         setNotifications(DUMMY_NOTIFICATIONS);
       } catch (err) {
         setError("Không thể tải thông báo. Vui lòng thử lại sau.");
@@ -76,6 +93,36 @@ const MyInboxPage = () => {
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
   };
 
+  const handleMarkAsUnread = (e, id) => {
+    e.stopPropagation(); 
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: false } : n));
+    setOpenMenuId(null); 
+  };
+
+  // THAY ĐỔI: Đổi tên thành promptDelete và chỉ mở modal
+  const promptDelete = (e, id) => {
+    e.stopPropagation(); 
+    setOpenMenuId(null); // Đóng menu dropdown
+    setNotificationToDelete(id); // Mở modal xác nhận
+  };
+
+  // THÊM MỚI: Hàm xác nhận xoá
+  const handleDeleteConfirm = () => {
+    if (!notificationToDelete) return;
+    setNotifications(prev => prev.filter(n => n.id !== notificationToDelete));
+    setNotificationToDelete(null); // Đóng modal
+  };
+
+  // THÊM MỚI: Hàm huỷ xoá
+  const handleDeleteCancel = () => {
+    setNotificationToDelete(null); // Đóng modal
+  };
+
+  const handleMenuToggle = (e, id) => {
+    e.stopPropagation(); 
+    setOpenMenuId(prevId => (prevId === id ? null : id)); 
+  };
+
   const filteredNotifications = notifications
     .filter(n => {
       if (filter === 'UNREAD') return !n.isRead;
@@ -85,10 +132,13 @@ const MyInboxPage = () => {
     })
     .filter(n => {
       const term = searchTerm.trim().toLowerCase();
+      if (!term) return true;
+      const vietnameseType = (typeToVietnamese[n.type] || '').toLowerCase();
       return (
         n.title.toLowerCase().includes(term) ||
         n.message.toLowerCase().includes(term) ||
-        n.type.toLowerCase().includes(term)
+        n.type.toLowerCase().includes(term) ||
+        vietnameseType.includes(term)
       );
     });
 
@@ -98,7 +148,8 @@ const MyInboxPage = () => {
   const renderContent = () => {
     if (loading) return <div className="p-16 text-center text-gray-500">Đang tải thông báo...</div>;
     if (error) return <div className="p-16 text-center text-red-600">{error}</div>;
-    if (filteredNotifications.length === 0) {
+    
+    if (!loading && !error && filteredNotifications.length === 0) {
       return (
         <div className="p-8 md:p-16 flex flex-col items-center text-center animate-fadeIn">
           <img src={inboxIllustration} alt="Hộp thư trống" className="w-full max-w-xs h-auto mb-8" />
@@ -110,19 +161,22 @@ const MyInboxPage = () => {
 
     return (
       <>
-        <div className="flex justify-between items-center p-4 border-b">
-          <button onClick={markAllAsRead} className="text-sm text-blue-600 hover:underline">Đánh dấu tất cả là đã đọc</button>
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col md:flex-row justify-between items-center p-4 border-b gap-4">
+          <button onClick={markAllAsRead} className="text-sm text-blue-600 hover:underline">
+            Đánh dấu tất cả là đã đọc
+          </button>
+          <div className="flex items-center gap-2 w-full md:w-auto">
             <Search size={18} className="text-gray-400" />
             <input
               type="text"
               placeholder="Tìm kiếm theo tiêu đề, nội dung hoặc loại..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="border rounded px-2 py-1 text-sm w-64"
+              className="border rounded px-2 py-1 text-sm w-full md:w-64"
             />
           </div>
         </div>
+
         <ul className="divide-y divide-gray-200 animate-fadeIn">
           {paginatedNotifications.map((noti) => {
             const iconInfo = getNotificationIcon(noti.type);
@@ -131,11 +185,12 @@ const MyInboxPage = () => {
                 key={noti.id}
                 onClick={() => {
                   setSelectedNoti(noti);
+                  setOpenMenuId(null); 
                   if (!noti.isRead) {
                     setNotifications(prev => prev.map(n => n.id === noti.id ? { ...n, isRead: true } : n));
                   }
                 }}
-                className={`flex items-start gap-4 p-4 md:p-6 cursor-pointer transition-transform hover:scale-[1.02] ${
+                className={`relative flex items-start gap-4 p-4 md:p-6 cursor-pointer ${
                   !noti.isRead ? 'bg-blue-50' : 'bg-white'
                 } hover:bg-gray-50`}
               >
@@ -147,99 +202,165 @@ const MyInboxPage = () => {
                   <p className="text-sm text-gray-600 mt-1 truncate">{noti.message}</p>
                   <p className="text-xs text-gray-400 mt-2">{formatTimeAgo(noti.createdAt)}</p>
                 </div>
-                {!noti.isRead && <div className="w-2.5 h-2.5 bg-blue-500 rounded-full mt-1.5 flex-shrink-0" title="Chưa đọc" />}
+                
+                <div className="w-2.5 flex-shrink-0 mt-1.5">
+                    {!noti.isRead && (
+                        <div className="w-2.5 h-2.5 bg-blue-500 rounded-full" title="Chưa đọc" />
+                    )}
+                </div>
+                
+                <div className="relative z-20 flex-shrink-0 ml-2">
+                  <button
+                    onClick={(e) => handleMenuToggle(e, noti.id)}
+                    className="p-2 rounded-full text-gray-500 hover:bg-gray-200"
+                    aria-label="Tùy chọn"
+                  >
+                    <MoreVertical size={18} />
+                  </button>
+
+                  {openMenuId === noti.id && (
+                    <div 
+                      className="absolute top-full right-0 mt-1 bg-white shadow-lg rounded-lg border w-56"
+                      onClick={(e) => e.stopPropagation()} 
+                    >
+                      <ul className="py-2">
+                        {noti.isRead && (
+                          <li 
+                            onClick={(e) => handleMarkAsUnread(e, noti.id)} 
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                          >
+                            <Mail size={16} /> Đánh dấu là chưa đọc
+                          </li>
+                        )}
+
+                        {/* THAY ĐỔI: Gọi hàm promptDelete */}
+                        <li 
+                          onClick={(e) => promptDelete(e, noti.id)} 
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer"
+                        >
+                          <Trash2 size={16} /> Xoá thông báo
+                        </li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </li>
             );
           })}
         </ul>
-        <div className="flex justify-center items-center gap-2 p-4">
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="px-3 py-1 border rounded disabled:opacity-50">Trước</button>
-          <span className="text-sm">Trang {currentPage}/{totalPages}</span>
-          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="px-3 py-1 border rounded disabled:opacity-50">Sau</button>
-        </div>
+        
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 p-4">
+            <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="px-3 py-1 border rounded disabled:opacity-50">Trước</button>
+            <span className="text-sm">Trang {currentPage}/{totalPages}</span>
+            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="px-3 py-1 border rounded disabled:opacity-50">Sau</button>
+          </div>
+        )}
       </>
     );
   };
 
   return (
     <CustomerLayout>
-      <div className="bg-gray-50 min-h-screen flex">
-        {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-lg p-4 hidden md:block animate-fadeIn">
-          <div className="mb-6">
-            <h2 className="text-lg font-bold mb-3">Trạng thái</h2>
-            <ul className="space-y-2">
-              <li>
-                <button onClick={() => { setFilter('ALL'); setCurrentPage(1); }} className={`flex items-center gap-2 w-full px-3 py-2 rounded transition hover:bg-gray-100 ${filter === 'ALL' ? 'bg-blue-500 text-white' : ''}`}>
-                  <Bell size={18} /> Tất cả
-                </button>
-              </li>
-              <li>
-                <button onClick={() => { setFilter('UNREAD'); setCurrentPage(1); }} className={`flex items-center gap-2 w-full px-3 py-2 rounded transition hover:bg-gray-100 ${filter === 'UNREAD' ? 'bg-blue-500 text-white' : ''}`}>
-                  <span className="w-2.5 h-2.5 bg-blue-500 rounded-full"></span> Chưa đọc
-                </button>
-              </li>
-              <li>
-                <button onClick={() => { setFilter('READ'); setCurrentPage(1); }} className={`flex items-center gap-2 w-full px-3 py-2 rounded transition hover:bg-gray-100 ${filter === 'READ' ? 'bg-blue-500 text-white' : ''}`}>
-                  ✓ Đã đọc
-                </button>
-              </li>
-            </ul>
-          </div>
+      {openMenuId && (
+        <div 
+          className="fixed inset-0 z-10" 
+          onClick={() => setOpenMenuId(null)} 
+        />
+      )}
 
-          <div>
-            <h2 className="text-lg font-bold mb-3">Loại thông báo</h2>
-            <ul className="space-y-2">
-              <li>
-                <button onClick={() => { setFilter('APPROVAL'); setCurrentPage(1); }} className={`flex items-center gap-2 w-full px-3 py-2 rounded transition hover:bg-gray-100 ${filter === 'APPROVAL' ? 'bg-blue-500 text-white' : ''}`}>
-                  <CheckCircle2 size={18} className="text-green-500" /> Duyệt
-                </button>
-              </li>
-              <li>
-                <button onClick={() => { setFilter('REJECTION'); setCurrentPage(1); }} className={`flex items-center gap-2 w-full px-3 py-2 rounded transition hover:bg-gray-100 ${filter === 'REJECTION' ? 'bg-blue-500 text-white' : ''}`}>
-                  <XCircle size={18} className="text-red-500" /> Từ chối
-                </button>
-              </li>
-              <li>
-                <button onClick={() => { setFilter('GENERAL'); setCurrentPage(1); }} className={`flex items-center gap-2 w-full px-3 py-2 rounded transition hover:bg-gray-100 ${filter === 'GENERAL' ? 'bg-blue-500 text-white' : ''}`}>
-                  <Bell size={18} className="text-blue-500" /> Chung
-                </button>
-              </li>
-            </ul>
-          </div>
-        </aside>
-
-        {/* Main content */}
-        <div className="flex-1">
-          <div className="bg-gradient-to-r from-blue-500 to-cyan-500 w-full py-6 text-white shadow-sm">
-            <div className="max-w-4xl mx-auto px-4 flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold mb-1">Hộp thư của tôi</h1>
-                <p className="text-sm text-blue-100">Xin chào, {currentUser?.name || 'Người dùng'}!</p>
-              </div>
+      <div className="bg-gray-50 min-h-screen">
+        <div className="max-w-7xl mx-auto py-8 px-4 md:px-8 flex flex-col md:flex-row gap-8">
+          
+          <aside className="w-full md:w-64 bg-white shadow-lg rounded-lg p-6 h-fit flex-shrink-0 animate-fadeIn">
+            <div className="mb-6">
+              <h2 className="text-lg font-bold mb-3">Trạng thái</h2>
+              <ul className="space-y-2">
+                <li>
+                  <button 
+                    onClick={() => { 
+                      setFilter('ALL'); 
+                      setSearchTerm('');
+                    }} 
+                    className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition hover:bg-gray-100 ${filter === 'ALL' ? activeFilterClass : ''}`}
+                  >
+                    <Bell size={18} /> Tất cả
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => setFilter('UNREAD')} className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition hover:bg-gray-100 ${filter === 'UNREAD' ? activeFilterClass : ''}`}>
+                    <span className="w-2.5 h-2.5 bg-blue-500 rounded-full ml-1 mr-0.5"></span> Chưa đọc
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => setFilter('READ')} className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition hover:bg-gray-100 ${filter === 'READ' ? activeFilterClass : ''}`}>
+                    <CheckCircle2 size={18} /> Đã đọc
+                  </button>
+                </li>
+              </ul>
             </div>
-          </div>
-          <div className="max-w-4xl mx-auto p-4 md:p-8">
+          </aside>
+
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold mb-6 text-gray-800">Hộp thư của tôi</h1>
+            
             <div className="bg-white rounded-lg shadow-xl overflow-hidden">
               {renderContent()}
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Modal chi tiết */}
-        {selectedNoti && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn">
-            <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
-              <button onClick={() => setSelectedNoti(null)} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
-                <X size={20} />
-              </button>
-              <h2 className="text-xl font-bold mb-2">{selectedNoti.title}</h2>
-              <p className="text-gray-600 mb-4">{selectedNoti.message}</p>
-              <p className="text-xs text-gray-400 mb-4">Thời gian: {new Date(selectedNoti.createdAt).toLocaleString()}</p>
+      {/* Modal chi tiết */}
+      {selectedNoti && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+            <button onClick={() => setSelectedNoti(null)} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+              <X size={20} />
+            </button>
+            <h2 className="text-xl font-bold mb-2">{selectedNoti.title}</h2>
+            <p className="text-gray-600 mb-4">{selectedNoti.message}</p>
+            <p className="text-xs text-gray-400 mb-4">Thời gian: {new Date(selectedNoti.createdAt).toLocaleString()}</p>
+          </div>
+        </div>
+      )}
+
+      {/* === THÊM MỚI: Modal Xác nhận xoá === */}
+      {notificationToDelete && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn"
+          onClick={handleDeleteCancel} // Đóng khi click ra ngoài
+        >
+          <div 
+            className="bg-white rounded-lg shadow-lg max-w-sm w-full p-6 relative"
+            onClick={(e) => e.stopPropagation()} // Ngăn click vào modal lan ra backdrop
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                <AlertTriangle size={24} className="text-red-600" />
+              </div>
+              <h2 className="text-xl font-bold mb-2">Xác nhận xoá</h2>
+              <p className="text-gray-600 mb-6">Bạn có chắc chắn muốn xoá thông báo này không?</p>
+              <div className="flex justify-center gap-4 w-full">
+                <button
+                  onClick={handleDeleteCancel}
+                  className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                >
+                  Huỷ
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Xoá
+                </button>
+              </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+      {/* === KẾT THÚC THÊM MỚI === */}
+
     </CustomerLayout>
   );
 };
