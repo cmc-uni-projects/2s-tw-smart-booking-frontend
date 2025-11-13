@@ -1,18 +1,44 @@
-import React from "react";
-// 1. Import useNavigate và Search
+import React, { useState } from "react"; // 1. Thêm useState
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-
+import { addDays, format } from "date-fns"; // 2. Thêm
 import Button from "@/components/common/Button/Button";
 import DateSelector from "@/components/search/DateSelector";
 import GuestSelector from "@/components/search/GuestSelector";
 import DestinationSelector from "@/components/search/DestinationSelector";
 
 const HeroSection = () => {
-  // 2. Khởi tạo hook
   const navigate = useNavigate();
 
+  // 3. Thêm toàn bộ logic State (giống như trước)
+  const [destination, setDestination] = useState("");
+  const [dates, setDates] = useState({
+    startDate: new Date(),
+    endDate: addDays(new Date(), 1),
+  });
+  const [guests, setGuests] = useState({
+    adults: 2,
+    children: 0,
+    rooms: 1,
+  });
+
+  // 4. Thêm hàm handleSearch để xử lý params
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    
+    params.append("city", destination);
+    params.append("keyword", destination); 
+    params.append("checkIn", format(dates.startDate, "yyyy-MM-dd"));
+    params.append("checkOut", format(dates.endDate, "yyyy-MM-dd"));
+    params.append("adults", guests.adults);
+    params.append("children", guests.children);
+    params.append("rooms", guests.rooms);
+    
+    navigate(`/hotels?${params.toString()}`);
+  };
+
   return (
+    // Toàn bộ giao diện của bạn được giữ nguyên
     <section className="relative w-full bg-gradient-to-b from-white to-[#f4fbff] pb-24">
       {/* Ảnh nền */}
       <div className="relative h-[500px] overflow-hidden">
@@ -23,7 +49,7 @@ const HeroSection = () => {
         />
       </div>
 
-      {/* Sửa z-index (từ 10 lên 30) */}
+      {/* Sửa z-index */}
       <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-4 z-30">
         <h1 className="text-4xl md:text-5xl font-extrabold text-[#006494] mb-4">
           Đặt phòng dễ dàng cùng{" "}
@@ -34,18 +60,28 @@ const HeroSection = () => {
 
         <div className="relative z-10 bg-white shadow-xl rounded-2xl border border-gray-100 p-6 md:p-8 grid grid-cols-1 md:grid-cols-4 gap-4 max-w-6xl w-[90%]">
           
-          <DestinationSelector />
-          <DateSelector />
-          <GuestSelector />
+          {/* 5. Thêm value và onChange vào các component */}
+          <DestinationSelector
+            value={destination}
+            onChange={setDestination}
+          />
+          <DateSelector 
+            value={dates} 
+            onChange={setDates} 
+          />
+          <GuestSelector 
+            value={guests} 
+            onChange={setGuests} 
+          />
 
-          {/* 3. Cập nhật Nút tìm */}
           <div className="flex items-end justify-center">
             <Button
               size="lg"
               className="w-full bg-[rgb(40,169,224)] hover:bg-[#1b98d6] text-white font-semibold shadow-md rounded-lg"
-              // (Req #2) Thêm onClick để chuyển trang
-              onClick={() => navigate("/hotels")}
-              // (Req #1) Thêm icon Search
+              
+              // 6. Thay đổi onClick thành handleSearch
+              onClick={handleSearch}
+              
               leftIcon={<Search size={18} />}
             >
               Tìm phòng

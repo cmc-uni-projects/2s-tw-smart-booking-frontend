@@ -1,31 +1,22 @@
-// Hàm tiện ích để giả lập thời gian chờ của mạng
-const fakeApiCall = (duration) => new Promise(resolve => setTimeout(resolve, duration));
+import axios from "axios";
+
+const API_BASE_URL = "http://localhost:8386/api/v1";
 
 export const ownerService = {
-    /**
-     * (Mocked) Giả lập gửi đơn đăng ký
-     * @param {FormData} formData Đối tượng FormData chứa text và files
-     */
-    submitApplication: async (formData) => {
+  // 🟩 Gửi JSON DTO (application)
+  submitApplication: async (payload) => {
+    const token =
+      localStorage.getItem("accessToken") || localStorage.getItem("token"); // ✅ fix key
 
-        console.log("=========================================");
-        console.log("🚀 [MOCK API] ĐANG GIẢ LẬP GỬI ĐƠN ĐĂNG KÝ...");
-        console.log("=========================================");
+    if (!token) throw new Error("Token not found — user must login first.");
 
-        // In ra toàn bộ dữ liệu bạn đã thu thập để kiểm tra
-        for (let [key, value] of formData.entries()) {
-            console.log(key, ":", value);
-        }
-
-        // 1. Giả lập thời gian chờ (2 giây)
-        await fakeApiCall(2000);
-
-        console.log("✅ [MOCK API] GỬI THÀNH CÔNG!");
-
-        // 2. Trả về một đối tượng "thành công"
-        return {
-            success: true,
-            message: "Application submitted successfully (Mocked)"
-        };
-    },
+    const res = await axios.post(`${API_BASE_URL}/applications/submit-owner`, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      withCredentials: true,
+    });
+    return res.data;
+  },
 };
