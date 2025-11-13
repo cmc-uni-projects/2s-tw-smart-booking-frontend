@@ -1,7 +1,8 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
 import { Receipt, DollarSign, Settings, MapPin, User } from 'lucide-react';
 import Card from "@/components/common/Card/Card";
+import AvatarUpload from "@/components/common/Input/AvatarUpload"; 
+import AvatarUploadModal from "./AvatarUploadModal"; // ✅ Import Modal mới
 
 const MENU_WIDGET_ITEMS = [
     { name: "Đặt chỗ của tôi", icon: MapPin, path: "my-bookings", type: "nav" },
@@ -11,49 +12,87 @@ const MENU_WIDGET_ITEMS = [
     { name: "Tài khoản", icon: User, path: "account-settings", type: "main" },
 ];
 
-export default function AccountMenu({ activeSection, onSelect, userData }) {
+export default function AccountMenu({ 
+    activeSection, 
+    onSelect, 
+    userData, 
+    onAvatarUpload, // Hàm gọi API từ ProfilePage
+    isUploadingAvatar 
+}) {
+    const [isModalOpen, setIsModalOpen] = useState(false); // State quản lý Modal
+
     const profileName = userData?.fullName || "Khách hàng";
-    const initials = profileName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    const profileImage = userData?.profilePhotoUrl || null;
+
+    // Hàm trung gian: Nhận file từ Modal -> Gửi lên ProfilePage -> Đóng Modal
+    const handleSaveAvatar = async (file) => {
+        await onAvatarUpload(file);
+        setIsModalOpen(false);
+    };
 
     return (
-        <Card className="h-full p-0">
-            {/* * THAY ĐỔI 1: Xóa 'divide-y' ở đây
-      */}
-            <div className="flex flex-col h-full">
-                {/* Header Avatar */}
-                <div className="p-4 space-y-4 border-b border-gray-100">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-700">
-                            {initials}
-                        </div>
-                        <div>
-                            <p className="font-medium text-gray-800">{profileName}</p>
+        <>
+            <Card className="h-full p-0">
+                <div className="flex flex-col h-full">
+                    
+                    {/* Header: Avatar & Tên */}
+                    <div className="p-4 border-b border-gray-100">
+                        <div className="flex items-center gap-3">
+                            {/* ✅ AvatarUpload giờ chỉ để kích hoạt mở Modal */}
+                            <div className="flex-shrink-0">
+                                <AvatarUpload 
+                                    src={profileImage} 
+                                    name={profileName} 
+                                    size={50} 
+                                    onClick={() => setIsModalOpen(true)} // Mở Modal khi click
+                                    isLoading={isUploadingAvatar}
+                                />
+                            </div>
+                            
+                            <div className="overflow-hidden flex-1">
+                                <p className="font-semibold text-gray-800 truncate" title={profileName}>
+                                    {profileName}
+                                </p>
+                                {userData?.email && (
+                                    <p className="text-xs text-gray-500 truncate" title={userData.email}>
+                                        {userData.email}
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* * THAY ĐỔI 2: Xóa 'divide-y',
-          * Thêm 'p-2' (padding) và 'space-y-2' (khoảng cách)
-        */}
-                <nav className="flex-grow p-2 space-y-2">
-                    {MENU_WIDGET_ITEMS.map((item) => (
-                        <button
-                            key={item.path}
-                            onClick={() => onSelect(item.path)}
-                            /* * THAY ĐỔI 3: Thêm 'rounded-lg'
-                            */
-                            className={`flex items-center w-full p-4 text-left transition duration-150 text-sm rounded-lg
-                ${activeSection === item.path
-                                ? 'bg-[rgb(40,169,224)] text-white font-semibold'
-                                : 'text-gray-700 hover:bg-gray-50'
-                            }`}
-                        >
-                            <item.icon size={20} className="mr-3" />
-                            <span>{item.name}</span>
-                        </button>
-                    ))}
-                </nav>
-            </div>
-        </Card>
+                    {/* Navigation Menu */}
+                    <nav className="flex-grow p-2 space-y-1">
+                        {MENU_WIDGET_ITEMS.map((item) => (
+                            <button
+                                key={item.path}
+                                onClick={() => onSelect(item.path)}
+                                className={`flex items-center w-full p-3 text-left transition-all duration-200 rounded-lg
+                                    ${activeSection === item.path
+                                        ? 'bg-[rgb(40,169,224)] text-white font-medium shadow-sm'
+                                        : 'text-gray-700 hover:bg-gray-100'
+                                    }
+                                `}
+                            >
+                                <item.icon 
+                                    size={20} 
+                                    className={`mr-3 ${activeSection === item.path ? 'text-white' : 'text-gray-500'}`} 
+                                />
+                                <span>{item.name}</span>
+                            </button>
+                        ))}
+                    </nav>
+                </div>
+            </Card>
+
+            {/* ✅ Component Modal nằm ở đây */}
+            <AvatarUploadModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleSaveAvatar}
+                isLoading={isUploadingAvatar}
+            />
+        </>
     );
 }
