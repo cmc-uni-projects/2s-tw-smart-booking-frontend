@@ -1,3 +1,5 @@
+// src/pages/Customer/HotelDetail/HotelDetailPage.jsx
+
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
@@ -8,10 +10,11 @@ import Button from "@/components/common/Button/Button";
 import Badge from "@/components/common/Badge/Badge";
 import {
     MapPin, Star, Wifi, Waves, ParkingCircle, Utensils, Users, Maximize, Bed, Images, FileText,
-    CheckCircle, XCircle, Tv, Wind, Droplet, Coffee, Ban, Bath
+    CheckCircle, XCircle, Tv, Wind, Droplet, Coffee, Ban, Bath,
+    User // ✅ Đã Import USER (SỐ ÍT)
 } from "lucide-react";
 import ImageViewerModal from "@/pages/Admin/Hotels/components/ImageViewerModal";
-import TabsComponent from "@/components/common/Tabs/TabsComponent";
+// ❌ ĐÃ XÓA: import TabsComponent from "@/components/common/Tabs/TabsComponent";
 import Modal from "@/components/common/Modal/Modal";
 
 // Định nghĩa các icon tiện nghi (dùng cho chi tiết phòng)
@@ -189,10 +192,11 @@ const RoomRow = ({ room, onInfoClick }) => {
 
     return (
         <Card className="p-4 !shadow-md">
+            {/* Grid 10 cột (đã sửa) */}
             <div className="grid grid-cols-1 lg:grid-cols-10 gap-4">
 
-                {/* 1. Thông tin & Ảnh (3/10) */}
-                <div className="col-span-10 lg:col-span-3">
+                {/* 1. Thông tin & Ảnh (4/10) */}
+                <div className="col-span-10 lg:col-span-4">
                     <h4
                         className="text-base font-semibold text-[rgb(40,169,224)] mb-2 line-clamp-2 cursor-pointer hover:underline"
                         onClick={() => onInfoClick(room)}
@@ -200,18 +204,23 @@ const RoomRow = ({ room, onInfoClick }) => {
                         {room.name}
                     </h4>
 
+                    {/* Khối ảnh (đã sửa ở lần trước) */}
                     <button
                         type="button"
-                        className="grid grid-cols-3 gap-1 mb-3 w-full"
+                        className="relative w-full aspect-video rounded-lg overflow-hidden mb-3 group/image"
                         onClick={() => onInfoClick(room)}
                     >
-                        <img src={room.images[0]} alt={room.name} className="col-span-2 h-20 w-full object-cover rounded-md" />
-                        <div className="col-span-1 h-20 relative">
-                            <img src={room.images[1]} alt="" className="h-full w-full object-cover rounded-md" />
-                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-md cursor-pointer">
-                                <span className="text-white font-bold text-sm">+{room.images.length - 2}</span>
+                        <img
+                            src={room.images[0]}
+                            alt={room.name}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/image:opacity-100 transition-opacity"></div>
+                        {room.images.length > 1 && (
+                            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs font-semibold px-2 py-1 rounded-md backdrop-blur-sm">
+                                + {room.images.length - 1} ảnh
                             </div>
-                        </div>
+                        )}
                     </button>
 
                     <div className="space-y-1 text-sm text-gray-600">
@@ -228,8 +237,8 @@ const RoomRow = ({ room, onInfoClick }) => {
                     </button>
                 </div>
 
-                {/* 2. Tóm tắt (3/10) */}
-                <div className="col-span-10 lg:col-span-3 border-b lg:border-b-0 lg:border-l lg:border-r border-gray-100 px-0 lg:px-4 py-4 lg:py-0">
+                {/* 2. Tóm tắt (2/10) */}
+                <div className="col-span-10 lg:col-span-2 border-b lg:border-b-0 lg:border-l lg:border-r border-gray-100 px-0 lg:px-4 py-4 lg:py-0">
                     <h5 className="font-semibold text-gray-800 mb-2 lg:hidden">Tóm Tắt</h5>
                     <div className="space-y-1.5 text-sm">
                         <Badge color="success" icon={false}>Giá tốt nhất hôm nay!</Badge>
@@ -243,8 +252,14 @@ const RoomRow = ({ room, onInfoClick }) => {
                 {/* 3. Sức chứa (1/10) */}
                 <div className="col-span-3 lg:col-span-1 flex flex-col items-center justify-center text-center">
                     <h5 className="font-semibold text-gray-800 mb-2 lg:hidden">Sức Chứa</h5>
-                    <Users size={20} className="text-gray-600" />
-                    <span className="text-sm mt-1">{room.guests}</span>
+
+                    {/* Đổi màu text-gray-900 thành text-black */}
+                    <div className="flex items-center justify-center gap-1 text-black">
+                        <User size={20} />
+                        <User size={20} />
+                    </div>
+
+                    <span className="text-base font-medium text-gray-800 mt-1">{room.guests}</span>
                 </div>
 
                 {/* 4. Giá (3/10) */}
@@ -281,10 +296,10 @@ const RoomListSection = ({ rooms, onRoomInfoClick }) => (
             <FilterChip>Thanh toán trước (14)</FilterChip>
         </div>
 
-        {/* Header của bảng (Chỉ hiển thị trên desktop) */}
+        {/* Header của bảng (Đã cập nhật grid) */}
         <div className="hidden lg:grid grid-cols-10 gap-4 px-6 py-3 border-b border-gray-200">
-            <div className="col-span-3 font-semibold text-sm text-gray-600 uppercase">Chi tiết phòng</div>
-            <div className="col-span-3 font-semibold text-sm text-gray-600 uppercase">Tóm tắt</div>
+            <div className="col-span-4 font-semibold text-sm text-gray-600 uppercase">Chi tiết phòng</div>
+            <div className="col-span-2 font-semibold text-sm text-gray-600 uppercase">Tóm tắt</div>
             <div className="col-span-1 font-semibold text-sm text-gray-600 uppercase text-center">Sức chứa</div>
             <div className="col-span-3 font-semibold text-sm text-gray-600 uppercase text-right">Giá hôm nay</div>
         </div>
@@ -475,47 +490,64 @@ export default function HotelDetailPage() {
                 </div>
 
 
-                {/* KHỐI NỘI DUNG CHÍNH */}
-                <div className="mt-8">
-                    <div className="space-y-8">
+                {/* *
+                * ✅ THAY ĐỔI KHỐI NỘI DUNG CHÍNH (THÊM sticky)
+                *
+                */}
+                <div className="mt-8 space-y-8"> {/* Chuyển space-y-8 ra ngoài */}
 
-                        {/* ✅ Card Mô tả (HIỂN THỊ) */}
-                        <Card>
-                            <h3 className="text-xl font-bold text-gray-800 mb-3">Mô tả</h3>
-                            <p className="text-gray-600 leading-relaxed">
-                                {hotel.description}
-                            </p>
-                        </Card>
+                    {/* Card Mô tả */}
+                    <Card>
+                        <h3 className="text-xl font-bold text-gray-800 mb-3">Mô tả</h3>
+                        <p className="text-gray-600 leading-relaxed">
+                            {hotel.description}
+                        </p>
+                    </Card>
 
-                        {/* ✅ Card Tiện ích (HIỂN THỊ) */}
-                        <Card>
-                            <h3 className="text-xl font-bold text-gray-800 mb-4">Tiện ích</h3>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                {hotel.amenities.map(item => (
-                                    <div key={item.name} className="flex items-center gap-2 text-gray-700">
-                                        {item.icon}
-                                        <span>{item.name}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </Card>
+                    {/* Card Tiện ích */}
+                    <Card>
+                        <h3 className="text-xl font-bold text-gray-800 mb-4">Tiện ích</h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            {hotel.amenities.map(item => (
+                                <div key={item.name} className="flex items-center gap-2 text-gray-700">
+                                    {item.icon}
+                                    <span>{item.name}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </Card>
 
-                        {/* Card chứa Tabs */}
+                    {/* Card chứa Tabs (Bọc bởi div sticky) */}
+                    <div className="sticky top-16 z-30">
                         <Card className="p-0 overflow-hidden">
-                            {/* Thanh Tabs */}
-                            <div className="px-6 border-b border-gray-200">
-                                <TabsComponent
-                                    tabs={TABS}
-                                    activeTab={activeTab}
-                                    onTabChange={setActiveTab}
-                                />
+                            {/* Thanh Tabs (Đã sửa) */}
+                            <div className="px-6 border-b border-gray-200 bg-white rounded-t-2xl">
+                                <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                                    {TABS.map((tab) => (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => setActiveTab(tab.id)}
+                                            className={`
+                                                whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-all duration-200
+                                                
+                                                ${activeTab === tab.id
+                                                ? 'border-[rgb(40,169,224)] text-[rgb(40,169,224)]'
+                                                : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-blue-300'
+                                            }
+                                                outline-none
+                                            `}
+                                            aria-current={activeTab === tab.id ? 'page' : undefined}
+                                        >
+                                            {tab.name}
+                                        </button>
+                                    ))}
+                                </nav>
                             </div>
 
                             {/* Nội dung Tab */}
                             <div className="animate-fadeIn">
                                 {activeTab === 'rooms' && <RoomListSection rooms={hotel.rooms} onRoomInfoClick={handleOpenRoomDetail} />}
                                 {activeTab === 'reviews' && <ReviewsSection />}
-                                {/* ✅ Tab Tiện nghi (hiển thị lần 2) */}
                                 {activeTab === 'amenities' && <AmenitiesSection amenities={hotel.amenities} description={hotel.description} />}
                                 {activeTab === 'policies' && <PoliciesSection />}
                             </div>
