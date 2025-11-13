@@ -1,3 +1,4 @@
+// 1. Import thêm useState và icon ZoomIn
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
@@ -8,9 +9,13 @@ import Button from "@/components/common/Button/Button";
 import Badge from "@/components/common/Badge/Badge";
 import DateSelector from "@/components/search/DateSelector";
 import GuestSelector from "@/components/search/GuestSelector";
-import { MapPin, Star, Wifi, Waves, ParkingCircle, Utensils, Users, Maximize, Bed } from "lucide-react";
+// 2. Import icon ZoomIn
+import { MapPin, Star, Wifi, Waves, ParkingCircle, Utensils, Users, Maximize, Bed, ZoomIn } from "lucide-react";
 
-// --- Dữ liệu Mock (Để demo, sau này bạn sẽ thay bằng API call) ---
+// 3. Import Modal xem ảnh ta vừa tạo
+import ImageViewerModal from "@/components/common/Modal/ImageViewerModal";
+
+// --- Dữ liệu Mock (Giữ nguyên) ---
 const MOCK_DETAIL = {
     id: 1,
     name: "The Ocean Resort",
@@ -40,7 +45,7 @@ const MOCK_DETAIL = {
             guests: 2,
             size: 35,
             beds: "1 giường King",
-            available: 5, // <-- THÊM MỚI
+            available: 5,
         },
         {
             id: 102,
@@ -49,17 +54,15 @@ const MOCK_DETAIL = {
             guests: 4,
             size: 50,
             beds: "2 giường Queen",
-            available: 3, // <-- THÊM MỚI
+            available: 3,
         },
     ],
 };
 // --- Hết dữ liệu Mock ---
 
-// Component Sidebar Đặt phòng
+// Component Sidebar Đặt phòng (Giữ nguyên)
 const BookingSidebar = ({ hotel }) => {
     const [selectedRoom, setSelectedRoom] = useState(hotel.rooms[0]);
-
-    // Hàm định dạng tiền tệ
     const formatPrice = (price) => price.toLocaleString('vi-VN') + '₫';
 
     return (
@@ -73,8 +76,6 @@ const BookingSidebar = ({ hotel }) => {
             <div className="space-y-4 my-4">
                 <DateSelector />
                 <GuestSelector />
-
-                {/* Chọn phòng (ví dụ đơn giản) */}
                 <div>
                     <label className="text-sm font-semibold text-gray-600 mb-1">Loại phòng</label>
                     <select
@@ -88,7 +89,6 @@ const BookingSidebar = ({ hotel }) => {
                 </div>
             </div>
 
-            {/* Chi tiết giá (giả lập 1 đêm) */}
             <div className="space-y-2 text-sm border-t pt-4">
                 <div className="flex justify-between">
                     <span className="text-gray-600">{formatPrice(selectedRoom.price)} x 1 đêm</span>
@@ -113,22 +113,37 @@ const BookingSidebar = ({ hotel }) => {
 
 // Component chính của trang
 export default function HotelDetailPage() {
-    const { hotelId } = useParams(); // Lấy ID từ URL
+    const { hotelId } = useParams();
     const [hotel, setHotel] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Giả lập việc fetch dữ liệu dựa trên hotelId
+    // 4. ✅ Thêm state cho modal xem ảnh
+    const [isViewerOpen, setViewerOpen] = useState(false);
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
     useEffect(() => {
         setLoading(true);
-        // TODO: Thay thế bằng API call thật
-        // const fetchedHotel = await hotelService.getById(hotelId);
-
-        // Giả lập API call
         setTimeout(() => {
-            setHotel(MOCK_DETAIL); // Dùng dữ liệu mock
+            setHotel(MOCK_DETAIL);
             setLoading(false);
         }, 1000);
     }, [hotelId]);
+
+    // 5. ✅ Hàm mở modal
+    const openImageViewer = (index) => {
+        setSelectedImageIndex(index);
+        setViewerOpen(true);
+    };
+
+    // 6. ✅ Chuẩn bị dữ liệu cho modal (vì modal cần object {url, caption})
+    // Mock data 'images' chỉ là mảng string, ta cần chuyển đổi nó
+    const imagesForViewer = hotel
+      ? hotel.images.map((imgUrl, index) => ({
+          url: imgUrl,
+          caption: `Ảnh ${index + 1} của ${hotel.name}`,
+        }))
+      : [];
+
 
     if (loading) {
         return (
@@ -139,7 +154,7 @@ export default function HotelDetailPage() {
             </CustomerLayout>
         );
     }
-
+    // ... (Giữ nguyên phần loading và !hotel) ...
     if (!hotel) {
         return (
             <CustomerLayout>
@@ -162,10 +177,10 @@ export default function HotelDetailPage() {
         <CustomerLayout>
             <main className="max-w-7xl mx-auto px-6 py-8">
 
-                {/* 1. Breadcrumb */}
+                {/* 1. Breadcrumb (Giữ nguyên) */}
                 <Breadcrumb items={breadcrumbItems} />
 
-                {/* 2. Tiêu đề (Tên, địa chỉ, rating) */}
+                {/* 2. Tiêu đề (Giữ nguyên) */}
                 <div className="mt-4">
                     <h1 className="text-3xl font-bold text-gray-900">{hotel.name}</h1>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-gray-600">
@@ -179,33 +194,56 @@ export default function HotelDetailPage() {
                     </div>
                 </div>
 
-                {/* 3. Bộ sưu tập ảnh (Gợi ý layout đơn giản) */}
-                <div className="mt-6 grid grid-cols-4 grid-rows-2 gap-2 h-96 rounded-2xl overflow-hidden">
-                    <div className="col-span-2 row-span-2">
-                        <img src={hotel.images[0]} alt="Main hotel" className="w-full h-full object-cover" />
-                    </div>
-                    {hotel.images.slice(1, 5).map((img, index) => (
-                        <div key={index} className="col-span-1 row-span-1">
-                            <img src={img} alt={`Hotel view ${index + 1}`} className="w-full h-full object-cover" />
+                {/* 3. ✅ Bộ sưu tập ảnh (ĐÃ CẬP NHẬT) */}
+                <div className="relative mt-6 grid grid-cols-4 grid-rows-2 gap-2 h-96 rounded-2xl overflow-hidden group">
+                    {/* Ảnh chính */}
+                    <button
+                        onClick={() => openImageViewer(0)}
+                        className="col-span-2 row-span-2 relative cursor-pointer"
+                    >
+                        <img src={hotel.images[0]} alt="Main hotel" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <ZoomIn size={48} className="text-white drop-shadow-lg" />
                         </div>
+                    </button>
+
+                    {/* 4 ảnh nhỏ */}
+                    {hotel.images.slice(1, 5).map((img, index) => (
+                        <button
+                            key={index}
+                            onClick={() => openImageViewer(index + 1)} // index + 1 vì ảnh 0 là ảnh chính
+                            className="col-span-1 row-span-1 relative cursor-pointer"
+                        >
+                            <img src={img} alt={`Hotel view ${index + 1}`} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <ZoomIn size={24} className="text-white" />
+                            </div>
+                        </button>
                     ))}
+
+                    {/* Nút "Xem tất cả" */}
+                    <Button
+                        onClick={() => openImageViewer(0)}
+                        className="absolute bottom-4 right-4 bg-white/90 text-gray-800 hover:bg-white"
+                        size="sm"
+                        leftIcon={<ZoomIn size={16} />}
+                    >
+                        Xem tất cả ảnh
+                    </Button>
                 </div>
 
-                {/* 4. Layout 2 cột (Nội dung chính & Sidebar đặt phòng) */}
+
+                {/* 4. Layout 2 cột (Giữ nguyên) */}
                 <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                    {/* Cột trái (Nội dung) */}
+                    {/* Cột trái (Nội dung - Giữ nguyên) */}
                     <div className="lg:col-span-2 space-y-8">
-
-                        {/* Mô tả */}
                         <Card>
                             <h3 className="text-xl font-bold text-gray-800 mb-3">Mô tả</h3>
                             <p className="text-gray-600 leading-relaxed">
                                 {hotel.description}
                             </p>
                         </Card>
-
-                        {/* Tiện ích */}
                         <Card>
                             <h3 className="text-xl font-bold text-gray-800 mb-4">Tiện ích</h3>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -217,19 +255,13 @@ export default function HotelDetailPage() {
                                 ))}
                             </div>
                         </Card>
-
-                        {/* Danh sách phòng */}
                         <Card>
-                            {/* SỬA ĐỔI: Thêm tổng số phòng trống */}
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-xl font-bold text-gray-800">Các loại phòng</h3>
-                                {/* TÍNH TOÁN VÀ HIỂN THỊ TỔNG SỐ PHÒNG TRỐNG */}
                                 <Badge color="success">
                                     Tổng số phòng trống: {hotel.rooms.reduce((acc, room) => acc + (room.available || 0), 0)}
                                 </Badge>
                             </div>
-                            {/* KẾT THÚC SỬA ĐỔI */}
-
                             <div className="space-y-4">
                                 {hotel.rooms.map((room) => (
                                     <div key={room.id} className="border border-gray-200 rounded-lg p-4 flex justify-between items-center">
@@ -241,8 +273,6 @@ export default function HotelDetailPage() {
                                                 <span className="flex items-center gap-1"><Bed size={14} /> {room.beds}</span>
                                             </div>
                                         </div>
-
-                                        {/* SỬA ĐỔI: Thêm số phòng trống cho từng loại */}
                                         <div className="text-right flex flex-col items-end gap-1">
                                             <Badge color={room.available > 5 ? "success" : (room.available > 0 ? "warning" : "danger")} icon={false}>
                                                 {room.available > 0 ? `${room.available} phòng trống` : "Hết phòng"}
@@ -252,21 +282,27 @@ export default function HotelDetailPage() {
                                                 <span className="text-sm text-gray-500">/đêm</span>
                                             </div>
                                         </div>
-                                        {/* KẾT THÚC SỬA ĐỔI */}
                                     </div>
                                 ))}
                             </div>
                         </Card>
-
                     </div>
 
-                    {/* Cột phải (Sidebar đặt phòng) */}
+                    {/* Cột phải (Sidebar đặt phòng - Giữ nguyên) */}
                     <div className="lg:col-span-1">
                         <BookingSidebar hotel={hotel} />
                     </div>
                 </div>
 
             </main>
+
+            {/* 7. ✅ Render Modal ImageViewer (Nó sẽ tự ẩn/hiện) */}
+            <ImageViewerModal
+              open={isViewerOpen}
+              onClose={() => setViewerOpen(false)}
+              images={imagesForViewer} // Truyền dữ liệu đã được map
+              startIndex={selectedImageIndex}
+            />
         </CustomerLayout>
     );
 }
