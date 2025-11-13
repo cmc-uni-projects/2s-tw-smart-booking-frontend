@@ -40,7 +40,7 @@ const schemas = [
     personalIdBack: fileValidation,
   }),
   yup.object().shape({
-    businessLicenseNumber: yup.string().required("Mã số ĐKKD là bắt buộc"),
+    businessLicenseNumber: yup.string().required("Mã số ĐKKD là bắt buộc").min(5, "Mã số ĐKKD phải có ít nhất 5 ký tự"),
     businessLicenseFile: yup
       .mixed()
       .test("required", "Vui lòng tải lên giấy phép", (value) => value && value.length > 0),
