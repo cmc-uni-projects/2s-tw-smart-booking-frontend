@@ -11,10 +11,9 @@ import Badge from "@/components/common/Badge/Badge";
 import {
     MapPin, Star, Wifi, Waves, ParkingCircle, Utensils, Users, Maximize, Bed, Images, FileText,
     CheckCircle, XCircle, Tv, Wind, Droplet, Coffee, Ban, Bath,
-    User // ✅ Đã Import USER (SỐ ÍT)
+    User // <-- Đảm bảo import User icon
 } from "lucide-react";
 import ImageViewerModal from "@/pages/Admin/Hotels/components/ImageViewerModal";
-// ❌ ĐÃ XÓA: import TabsComponent from "@/components/common/Tabs/TabsComponent";
 import Modal from "@/components/common/Modal/Modal";
 
 // Định nghĩa các icon tiện nghi (dùng cho chi tiết phòng)
@@ -192,7 +191,7 @@ const RoomRow = ({ room, onInfoClick }) => {
 
     return (
         <Card className="p-4 !shadow-md">
-            {/* Grid 10 cột (đã sửa) */}
+            {/* Grid 10 cột */}
             <div className="grid grid-cols-1 lg:grid-cols-10 gap-4">
 
                 {/* 1. Thông tin & Ảnh (4/10) */}
@@ -204,7 +203,7 @@ const RoomRow = ({ room, onInfoClick }) => {
                         {room.name}
                     </h4>
 
-                    {/* Khối ảnh (đã sửa ở lần trước) */}
+                    {/* Khối ảnh */}
                     <button
                         type="button"
                         className="relative w-full aspect-video rounded-lg overflow-hidden mb-3 group/image"
@@ -237,8 +236,8 @@ const RoomRow = ({ room, onInfoClick }) => {
                     </button>
                 </div>
 
-                {/* 2. Tóm tắt (2/10) */}
-                <div className="col-span-10 lg:col-span-2 border-b lg:border-b-0 lg:border-l lg:border-r border-gray-100 px-0 lg:px-4 py-4 lg:py-0">
+                {/* 2. Tóm tắt (2/10) - ĐÃ CẬP NHẬT */}
+                <div className="col-span-10 lg:col-span-2 border-b lg:border-b-0 lg:border-l lg:border-r border-gray-200 px-0 lg:px-4 py-4 lg:py-0 flex flex-col items-center justify-center">
                     <h5 className="font-semibold text-gray-800 mb-2 lg:hidden">Tóm Tắt</h5>
                     <div className="space-y-1.5 text-sm">
                         <Badge color="success" icon={false}>Giá tốt nhất hôm nay!</Badge>
@@ -250,27 +249,25 @@ const RoomRow = ({ room, onInfoClick }) => {
                 </div>
 
                 {/* 3. Sức chứa (1/10) */}
+                {/* ✅ CẬP NHẬT: Hiển thị icon User x số lượng khách */}
                 <div className="col-span-3 lg:col-span-1 flex flex-col items-center justify-center text-center">
                     <h5 className="font-semibold text-gray-800 mb-2 lg:hidden">Sức Chứa</h5>
-
-                    {/* Đổi màu text-gray-900 thành text-black */}
                     <div className="flex items-center justify-center gap-1 text-black">
                         <User size={20} />
-                        <User size={20} />
+                        <span className="text-xl font-medium text-gray-800">x{room.guests}</span>
                     </div>
-
-                    <span className="text-base font-medium text-gray-800 mt-1">{room.guests}</span>
+                    {/* ✅ Đã xóa dòng hiển thị số khách riêng */}
                 </div>
 
-                {/* 4. Giá (3/10) */}
-                <div className="col-span-7 lg:col-span-3 flex flex-col items-end justify-between text-right h-full border-t lg:border-t-0 lg:border-l border-gray-100 pt-4 lg:pt-0 lg:pl-4">
+                {/* 4. Giá (3/10) - ĐÃ CẬP NHẬT */}
+                <div className="col-span-7 lg:col-span-3 flex flex-col items-end justify-between text-right h-full border-t lg:border-t-0 lg:border-l border-gray-200 pt-4 lg:pt-0 lg:pl-4">
                     <div>
                         <h5 className="font-semibold text-gray-800 mb-2 lg:hidden">Giá Hôm Nay</h5>
                         <div>
                             <Badge color="danger">Giảm 80%</Badge>
                             <span className="text-gray-500 line-through text-sm ml-1.5">
-                {(room.price * 1.8).toLocaleString('vi-VN')}₫
-              </span>
+                                {(room.price * 1.8).toLocaleString('vi-VN')}₫
+                            </span>
                         </div>
                         <p className="text-2xl font-bold text-red-600 mt-1">
                             {room.price.toLocaleString('vi-VN')}₫
@@ -285,10 +282,10 @@ const RoomRow = ({ room, onInfoClick }) => {
 };
 
 
-// Component `RoomListSection`
+// ✅ CẬP NHẬT: RoomListSection GIỜ SẼ BAO GỒM CẢ FILTER VÀ HEADER BẢNG
 const RoomListSection = ({ rooms, onRoomInfoClick }) => (
     <div className="p-0">
-        {/* Thanh Filter Chips */}
+        {/* 1. Thanh Filter Chips */}
         <div className="flex flex-wrap gap-2 p-4 border-b border-gray-100 bg-gray-50/50">
             <FilterChip>Gói Khách Sạn (7)</FilterChip>
             <FilterChip>Xác nhận ngay (14)</FilterChip>
@@ -296,15 +293,15 @@ const RoomListSection = ({ rooms, onRoomInfoClick }) => (
             <FilterChip>Thanh toán trước (14)</FilterChip>
         </div>
 
-        {/* Header của bảng (Đã cập nhật grid) */}
+        {/* 2. Header của bảng (Đã cập nhật grid) */}
         <div className="hidden lg:grid grid-cols-10 gap-4 px-6 py-3 border-b border-gray-200">
             <div className="col-span-4 font-semibold text-sm text-gray-600 uppercase">Chi tiết phòng</div>
-            <div className="col-span-2 font-semibold text-sm text-gray-600 uppercase">Tóm tắt</div>
+            <div className="col-span-2 font-semibold text-sm text-gray-600 uppercase text-center">Tóm tắt</div>
             <div className="col-span-1 font-semibold text-sm text-gray-600 uppercase text-center">Sức chứa</div>
             <div className="col-span-3 font-semibold text-sm text-gray-600 uppercase text-right">Giá hôm nay</div>
         </div>
 
-        {/* Danh sách các phòng (các RoomRow) */}
+        {/* 3. Danh sách các phòng (các RoomRow) */}
         <div className="space-y-4 p-4 lg:p-6 bg-gray-50">
             {rooms.map((room) => (
                 <RoomRow key={room.id} room={room} onInfoClick={onRoomInfoClick} />
@@ -473,7 +470,7 @@ export default function HotelDetailPage() {
                                 className="col-span-1 row-span-1 relative block overflow-hidden"
                                 onClick={() => openImageViewer(index + 1)}
                             >
-                                <img src={img.url} alt={`Hotel view ${index + 1}`} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                                <img src={img.url} alt={`Hotel view ${index + 1}`} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
                                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             </button>
                         ))}
@@ -490,11 +487,8 @@ export default function HotelDetailPage() {
                 </div>
 
 
-                {/* *
-                * ✅ THAY ĐỔI KHỐI NỘI DUNG CHÍNH (THÊM sticky)
-                *
-                */}
-                <div className="mt-8 space-y-8"> {/* Chuyển space-y-8 ra ngoài */}
+                {/* Khối nội dung chính */}
+                <div className="mt-8 space-y-8"> {/* Container chung */}
 
                     {/* Card Mô tả */}
                     <Card>
@@ -517,11 +511,12 @@ export default function HotelDetailPage() {
                         </div>
                     </Card>
 
-                    {/* Card chứa Tabs */}
-                    <Card className="p-0 overflow-hidden">
-                        {/* ✅ ĐÃ CẬP NHẬT: 'top-16' thành 'top-0' */}
-                        <div className="sticky top-0 z-30 px-6 border-b border-gray-200 bg-white rounded-t-2xl">
-                            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                    {/* ✅ CẤU TRÚC MỚI CHO PHẦN TAB */}
+                    <div>
+                        {/* 1. Thanh Tab (Sticky) */}
+                        {/* ✅ Đã thêm `rounded-t-2xl` và `border` để nó trông giống một phần của Card */}
+                        <div className="sticky top-16 z-30 bg-white border border-gray-200 rounded-t-2xl">
+                            <nav className="-mb-px flex space-x-8 px-6 py-2" aria-label="Tabs">
                                 {TABS.map((tab) => (
                                     <button
                                         key={tab.id}
@@ -543,14 +538,19 @@ export default function HotelDetailPage() {
                             </nav>
                         </div>
 
-                        {/* Nội dung Tab */}
-                        <div className="animate-fadeIn">
-                            {activeTab === 'rooms' && <RoomListSection rooms={hotel.rooms} onRoomInfoClick={handleOpenRoomDetail} />}
-                            {activeTab === 'reviews' && <ReviewsSection />}
-                            {activeTab === 'amenities' && <AmenitiesSection amenities={hotel.amenities} description={hotel.description} />}
-                            {activeTab === 'policies' && <PoliciesSection />}
-                        </div>
-                    </Card>
+                        {/* 2. Card Nội dung (Cách 1.5rem so với thanh Tab) */}
+                        <Card className="p-0 overflow-hidden !rounded-t-none mt-6">
+                            {/* Nội dung Tab */}
+                            <div className="animate-fadeIn">
+                                {activeTab === 'rooms' && <RoomListSection rooms={hotel.rooms} onRoomInfoClick={handleOpenRoomDetail} />}
+                                {activeTab === 'reviews' && <ReviewsSection />}
+                                {activeTab === 'amenities' && <AmenitiesSection amenities={hotel.amenities} description={hotel.description} />}
+                                {activeTab === 'policies' && <PoliciesSection />}
+                            </div>
+                        </Card>
+                    </div>
+                    {/* Hết phần bọc Tab */}
+
                 </div>
 
                 {/* (Modal xem ảnh - Giữ nguyên) */}
