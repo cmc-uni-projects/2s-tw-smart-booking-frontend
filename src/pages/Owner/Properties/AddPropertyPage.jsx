@@ -6,7 +6,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 
 // Import các components
-import { propertyService } from "@/services/property.service";
+import  propertyService  from "@/services/property.service";
 import VerticalStepper from "@/components/common/Stepper/VerticalStepper";
 import Button from "@/components/common/Button/Button";
 import LoadingOverlay from "@/components/common/Loading/LoadingOverlay";
