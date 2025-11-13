@@ -108,7 +108,7 @@ export default function BecomeOwnerPage() {
         });
         if (!res.ok) throw new Error("Upload failed");
         const json = await res.json();
-        return json.fileDownloadUri; // Backend trả về URL công khai
+        return json.url; // Backend trả về URL công khai
       };
 
       const [idFrontUrl, idBackUrl, licenseUrl] = await Promise.all([

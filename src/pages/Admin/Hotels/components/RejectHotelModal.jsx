@@ -1,60 +1,55 @@
 import React, { useState } from "react";
-// ✅ SỬA ĐƯỜNG DẪN: Cần 4 cấp (../../../../) để ra ngoài src/components/
-import Modal from "../../../../components/common/Modal/Modal";
-import Button from "../../../../components/common/Button/Button";
-import TextArea from "../../../../components/common/Input/TextArea";
+import Modal from "@/components/common/Modal/Modal";
+import Button from "@/components/common/Button/Button";
+import TextArea from "@/components/common/Input/TextArea";
+import { AlertTriangle } from "lucide-react";
 
 const RejectHotelModal = ({ open, onClose, application, onConfirm }) => {
-  // State nội bộ để lưu lý do từ chối
   const [reason, setReason] = useState("");
+  const [error, setError] = useState("");
 
-  // Không render gì nếu không có đơn nào được chọn
-  if (!application) return null;
-
-  // Hàm xử lý khi bấm nút "Xác nhận"
-  const handleConfirm = () => {
-    // Gọi hàm onConfirm (truyền từ trang "cha")
-    // và gửi kèm lý do
-    onConfirm(application, reason);
-    setReason(""); // Reset lý do sau khi gửi
+  const handleSubmit = () => {
+    if (!reason.trim()) {
+      setError("Vui lòng nhập lý do từ chối");
+      return;
+    }
+    onConfirm(reason);
+    setReason(""); // Reset form
+    setError("");
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Xác nhận Từ chối Đơn đăng ký"
-    >
-      <div className="space-y-4">
-        {/* Thông báo xác nhận */}
-        <p>
-          Bạn có chắc chắn muốn từ chối đơn đăng ký cho khách sạn{" "}
-          <strong className="text-red-600">{application.hotelName}</strong>?
+    <Modal isOpen={open} onClose={onClose} title="Từ chối đơn đăng ký" maxWidth="max-w-md">
+      <div className="text-center mb-6">
+        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <AlertTriangle className="text-red-600" size={24} />
+        </div>
+        <p className="text-gray-600">
+          Bạn có chắc chắn muốn từ chối đơn đăng ký của <strong>{application?.ownerName}</strong> không?
         </p>
-        
-        {/* Ô nhập lý do */}
+      </div>
+
+      <div className="mb-6">
         <TextArea
-          label="Lý do từ chối (bắt buộc)"
-          placeholder="Ví dụ: Thông tin cung cấp không chính xác..."
+          label="Lý do từ chối"
+          placeholder="Nhập lý do từ chối (ví dụ: Thông tin không chính xác, Ảnh mờ...)"
           value={reason}
-          onChange={(e) => setReason(e.target.value)}
+          onChange={(e) => {
+            setReason(e.target.value);
+            if (error) setError("");
+          }}
+          error={error}
           rows={4}
         />
-        
-        {/* Các nút hành động */}
-        <div className="flex justify-end gap-3 pt-4">
-          <Button variant="outline" onClick={onClose}>
-            Hủy
-          </Button>
-          <Button
-            variant="danger"
-            onClick={handleConfirm}
-            // ✅ Chỉ cho phép bấm khi đã nhập lý do
-            disabled={!reason} 
-          >
-            Xác nhận Từ chối
-          </Button>
-        </div>
+      </div>
+
+      <div className="flex justify-end gap-3">
+        <Button variant="outline" onClick={onClose}>
+          Hủy bỏ
+        </Button>
+        <Button variant="danger" onClick={handleSubmit}>
+          Xác nhận Từ chối
+        </Button>
       </div>
     </Modal>
   );
