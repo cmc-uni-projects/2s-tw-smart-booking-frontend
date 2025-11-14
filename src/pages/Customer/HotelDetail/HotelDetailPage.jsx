@@ -8,25 +8,15 @@ import Spinner from "@/components/common/Loading/Spinner";
 import Card from "@/components/common/Card/Card";
 import Button from "@/components/common/Button/Button";
 import Badge from "@/components/common/Badge/Badge";
+// ✅ 1. Import TabsComponent
+import TabsComponent from "@/components/common/Tabs/TabsComponent"; 
 import {
     MapPin, Star, Wifi, Waves, ParkingCircle, Utensils, Users, Maximize, Bed, Images, FileText,
     CheckCircle, XCircle, Tv, Wind, Droplet, Coffee, Ban, Bath,
-    User // <-- Đảm bảo import User icon
+    User
 } from "lucide-react";
 import ImageViewerModal from "@/pages/Admin/Hotels/components/ImageViewerModal";
 import Modal from "@/components/common/Modal/Modal";
-
-// Định nghĩa các icon tiện nghi (dùng cho chi tiết phòng)
-const ROOM_AMENITIES_ICONS = {
-    tv: { label: "TV màn hình phẳng", icon: <Tv size={16} /> },
-    ac: { label: "Điều hòa", icon: <Wind size={16} /> },
-    minibar: { label: "Quầy bar mini", icon: <Droplet size={16} /> },
-    tea_coffee: { label: "Trà/Cà phê", icon: <Coffee size={16} /> },
-    wifi: { label: "Wi-Fi miễn phí", icon: <Wifi size={16} /> },
-    bathtub: { label: "Bồn tắm", icon: <Bath size={16} /> },
-    balcony: { label: "Ban công", icon: <Bed size={16} /> },
-    non_smoking: { label: "Phòng không hút thuốc", icon: <Ban size={16} /> },
-};
 
 // --- Dữ liệu Mock (CẬP NHẬT) ---
 const mockImages = [
@@ -52,7 +42,6 @@ const MOCK_DETAIL = {
         { name: "Hồ bơi", icon: <Waves size={18}/> },
         { name: "Chỗ đỗ xe", icon: <ParkingCircle size={18}/> },
         { name: "Nhà hàng", icon: <Utensils size={18}/> },
-        // Thêm tiện nghi khác để test
         { name: "Spa", icon: <Droplet size={18}/> },
         { name: "Phòng gym", icon: <Users size={18}/> },
     ],
@@ -67,12 +56,7 @@ const MOCK_DETAIL = {
             available: 5,
             description: "Phòng Deluxe 35m² có ban công riêng nhìn ra biển Mỹ Khê, trang bị TV thông minh 50-inch, minibar, và bồn tắm nằm. Wi-Fi tốc độ cao miễn phí.",
             amenities: { tv: true, ac: true, wifi: true, bathtub: true, minibar: true, balcony: true },
-            images: [
-                mockImages[2],
-                mockImages[4],
-                mockImages[1],
-                mockImages[3],
-            ]
+            images: [ mockImages[2], mockImages[4], mockImages[1], mockImages[3] ]
         },
         {
             id: 102,
@@ -84,20 +68,26 @@ const MOCK_DETAIL = {
             available: 3,
             description: "Suite gia đình rộng 50m² với 2 giường lớn, khu vực tiếp khách riêng. Lý tưởng cho gia đình 4 người. Không hút thuốc.",
             amenities: { tv: true, ac: true, wifi: true, tea_coffee: true, non_smoking: true },
-            images: [
-                mockImages[1],
-                mockImages[5],
-                mockImages[0],
-                mockImages[2],
-            ]
+            images: [ mockImages[1], mockImages[5], mockImages[0], mockImages[2] ]
         },
     ],
 };
 // --- Hết dữ liệu Mock ---
 
-// --- CÁC COMPONENT CON CHO NỘI DUNG TAB ---
+// --- CÁC COMPONENT CON NỘI BỘ ---
 
-// `RoomDetailModal`
+// Định nghĩa các icon tiện nghi (dùng cho chi tiết phòng)
+const ROOM_AMENITIES_ICONS = {
+    tv: { label: "TV màn hình phẳng", icon: <Tv size={16} /> },
+    ac: { label: "Điều hòa", icon: <Wind size={16} /> },
+    minibar: { label: "Quầy bar mini", icon: <Droplet size={16} /> },
+    tea_coffee: { label: "Trà/Cà phê", icon: <Coffee size={16} /> },
+    wifi: { label: "Wi-Fi miễn phí", icon: <Wifi size={16} /> },
+    bathtub: { label: "Bồn tắm", icon: <Bath size={16} /> },
+    balcony: { label: "Ban công", icon: <Bed size={16} /> },
+    non_smoking: { label: "Phòng không hút thuốc", icon: <Ban size={16} /> },
+};
+
 const AmenityItem = ({ icon, text }) => (
     <li className="flex items-center gap-2 text-sm text-gray-700">
         {icon}
@@ -114,55 +104,35 @@ const ServiceItem = ({ text }) => (
 const RoomDetailModal = ({ room, open, onClose }) => {
     if (!room) return null;
 
-    // Lọc tiện nghi phòng
     const availableAmenities = Object.keys(room.amenities || {})
         .filter(key => room.amenities[key] && ROOM_AMENITIES_ICONS[key])
         .map(key => ROOM_AMENITIES_ICONS[key]);
 
-    // Lấy ảnh (giả lập 4 ảnh)
     const roomImages = room.images || MOCK_DETAIL.images.slice(0, 4);
 
     return (
         <Modal open={open} onClose={onClose} title="Chi tiết phòng" maxWidth="max-w-5xl">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
                 {/* Cột 1: Ảnh */}
                 <div className="grid grid-cols-2 grid-rows-2 gap-2 h-[400px]">
-                    <div className="col-span-1 row-span-1 rounded-lg overflow-hidden">
-                        <img src={roomImages[0]} alt="view 1" className="w-full h-full object-cover"/>
-                    </div>
-                    <div className="col-span-1 row-span-1 rounded-lg overflow-hidden">
-                        <img src={roomImages[1]} alt="view 2" className="w-full h-full object-cover"/>
-                    </div>
-                    <div className="col-span-1 row-span-1 rounded-lg overflow-hidden">
-                        <img src={roomImages[2]} alt="view 3" className="w-full h-full object-cover"/>
-                    </div>
-                    <div className="col-span-1 row-span-1 rounded-lg overflow-hidden">
-                        <img src={roomImages[3]} alt="view 4" className="w-full h-full object-cover"/>
-                    </div>
+                    <div className="col-span-1 row-span-1 rounded-lg overflow-hidden"><img src={roomImages[0]} alt="view 1" className="w-full h-full object-cover"/></div>
+                    <div className="col-span-1 row-span-1 rounded-lg overflow-hidden"><img src={roomImages[1]} alt="view 2" className="w-full h-full object-cover"/></div>
+                    <div className="col-span-1 row-span-1 rounded-lg overflow-hidden"><img src={roomImages[2]} alt="view 3" className="w-full h-full object-cover"/></div>
+                    <div className="col-span-1 row-span-1 rounded-lg overflow-hidden"><img src={roomImages[3]} alt="view 4" className="w-full h-full object-cover"/></div>
                 </div>
-
                 {/* Cột 2: Chi tiết */}
                 <div className="flex flex-col justify-between">
                     <div>
                         <h3 className="text-xl font-bold text-gray-800 mb-3">{room.name}</h3>
-
-                        <p className="text-sm text-gray-600 leading-relaxed border-b pb-4 mb-4">
-                            {room.description}
-                        </p>
-
-                        {/* Tiện nghi phòng (từ mock) */}
+                        <p className="text-sm text-gray-600 leading-relaxed border-b pb-4 mb-4">{room.description}</p>
                         <ul className="grid grid-cols-2 gap-y-2 gap-x-4 mb-4">
                             <AmenityItem icon={<Maximize size={16} />} text={`${room.size} m²`} />
                             <AmenityItem icon={<Wifi size={16} />} text="Wi-Fi miễn phí" />
                             <AmenityItem icon={<Bed size={16} />} text={room.beds} />
-                            {/* Lọc các tiện nghi khác */}
                             {availableAmenities.map(item => (
                                 <AmenityItem key={item.label} icon={item.icon} text={item.label} />
                             ))}
                         </ul>
-
-                        {/* Dịch vụ (Mock cứng theo ảnh) */}
                         <h4 className="font-semibold text-gray-800 mb-2">Dịch vụ và Tiện ích</h4>
                         <ul className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
                             <ServiceItem text="Dọn dẹp hàng ngày" />
@@ -175,7 +145,6 @@ const RoomDetailModal = ({ room, open, onClose }) => {
                             <ServiceItem text="Đồ vệ sinh cá nhân" />
                         </ul>
                     </div>
-
                     <Button size="lg" className="w-full mt-6" onClick={onClose}>
                         Chọn phòng này
                     </Button>
@@ -185,15 +154,10 @@ const RoomDetailModal = ({ room, open, onClose }) => {
     );
 };
 
-
-// Component `RoomRow`
 const RoomRow = ({ room, onInfoClick }) => {
-
     return (
         <Card className="p-4 !shadow-md">
-            {/* Grid 10 cột */}
             <div className="grid grid-cols-1 lg:grid-cols-10 gap-4">
-
                 {/* 1. Thông tin & Ảnh (4/10) */}
                 <div className="col-span-10 lg:col-span-4">
                     <h4
@@ -202,8 +166,6 @@ const RoomRow = ({ room, onInfoClick }) => {
                     >
                         {room.name}
                     </h4>
-
-                    {/* Khối ảnh */}
                     <button
                         type="button"
                         className="relative w-full aspect-video rounded-lg overflow-hidden mb-3 group/image"
@@ -221,13 +183,11 @@ const RoomRow = ({ room, onInfoClick }) => {
                             </div>
                         )}
                     </button>
-
                     <div className="space-y-1 text-sm text-gray-600">
                         <span className="flex items-center gap-1.5"><Bed size={14} /> {room.beds}</span>
                         <span className="flex items-center gap-1.5"><Maximize size={14} /> {room.size} m²</span>
                         <span className="flex items-center gap-1.5"><Wifi size={14} /> Wi-Fi miễn phí</span>
                     </div>
-
                     <button
                         className="text-sm text-[rgb(40,169,224)] font-medium mt-1 hover:underline"
                         onClick={() => onInfoClick(room)}
@@ -236,7 +196,7 @@ const RoomRow = ({ room, onInfoClick }) => {
                     </button>
                 </div>
 
-                {/* 2. Tóm tắt (2/10) - ĐÃ CẬP NHẬT */}
+                {/* 2. Tóm tắt (2/10) */}
                 <div className="col-span-10 lg:col-span-2 border-b lg:border-b-0 lg:border-l lg:border-r border-gray-200 px-0 lg:px-4 py-4 lg:py-0 flex flex-col items-center justify-center">
                     <h5 className="font-semibold text-gray-800 mb-2 lg:hidden">Tóm Tắt</h5>
                     <div className="space-y-1.5 text-sm">
@@ -249,17 +209,15 @@ const RoomRow = ({ room, onInfoClick }) => {
                 </div>
 
                 {/* 3. Sức chứa (1/10) */}
-                {/* ✅ CẬP NHẬT: Hiển thị icon User x số lượng khách */}
                 <div className="col-span-3 lg:col-span-1 flex flex-col items-center justify-center text-center">
                     <h5 className="font-semibold text-gray-800 mb-2 lg:hidden">Sức Chứa</h5>
                     <div className="flex items-center justify-center gap-1 text-black">
                         <User size={20} />
                         <span className="text-xl font-medium text-gray-800">x{room.guests}</span>
                     </div>
-                    {/* ✅ Đã xóa dòng hiển thị số khách riêng */}
                 </div>
 
-                {/* 4. Giá (3/10) - ĐÃ CẬP NHẬT */}
+                {/* 4. Giá (3/10) */}
                 <div className="col-span-7 lg:col-span-3 flex flex-col items-end justify-between text-right h-full border-t lg:border-t-0 lg:border-l border-gray-200 pt-4 lg:pt-0 lg:pl-4">
                     <div>
                         <h5 className="font-semibold text-gray-800 mb-2 lg:hidden">Giá Hôm Nay</h5>
@@ -281,27 +239,30 @@ const RoomRow = ({ room, onInfoClick }) => {
     );
 };
 
+const FilterChip = ({ children }) => (
+    <Button
+        variant="outline"
+        size="sm"
+        className="bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700 font-medium !rounded-lg"
+    >
+        {children}
+    </Button>
+);
 
-// ✅ CẬP NHẬT: RoomListSection GIỜ SẼ BAO GỒM CẢ FILTER VÀ HEADER BẢNG
 const RoomListSection = ({ rooms, onRoomInfoClick }) => (
     <div className="p-0">
-        {/* 1. Thanh Filter Chips */}
         <div className="flex flex-wrap gap-2 p-4 border-b border-gray-100 bg-gray-50/50">
             <FilterChip>Gói Khách Sạn (7)</FilterChip>
             <FilterChip>Xác nhận ngay (14)</FilterChip>
             <FilterChip>4+ Giường (4)</FilterChip>
             <FilterChip>Thanh toán trước (14)</FilterChip>
         </div>
-
-        {/* 2. Header của bảng (Đã cập nhật grid) */}
         <div className="hidden lg:grid grid-cols-10 gap-4 px-6 py-3 border-b border-gray-200">
             <div className="col-span-4 font-semibold text-sm text-gray-600 uppercase">Chi tiết phòng</div>
             <div className="col-span-2 font-semibold text-sm text-gray-600 uppercase text-center">Tóm tắt</div>
             <div className="col-span-1 font-semibold text-sm text-gray-600 uppercase text-center">Sức chứa</div>
             <div className="col-span-3 font-semibold text-sm text-gray-600 uppercase text-right">Giá hôm nay</div>
         </div>
-
-        {/* 3. Danh sách các phòng (các RoomRow) */}
         <div className="space-y-4 p-4 lg:p-6 bg-gray-50">
             {rooms.map((room) => (
                 <RoomRow key={room.id} room={room} onInfoClick={onRoomInfoClick} />
@@ -310,29 +271,20 @@ const RoomListSection = ({ rooms, onRoomInfoClick }) => (
     </div>
 );
 
-// Component cho tab "Tiện nghi" (GỘP cả Mô tả)
 const AmenitiesSection = ({ amenities, description }) => {
-    // Lấy 4 tiện nghi đầu tiên
     const featuredAmenities = amenities.slice(0, 4);
-
     return (
         <div className="p-6">
-            {/* Phần Mô tả */}
             <h3 className="text-xl font-bold text-gray-800 mb-3">Mô tả</h3>
             <p className="text-gray-600 leading-relaxed mb-6 pb-6 border-b">
                 {description}
             </p>
-
-            {/* Phần Tiện nghi */}
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold text-gray-800">Tiện ích</h3>
-                {/* Nút xem thêm (giống ảnh image_e101c7.png) */}
                 <Button variant="ghost" size="sm" className="text-[rgb(40,169,224)]">
                     Tất Cả Tiện Nghi
                 </Button>
             </div>
-
-            {/* Grid 4 cột đều nhau, chỉ 4 mục */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {featuredAmenities.map(item => (
                     <div key={item.name} className="flex items-center gap-2 text-gray-700 p-2 rounded-lg hover:bg-gray-50">
@@ -345,7 +297,6 @@ const AmenitiesSection = ({ amenities, description }) => {
     );
 };
 
-// Component cho tab "Đánh giá"
 const ReviewsSection = () => (
     <div className="p-6 text-center">
         <Star size={40} className="mx-auto text-gray-300" />
@@ -353,25 +304,12 @@ const ReviewsSection = () => (
     </div>
 );
 
-// Component cho tab "Chính sách"
 const PoliciesSection = () => (
     <div className="p-6 text-center">
         <FileText size={40} className="mx-auto text-gray-300" />
         <p className="mt-2 text-gray-500">Phần chính sách khách sạn đang được xây dựng.</p>
     </div>
 );
-
-// Component cho các chip filter
-const FilterChip = ({ children }) => (
-    <Button
-        variant="outline"
-        size="sm"
-        className="bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700 font-medium !rounded-lg"
-    >
-        {children}
-    </Button>
-);
-
 
 // --- Component chính của trang ---
 export default function HotelDetailPage() {
@@ -383,6 +321,7 @@ export default function HotelDetailPage() {
     const [activeTab, setActiveTab] = useState("rooms");
     const [selectedRoomDetail, setSelectedRoomDetail] = useState(null);
 
+    // Mảng TABS
     const TABS = [
         { id: "rooms", name: "Phòng" },
         { id: "reviews", name: "Đánh Giá Của Khách" },
@@ -422,8 +361,13 @@ export default function HotelDetailPage() {
         );
     }
     if (!hotel) {
-        // ... (code không tìm thấy)
+        return (
+            <CustomerLayout>
+                <div className="text-center py-20">Không tìm thấy khách sạn.</div>
+            </CustomerLayout>
+        );
     }
+    
     const imagesForModal = hotel.images.map((imgUrl, index) => ({
         url: imgUrl,
         caption: `${hotel.name} - Ảnh ${index + 1}`
@@ -432,14 +376,15 @@ export default function HotelDetailPage() {
         { label: "Tìm kiếm", href: "/hotels" },
         { label: hotel.name },
     ];
-    // --- KẾT THÚC LOGIC ---
 
     return (
         <CustomerLayout>
             <main className="max-w-7xl mx-auto px-6 py-8">
 
-                {/* (Breadcrumb, Tiêu đề, Bộ sưu tập ảnh giữ nguyên) */}
+                {/* Breadcrumb */}
                 <Breadcrumb items={breadcrumbItems} />
+
+                {/* Tiêu đề */}
                 <div className="mt-4">
                     <h1 className="text-3xl font-bold text-gray-900">{hotel.name}</h1>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-gray-600">
@@ -452,6 +397,8 @@ export default function HotelDetailPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Bộ sưu tập ảnh */}
                 <div className="relative mt-6 group">
                     <div className="grid grid-cols-4 grid-rows-2 gap-2 h-96 rounded-2xl overflow-hidden">
                         <button
@@ -488,9 +435,8 @@ export default function HotelDetailPage() {
 
 
                 {/* Khối nội dung chính */}
-                <div className="mt-8 space-y-8"> {/* Container chung */}
+                <div className="mt-8 space-y-8">
 
-                    {/* Card Mô tả */}
                     <Card>
                         <h3 className="text-xl font-bold text-gray-800 mb-3">Mô tả</h3>
                         <p className="text-gray-600 leading-relaxed">
@@ -498,7 +444,6 @@ export default function HotelDetailPage() {
                         </p>
                     </Card>
 
-                    {/* Card Tiện ích */}
                     <Card>
                         <h3 className="text-xl font-bold text-gray-800 mb-4">Tiện ích</h3>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -511,36 +456,24 @@ export default function HotelDetailPage() {
                         </div>
                     </Card>
 
-                    {/* ✅ CẤU TRÚC MỚI CHO PHẦN TAB */}
+                    {/* ✅ KHU VỰC TAB ĐÃ ĐƯỢC THAY THẾ */}
                     <div>
                         {/* 1. Thanh Tab (Sticky) */}
-                        {/* ✅ Đã thêm `rounded-t-2xl` và `border` để nó trông giống một phần của Card */}
-                        <div className="sticky top-16 z-30 bg-white border border-gray-200 rounded-t-2xl">
-                            <nav className="-mb-px flex space-x-8 px-6 py-2" aria-label="Tabs">
-                                {TABS.map((tab) => (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => setActiveTab(tab.id)}
-                                        className={`
-                                            whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-all duration-200
-                                            
-                                            ${activeTab === tab.id
-                                            ? 'border-[rgb(40,169,224)] text-[rgb(40,169,224)]'
-                                            : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-blue-300'
-                                        }
-                                            outline-none
-                                        `}
-                                        aria-current={activeTab === tab.id ? 'page' : undefined}
-                                    >
-                                        {tab.name}
-                                    </button>
-                                ))}
-                            </nav>
+                        <div className="sticky top-16 z-30 bg-white shadow-sm border-b border-gray-100">
+                            {/* Thêm padding ngang (px-6) vào wrapper
+                                vì TabsComponent không tự chứa padding ngang
+                            */}
+                            <div className="px-6">
+                                <TabsComponent 
+                                    tabs={TABS} 
+                                    activeTab={activeTab} 
+                                    onTabChange={setActiveTab} 
+                                />
+                            </div>
                         </div>
 
-                        {/* 2. Card Nội dung (Cách 1.5rem so với thanh Tab) */}
-                        <Card className="p-0 overflow-hidden !rounded-t-none mt-6">
-                            {/* Nội dung Tab */}
+                        {/* 2. Card Nội dung (Bỏ mt-6) */}
+                        <Card className="p-0 overflow-hidden !rounded-t-none">
                             <div className="animate-fadeIn">
                                 {activeTab === 'rooms' && <RoomListSection rooms={hotel.rooms} onRoomInfoClick={handleOpenRoomDetail} />}
                                 {activeTab === 'reviews' && <ReviewsSection />}
@@ -549,11 +482,11 @@ export default function HotelDetailPage() {
                             </div>
                         </Card>
                     </div>
-                    {/* Hết phần bọc Tab */}
+                    {/* Hết phần Tab */}
 
                 </div>
 
-                {/* (Modal xem ảnh - Giữ nguyên) */}
+                {/* Modal xem ảnh */}
                 <ImageViewerModal
                     open={isViewerOpen}
                     onClose={closeImageViewer}
