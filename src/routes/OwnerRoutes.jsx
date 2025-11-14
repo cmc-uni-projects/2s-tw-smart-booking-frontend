@@ -6,17 +6,17 @@ import OwnerDashboard from "../pages/Owner/Dashboard/OwnerDashboard";
 
 import PropertyListPage from "@/pages/Owner/Properties/PropertyListPage";
 import AddPropertyPage from "@/pages/Owner/Properties/AddPropertyPage";
-
-// ✅ 1. Sửa tên import cho rõ ràng
 import RoomManagementPage from "@/pages/Owner/Rooms/RoomManagementPage";
-// ✅ 2. Import trang danh sách phòng MỚI
 import RoomListPage from "@/pages/Owner/Rooms/RoomListPage";
 
+// ✅ 1. Import component placeholder
+import PlaceholderPage from "@/pages/Owner/PlaceholderPage";
 
 const OwnerRoutes = () => {
     return (
         <OwnerLayout>
             <Routes>
+                {/* Trang Dashboard (mặc định) */}
                 <Route
                     path="/"
                     element={
@@ -44,9 +44,7 @@ const OwnerRoutes = () => {
                     }
                 />
                 
-                {/* ✅ 3. SỬA LẠI ROUTE QUẢN LÝ PHÒNG */}
-                
-                {/* Trang chọn khách sạn (index của /rooms) */}
+                {/* --- Quản lý Phòng --- */}
                 <Route
                     path="/rooms"
                     element={
@@ -55,8 +53,6 @@ const OwnerRoutes = () => {
                         </ProtectedRoute>
                     }
                 />
-                
-                {/* Trang hiển thị danh sách phòng của 1 khách sạn */}
                 <Route
                     path="/rooms/:propertyId"
                     element={
@@ -66,8 +62,51 @@ const OwnerRoutes = () => {
                     }
                 />
 
-                {/* (Các route khác của owner... /bookings...) */}
+                {/* ✅ 2. THÊM CÁC ROUTE CÒN THIẾU TỪ SIDEBAR */}
+                <Route
+                    path="/bookings"
+                    element={
+                        <ProtectedRoute requiredRole="OWNER">
+                            <PlaceholderPage title="Quản lý Bookings" />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/tasks"
+                    element={
+                        <ProtectedRoute requiredRole="OWNER">
+                            <PlaceholderPage title="Quản lý Tác vụ" />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/reviews"
+                    element={
+                        <ProtectedRoute requiredRole="OWNER">
+                            <PlaceholderPage title="Quản lý Đánh giá" />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/settings"
+                    element={
+                        <ProtectedRoute requiredRole="OWNER">
+                            <PlaceholderPage title="Cài đặt Khách sạn" />
+                        </ProtectedRoute>
+                    }
+                />
 
+                {/* Route cho /owner/profile (từ dropdown) */}
+                <Route
+                    path="/profile"
+                    element={
+                        <ProtectedRoute requiredRole="OWNER">
+                            <PlaceholderPage title="Hồ sơ Chủ nhà" />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* Fallback về dashboard owner */}
                 <Route path="*" element={<Navigate to="/owner" replace />} />
             </Routes>
         </OwnerLayout>
