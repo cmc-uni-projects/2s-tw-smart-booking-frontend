@@ -1,182 +1,185 @@
-// 1. Import useState
 import React, { useState } from "react";
-import Modal from "../../../../components/common/Modal/Modal";
-import Button from "../../../../components/common/Button/Button";
-import Badge from "../../../../components/common/Badge/Badge";
-// 2. Import thêm icon ZoomIn
-import { User, MapPin, Home, Info, Wifi, ParkingCircle, Utensils, ZoomIn } from "lucide-react";
+import Modal from "@/components/common/Modal/Modal";
+import Button from "@/components/common/Button/Button";
+import Badge from "@/components/common/Badge/Badge";
+import { User, MapPin, AlignLeft, Image, Sparkles, BedDouble, Info, DollarSign, Users } from "lucide-react";
+import ImageViewerModal from "./ImageViewerModal"; // Đảm bảo bạn đã có file này
 
-// 3. Import modal xem ảnh mới
-import ImageViewerModal from "./ImageViewerModal";
-
-
-// (Dữ liệu mock đầy đủ, giả sử được truyền vào qua prop 'submission')
-const MOCK_FULL_SUBMISSION = {
-    id: "HSUB-001",
-    hotelName: "The Grand Plaza",
-    ownerName: "Nguyễn Văn A",
-    location: "123 Quận 1, TP. Hồ Chí Minh",
-    roomCount: 120,
-    status: <Badge color="warning">Đang chờ duyệt</Badge>,
-    description: "Tọa lạc tại trung tâm Quận 1, The Grand Plaza mang đến trải nghiệm sang trọng bậc nhất với hồ bơi vô cực và nhà hàng 5 sao...",
-    amenities: ["Wifi miễn phí", "Hồ bơi", "Chỗ đỗ xe", "Nhà hàng", "Gym"],
-    // 4. Thêm nhiều ảnh hơn để demo
-    images: [
-        { url: "https://images.unsplash.com/photo-1566073771259-6a8506099945", caption: "Sảnh chính" },
-        { url: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb", caption: "Hồ bơi" },
-        { url: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b", caption: "Phòng Deluxe" },
-        { url: "https://images.unsplash.com/photo-1571896349842-33c89424de2d", caption: "Nhà hàng" },
-        { url: "https://images.unsplash.com/photo-1611892440504-4cb0296a1a19", caption: "Phòng tắm" },
-    ],
-    roomTypes: [
-        { id: 1, name: "Deluxe King", count: 50, price: "2.500.000₫" },
-        { id: 2, name: "Suite Hướng Biển", count: 20, price: "4.000.000₫" },
-    ]
+// Helper định dạng tiền
+const formatCurrency = (amount) => {
+  if (!amount) return "Chưa cập nhật";
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(amount);
 };
-// (Kết thúc dữ liệu mock)
 
+// =================================================================
+// LẤY URL GỐC CỦA BACKEND (ví dụ: http://localhost:8386)
+const API_BASE_URL = (import.meta.env.VITE_REACT_APP_API_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
 
-// --- Component con nội bộ (giữ nguyên) ---
-const InfoRow = ({ icon, label, value }) => (
-  <div>
-    <span className="flex items-center gap-2 text-sm font-medium text-gray-500">
-      {icon}
-      {label}
-    </span>
-    <p className="text-md text-gray-900 ml-7">{value}</p>
-  </div>
-);
-const AmenityChip = ({ text }) => {
-    let icon = <Wifi size={14} />;
-    if (text.includes("Hồ bơi")) icon = <Utensils size={14} />; 
-    if (text.includes("Chỗ đỗ xe")) icon = <ParkingCircle size={14} />;
-    return (<Badge color="gray" icon={icon}>{text}</Badge>);
+/**
+ * HÀM LẤY ẢNH ĐÚNG (ĐÃ SỬA)
+ * Hàm này lấy tên file từ chuỗi (ví dụ: /files/abc.png -> abc.png)
+ * và gắn nó vào đường dẫn /uploads/properties/
+ */
+const getImgUrl = (url) => {
+  if (!url || typeof url !== 'string') {
+    return "/assets/images/placeholder.png"; // Ảnh placeholder
+  }
+  
+  // Lấy tên file (ví dụ: 'abc.png' từ '.../abc.png')
+  const fileName = url.split('/').pop();
+  
+  // Trả về đường dẫn ĐÚNG mà bạn đã chỉ định
+  return `${API_BASE_URL}/uploads/properties/${fileName}`;
 };
-// --- Hết component con ---
+// =================================================================
 
 
 const ViewHotelSubmissionModal = ({ open, onClose, submission }) => {
-  // 5. ✅ Thêm state cho modal xem ảnh
-  const [isViewerOpen, setViewerOpen] = useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState("info");
+  const [viewingImage, setViewingImage] = useState(null);
 
-  const details = submission ? MOCK_FULL_SUBMISSION : null;
-  if (!details) return null;
+  if (!submission) return null;
 
-  // 6. ✅ Hàm để mở modal xem ảnh
-  const openImageViewer = (index) => {
-    setSelectedImageIndex(index);
-    setViewerOpen(true);
+  const { name, ownerName, address, city, description, images, amenities, rooms } = submission;
+
+  const tabs = [
+    { id: "info", label: "Thông tin chung", icon: <Info size={18} /> },
+    { id: "images", label: "Hình ảnh", icon: <Image size={18} /> },
+    { id: "amenities", label: "Tiện nghi", icon: <Sparkles size={18} /> },
+    { id: "rooms", label: "Các loại phòng", icon: <BedDouble size={18} /> },
+  ];
+
+  // Hàm xử lý đóng modal và reset tab
+  const handleClose = () => {
+    onClose();
+    // Reset về tab info khi đóng
+    setTimeout(() => setActiveTab("info"), 200);
   };
 
   return (
-    // 7. ✅ Bọc component bằng Fragment <>...</>
     <>
-      <Modal 
-          open={open} 
-          onClose={onClose} 
-          title={`Chi tiết: ${details.hotelName}`}
-          maxWidth="max-w-4xl" // Vẫn giữ kích thước 4xl cho modal chi tiết
+      <Modal
+        open={open}
+        onClose={handleClose}
+        title={`Chi tiết Khách sạn: ${name}`}
+        maxWidth="max-w-5xl" // Tăng kích thước modal
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-          {/* --- CỘT 1: Thông tin & Tiện ích (giữ nguyên) --- */}
-          <div className="space-y-6">
-            <section className="space-y-3">
-                <h4 className="font-semibold text-[rgb(40,169,224)]">Thông tin chung</h4>
-                <InfoRow icon={<User size={16}/>} label="Chủ sở hữu" value={details.ownerName} />
-                <InfoRow icon={<MapPin size={16}/>} label="Địa chỉ" value={details.location} />
-                <InfoRow icon={<Home size={16}/>} label="Tổng số phòng" value={details.roomCount} />
-                <InfoRow icon={<Info size={16}/>} label="Mô tả" value={details.description} />
-            </section>
-            <section>
-                <h4 className="font-semibold text-[rgb(40,169,224)] mb-3">Tiện ích nổi bật</h4>
-                <div className="flex flex-wrap gap-2">
-                    {details.amenities.map(item => (
-                        <AmenityChip key={item} text={item} />
-                    ))}
-                </div>
-            </section>
-          </div>
-
-          {/* --- CỘT 2: Hình ảnh & Loại phòng (CẬP NHẬT) --- */}
-          <div className="space-y-6">
-            <section>
-                {/* 8. ✅ Thêm nút "Xem tất cả" */}
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-semibold text-[rgb(40,169,224)]">Hình ảnh</h4>
-                  {details.images.length > 0 && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => openImageViewer(0)} // Mở ảnh đầu tiên
-                      leftIcon={<ZoomIn size={16}/>}
-                    >
-                      Xem tất cả ({details.images.length})
-                    </Button>
-                  )}
-                </div>
-                {/* 9. ✅ Biến ảnh thumbnail thành nút */}
-                <div className="grid grid-cols-3 gap-2">
-                    {/* Chỉ hiển thị 3 ảnh đầu tiên làm thumbnail */}
-                    {details.images.slice(0, 3).map((img, index) => ( 
-                        <button
-                            type="button"
-                            key={index} 
-                            onClick={() => openImageViewer(index)} // Mở ảnh được click
-                            className="relative w-full h-24 object-cover rounded-md border overflow-hidden group"
-                        >
-                            <img 
-                                src={img.url} 
-                                alt={img.caption} 
-                                className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                                title={img.caption}
-                            />
-                            {/* Overlay khi hover */}
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                              <ZoomIn size={20} className="text-white"/>
-                            </div>
-                            {/* Nếu có nhiều hơn 3 ảnh, làm mờ ảnh cuối */}
-                            {index === 2 && details.images.length > 3 && (
-                                <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-                                    <span className="font-bold text-gray-700">+{details.images.length - 3}</span>
-                                </div>
-                            )}
-                        </button>
-                    ))}
-                </div>
-            </section>
-            
-            {/* Phần loại phòng (giữ nguyên) */}
-            <section>
-                <h4 className="font-semibold text-[rgb(40,169,224)] mb-3">Các loại phòng</h4>
-                <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
-                    {details.roomTypes.map(room => (
-                        <li key={room.id}>
-                            {room.name} (SL: {room.count} - Giá: {room.price})
-                        </li>
-                    ))}
-                </ul>
-            </section>
-          </div>
+        <div className="flex border-b border-gray-200 mb-6">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              className={`px-5 py-3 font-medium text-sm flex items-center gap-2 transition-colors border-b-2 ${
+                activeTab === tab.id 
+                  ? "text-blue-600 border-blue-600" 
+                  : "text-gray-500 border-transparent hover:text-blue-500"
+              }`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.icon} {tab.label}
+            </button>
+          ))}
         </div>
 
-        {/* --- Footer (Nút đóng - giữ nguyên) --- */}
-        <div className="flex justify-end pt-4 mt-6 border-t">
-          <Button variant="outline" onClick={onClose}>
-            Đóng
-          </Button>
+        {/* --- NỘI DUNG CÁC TAB --- */}
+        <div className="min-h-[50vh]">
+          {/* Tab Thông tin chung */}
+          {activeTab === "info" && (
+            <div className="animate-fadeIn space-y-6">
+              <InfoRow icon={<User size={16} />} label="Chủ sở hữu" value={ownerName || "Chưa cập nhật"} />
+              <InfoRow icon={<MapPin size={16} />} label="Địa chỉ" value={`${address}, ${city}`} />
+              <InfoRow icon={<AlignLeft size={16} />} label="Mô tả" value={description || "Không có mô tả."} isParagraph />
+            </div>
+          )}
+
+          {/* Tab Hình ảnh */}
+          {activeTab === "images" && (
+            <div className="animate-fadeIn">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {(images && images.length > 0) ? (
+                  images.map((img, index) => (
+                    <img
+                      key={index}
+                      src={getImgUrl(img)} // <-- Đã dùng hàm getImgUrl mới
+                      alt={`Hotel image ${index + 1}`}
+                      className="w-full h-40 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => setViewingImage(getImgUrl(img))}
+                    />
+                  ))
+                ) : (
+                  <p className="text-gray-500 col-span-full">Chủ sở hữu chưa cung cấp hình ảnh.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Tab Tiện nghi */}
+          {activeTab === "amenities" && (
+            <div className="animate-fadeIn">
+              <div className="flex flex-wrap gap-3">
+                {(amenities && amenities.length > 0) ? (
+                  amenities.map((amenity, index) => (
+                    <Badge key={index} color="primary" icon={false}>
+                      {amenity}
+                    </Badge>
+                  ))
+                ) : (
+                  <p className="text-gray-500">Không có thông tin tiện nghi.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Tab Các loại phòng */}
+          {activeTab === "rooms" && (
+            <div className="animate-fadeIn space-y-4">
+              {(rooms && rooms.length > 0) ? (
+                rooms.map((room) => (
+                  <div key={room.roomId} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h5 className="font-semibold text-md text-blue-600">{room.roomName || "Tên phòng"}</h5>
+                    <div className="grid grid-cols-3 gap-x-4 gap-y-2 mt-2 text-sm">
+                      <InfoRow icon={<DollarSign size={14} />} label="Giá" value={formatCurrency(room.price)} />
+                      <InfoRow icon={<Users size={14} />} label="Sức chứa" value={`${room.capacity} người`} />
+                      <InfoRow icon={<BedDouble size={14} />} label="Loại phòng" value={room.category} />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">Chủ sở hữu chưa thêm thông tin phòng.</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end mt-8 pt-4 border-t border-gray-100">
+          <Button variant="secondary" onClick={handleClose}>Đóng</Button>
         </div>
       </Modal>
 
-      {/* 10. ✅ Render Modal ImageViewer (nó sẽ tự ẩn/hiện) */}
+      {/* Modal xem ảnh phóng to */}
       <ImageViewerModal
-        open={isViewerOpen}
-        onClose={() => setViewerOpen(false)}
-        images={details.images}
-        startIndex={selectedImageIndex}
+        open={!!viewingImage}
+        onClose={() => setViewingImage(null)}
+        imageUrl={viewingImage}
       />
     </>
   );
 };
+
+// Component phụ để hiển thị thông tin
+const InfoRow = ({ icon, label, value, isParagraph = false }) => (
+  <div>
+    <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2 mb-2">
+      {icon} {label}
+    </h4>
+    {isParagraph ? (
+      <p className="text-sm text-gray-600 whitespace-pre-wrap">{value}</p>
+    ) : (
+      <p className="text-sm text-gray-700 font-medium">{value}</p>
+    )}
+  </div>
+);
 
 export default ViewHotelSubmissionModal;
