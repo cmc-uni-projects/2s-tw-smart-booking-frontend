@@ -3,9 +3,9 @@ import axios from "axios";
 
 const API_URL = "http://localhost:8386/api/v1/auth";
 
-// Helper lấy header chứa token
+// ✅ Helper lấy header chứa token (chuẩn hóa cách lấy)
 const getAuthHeader = () => {
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
     return { Authorization: `Bearer ${token}` };
 };
 
@@ -34,11 +34,18 @@ export const authService = {
   verifyEmail: (token) =>
     axios.get(`${API_URL}/verify-email`, { params: { token } }),
 
-  // ✅ THÊM HÀM NÀY
   changePassword: (currentPassword, newPassword, confirmPassword) =>
     axios.post(
       `${API_URL}/change-password`,
       { currentPassword, newPassword, confirmPassword },
       { headers: getAuthHeader() }
     ),
+
+  // ✅ === THÊM HÀM MỚI ===
+  /**
+   * Lấy thông tin người dùng mới nhất từ token (luôn gọi DB)
+   */
+  getMe: () =>
+    axios.get(`${API_URL}/me`, { headers: getAuthHeader() }),
+  // ✅ === KẾT THÚC ===
 };

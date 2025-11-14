@@ -22,17 +22,13 @@ import HelpPage from "./pages/Customer/About/HelpPage.jsx";
 import ProfilePage from "./pages/Customer/Profile/ProfilePage.jsx";
 import BookingHistory from "./pages/Customer/Booking/BookingHistory.jsx";
 
-// ✅ ---- THÊM IMPORT ----
-// 1. Import 2 trang đối tác
 import PartnerLandingPage from "./pages/Partner/PartnerLandingPage.jsx";
 import BecomeOwnerPage from "./pages/Customer/Profile/BecomeOwnerPage.jsx";
-// -----------------------
 
-// ✅ ---- THÊM IMPORT CHO TRANG CHI TIẾT ----
 import HotelDetailPage from "@/pages/Customer/HotelDetail/HotelDetailPage";
-// ----------------------------------------
 
 import AdminRoutes from "./routes/AdminRoutes.jsx";
+// ✅ Import OwnerRoutes
 import OwnerRoutes from "./routes/OwnerRoutes.jsx";
 
 function App() {
@@ -43,18 +39,11 @@ function App() {
       {/* 🔹 PUBLIC ROUTES - KHÔNG CẦN ĐĂNG NHẬP */}
       <Route path="/" element={<HomePage />} />
       <Route path="/about" element={<About />} />
-
-
-      {/* ✅ ---- THÊM ROUTE ---- */}
-      {/* 2. Thêm route công khai cho trang giới thiệu đối tác */}
       <Route path="/partner-with-us" element={<PartnerLandingPage />} />
-      {/* ----------------------- */}
       <Route path="/hotels" element={<HotelSearchPage />} />
-
-      {/* ✅ ---- THÊM ROUTE CHO TRANG CHI TIẾT (ROOM DETAILS) ---- */}
       <Route path="/hotels/:hotelId" element={<HotelDetailPage />} />
-      {/* ----------------------------------------------------- */}
 
+      {/* 🔹 AUTH ROUTES - CHỈ DÀNH CHO NGƯỜI CHƯA ĐĂNG NHẬP */}
       <Route
         path="/login"
         element={currentUser ? <Navigate to="/" replace /> : <Login />}
@@ -67,7 +56,7 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* 🔐 PROTECTED ROUTES - CẦN ĐĂNG NHẬP */}
+      {/* 🔐 PROTECTED CUSTOMER ROUTES - CẦN ĐĂNG NHẬP */}
       <Route
         path="/customer/profile"
         element={
@@ -84,7 +73,6 @@ function App() {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/customer/my-inbox"
         element={
@@ -93,27 +81,22 @@ function App() {
           </ProtectedRoute>
         }
       />
-
       <Route
-      path="/help"
-      element={
-          <HelpPage />
-      }
+        path="/help"
+        element={
+            <HelpPage />
+        }
       />
-
-      {/* ✅ ---- THÊM ROUTE ---- */}
-      {/* 3. Thêm route bảo vệ cho form đăng ký (người dùng phải đăng nhập) */}
       <Route
-        path="/partner/register"
+        path="/partner/register" // Route để nộp đơn làm Owner
         element={
           <ProtectedRoute>
             <BecomeOwnerPage />
           </ProtectedRoute>
         }
       />
-      {/* ----------------------- */}
 
-      {/* ✅ ADMIN ROUTES */}
+      {/* 🔐 ADMIN ROUTES */}
       <Route
         path="/admin/*"
         element={
@@ -122,11 +105,21 @@ function App() {
           </ProtectedRoute>
         }
       />
+      
+      {/* 🔐 OWNER ROUTES */}
+      <Route
+        path="/owner/*"
+        element={
+          <ProtectedRoute requiredRole="OWNER">
+            <OwnerRoutes />
+          </ProtectedRoute>
+        }
+      />
 
+      {/* 404 Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
 
 export default App;
-
