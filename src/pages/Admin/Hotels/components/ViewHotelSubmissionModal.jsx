@@ -1,181 +1,199 @@
-// 1. Import useState
 import React, { useState } from "react";
-import Modal from "../../../../components/common/Modal/Modal";
-import Button from "../../../../components/common/Button/Button";
-import Badge from "../../../../components/common/Badge/Badge";
-// 2. Import thêm icon ZoomIn
-import { User, MapPin, Home, Info, Wifi, ParkingCircle, Utensils, ZoomIn } from "lucide-react";
+import { createPortal } from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  X,
+  User,
+  MapPin,
+  List,
+  ShieldCheck,
+  Image as ImageIcon,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import Button from "@/components/common/Button/Button";
+import Badge from "@/components/common/Badge/Badge";
 
-// 3. Import modal xem ảnh mới
-import ImageViewerModal from "./ImageViewerModal";
-
-
-// (Dữ liệu mock đầy đủ, giả sử được truyền vào qua prop 'submission')
-const MOCK_FULL_SUBMISSION = {
-    id: "HSUB-001",
-    hotelName: "The Grand Plaza",
-    ownerName: "Nguyễn Văn A",
-    location: "123 Quận 1, TP. Hồ Chí Minh",
-    roomCount: 120,
-    status: <Badge color="warning">Đang chờ duyệt</Badge>,
-    description: "Tọa lạc tại trung tâm Quận 1, The Grand Plaza mang đến trải nghiệm sang trọng bậc nhất với hồ bơi vô cực và nhà hàng 5 sao...",
-    amenities: ["Wifi miễn phí", "Hồ bơi", "Chỗ đỗ xe", "Nhà hàng", "Gym"],
-    // 4. Thêm nhiều ảnh hơn để demo
-    images: [
-        { url: "https://images.unsplash.com/photo-1566073771259-6a8506099945", caption: "Sảnh chính" },
-        { url: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb", caption: "Hồ bơi" },
-        { url: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b", caption: "Phòng Deluxe" },
-        { url: "https://images.unsplash.com/photo-1571896349842-33c89424de2d", caption: "Nhà hàng" },
-        { url: "https://images.unsplash.com/photo-1611892440504-4cb0296a1a19", caption: "Phòng tắm" },
-    ],
-    roomTypes: [
-        { id: 1, name: "Deluxe King", count: 50, price: "2.500.000₫" },
-        { id: 2, name: "Suite Hướng Biển", count: 20, price: "4.000.000₫" },
-    ]
+// =====================================================
+//  🔹 CUSTOM LARGE MODAL (NO Modal.jsx)
+// =====================================================
+const ModalPortal = ({ children }) => {
+  return createPortal(children, document.body);
 };
-// (Kết thúc dữ liệu mock)
 
-
-// --- Component con nội bộ (giữ nguyên) ---
-const InfoRow = ({ icon, label, value }) => (
-  <div>
-    <span className="flex items-center gap-2 text-sm font-medium text-gray-500">
-      {icon}
-      {label}
-    </span>
-    <p className="text-md text-gray-900 ml-7">{value}</p>
-  </div>
+// =====================================================
+//  🔹 INFO SECTION
+// =====================================================
+const InfoSection = ({ title, icon, children }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 6 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.25 }}
+    className="mb-8"
+  >
+    <h4 className="flex items-center text-lg font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-200">
+      {React.cloneElement(icon, {
+        size: 20,
+        className: "mr-3 text-blue-600",
+      })}
+      {title}
+    </h4>
+    <div className="text-sm text-gray-700 leading-relaxed">{children}</div>
+  </motion.div>
 );
-const AmenityChip = ({ text }) => {
-    let icon = <Wifi size={14} />;
-    if (text.includes("Hồ bơi")) icon = <Utensils size={14} />; 
-    if (text.includes("Chỗ đỗ xe")) icon = <ParkingCircle size={14} />;
-    return (<Badge color="gray" icon={icon}>{text}</Badge>);
-};
-// --- Hết component con ---
 
+// =====================================================
+//  🔹 IMAGE SLIDER
+// =====================================================
+const ImageGallery = ({ images }) => {
+  const [index, setIndex] = useState(0);
 
-const ViewHotelSubmissionModal = ({ open, onClose, submission }) => {
-  // 5. ✅ Thêm state cho modal xem ảnh
-  const [isViewerOpen, setViewerOpen] = useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  if (!images?.length) {
+    return <p className="text-sm text-gray-500 italic">Không có hình ảnh.</p>;
+  }
 
-  const details = submission ? MOCK_FULL_SUBMISSION : null;
-  if (!details) return null;
-
-  // 6. ✅ Hàm để mở modal xem ảnh
-  const openImageViewer = (index) => {
-    setSelectedImageIndex(index);
-    setViewerOpen(true);
-  };
+  const prev = () => setIndex((i) => (i === 0 ? images.length - 1 : i - 1));
+  const next = () => setIndex((i) => (i + 1) % images.length);
 
   return (
-    // 7. ✅ Bọc component bằng Fragment <>...</>
-    <>
-      <Modal 
-          open={open} 
-          onClose={onClose} 
-          title={`Chi tiết: ${details.hotelName}`}
-          maxWidth="max-w-4xl" // Vẫn giữ kích thước 4xl cho modal chi tiết
+    <div className="relative w-full">
+      <motion.div
+        key={index}
+        initial={{ opacity: 0.6 }}
+        animate={{ opacity: 1 }}
+        className="w-full h-56 rounded-xl overflow-hidden shadow bg-gray-100 border"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-          {/* --- CỘT 1: Thông tin & Tiện ích (giữ nguyên) --- */}
-          <div className="space-y-6">
-            <section className="space-y-3">
-                <h4 className="font-semibold text-[rgb(40,169,224)]">Thông tin chung</h4>
-                <InfoRow icon={<User size={16}/>} label="Chủ sở hữu" value={details.ownerName} />
-                <InfoRow icon={<MapPin size={16}/>} label="Địa chỉ" value={details.location} />
-                <InfoRow icon={<Home size={16}/>} label="Tổng số phòng" value={details.roomCount} />
-                <InfoRow icon={<Info size={16}/>} label="Mô tả" value={details.description} />
-            </section>
-            <section>
-                <h4 className="font-semibold text-[rgb(40,169,224)] mb-3">Tiện ích nổi bật</h4>
-                <div className="flex flex-wrap gap-2">
-                    {details.amenities.map(item => (
-                        <AmenityChip key={item} text={item} />
-                    ))}
-                </div>
-            </section>
-          </div>
+        <img
+          src={images[index].imageUrl}
+          alt="img"
+          className="w-full h-full object-cover"
+        />
+      </motion.div>
 
-          {/* --- CỘT 2: Hình ảnh & Loại phòng (CẬP NHẬT) --- */}
-          <div className="space-y-6">
-            <section>
-                {/* 8. ✅ Thêm nút "Xem tất cả" */}
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-semibold text-[rgb(40,169,224)]">Hình ảnh</h4>
-                  {details.images.length > 0 && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => openImageViewer(0)} // Mở ảnh đầu tiên
-                      leftIcon={<ZoomIn size={16}/>}
-                    >
-                      Xem tất cả ({details.images.length})
-                    </Button>
-                  )}
-                </div>
-                {/* 9. ✅ Biến ảnh thumbnail thành nút */}
-                <div className="grid grid-cols-3 gap-2">
-                    {/* Chỉ hiển thị 3 ảnh đầu tiên làm thumbnail */}
-                    {details.images.slice(0, 3).map((img, index) => ( 
-                        <button
-                            type="button"
-                            key={index} 
-                            onClick={() => openImageViewer(index)} // Mở ảnh được click
-                            className="relative w-full h-24 object-cover rounded-md border overflow-hidden group"
-                        >
-                            <img 
-                                src={img.url} 
-                                alt={img.caption} 
-                                className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                                title={img.caption}
-                            />
-                            {/* Overlay khi hover */}
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                              <ZoomIn size={20} className="text-white"/>
-                            </div>
-                            {/* Nếu có nhiều hơn 3 ảnh, làm mờ ảnh cuối */}
-                            {index === 2 && details.images.length > 3 && (
-                                <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-                                    <span className="font-bold text-gray-700">+{details.images.length - 3}</span>
-                                </div>
-                            )}
-                        </button>
-                    ))}
-                </div>
-            </section>
-            
-            {/* Phần loại phòng (giữ nguyên) */}
-            <section>
-                <h4 className="font-semibold text-[rgb(40,169,224)] mb-3">Các loại phòng</h4>
-                <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
-                    {details.roomTypes.map(room => (
-                        <li key={room.id}>
-                            {room.name} (SL: {room.count} - Giá: {room.price})
-                        </li>
-                    ))}
-                </ul>
-            </section>
-          </div>
-        </div>
+      {/* Controls */}
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={prev}
+            className="absolute top-1/2 left-3 -translate-y-1/2 bg-white/70 backdrop-blur-md p-1.5 rounded-full shadow hover:bg-white"
+          >
+            <ChevronLeft size={20} />
+          </button>
 
-        {/* --- Footer (Nút đóng - giữ nguyên) --- */}
-        <div className="flex justify-end pt-4 mt-6 border-t">
-          <Button variant="outline" onClick={onClose}>
-            Đóng
-          </Button>
-        </div>
-      </Modal>
+          <button
+            onClick={next}
+            className="absolute top-1/2 right-3 -translate-y-1/2 bg-white/70 backdrop-blur-md p-1.5 rounded-full shadow hover:bg-white"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </>
+      )}
 
-      {/* 10. ✅ Render Modal ImageViewer (nó sẽ tự ẩn/hiện) */}
-      <ImageViewerModal
-        open={isViewerOpen}
-        onClose={() => setViewerOpen(false)}
-        images={details.images}
-        startIndex={selectedImageIndex}
-      />
-    </>
+      <div className="absolute bottom-2 right-3 text-xs bg-black/50 text-white rounded-full px-2 py-0.5">
+        {index + 1} / {images.length}
+      </div>
+    </div>
+  );
+};
+
+// =====================================================
+//  🔹 MAIN MODAL (CUSTOM)
+// =====================================================
+const ViewHotelSubmissionModal = ({ open, onClose, application }) => {
+  if (!open || !application) return null;
+
+  const owner = application.owner || {};
+  const address = application.address || {};
+  const amenities = application.amenities || [];
+  const images = application.images || [];
+
+  return (
+    <ModalPortal>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className="
+              fixed inset-0 z-[200]
+              bg-black/40 backdrop-blur-sm
+              flex items-center justify-center
+            "
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="
+                bg-white rounded-2xl shadow-2xl w-[90%] max-w-5xl
+                max-h-[85vh] overflow-hidden flex flex-col
+              "
+            >
+              {/* HEADER */}
+              <div className="flex items-center justify-between px-6 py-4 border-b">
+                <h2 className="text-2xl font-bold text-gray-800">{application.name}</h2>
+                <Button variant="ghost" size="icon" onClick={onClose}>
+                  <X size={22} className="text-gray-500 hover:text-gray-800" />
+                </Button>
+              </div>
+
+              {/* SCROLLABLE BODY */}
+              <div className="px-6 py-6 overflow-y-auto flex-1 grid grid-cols-1 lg:grid-cols-5 gap-8">
+                {/* LEFT: Gallery */}
+                <div className="lg:col-span-2">
+                  <InfoSection title="Hình ảnh Cơ sở" icon={<ImageIcon />}>
+                    <ImageGallery images={images} />
+                  </InfoSection>
+                </div>
+
+                {/* RIGHT: Details */}
+                <div className="lg:col-span-3">
+                  <InfoSection title="Thông tin Chủ sở hữu" icon={<User />}>
+                    <p><strong>Tên:</strong> {owner.fullName || "Chưa rõ"}</p>
+                    <p><strong>Email:</strong> {owner.email || "Chưa rõ"}</p>
+                    <p><strong>SĐT:</strong> {owner.phoneNumber || "Chưa rõ"}</p>
+                  </InfoSection>
+
+                  <InfoSection title="Địa chỉ Cơ sở" icon={<MapPin />}>
+                    <p>{application.fullAddress || "Chưa rõ"}</p>
+                  </InfoSection>
+
+                  <InfoSection title="Mô tả" icon={<List />}>
+                    <p className="whitespace-pre-line text-gray-800">
+                      {application.description || "Không có mô tả."}
+                    </p>
+                  </InfoSection>
+
+                  <InfoSection title="Tiện nghi" icon={<ShieldCheck />}>
+                    {amenities.length ? (
+                      <div className="flex flex-wrap gap-2">
+                        {amenities.map((am) => (
+                          <Badge
+                            key={am.id}
+                            className="bg-blue-50 text-blue-700 border border-blue-200"
+                          >
+                            {am.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500">Không có tiện nghi.</p>
+                    )}
+                  </InfoSection>
+                </div>
+              </div>
+
+              {/* FOOTER */}
+              <div className="px-6 py-4 border-t flex justify-end bg-white">
+                <Button variant="outline" onClick={onClose}>Đóng</Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </ModalPortal>
   );
 };
 
