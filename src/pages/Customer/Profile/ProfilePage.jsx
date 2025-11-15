@@ -1,6 +1,5 @@
 // src/pages/Customer/Profile/ProfilePage.jsx
 import React, { useState, useEffect } from "react";
-import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
 import TextField from "@/components/common/Input/TextField";
 import Select from "@/components/common/Select/Select";
 import Button from "@/components/common/Button/Button";
@@ -424,16 +423,13 @@ useEffect(() => {
 
   if (!currentUser || !userData) {
     return (
-      <CustomerLayout>
         <div className="flex justify-center items-center h-[50vh]">
           <p className="text-gray-500">Đang tải dữ liệu...</p>
         </div>
-      </CustomerLayout>
     );
   }
 
   return (
-    <CustomerLayout>
       <main className="w-full bg-gray-50 text-gray-800">
         <div className="max-w-7xl mx-auto p-6">
           <div className="grid grid-cols-12 gap-8">
@@ -469,7 +465,6 @@ useEffect(() => {
           </div>
         </div>
       </main>
-    </CustomerLayout>
   );
 };
 

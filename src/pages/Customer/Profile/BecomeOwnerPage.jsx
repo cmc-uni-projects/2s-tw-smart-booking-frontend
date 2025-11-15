@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
 import Stepper from "./BecomeOwnerSteps/Stepper";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -155,7 +154,7 @@ export default function BecomeOwnerPage() {
   ];
 
   return (
-    <CustomerLayout>
+    <>
       {isLoading && <LoadingOverlay message="Đang gửi đơn đăng ký..." />}
       <div className="max-w-4xl mx-auto py-12 px-6">
         <Stepper steps={steps} currentStep={currentStep} />
@@ -196,6 +195,6 @@ export default function BecomeOwnerPage() {
           </form>
         </div>
       </div>
-    </CustomerLayout>
+    </>
   );
 }

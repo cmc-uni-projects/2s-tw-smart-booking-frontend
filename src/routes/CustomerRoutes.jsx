@@ -3,7 +3,7 @@ import React from "react";
 import CustomerLayout from "../layouts/CustomerLayout/CustomerLayout";
 import CustomerDashboardLayout from "../layouts/CustomerLayout/CustomerDashboardLayout";
 import HomePage from "../pages/Customer/Home/HomePage";
-import About from "../pages_Customer_About_About";
+import About from "../pages/Customer/About/About";
 import HelpPage from "../pages/Customer/About/HelpPage";
 import Contact from "../pages/Customer/About/Contact";
 import HotelSearchPage from "../pages/Customer/HotelSearch/HotelSearchPage";
