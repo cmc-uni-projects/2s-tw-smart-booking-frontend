@@ -1,8 +1,9 @@
+// src/pages/Customer/Profile/AccountMenu.jsx
 import React, { useState } from 'react';
 import { Receipt, DollarSign, Settings, MapPin, User } from 'lucide-react';
 import Card from "@/components/common/Card/Card";
-import AvatarUpload from "@/components/common/Input/AvatarUpload"; 
-import AvatarUploadModal from "./AvatarUploadModal"; // ✅ Import Modal mới
+import AvatarUpload from "@/components/common/Input/AvatarUpload";
+import AvatarUploadModal from "./AvatarUploadModal"; // giữ modal hiện có trong repo
 
 const MENU_WIDGET_ITEMS = [
     { name: "Đặt chỗ của tôi", icon: MapPin, path: "my-bookings", type: "nav" },
@@ -12,19 +13,18 @@ const MENU_WIDGET_ITEMS = [
     { name: "Tài khoản", icon: User, path: "account-settings", type: "main" },
 ];
 
-export default function AccountMenu({ 
-    activeSection, 
-    onSelect, 
-    userData, 
-    onAvatarUpload, // Hàm gọi API từ ProfilePage
-    isUploadingAvatar 
-}) {
-    const [isModalOpen, setIsModalOpen] = useState(false); // State quản lý Modal
+export default function AccountMenu({
+                                        activeSection,
+                                        onSelect,
+                                        userData,
+                                        onAvatarUpload,
+                                        isUploadingAvatar
+                                    }) {
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const profileName = userData?.fullName || "Khách hàng";
     const profileImage = userData?.profilePhotoUrl || null;
 
-    // Hàm trung gian: Nhận file từ Modal -> Gửi lên ProfilePage -> Đóng Modal
     const handleSaveAvatar = async (file) => {
         await onAvatarUpload(file);
         setIsModalOpen(false);
@@ -34,21 +34,18 @@ export default function AccountMenu({
         <>
             <Card className="h-full p-0">
                 <div className="flex flex-col h-full">
-                    
-                    {/* Header: Avatar & Tên */}
                     <div className="p-4 border-b border-gray-100">
                         <div className="flex items-center gap-3">
-                            {/* ✅ AvatarUpload giờ chỉ để kích hoạt mở Modal */}
                             <div className="flex-shrink-0">
-                                <AvatarUpload 
-                                    src={profileImage} 
-                                    name={profileName} 
-                                    size={50} 
-                                    onClick={() => setIsModalOpen(true)} // Mở Modal khi click
+                                <AvatarUpload
+                                    src={profileImage}
+                                    name={profileName}
+                                    size={50}
+                                    onClick={() => setIsModalOpen(true)}
                                     isLoading={isUploadingAvatar}
                                 />
                             </div>
-                            
+
                             <div className="overflow-hidden flex-1">
                                 <p className="font-semibold text-gray-800 truncate" title={profileName}>
                                     {profileName}
@@ -62,7 +59,6 @@ export default function AccountMenu({
                         </div>
                     </div>
 
-                    {/* Navigation Menu */}
                     <nav className="flex-grow p-2 space-y-1">
                         {MENU_WIDGET_ITEMS.map((item) => (
                             <button
@@ -70,14 +66,14 @@ export default function AccountMenu({
                                 onClick={() => onSelect(item.path)}
                                 className={`flex items-center w-full p-3 text-left transition-all duration-200 rounded-lg
                                     ${activeSection === item.path
-                                        ? 'bg-[rgb(40,169,224)] text-white font-medium shadow-sm'
-                                        : 'text-gray-700 hover:bg-gray-100'
-                                    }
+                                    ? 'bg-[rgb(40,169,224)] text-white font-medium shadow-sm'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                }
                                 `}
                             >
-                                <item.icon 
-                                    size={20} 
-                                    className={`mr-3 ${activeSection === item.path ? 'text-white' : 'text-gray-500'}`} 
+                                <item.icon
+                                    size={20}
+                                    className={`mr-3 ${activeSection === item.path ? 'text-white' : 'text-gray-500'}`}
                                 />
                                 <span>{item.name}</span>
                             </button>
@@ -86,8 +82,7 @@ export default function AccountMenu({
                 </div>
             </Card>
 
-            {/* ✅ Component Modal nằm ở đây */}
-            <AvatarUploadModal 
+            <AvatarUploadModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSave={handleSaveAvatar}
