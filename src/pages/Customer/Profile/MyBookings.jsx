@@ -8,7 +8,7 @@ import ToastPortal from "@/components/common/Notification/ToastPortal";
 import { bookingService } from "@/services/booking.service";
 import BookingDetailModal from "./BookingDetailModal"; // Import Modal
 
-// Dữ liệu mẫu (Giữ nguyên)
+// Dữ liệu mẫu (Đã cập nhật)
 const mockBookingsData = [
     {
         id: 1,
@@ -20,7 +20,12 @@ const mockBookingsData = [
         checkOutDate: "2025-11-25",
         totalPrice: 8200000,
         status: "CONFIRMED",
-        imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=300&q=80"
+        imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=300&q=80",
+        // --- Thông tin thêm ---
+        roomCount: 2,
+        adults: 2,
+        children: 1,
+        pets: true
     },
     {
         id: 2,
@@ -32,7 +37,12 @@ const mockBookingsData = [
         checkOutDate: "2025-12-03",
         totalPrice: 4200000,
         status: "PENDING",
-        imageUrl: "https://images.unsplash.com/photo-1582719478250-c89caE4dc85b?auto=format&fit=crop&w=300&q=80"
+        imageUrl: "https://images.unsplash.com/photo-1582719478250-c89caE4dc85b?auto=format&fit=crop&w=300&q=80",
+        // --- Thông tin thêm ---
+        roomCount: 1,
+        adults: 2,
+        children: 0,
+        pets: false
     },
     {
         id: 3,
@@ -44,7 +54,12 @@ const mockBookingsData = [
         checkOutDate: "2025-10-17",
         totalPrice: 2800000,
         status: "CANCELLED",
-        imageUrl: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=300&q=80"
+        imageUrl: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=300&q=80",
+        // --- Thông tin thêm ---
+        roomCount: 1,
+        adults: 1,
+        children: 0,
+        pets: false
     }
 ];
 
@@ -190,7 +205,6 @@ export default function MyBookings() {
                                 >
                                     Xem chi tiết
                                 </Button>
-                                {/* DÒNG GÂY LỖI ĐÃ ĐƯỢC XÓA COMMENT */}
                             </div>
                         </div>
                     </div>
