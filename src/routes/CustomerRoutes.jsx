@@ -1,3 +1,4 @@
+console.warn("LOG BẮT BUỘC: File CustomerRoutes.jsx (bản mới nhất) ĐÃ CHẠY!");
 import React from "react";
 import CustomerLayout from "../layouts/CustomerLayout/CustomerLayout";
 import CustomerDashboardLayout from "../layouts/CustomerLayout/CustomerDashboardLayout";
@@ -17,10 +18,13 @@ import LanguageSettings from "../pages/Customer/Profile/LanguageSettings";
 import PartnerLandingPage from "../pages/Partner/PartnerLandingPage";
 import BecomeOwnerPage from "../pages/Customer/Profile/BecomeOwnerPage";
 
-// 1. IMPORT PROTECTED ROUTE
 import ProtectedRoute from "../routes/ProtectedRoute";
+// === 1. IMPORT PARTNER ROUTE ===
+import PartnerRoute from "../routes/PartnerRoute"; // <-- THÊM DÒNG NÀY
 
 const customerRoutes = [
+  // ... (Tất cả các route khác của bạn / /about /hotels /customer/profile ...)
+  // ... (Giữ nguyên các route này)
   {
     path: "/",
     element: (
@@ -54,8 +58,6 @@ const customerRoutes = [
     ),
   },
   {
-    // === SỬA LỖI GIAI ĐOẠN 1 ===
-    // Đổi từ "/hotels/search" thành "/hotels"
     path: "/hotels",
     element: (
       <CustomerLayout>
@@ -79,9 +81,6 @@ const customerRoutes = [
       </CustomerLayout>
     ),
   },
-  
-  // === THÊM LỚP BẢO VỆ CHO CÁC ROUTE CÁ NHÂN ===
-  // Tất cả các route bên dưới bây giờ sẽ yêu cầu đăng nhập
   {
     path: "/customer/profile",
     element: (
@@ -92,6 +91,7 @@ const customerRoutes = [
       </ProtectedRoute>
     ),
   },
+  // ... (Các route /customer/ khác)
   {
     path: "/customer/profile/settings",
     element: (
@@ -152,15 +152,19 @@ const customerRoutes = [
       </ProtectedRoute>
     ),
   },
+  
+
+  // === 2. SỬA LỖI LOGIC Ở ĐÂY ===
   {
-    // Trang đăng ký làm partner cũng CẦN được bảo vệ
     path: "/partner/register",
     element: (
-      <ProtectedRoute roles={["CUSTOMER"]}>
-        <CustomerLayout>
+      // CustomerLayout phải nằm ngoài cùng
+      <CustomerLayout>
+        {/* Thay thế <ProtectedRoute> bằng <PartnerRoute> */}
+        <PartnerRoute> 
           <BecomeOwnerPage />
-        </CustomerLayout>
-      </ProtectedRoute>
+        </PartnerRoute>
+      </CustomerLayout>
     ),
   },
 ];

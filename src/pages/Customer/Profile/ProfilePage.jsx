@@ -66,25 +66,27 @@ const ProfilePage = () => {
     setTimeout(() => setToast((prev) => ({ ...prev, show: false })), duration);
   };
 
-  // --- 1. Fetch Profile ---
-  useEffect(() => {
+// --- 1. Fetch Profile (ĐÃ SỬA) ---
+useEffect(() => {
     const fetchProfile = async () => {
-      try {
-        const res = await userService.getMyProfile();
-        if (res.success) {
-          const mapped = mapDataToForm(res.data);
-          setUserData(mapped);
-          setFormData(mapped);
+        try {
+            // SỬA Ở ĐÂY: API /me trả về DTO trực tiếp
+            const profileData = await userService.getUserDetail(); 
+
+            // Bỏ 'if (res.success)' và 'res.data'
+            const mapped = mapDataToForm(profileData);
+            setUserData(mapped);
+            setFormData(mapped);
+
+        } catch (error) {
+            console.error("Failed to fetch profile:", error);
         }
-      } catch (error) {
-        console.error("Failed to fetch profile:", error);
-      }
     };
 
     if (currentUser) {
-      fetchProfile();
+        fetchProfile();
     }
-  }, [currentUser]);
+}, [currentUser]); // Thêm [currentUser] vào dependency array 
 
   // --- Handlers Form ---
   const handleChange = (e) => {
@@ -132,7 +134,7 @@ const ProfilePage = () => {
 
     setLoading(true);
     try {
-      const res = await userService.updateProfile(formData);
+      const res = await userService.updateUserDetail(formData);
 
       if (res.data.success) {
         const updatedData = res.data.data;
@@ -152,12 +154,12 @@ const ProfilePage = () => {
 
       if (err.response && err.response.status === 409) {
         try {
-          const refreshRes = await userService.getMyProfile();
+          const refreshRes = await userService.getUserDetail();
           if (refreshRes.success && refreshRes.data.userdetailId) {
             const realId = refreshRes.data.userdetailId;
             const retryData = { ...formData, userdetailId: realId };
             
-            const retryRes = await userService.updateProfile(retryData);
+            const retryRes = await userService.updateUserDetail(retryData);
             if (retryRes.data.success) {
               const newUserData = mapDataToForm(retryRes.data.data);
               setUserData(newUserData);
@@ -188,7 +190,7 @@ const ProfilePage = () => {
     const payload = { ...formData, phoneNumber: newPhone };
     setLoading(true);
     try {
-      const res = await userService.updateProfile(payload);
+      const res = await userService.updateUserDetail(payload);
       if (res.data.success) {
         const updatedData = res.data.data;
         const newUserData = mapDataToForm(updatedData);
@@ -203,7 +205,7 @@ const ProfilePage = () => {
     } catch (err) {
         if (err.response?.status === 409) {
              showToastAndDismiss("Hệ thống đang đồng bộ, vui lòng thử lại sau giây lát.", "warning");
-             userService.getMyProfile().then(res => {
+             userService.getUserDetail().then(res => {
                 if(res.success) {
                     const mapped = mapDataToForm(res.data);
                     setUserData(mapped);

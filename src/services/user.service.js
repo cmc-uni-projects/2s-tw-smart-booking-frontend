@@ -1,44 +1,65 @@
 import axios from "axios";
 
-// Lấy URL từ biến môi trường hoặc mặc định
+// Đảm bảo API_URL này đúng
 const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1";
 
 const getAuthHeader = () => {
   const token = localStorage.getItem("accessToken");
+  if (!token) {
+    console.error("No access token found for auth header");
+    return {};
+  }
   return { Authorization: `Bearer ${token}` };
 };
 
 export const userService = {
-  // 1. Lấy thông tin chi tiết (User + UserDetail)
-  getMyProfile: async () => {
-    const res = await axios.get(`${API_URL}/userdetails/search`, {
+  /**
+   * Lấy thông tin chi tiết (User + UserDetail)
+   * Khớp với @GetMapping("/api/v1/user-details/me")
+   */
+  getUserDetail: async () => {
+    const res = await axios.get(`${API_URL}/user-details/me`, {
       headers: getAuthHeader(),
     });
     return res.data;
   },
 
-  // 2. Cập nhật thông tin (Tự động chọn Add hoặc Edit dựa trên việc đã có ID chưa)
-  updateProfile: async (data) => {
+  /**
+   * Cập nhật thông tin (User + UserDetail)
+   * Khớp với @PutMapping("/api/v1/user-details/update")
+   */
+  updateUserDetail: async (data) => {
     const headers = getAuthHeader();
-    // Nếu đã có userdetailId thì gọi API sửa, ngược lại gọi API thêm mới
-    if (data.userdetailId) {
-      return axios.put(`${API_URL}/userdetails/edit`, data, { headers });
-    } else {
-      return axios.post(`${API_URL}/userdetails/add`, data, { headers });
-    }
+    return axios.put(`${API_URL}/user-details/update`, data, { headers });
   },
 
-  // 3. Upload ảnh đại diện
+  /**
+   * Upload ảnh đại diện
+   * Khớp với (ví dụ) @PostMapping("/api/v1/user-details/upload-avatar")
+   */
   uploadAvatar: async (file) => {
     const formData = new FormData();
-    formData.append("image", file); // Key 'image' phải khớp với Backend @RequestParam("image")
+    formData.append("file", file); // Thay "image" bằng "file" cho khớp
 
-    const res = await axios.post(`${API_URL}/userdetails/upload-photo`, formData, {
+    const res = await axios.post(`${API_URL}/user-details/upload-avatar`, formData, {
       headers: {
         ...getAuthHeader(),
         "Content-Type": "multipart/form-data",
       },
     });
     return res.data;
+  },
+
+  // === ĐÂY LÀ HÀM BỊ THIẾU ===
+  /**
+   * Kiểm tra trạng thái hồ sơ
+   * Khớp với @GetMapping("/api/v1/user-details/profile-status")
+   */
+  getProfileStatus: async () => {
+    const res = await axios.get(`${API_URL}/user-details/profile-status`, {
+      headers: getAuthHeader(),
+    });
+    return res.data; // API sẽ trả về { isProfileComplete: true/false }
   }
+  // === KẾT THÚC HÀM BỊ THIẾU ===
 };
