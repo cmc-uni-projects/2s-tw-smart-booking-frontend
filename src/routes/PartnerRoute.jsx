@@ -6,63 +6,52 @@ import LoadingOverlay from "../components/common/Loading/LoadingOverlay";
 import ConfirmModal from "../components/common/Modal/ConfirmModal";
 
 const PartnerRoute = ({ children }) => {
-  // === DEBUG LOG 1 ===
   console.log("LOG 1: PartnerRoute ĐÃ CHẠY");
 
   const { currentUser, hasRole } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
-  // State
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  useEffect(() => {
-    // === DEBUG LOG 2 ===
-    console.log("LOG 2: useEffect ĐÃ CHẠY", { currentUser });
+  // Modal thông tin hồ sơ
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
-    // === CHECK 1: CHƯA ĐĂNG NHẬP ===
+  useEffect(() => {
+    console.log("LOG 2: useEffect chạy", { currentUser });
+
+    // 1. CHƯA ĐĂNG NHẬP → hiển thị modal đăng nhập
     if (!currentUser) {
-      console.log("LOG 3A: Chưa đăng nhập -> Hiển thị Modal");
-      setShowLoginModal(true); 
-      setIsLoading(false);     
-      return;                  
+      console.log("LOG 3A: Chưa đăng nhập → bật modal");
+      setShowLoginModal(true);
+      setIsLoading(false);
+      return;
     }
 
-    // === CHECK 2: VAI TRÒ KHÔNG PHẢI LÀ CUSTOMER ===
+    // 2. ADMIN hoặc OWNER → không được vào PartnerRoute
     if (hasRole("ADMIN") || hasRole("OWNER")) {
-      console.log("LOG 3B: Là ADMIN/OWNER -> Chuyển hướng");
+      console.log("LOG 3B: ADMIN/OWNER → chuyển hướng");
       navigate(hasRole("ADMIN") ? "/admin/dashboard" : "/owner/dashboard", { replace: true });
       return;
     }
 
-    // === CHECK 3: LÀ CUSTOMER -> KIỂM TRA HỒ SƠ (GỌI API) ===
+    // 3. CUSTOMER → kiểm tra hồ sơ
     const checkProfile = async () => {
       try {
-        // === DEBUG LOG 3 ===
-        console.log("LOG 3C: Là CUSTOMER -> Đang gọi checkProfile()...");
-        
-        // === DEBUG LOG 4 ===
-        // (Nếu bạn không thấy log này, nghĩa là userService.getProfileStatus BỊ LỖI)
-        console.log("LOG 4: Chuẩn bị gọi API 'userService.getProfileStatus'");
-        
-        const res = await userService.getProfileStatus(); 
-        
-        console.log("LOG 5: Đã gọi API, kết quả:", res);
+        console.log("LOG 3C: CUSTOMER → gọi checkProfile()");
+        const res = await userService.getProfileStatus();
+        console.log("LOG 5: Kết quả API:", res);
 
         if (res.isProfileComplete) {
-          setIsAuthorized(true); // Hồ sơ OK, cho phép vào
+          setIsAuthorized(true); 
         } else {
-          // Hồ sơ chưa hoàn tất
-          alert(
-            "Vui lòng hoàn tất hồ sơ cá nhân (Họ, Tên, SĐT, Giới tính, Ngày sinh) trước khi đăng ký làm đối tác."
-          );
-          navigate("/customer/profile", { replace: true });
+          setShowProfileModal(true); 
         }
       } catch (error) {
-        console.error("Lỗi khi kiểm tra hồ sơ (LOG 6):", error);
-        alert("Có lỗi xảy ra khi kiểm tra hồ sơ của bạn.");
+        console.error("Lỗi hồ sơ:", error);
+        alert("Có lỗi xảy ra khi kiểm tra hồ sơ.");
         navigate("/", { replace: true });
       } finally {
         setIsLoading(false);
@@ -70,37 +59,102 @@ const PartnerRoute = ({ children }) => {
     };
 
     checkProfile();
-
   }, [currentUser, hasRole, navigate]);
 
-  // (Các hàm modal... giữ nguyên)
-  const handleModalConfirm = () => {
+  // ----------------------------------------------------------------
+  // MODAL ĐĂNG NHẬP
+  // ----------------------------------------------------------------
+  const handleLoginModalConfirm = () => {
     setShowLoginModal(false);
-    navigate("/login", { state: { from: location }, replace: true });
+
+    // === YÊU CẦU 2 ===
+    navigate("/login", {
+      state: { from: location }, // để quay lại trang trước sau login
+      replace: true,
+    });
   };
 
-  const handleModalClose = () => {
+  const handleLoginModalClose = () => {
     setShowLoginModal(false);
-    navigate(-1); 
+
+    // Quay lại trang trước
+    navigate(-1);
   };
 
-  // (Logic render... giữ nguyên)
+  // ----------------------------------------------------------------
+  // MODAL HỒ SƠ
+  // ----------------------------------------------------------------
+  const handleProfileModalConfirm = () => {
+    setShowProfileModal(false);
+
+    // === YÊU CẦU 1 ===
+    navigate("/customer/profile", { replace: true });
+  };
+
+  const handleProfileModalClose = () => {
+    setShowProfileModal(false);
+
+    // Hủy → quay về trang chủ
+    navigate("/", { replace: true });
+  };
+
+  // ----------------------------------------------------------------
+  // RENDER
+  // ----------------------------------------------------------------
+
+  // 1. Modal yêu cầu đăng nhập
   if (showLoginModal) {
     return (
       <ConfirmModal
         open={true}
-        onClose={handleModalClose}
-        onConfirm={handleModalConfirm}
+        onClose={handleLoginModalClose}
+        onConfirm={handleLoginModalConfirm}
         title="Yêu cầu đăng nhập"
-        message="Bạn cần đăng nhập để thực hiện chức năng này. Bạn có muốn đăng nhập ngay?"
+        message="Bạn cần đăng nhập để thực hiện chức năng này. Đăng nhập ngay?"
         confirmText="Đăng nhập"
         cancelText="Để sau"
       />
     );
   }
+
+  // 2. Modal yêu cầu bổ sung hồ sơ
+  if (showProfileModal) {
+    return (
+      <ConfirmModal
+        open={true}
+        onClose={handleProfileModalClose}
+        onConfirm={handleProfileModalConfirm}
+        title="Hồ sơ chưa hoàn tất"
+        type="warning"
+        message={
+          <div>
+            <p className="mb-3">
+              Vui lòng cập nhật các thông tin sau trong hồ sơ để tiếp tục:
+            </p>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left">
+              <ul className="list-disc list-inside text-sm text-yellow-900">
+                <li>Họ</li>
+                <li>Tên</li>
+                <li>Ngày sinh</li>
+                <li>Số điện thoại</li>
+                <li>Giới tính</li>
+              </ul>
+            </div>
+          </div>
+        }
+        confirmText="Tiếp tục"
+        cancelText="Hủy"
+      />
+    );
+  }
+
+  // 3. Loading overlay
   if (isLoading) {
     return <LoadingOverlay open={true} />;
   }
+
+  // 4. Chỉ hiển thị children nếu được phép
   return isAuthorized ? children : null;
 };
 
