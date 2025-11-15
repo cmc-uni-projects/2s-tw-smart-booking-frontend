@@ -1,68 +1,168 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
-import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
-import Home from "@/pages/Customer/Home/HomePage";
-import About from "@/pages/Customer/About/About";
-import MyInboxPage from "@/pages/Customer/About/MyInboxPage";
-import HelpPage from "@/pages/Customer/About/HelpPage";
+import CustomerLayout from "../layouts/CustomerLayout/CustomerLayout";
+import CustomerDashboardLayout from "../layouts/CustomerLayout/CustomerDashboardLayout";
+import HomePage from "../pages/Customer/Home/HomePage";
+import About from "../pages_Customer_About_About";
+import HelpPage from "../pages/Customer/About/HelpPage";
+import Contact from "../pages/Customer/About/Contact";
+import HotelSearchPage from "../pages/Customer/HotelSearch/HotelSearchPage";
+import HotelDetailPage from "../pages/Customer/HotelDetail/HotelDetailPage";
+import BookingHistory from "../pages/Customer/Booking/BookingHistory";
+import MyInboxPage from "../pages/Customer/About/MyInboxPage";
+import ProfilePage from "../pages/Customer/Profile/ProfilePage";
+import SettingsPage from "../pages/Customer/Profile/SettingsPage";
+import ChangePassword from "../pages/Customer/Profile/ChangePassword";
+import NotificationSettings from "../pages/Customer/Profile/NotificationSettings";
+import LanguageSettings from "../pages/Customer/Profile/LanguageSettings";
+import PartnerLandingPage from "../pages/Partner/PartnerLandingPage";
+import BecomeOwnerPage from "../pages/Customer/Profile/BecomeOwnerPage";
 
-import HotelSearchPage from "@/pages/Customer/HotelSearch/HotelSearchPage";
-import HotelDetailPage from "@/pages/Customer/HotelDetail/HotelDetailPage";
+// 1. IMPORT PROTECTED ROUTE
+import ProtectedRoute from "../routes/ProtectedRoute";
 
-import ProtectedRoute from "./ProtectedRoute";
-import CustomerDashboardLayout from "@/layouts/CustomerLayout/CustomerDashboardLayout";
-import ProfilePage from "@/pages/Customer/Profile/ProfilePage";
-import BookingHistory from "@/pages/Customer/Booking/BookingHistory";
+const customerRoutes = [
+  {
+    path: "/",
+    element: (
+      <CustomerLayout>
+        <HomePage />
+      </CustomerLayout>
+    ),
+  },
+  {
+    path: "/about",
+    element: (
+      <CustomerLayout>
+        <About />
+      </CustomerLayout>
+    ),
+  },
+  {
+    path: "/help",
+    element: (
+      <CustomerLayout>
+        <HelpPage />
+      </CustomerLayout>
+    ),
+  },
+  {
+    path: "/contact",
+    element: (
+      <CustomerLayout>
+        <Contact />
+      </CustomerLayout>
+    ),
+  },
+  {
+    // === SỬA LỖI GIAI ĐOẠN 1 ===
+    // Đổi từ "/hotels/search" thành "/hotels"
+    path: "/hotels",
+    element: (
+      <CustomerLayout>
+        <HotelSearchPage />
+      </CustomerLayout>
+    ),
+  },
+  {
+    path: "/hotels/:id",
+    element: (
+      <CustomerLayout>
+        <HotelDetailPage />
+      </CustomerLayout>
+    ),
+  },
+  {
+    path: "/partner-with-us",
+    element: (
+      <CustomerLayout>
+        <PartnerLandingPage />
+      </CustomerLayout>
+    ),
+  },
+  
+  // === THÊM LỚP BẢO VỆ CHO CÁC ROUTE CÁ NHÂN ===
+  // Tất cả các route bên dưới bây giờ sẽ yêu cầu đăng nhập
+  {
+    path: "/customer/profile",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerDashboardLayout>
+          <ProfilePage />
+        </CustomerDashboardLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/customer/profile/settings",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerDashboardLayout>
+          <SettingsPage />
+        </CustomerDashboardLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/customer/profile/change-password",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerDashboardLayout>
+          <ChangePassword />
+        </CustomerDashboardLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/customer/profile/notifications",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerDashboardLayout>
+          <NotificationSettings />
+        </CustomerDashboardLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/customer/profile/language",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerDashboardLayout>
+          <LanguageSettings />
+        </CustomerDashboardLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/customer/my-bookings",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerDashboardLayout>
+          <BookingHistory />
+        </CustomerDashboardLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/customer/my-inbox",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerDashboardLayout>
+          <MyInboxPage />
+        </CustomerDashboardLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    // Trang đăng ký làm partner cũng CẦN được bảo vệ
+    path: "/partner/register",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerLayout>
+          <BecomeOwnerPage />
+        </CustomerLayout>
+      </ProtectedRoute>
+    ),
+  },
+];
 
-import SettingsPage from "@/pages/Customer/Profile/SettingsPage";
-
-const TransactionHistoryPage = () => <h2>Lịch sử giao dịch</h2>;
-const RefundsPage = () => <h2>Refunds</h2>;
-const WishlistPage = () => <h2>Yêu thích</h2>;
-// =============================================
-
-const CustomerRoutes = () => {
-    return (
-        <Routes>
-
-            <Route index element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/help" element={<HelpPage />} />
-
-
-            {/* +++ ĐÃ THÊM: ROUTE CHO TRANG TÌM KIẾM +++ */}
-            <Route path="/hotels" element={<HotelSearchPage />} />
-            <Route path="/hotels/:hotelId" element={<HotelDetailPage />} />
-
-            {/* --- ROUTE BECOME-OWNER  --- */}
-            <Route
-                path="/become-owner"
-                element={
-                    <ProtectedRoute>
-                        <BecomeOwnerPage />
-                    </ProtectedRoute>
-                }
-            />
-
-
-            <Route
-                path="/customer"
-                element={
-                    <ProtectedRoute>
-                        <CustomerDashboardLayout />
-                    </ProtectedRoute>
-                }
-            >
-
-                <Route path="profile" element={<ProfilePage />} />
-                <Route path="bookings" element={<BookingHistory />} />
-                <Route path="my-inbox" element={<MyInboxPage />} />
-
-                {/* Add more customer-specific routes here */}
-            </Route>
-        </Routes>
-    );
-};
-
-export default CustomerRoutes;
-
+export default customerRoutes;
