@@ -6,7 +6,7 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL || "http://localhost:8386
 // 🔒 AUTH SERVICE
 // ============================
 
-// 1. Đăng nhập
+// CODE ĐÃ SỬA TRONG auth.service.js
 const login = async (email, password) => {
   try {
     const response = await axios.post(`${API_URL}/auth/login`, {
@@ -14,17 +14,21 @@ const login = async (email, password) => {
       password,
     });
 
-    if (response.data && response.data.data.token) {
-      const { token, user } = response.data.data;
-      localStorage.setItem("accessToken", token);
+    // Sửa 'token' thành 'accessToken'
+    if (response.data && response.data.data.accessToken) { // <-- SỬA Ở ĐÂY
+      const { accessToken, user } = response.data.data; // <-- SỬA Ở ĐÂY
+      localStorage.setItem("accessToken", accessToken); // <-- SỬA Ở ĐÂY
       localStorage.setItem("user", JSON.stringify(user));
-      return response.data.data;
+      return response.data.data; // Trả về { accessToken, user, ... }
     }
+    // Nếu cấu trúc data không đúng
     throw new Error(response.data.message || "Login failed");
   } catch (error) {
+    // Nếu axios ném lỗi (vd: 401, 404, 500)
     if (error.response && error.response.data) {
       throw new Error(error.response.data.message || "Login failed");
     }
+    // Nếu không thể kết nối (lỗi mạng, CORS,...)
     throw new Error("Cannot connect to server");
   }
 };

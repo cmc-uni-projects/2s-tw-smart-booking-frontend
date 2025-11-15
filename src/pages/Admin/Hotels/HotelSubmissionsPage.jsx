@@ -1,204 +1,216 @@
-import React, { useState, useEffect } from "react";
-import Card from "../../../components/common/Card/Card";
-import CardHeader from "../../../components/common/Card/CardHeader";
-import Badge from "../../../components/common/Badge/Badge";
-// 1. Imports mới: adminService, Loader, EmptyState và Toast
-import { Building2, Loader2 } from "lucide-react"; 
-import  adminService  from "@/services/admin.service";
+import React, { useState, useEffect, useMemo } from "react";
+import Card from "@/components/common/Card/Card";
+import CardHeader from "@/components/common/Card/CardHeader";
+import { Hotel, Loader2 } from "lucide-react";
+import adminService from "@/services/admin.service";
 import Toast from "@/components/common/Notification/Toast";
 import EmptyState from "@/components/common/EmptyState/EmptyState";
+import { AnimatePresence, motion } from "framer-motion";
 
-// Import các component con (giữ nguyên)
-import HotelSubmissionCard from "./components/HotelSubmissionCard"; 
-import ViewHotelSubmissionModal from "./components/ViewHotelSubmissionModal"; 
+// Filters
+import SubmissionSearchBar from "./components/SubmissionSearchBar";
+import SubmissionTypeFilter from "./components/SubmissionTypeFilter";
+
+// Cards + Modals
+import HotelSubmissionCard from "./components/HotelSubmissionCard";
+import ViewHotelSubmissionModal from "./components/ViewHotelSubmissionModal";
 import ApproveHotelModal from "./components/ApproveHotelModal";
 import RejectHotelModal from "./components/RejectHotelModal";
 
-// 2. Xóa bỏ mockHotelSubmissions
-// const mockHotelSubmissions = [ ... ];
-
 const HotelSubmissionsPage = () => {
-  // 3. Thêm state cho API
-  const [submissions, setSubmissions] = useState([]);
+  // --- State ---
+  const [allSubmissions, setAllSubmissions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedHotel, setSelectedHotel] = useState(null);
   const [toastData, setToastData] = useState(null);
 
-  // State cho modals (giữ nguyên)
-  const [selectedSubmission, setSelectedSubmission] = useState(null);
-  const [isApproveModalOpen, setApproveModalOpen] = useState(false);
-  const [isRejectModalOpen, setRejectModalOpen] = useState(false);
-  const [isViewModalOpen, setViewModalOpen] = useState(false);
+  // Modals
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isApproveOpen, setIsApproveOpen] = useState(false);
+  const [isRejectOpen, setIsRejectOpen] = useState(false);
 
-  // 4. Thêm helper hiển thị Toast
-  const showToast = (message, type = "info") => {
-    setToastData({ message, type });
-    setTimeout(() => setToastData(null), 3000);
-  };
+  // Filters
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("ALL");
 
-  // 5. Hàm gọi API để lấy danh sách khách sạn chờ duyệt
+  // --- Fetch ---
   const fetchSubmissions = async () => {
     try {
       setIsLoading(true);
-      // Gọi API lấy các cơ sở có trạng thái PENDING
       const response = await adminService.getPropertiesByStatus("PENDING");
       const data = response.data || [];
 
-      // Map dữ liệu API vào cấu trúc mà Card mong đợi
-      const mappedData = data.map(sub => ({
-        ...sub, // Truyền toàn bộ object DTO vào modal
-        id: sub.propertyId, // Dùng propertyId làm key
-        hotelName: sub.name,
-        ownerName: sub.ownerName || "Chưa rõ",
-        location: `${sub.address}, ${sub.city}`,
-        // Giữ lại status badge
-        status: <Badge color="warning">Đang chờ duyệt</Badge>,
+      const mappedData = data.map((hotel) => ({
+        ...hotel,
+        id: hotel.propertyId,
+        hotelName: hotel.name,
+        ownerName: hotel.owner?.fullName || "Chủ sở hữu ẩn",
+        imageUrl:
+          hotel.images?.[0]?.imageUrl ||
+          "https://via.placeholder.com/400x300?text=No+Image",
+        submittedDate: hotel.createdAt
+          ? new Date(hotel.createdAt).toLocaleDateString("vi-VN")
+          : "N/A",
+        propertyType: hotel.propertyType || "UNKNOWN",
       }));
-      
-      setSubmissions(mappedData);
+
+      setAllSubmissions(mappedData);
     } catch (error) {
-      console.error(error);
-      showToast(error.message || "Không thể tải danh sách khách sạn", "error");
+      showToast(
+        error.message || "Không thể tải danh sách cơ sở",
+        "error"
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 6. Gọi API khi component mount
   useEffect(() => {
     fetchSubmissions();
   }, []);
 
+  // --- Filtering ---
+  const filteredSubmissions = useMemo(() => {
+    let submissions = [...allSubmissions];
 
-  // --- Các hàm xử lý (giữ nguyên tên) ---
-  const handleApproveClick = (submission) => {
-    setSelectedSubmission(submission);
-    setApproveModalOpen(true);
-  };
-
-  const handleRejectClick = (submission) => {
-    setSelectedSubmission(submission);
-    setRejectModalOpen(true);
-  };
-  
-  const handleViewDetails = (submission) => {
-     setSelectedSubmission(submission);
-     setViewModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setSelectedSubmission(null);
-    setApproveModalOpen(false);
-    setRejectModalOpen(false);
-    setViewModalOpen(false);
-  };
-
-  // 7. Cập nhật hàm xử lý API DUYỆT
-  const onConfirmApprove = async () => {
-    if (!selectedSubmission) return;
-    try {
-      const payload = { status: "APPROVED", reason: null };
-      // Dùng 'selectedSubmission.id' (đã map từ propertyId)
-      await adminService.reviewProperty(selectedSubmission.id, payload);
-      
-      showToast("Phê duyệt khách sạn thành công!", "success");
-      fetchSubmissions(); // Tải lại danh sách
-      closeModal();
-    } catch (error) {
-      showToast(error.message || "Lỗi khi duyệt khách sạn", "error");
+    if (filterType !== "ALL") {
+      submissions = submissions.filter((s) => s.propertyType === filterType);
     }
-  };
-  
-  // 8. Cập nhật hàm xử lý API TỪ CHỐI
-  const onConfirmReject = async (reason) => {
-    if (!selectedSubmission) return;
-    try {
-      const payload = { status: "REJECTED", reason: reason };
-      await adminService.reviewProperty(selectedSubmission.id, payload);
 
-      showToast("Đã từ chối khách sạn!", "success");
-      fetchSubmissions(); // Tải lại danh sách
-      closeModal();
-    } catch (error) {
-       showToast(error.message || "Lỗi khi từ chối khách sạn", "error");
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      submissions = submissions.filter(
+        (s) =>
+          s.hotelName.toLowerCase().includes(q) ||
+          s.ownerName.toLowerCase().includes(q)
+      );
     }
+
+    return submissions;
+  }, [allSubmissions, searchTerm, filterType]);
+
+  // --- Helpers ---
+  const showToast = (message, type = "info") => {
+    setToastData({ message, type });
+    setTimeout(() => setToastData(null), 3000);
   };
+
+  const handleViewDetails = (hotel) => {
+    setSelectedHotel(hotel);
+    setIsViewOpen(true);
+  };
+
+  const handleApproveClick = (hotel) => {
+    setSelectedHotel(hotel);
+    setIsApproveOpen(true);
+  };
+
+  const handleRejectClick = (hotel) => {
+    setSelectedHotel(hotel);
+    setIsRejectOpen(true);
+  };
+
+  const closeModals = () => {
+    setIsViewOpen(false);
+    setIsApproveOpen(false);
+    setIsRejectOpen(false);
+    setTimeout(() => setSelectedHotel(null), 200);
+  };
+
+  // TODO: add your confirm handlers here
+  const onConfirmApprove = async () => {};
+  const onConfirmReject = async () => {};
 
   return (
     <>
-      {/* 9. Thêm Toast vào UI */}
+      {/* Toast */}
       {toastData && (
         <div className="fixed top-24 right-6 z-[9999]">
           <Toast message={toastData.message} type={toastData.type} />
         </div>
       )}
 
-      <Card>
-        {/* Cập nhật subtitle với dữ liệu thật */}
+      <Card className="overflow-hidden">
         <CardHeader
-          title="Duyệt Khách sạn Mới"
-          subtitle={`Bạn có ${submissions.length} khách sạn đang chờ phê duyệt`}
-          icon={<Building2 className="text-[rgb(40,169,224)]" />}
+          title="Phê duyệt Đơn đăng ký Cơ sở"
+          subtitle={`Bạn có ${filteredSubmissions.length} cơ sở đang chờ phê duyệt`}
+          icon={<Hotel className="text-blue-600" />}
         />
-        
-        {/* 10. Thêm logic Loading */}
-        {isLoading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="animate-spin text-blue-500" size={40} />
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(340px,1fr))] gap-5 mt-4">
-              {/* 11. Map qua 'submissions' thay vì 'mockHotelSubmissions' */}
-              {submissions.length > 0 && submissions.map((sub) => (
-                <HotelSubmissionCard
-                  key={sub.id}
-                  submission={sub}
-                  onApprove={() => handleApproveClick(sub)}
-                  onReject={() => handleRejectClick(sub)}
-                  onViewDetails={() => handleViewDetails(sub)}
-                />
-              ))}
+
+        {/* Filters */}
+        <div className="flex flex-col md:flex-row gap-4 bg-gray-50 border rounded-lg p-4 mt-4 shadow-inner">
+          <SubmissionSearchBar onSearch={setSearchTerm} />
+          <SubmissionTypeFilter
+            currentType={filterType}
+            onTypeChange={setFilterType}
+          />
+        </div>
+
+        {/* List */}
+        <div className="mt-6">
+          {isLoading ? (
+            <div className="flex justify-center py-24">
+              <Loader2 className="animate-spin text-blue-500" size={42} />
             </div>
-            
-            {/* 12. Thêm EmptyState khi không có dữ liệu */}
-            {submissions.length === 0 && (
-               <div className="col-span-full">
-                <EmptyState
-                  title="Không có khách sạn"
-                  description="Hiện tại không có khách sạn nào đang chờ phê duyệt."
-                />
-              </div>
-            )}
-          </>
-        )}
+          ) : (
+            <motion.div layout className="flex flex-col gap-6">
+              <AnimatePresence>
+                {filteredSubmissions.length > 0 ? (
+                  filteredSubmissions.map((hotel) => (
+                    <HotelSubmissionCard
+                      key={hotel.id}
+                      hotel={hotel}
+                      onViewDetails={() => handleViewDetails(hotel)}
+                      onApprove={() => handleApproveClick(hotel)}
+                      onReject={() => handleRejectClick(hotel)}
+                    />
+                  ))
+                ) : (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <EmptyState
+                      title="Không tìm thấy cơ sở"
+                      description={
+                        allSubmissions.length
+                          ? "Không có cơ sở nào khớp với tiêu chí tìm kiếm/lọc."
+                          : "Hiện tại không có cơ sở nào đang chờ xử lý."
+                      }
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </div>
       </Card>
 
-      {/* --- Các Modals (Quan trọng: Sửa prop 'application') --- */}
-      
-      {/* Các modal Approve/Reject đang mong chờ prop 'application'.
-        Chúng ta truyền 'selectedSubmission' vào prop 'application' đó.
-      */}
-      <ApproveHotelModal
-        open={isApproveModalOpen}
-        onClose={closeModal}
-        application={selectedSubmission} // ✅ Prop 'application'
-        onConfirm={onConfirmApprove}
-      />
-      
-      <RejectHotelModal
-        open={isRejectModalOpen}
-        onClose={closeModal}
-        application={selectedSubmission} // ✅ Prop 'application'
-        onConfirm={onConfirmReject}
-      />
-      
-      {/* Modal này đã dùng đúng prop 'submission' */}
-      {selectedSubmission && (
-        <ViewHotelSubmissionModal
-          open={isViewModalOpen}
-          onClose={closeModal}
-          submission={selectedSubmission}
-        />
+      {/* Modals */}
+      {selectedHotel && (
+        <>
+          <ViewHotelSubmissionModal
+            open={isViewOpen}
+            onClose={closeModals}
+            application={selectedHotel}
+          />
+
+          <ApproveHotelModal
+            open={isApproveOpen}
+            onClose={closeModals}
+            application={{ hotelName: selectedHotel.hotelName }}
+            onConfirm={onConfirmApprove}
+          />
+
+          <RejectHotelModal
+            open={isRejectOpen}
+            onClose={closeModals}
+            application={{ hotelName: selectedHotel.hotelName }}
+            onConfirm={onConfirmReject}
+          />
+        </>
       )}
     </>
   );
