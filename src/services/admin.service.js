@@ -64,8 +64,8 @@ const reviewOwnerApplication = async (applicationId, reviewData) => {
 // ============================
 const getPropertiesByStatus = async (status) => {
   try {
-    // Chúng ta gọi đến /api/v1/properties, không phải /admin
-    const response = await axios.get(`${API_URL}/properties/status/${status}`, {
+    // SỬA LỖI: Gọi đến đúng endpoint /admin/properties/pending của backend
+    const response = await axios.get(`${API_URL}/admin/properties/pending`, {
       headers: getAuthHeader(),
     });
     return response.data; // Trả về ApiResponse { success, message, data: [PropertyDetailDTO] }
@@ -85,8 +85,9 @@ const getPropertiesByStatus = async (status) => {
 const reviewProperty = async (propertyId, reviewData) => {
   try {
     // reviewData là { status: "APPROVE" | "REJECTED", reason: "..." }
+    // SỬA LỖI: Thêm tiền tố /admin vào URL
     const response = await axios.post(
-      `${API_URL}/properties/${propertyId}/review`,
+      `${API_URL}/admin/properties/${propertyId}/review`,
       reviewData,
       {
         headers: getAuthHeader(),
