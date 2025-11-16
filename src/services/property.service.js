@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "./axios.config.js"; // ✅ 1. IMPORT API INSTANCE
 
 // Đảm bảo REACT_APP_API_URL được định nghĩa trong file .env của bạn
 const API_URL = import.meta.env.VITE_REACT_APP_API_URL || "http://localhost:8386/api/v1";

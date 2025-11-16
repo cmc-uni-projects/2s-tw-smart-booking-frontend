@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "./axios.config.js"; // ✅ 1. IMPORT API INSTANCE
 
 const API_BASE_URL = "http://localhost:8386/api/v1";
 

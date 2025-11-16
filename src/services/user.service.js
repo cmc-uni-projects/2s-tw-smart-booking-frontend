@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "./axios.config.js"; // ✅ 1. IMPORT API INSTANCE
 
 // Đảm bảo API_URL này đúng
 const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1";
