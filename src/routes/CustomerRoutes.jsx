@@ -82,16 +82,15 @@ const customerRoutes = [
     ),
   },
   {
-    path: "/customer/profile",
-    element: (
+  path: "/customer/profile",
+  element: (
+    <CustomerLayout>
       <ProtectedRoute roles={["CUSTOMER"]}>
-        <CustomerDashboardLayout>
-          <ProfilePage />
-        </CustomerDashboardLayout>
+        <ProfilePage />
       </ProtectedRoute>
-    ),
-  },
-  // ... (Các route /customer/ khác)
+    </CustomerLayout>
+  ),
+},
   {
     path: "/customer/profile/settings",
     element: (

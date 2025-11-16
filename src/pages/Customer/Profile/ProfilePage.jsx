@@ -1,4 +1,3 @@
-// src/pages/Customer/Profile/ProfilePage.jsx
 import React, { useState, useEffect } from "react";
 import TextField from "@/components/common/Input/TextField";
 import Select from "@/components/common/Select/Select";
@@ -11,10 +10,11 @@ import SettingsPage from "./SettingsPage";
 import ChangePassword from "./ChangePassword";
 import AddPhoneModal from "./AddPhoneModal";
 import AccountMenu from "./AccountMenu";
-// ✅ Đã thêm Edit và Plus vào import
 import { Save, X, Plus, Edit, MapPin, Flag, Building } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { userService } from "@/services/user.service";
+// ✅ 1. IMPORT COMPONENT NGÀY SINH MỚI
+import DateOfBirthInput from "@/components/common/Input/DateOfBirthInput";
 
 const PROFILE_TABS = [
   { id: "info", name: "Thông tin tài khoản" },
@@ -31,6 +31,7 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: "", type: "info" });
+  const [error, setError] = useState(null); // Thêm state lỗi
 
   // --- State Dữ liệu ---
   const [userData, setUserData] = useState(null);
@@ -40,6 +41,7 @@ const ProfilePage = () => {
     email: "",
     phoneNumber: "",
     gender: "",
+    birthDate: null, // ✅ 2. THÊM TRƯỜNG NGÀY SINH VÀO STATE
     address: "",
     city: "",
     country: "",
@@ -53,6 +55,7 @@ const ProfilePage = () => {
     email: data.email || "",
     phoneNumber: data.phoneNumber || "",
     gender: data.gender || "",
+    birthDate: data.birthDate || null, // ✅ 3. MAP TRƯỜNG NGÀY SINH
     address: data.address || "",
     city: data.city || "",
     country: data.country || "",
@@ -65,27 +68,34 @@ const ProfilePage = () => {
     setTimeout(() => setToast((prev) => ({ ...prev, show: false })), duration);
   };
 
-// --- 1. Fetch Profile (ĐÃ SỬA) ---
-useEffect(() => {
+// --- 1. Fetch Profile (✅ ĐÃ SỬA LẠI LẦN NỮA) ---
+  useEffect(() => {
     const fetchProfile = async () => {
-        try {
-            // SỬA Ở ĐÂY: API /me trả về DTO trực tiếp
-            const profileData = await userService.getUserDetail(); 
+      try {
+        setError(null); // Reset lỗi
+        
+        // ✅ SỬA 1: API này trả về DTO trực tiếp, không bọc trong {success: ...}
+        // (Giống như code gốc của bạn)
+        const profileData = await userService.getUserDetail(); 
 
-            // Bỏ 'if (res.success)' và 'res.data'
-            const mapped = mapDataToForm(profileData);
-            setUserData(mapped);
-            setFormData(mapped);
+        // ✅ SỬA 2: Bỏ hoàn toàn logic 'if (res.success)'
+        // vì 'profileData' chính là dữ liệu
+        const mapped = mapDataToForm(profileData);
+        setUserData(mapped);
+        setFormData(mapped);
 
-        } catch (error) {
-            console.error("Failed to fetch profile:", error);
-        }
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+        
+        // Nếu API 404 hoặc 500, nó sẽ bị bắt ở đây
+        setError(error.message || "Lỗi kết nối máy chủ");
+      }
     };
 
     if (currentUser) {
-        fetchProfile();
+      fetchProfile();
     }
-}, [currentUser]); // Thêm [currentUser] vào dependency array 
+  }, [currentUser]);
 
   // --- Handlers Form ---
   const handleChange = (e) => {
@@ -97,8 +107,9 @@ useEffect(() => {
 
   const isFormDirty = () => JSON.stringify(formData) !== JSON.stringify(userData);
 
-  // --- 2. Xử lý Upload Avatar (Được gọi từ AccountMenu) ---
+  // --- 2. Xử lý Upload Avatar (Giữ nguyên) ---
   const handleAvatarUpload = async (file) => {
+    // (Giữ nguyên code của bạn)
     setIsUploadingAvatar(true);
     try {
       const res = await userService.uploadAvatar(file);
@@ -122,7 +133,8 @@ useEffect(() => {
     }
   };
 
-  // --- 3. Lưu Thông Tin ---
+  // --- 3. Lưu Thông Tin (Giữ nguyên) ---
+  // (Hàm này đã đúng, nó sẽ tự động gửi 'birthDate' vì 'birthDate' nằm trong 'formData')
   const handleSave = async (e) => {
     e.preventDefault();
 
@@ -154,6 +166,7 @@ useEffect(() => {
       if (err.response && err.response.status === 409) {
         try {
           const refreshRes = await userService.getUserDetail();
+          // Sửa ở đây: Phải là refreshRes.success
           if (refreshRes.success && refreshRes.data.userdetailId) {
             const realId = refreshRes.data.userdetailId;
             const retryData = { ...formData, userdetailId: realId };
@@ -184,8 +197,9 @@ useEffect(() => {
     }
   };
 
-  // --- 4. Lưu SĐT từ Modal ---
+  // --- 4. Lưu SĐT từ Modal (Giữ nguyên) ---
   const handleSaveNewPhone = async (newPhone) => {
+    // (Giữ nguyên code của bạn)
     const payload = { ...formData, phoneNumber: newPhone };
     setLoading(true);
     try {
@@ -205,6 +219,7 @@ useEffect(() => {
         if (err.response?.status === 409) {
              showToastAndDismiss("Hệ thống đang đồng bộ, vui lòng thử lại sau giây lát.", "warning");
              userService.getUserDetail().then(res => {
+                // Sửa ở đây: Phải là res.success
                 if(res.success) {
                     const mapped = mapDataToForm(res.data);
                     setUserData(mapped);
@@ -244,6 +259,16 @@ useEffect(() => {
                 value={formData.fullName}
                 onChange={handleChange}
                 required
+              />
+
+              {/* ✅ 4. SỬ DỤNG COMPONENT MỚI TẠI ĐÂY */}
+              <DateOfBirthInput
+                label="Ngày sinh"
+                value={formData.birthDate}
+                onChange={(dateString) => {
+                  // dateString sẽ là "YYYY-MM-DD" hoặc null
+                  setFormData((prev) => ({ ...prev, birthDate: dateString }));
+                }}
               />
 
               <Select
@@ -302,7 +327,7 @@ useEffect(() => {
           </div>
         </Card>
 
-        {/* Email Section */}
+        {/* Email Section (Giữ nguyên) */}
         <Card>
           <div className="p-6">
             <div className="flex justify-between items-center border-b pb-4 mb-4">
@@ -326,7 +351,7 @@ useEffect(() => {
           </div>
         </Card>
 
-        {/* Phone Section */}
+        {/* Phone Section (Giữ nguyên) */}
         <Card>
           <div className="p-6">
             <div className="flex justify-between items-center border-b pb-4 mb-4">
@@ -339,7 +364,6 @@ useEffect(() => {
               <Button
                 variant="outline"
                 size="sm"
-                // ✅ Edit và Plus được sử dụng ở đây
                 leftIcon={formData.phoneNumber ? <Edit size={16} /> : <Plus size={16} />}
                 onClick={() => setIsPhoneModalOpen(true)}
               >
@@ -365,6 +389,7 @@ useEffect(() => {
     );
   };
 
+  // (Các hàm renderSecurityTab, renderMainContent, renderContent giữ nguyên)
   const renderSecurityTab = () => (
     <div className="space-y-10">
       <ChangePassword />
@@ -421,50 +446,64 @@ useEffect(() => {
     }
   };
 
-  if (!currentUser || !userData) {
+  // Xử lý trạng thái Loading / Lỗi
+  if (error) {
     return (
-        <div className="flex justify-center items-center h-[50vh]">
-          <p className="text-gray-500">Đang tải dữ liệu...</p>
-        </div>
+      <div className="flex flex-col justify-center items-center h-[50vh] p-6">
+        <p className="text-red-600 font-semibold">Đã xảy ra lỗi:</p>
+        <p className="text-gray-700">{error}</p>
+        <Button onClick={() => window.location.reload()} className="mt-4">
+          Thử lại
+        </Button>
+      </div>
     );
   }
 
+  if (!currentUser || !userData) {
+    return (
+      <div className="flex justify-center items-center h-[50vh]">
+        <p className="text-gray-500">Đang tải dữ liệu...</p>
+      </div>
+    );
+  }
+
+  // Render chính (Giữ nguyên)
   return (
-      <main className="w-full bg-gray-50 text-gray-800">
-        <div className="max-w-7xl mx-auto p-6">
-          <div className="grid grid-cols-12 gap-8">
-            <div className="col-span-3">
-              <AccountMenu
-                activeSection={activeSection}
-                onSelect={setActiveSection}
-                userData={userData || formData}
-                onAvatarUpload={handleAvatarUpload}
-                isUploadingAvatar={isUploadingAvatar}
-              />
-            </div>
-            <div className="col-span-9">
-              {renderMainContent()}
+    <main className="w-full bg-gray-50 text-gray-800">
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="grid grid-cols-12 gap-8">
+          <div className="col-span-3">
+            <AccountMenu
+              activeSection={activeSection}
+              onSelect={setActiveSection}
+              userData={userData || formData}
+              onAvatarUpload={handleAvatarUpload}
+              isUploadingAvatar={isUploadingAvatar}
+            />
+          </div>
+          <div className="col-span-9">
+            {renderMainContent()}
 
-              <ToastPortal>
-                {toast.show && (
-                  <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999]">
-                    <Toast message={toast.msg} type={toast.type} />
-                  </div>
-                )}
-              </ToastPortal>
+            <ToastPortal>
+              {toast.show && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999]">
+                  <Toast message={toast.msg} type={toast.type} />
+                </div>
+              )}
+            </ToastPortal>
 
-              <AddPhoneModal
-                isOpen={isPhoneModalOpen}
-                onClose={() => setIsPhoneModalOpen(false)}
-                onSave={handleSaveNewPhone}
-                existingPhone={
-                  formData.phoneNumber ? { phone: formData.phoneNumber } : null
-                }
-              />
-            </div>
+            <AddPhoneModal
+              isOpen={isPhoneModalOpen}
+              onClose={() => setIsPhoneModalOpen(false)}
+              onSave={handleSaveNewPhone}
+              existingPhone={
+                formData.phoneNumber ? { phone: formData.phoneNumber } : null
+              }
+            />
           </div>
         </div>
-      </main>
+      </div>
+    </main>
   );
 };
 
