@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { addDays, parseISO, format } from "date-fns"; 
-import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
 import Button from "@/components/common/Button/Button";
 import { Search } from "lucide-react";
 
@@ -150,7 +149,6 @@ export default function HotelSearchPage() {
   };
 
   return (
-      <CustomerLayout>
         <main className="max-w-7xl mx-auto px-6">
           <div className="sticky top-16 z-20 flex justify-center py-6 bg-gray-50 -mx-6 px-6 border-b border-gray-200">
             <SearchBar 
@@ -184,6 +182,5 @@ export default function HotelSearchPage() {
             </div>
           </div>
         </main>
-      </CustomerLayout>
   );
 }

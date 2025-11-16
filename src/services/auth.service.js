@@ -34,12 +34,13 @@ const login = async (email, password) => {
 };
 
 // 2. Đăng ký
-const register = async (fullName, email, password) => {
+const register = async (fullName, email, password, confirmPassword) => {
   try {
     const response = await axios.post(`${API_URL}/auth/register`, {
       fullName,
       email,
       password,
+      confirmPassword,
     });
     return response.data;
   } catch (error) {
@@ -106,15 +107,18 @@ const resetPassword = async (token, newPassword) => {
 
 // 8. Xác thực Email
 const verifyEmail = async (token) => {
-  try {
-    const response = await axios.post(`${API_URL}/auth/verify-email`, { token });
-    return response.data;
-  } catch (error) {
-    if (error.response && error.response.data) {
-      throw new Error(error.response.data.message || "Email verification failed");
-    }
-    throw new Error("Cannot connect to server");
-  }
+  try {
+    // SỬA Ở ĐÂY: Dùng axios.get và gửi token qua params
+    const response = await axios.get(`${API_URL}/auth/verify-email`, { 
+        params: { token } // Gửi token dưới dạng ?token=...
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw new Error(error.response.data.message || "Email verification failed");
+    }
+    throw new Error("Cannot connect to server");
+  }
 };
 
 

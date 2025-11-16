@@ -1,6 +1,5 @@
 // src/pages/Customer/About/MyInboxPage.jsx
-import React, { useState, useEffect, useRef } from 'react';
-import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { 
   CheckCircle2, XCircle, Bell, X, Search, 
@@ -8,13 +7,12 @@ import {
   AlertTriangle 
 } from 'lucide-react';
 import inboxIllustration from '../../../assets/logo/inbox-illustration.png';
-// ✅ 1. Import
 import { useNavigate } from 'react-router-dom';
 import { authService } from "@/services/auth.service";
 import Button from "@/components/common/Button/Button";
 
 const DUMMY_NOTIFICATIONS = [
-  { id: 1, type: 'APPROVAL', title: 'Yêu cầu được duyệt', message: "Yêu cầu 'Trở thành chủ khách sạn' của bạn đã được phê duyệt.", createdAt: '2025-11-13T09:30:00Z', isRead: false },
+  { id: 1, type: 'APPVAL', title: 'Yêu cầu được duyệt', message: "Yêu cầu 'Trở thành chủ khách sạn' của bạn đã được phê duyệt.", createdAt: '2025-11-13T09:30:00Z', isRead: false },
   { id: 2, type: 'REJECTION', title: 'Yêu cầu bị từ chối', message: "Yêu cầu thêm khách sạn 'Khách sạn Sông Hàn' đã bị từ chối.", createdAt: '2025-11-12T15:00:00Z', isRead: true },
   { id: 3, type: 'GENERAL', title: 'Chào mừng đến với TravelMate', message: 'Cảm ơn bạn đã đăng ký tài khoản.', createdAt: '2025-11-11T10:00:00Z', isRead: true },
   ...Array.from({ length: 20 }, (_, i) => ({
@@ -59,7 +57,6 @@ const getNotificationIcon = (type) => {
 };
 
 const MyInboxPage = () => {
-  // ✅ 2. Lấy hàm từ context và hook
   const { currentUser, updateUser, logout, hasRole } = useAuth();
   const navigate = useNavigate();
 
@@ -74,7 +71,6 @@ const MyInboxPage = () => {
   const itemsPerPage = 8;
   const [openMenuId, setOpenMenuId] = useState(null);
   const [notificationToDelete, setNotificationToDelete] = useState(null);
-  // ✅ 3. Thêm state loading
   const [isRefreshingRole, setIsRefreshingRole] = useState(false);
 
   const activeFilterClass = "bg-[rgb(40,169,224)] text-white hover:bg-[#1b98d6]";
@@ -98,7 +94,6 @@ const MyInboxPage = () => {
     fetchNotifications();
   }, [currentUser]);
 
-  // ✅ 4. Hàm làm mới quyền (giống hệt Header.jsx)
   const handleAccessOwnerChannel = async () => {
     setIsRefreshingRole(true);
     if (hasRole("OWNER")) {
@@ -133,11 +128,10 @@ const MyInboxPage = () => {
       logout();
     } finally {
       setIsRefreshingRole(false);
-      setSelectedNoti(null); // Đóng modal
+      setSelectedNoti(null);
     }
   };
 
-  // ... (Tất cả các hàm khác: markAllAsRead, handleMarkAsUnread, ... giữ nguyên) ...
   const markAllAsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
   };
@@ -163,6 +157,7 @@ const MyInboxPage = () => {
     e.stopPropagation(); 
     setOpenMenuId(prevId => (prevId === id ? null : id)); 
   };
+
   const filteredNotifications = notifications
     .filter(n => {
       if (filter === 'UNREAD') return !n.isRead;
@@ -181,13 +176,11 @@ const MyInboxPage = () => {
         vietnameseType.includes(term)
       );
     });
+
   const totalPages = Math.ceil(filteredNotifications.length / itemsPerPage);
   const paginatedNotifications = filteredNotifications.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  // -----------------------------------------------------------------
-
 
   const renderContent = () => {
-    // ... (Toàn bộ logic renderContent giữ nguyên) ...
     if (loading) return <div className="p-16 text-center text-gray-500">Đang tải thông báo...</div>;
     if (error) return <div className="p-16 text-center text-red-600">{error}</div>;
     if (!loading && !error && filteredNotifications.length === 0) {
@@ -303,20 +296,20 @@ const MyInboxPage = () => {
       </>
     );
   };
-  // -----------------------------------------------------------------
-
 
   return (
-    <CustomerLayout>
-      {/* ... (Phần Sidebar và Header của trang giữ nguyên) ... */}
+    <>
       {openMenuId && (
         <div 
           className="fixed inset-0 z-10" 
           onClick={() => setOpenMenuId(null)} 
         />
       )}
-      <div className="bg-gray-50 min-h-screen">
+
+      <div className="bg-gray-50 min-h-screen pt-6">
         <div className="max-w-7xl mx-auto py-8 px-4 md:px-8 flex flex-col md:flex-row gap-8">
+          
+          {/* SIDEBAR */}
           <aside className="w-full md:w-64 bg-white shadow-lg rounded-lg p-6 h-fit flex-shrink-0 animate-fadeIn">
             <div className="mb-6">
               <h2 className="text-lg font-bold mb-3">Trạng thái</h2>
@@ -352,6 +345,8 @@ const MyInboxPage = () => {
               </ul>
             </div>
           </aside>
+
+          {/* MAIN CONTENT */}
           <div className="flex-1">
             <h1 className="text-3xl font-bold mb-6 text-gray-800">Hộp thư của tôi</h1>
             <div className="bg-white rounded-lg shadow-xl overflow-hidden">
@@ -360,10 +355,8 @@ const MyInboxPage = () => {
           </div>
         </div>
       </div>
-      {/* ----------------------------------------------------------------- */}
 
-
-      {/* ✅ 5. CẬP NHẬT MODAL (Thêm nút "Đến Kênh Chủ nhà") */}
+      {/* MODAL Xem chi tiết */}
       {selectedNoti && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
@@ -374,7 +367,6 @@ const MyInboxPage = () => {
             <p className="text-gray-600 mb-4">{selectedNoti.message}</p>
             <p className="text-xs text-gray-400 mb-6">Thời gian: {new Date(selectedNoti.createdAt).toLocaleString()}</p>
 
-            {/* Thêm nút này nếu đây là thông báo duyệt đơn */}
             {selectedNoti.type === 'APPROVAL' && (
               <Button
                 fullWidth
@@ -389,7 +381,7 @@ const MyInboxPage = () => {
         </div>
       )}
 
-      {/* Modal xác nhận xóa (giữ nguyên) */}
+      {/* MODAL Xác nhận xóa */}
       {notificationToDelete && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn"
@@ -424,7 +416,7 @@ const MyInboxPage = () => {
         </div>
       )}
 
-    </CustomerLayout>
+    </>
   );
 };
 

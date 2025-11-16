@@ -1,5 +1,4 @@
 import React from "react";
-import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
 
 // Sections
 import HeroSection from "./HeroSection";
@@ -11,7 +10,6 @@ import TestimonialSection from "./TestimonialSection";
 
 const HomePage = () => {
   return (
-    <CustomerLayout>
       <main className="flex flex-col gap-16">
         <HeroSection />
         <FeaturedHotels />
@@ -20,7 +18,6 @@ const HomePage = () => {
         <AIRecommendations />
         <TestimonialSection />
       </main>
-    </CustomerLayout>
   );
 };
 

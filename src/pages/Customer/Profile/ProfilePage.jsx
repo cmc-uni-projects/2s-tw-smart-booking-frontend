@@ -1,6 +1,5 @@
-// src/pages/Customer/Profile/ProfilePage.jsx
-import React, { useState, useEffect } from "react";
-import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
+// ✅ SỬA 1: Thêm 'useCallback' vào import
+import React, { useState, useEffect, useCallback } from "react"; 
 import TextField from "@/components/common/Input/TextField";
 import Select from "@/components/common/Select/Select";
 import Button from "@/components/common/Button/Button";
@@ -12,10 +11,10 @@ import SettingsPage from "./SettingsPage";
 import ChangePassword from "./ChangePassword";
 import AddPhoneModal from "./AddPhoneModal";
 import AccountMenu from "./AccountMenu";
-// ✅ Đã thêm Edit và Plus vào import
 import { Save, X, Plus, Edit, MapPin, Flag, Building } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { userService } from "@/services/user.service";
+import DateOfBirthInput from "@/components/common/Input/DateOfBirthInput";
 
 const PROFILE_TABS = [
   { id: "info", name: "Thông tin tài khoản" },
@@ -32,6 +31,7 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: "", type: "info" });
+  const [error, setError] = useState(null); 
 
   // --- State Dữ liệu ---
   const [userData, setUserData] = useState(null);
@@ -41,6 +41,7 @@ const ProfilePage = () => {
     email: "",
     phoneNumber: "",
     gender: "",
+    birthDate: null, 
     address: "",
     city: "",
     country: "",
@@ -54,6 +55,7 @@ const ProfilePage = () => {
     email: data.email || "",
     phoneNumber: data.phoneNumber || "",
     gender: data.gender || "",
+    birthDate: data.birthDate || null,
     address: data.address || "",
     city: data.city || "",
     country: data.country || "",
@@ -66,18 +68,27 @@ const ProfilePage = () => {
     setTimeout(() => setToast((prev) => ({ ...prev, show: false })), duration);
   };
 
-  // --- 1. Fetch Profile ---
+  // --- 1. Fetch Profile (✅ SỬA LẠI LOGIC API) ---
+  // (Khắc phục lỗi 'Không thể tải hồ sơ')
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await userService.getMyProfile();
-        if (res.success) {
-          const mapped = mapDataToForm(res.data);
+        setError(null);
+        // API 'getUserDetail' trả về DTO (profileData) trực tiếp
+        const profileData = await userService.getUserDetail(); 
+
+        if (profileData) {
+          const mapped = mapDataToForm(profileData);
           setUserData(mapped);
           setFormData(mapped);
+        } else {
+           throw new Error("Không nhận được dữ liệu hồ sơ");
         }
+
       } catch (error) {
         console.error("Failed to fetch profile:", error);
+        // Nếu API 404/500, lỗi sẽ được bắt ở đây
+        setError(error.message || "Lỗi kết nối máy chủ");
       }
     };
 
@@ -96,10 +107,17 @@ const ProfilePage = () => {
 
   const isFormDirty = () => JSON.stringify(formData) !== JSON.stringify(userData);
 
-  // --- 2. Xử lý Upload Avatar (Được gọi từ AccountMenu) ---
+  // ✅ 2. BỌC HÀM 'onChange' TRONG 'useCallback'
+  // (Tốt cho hiệu năng, dù component con mới không còn yêu cầu)
+  const handleDateChange = useCallback((dateString) => {
+    setFormData((prev) => ({ ...prev, birthDate: dateString }));
+  }, []); 
+
+  // --- 2. Xử lý Upload Avatar (Giữ nguyên) ---
   const handleAvatarUpload = async (file) => {
     setIsUploadingAvatar(true);
     try {
+      // API này trả về { success: true, data: ... }
       const res = await userService.uploadAvatar(file);
       
       if (res.success && res.data) {
@@ -121,7 +139,8 @@ const ProfilePage = () => {
     }
   };
 
-  // --- 3. Lưu Thông Tin ---
+  // --- 3. Lưu Thông Tin (Giữ nguyên) ---
+  // (API này trả về { data: { success: true, data: ... } })
   const handleSave = async (e) => {
     e.preventDefault();
 
@@ -132,7 +151,7 @@ const ProfilePage = () => {
 
     setLoading(true);
     try {
-      const res = await userService.updateProfile(formData);
+      const res = await userService.updateUserDetail(formData);
 
       if (res.data.success) {
         const updatedData = res.data.data;
@@ -152,12 +171,13 @@ const ProfilePage = () => {
 
       if (err.response && err.response.status === 409) {
         try {
-          const refreshRes = await userService.getMyProfile();
-          if (refreshRes.success && refreshRes.data.userdetailId) {
-            const realId = refreshRes.data.userdetailId;
+          // API 'getUserDetail' trả về DTO trực tiếp
+          const refreshData = await userService.getUserDetail();
+          if (refreshData && refreshData.userdetailId) {
+            const realId = refreshData.userdetailId;
             const retryData = { ...formData, userdetailId: realId };
             
-            const retryRes = await userService.updateProfile(retryData);
+            const retryRes = await userService.updateUserDetail(retryData);
             if (retryRes.data.success) {
               const newUserData = mapDataToForm(retryRes.data.data);
               setUserData(newUserData);
@@ -183,12 +203,12 @@ const ProfilePage = () => {
     }
   };
 
-  // --- 4. Lưu SĐT từ Modal ---
+  // --- 4. Lưu SĐT từ Modal (Giữ nguyên) ---
   const handleSaveNewPhone = async (newPhone) => {
     const payload = { ...formData, phoneNumber: newPhone };
     setLoading(true);
     try {
-      const res = await userService.updateProfile(payload);
+      const res = await userService.updateUserDetail(payload);
       if (res.data.success) {
         const updatedData = res.data.data;
         const newUserData = mapDataToForm(updatedData);
@@ -203,9 +223,9 @@ const ProfilePage = () => {
     } catch (err) {
         if (err.response?.status === 409) {
              showToastAndDismiss("Hệ thống đang đồng bộ, vui lòng thử lại sau giây lát.", "warning");
-             userService.getMyProfile().then(res => {
-                if(res.success) {
-                    const mapped = mapDataToForm(res.data);
+             userService.getUserDetail().then(refreshData => {
+                if(refreshData) { 
+                    const mapped = mapDataToForm(refreshData);
                     setUserData(mapped);
                     setFormData(prev => ({...prev, userdetailId: mapped.userdetailId}));
                 }
@@ -243,6 +263,13 @@ const ProfilePage = () => {
                 value={formData.fullName}
                 onChange={handleChange}
                 required
+              />
+
+              {/* ✅ 3. SỬ DỤNG HÀM 'handleDateChange' */}
+              <DateOfBirthInput
+                label="Ngày sinh"
+                value={formData.birthDate}
+                onChange={handleDateChange} 
               />
 
               <Select
@@ -301,7 +328,7 @@ const ProfilePage = () => {
           </div>
         </Card>
 
-        {/* Email Section */}
+        {/* Email Section (Giữ nguyên) */}
         <Card>
           <div className="p-6">
             <div className="flex justify-between items-center border-b pb-4 mb-4">
@@ -325,7 +352,7 @@ const ProfilePage = () => {
           </div>
         </Card>
 
-        {/* Phone Section */}
+        {/* Phone Section (Giữ nguyên) */}
         <Card>
           <div className="p-6">
             <div className="flex justify-between items-center border-b pb-4 mb-4">
@@ -338,7 +365,6 @@ const ProfilePage = () => {
               <Button
                 variant="outline"
                 size="sm"
-                // ✅ Edit và Plus được sử dụng ở đây
                 leftIcon={formData.phoneNumber ? <Edit size={16} /> : <Plus size={16} />}
                 onClick={() => setIsPhoneModalOpen(true)}
               >
@@ -364,6 +390,7 @@ const ProfilePage = () => {
     );
   };
 
+  // (Các hàm render... còn lại giữ nguyên)
   const renderSecurityTab = () => (
     <div className="space-y-10">
       <ChangePassword />
@@ -420,54 +447,64 @@ const ProfilePage = () => {
     }
   };
 
-  if (!currentUser || !userData) {
+  // Xử lý trạng thái Loading / Lỗi (Giữ nguyên)
+  if (error) {
     return (
-      <CustomerLayout>
-        <div className="flex justify-center items-center h-[50vh]">
-          <p className="text-gray-500">Đang tải dữ liệu...</p>
-        </div>
-      </CustomerLayout>
+      <div className="flex flex-col justify-center items-center h-[50vh] p-6">
+        <p className="text-red-600 font-semibold">Đã xảy ra lỗi:</p>
+        <p className="text-gray-700">{error}</p>
+        <Button onClick={() => window.location.reload()} className="mt-4">
+          Thử lại
+        </Button>
+      </div>
     );
   }
 
+  if (!currentUser || !userData) {
+    return (
+      <div className="flex justify-center items-center h-[50vh]">
+        <p className="text-gray-500">Đang tải dữ liệu...</p>
+      </div>
+    );
+  }
+
+  // Render chính (Giữ nguyên)
   return (
-    <CustomerLayout>
-      <main className="w-full bg-gray-50 text-gray-800">
-        <div className="max-w-7xl mx-auto p-6">
-          <div className="grid grid-cols-12 gap-8">
-            <div className="col-span-3">
-              <AccountMenu
-                activeSection={activeSection}
-                onSelect={setActiveSection}
-                userData={userData || formData}
-                onAvatarUpload={handleAvatarUpload}
-                isUploadingAvatar={isUploadingAvatar}
-              />
-            </div>
-            <div className="col-span-9">
-              {renderMainContent()}
+    <main className="w-full bg-gray-50 text-gray-800">
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="grid grid-cols-12 gap-8">
+          <div className="col-span-3">
+            <AccountMenu
+              activeSection={activeSection}
+              onSelect={setActiveSection}
+              userData={userData || formData}
+              onAvatarUpload={handleAvatarUpload}
+              isUploadingAvatar={isUploadingAvatar}
+            />
+          </div>
+          <div className="col-span-9">
+            {renderMainContent()}
 
-              <ToastPortal>
-                {toast.show && (
-                  <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999]">
-                    <Toast message={toast.msg} type={toast.type} />
-                  </div>
-                )}
-              </ToastPortal>
+            <ToastPortal>
+              {toast.show && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999]">
+                  <Toast message={toast.msg} type={toast.type} />
+                </div>
+              )}
+            </ToastPortal>
 
-              <AddPhoneModal
-                isOpen={isPhoneModalOpen}
-                onClose={() => setIsPhoneModalOpen(false)}
-                onSave={handleSaveNewPhone}
-                existingPhone={
-                  formData.phoneNumber ? { phone: formData.phoneNumber } : null
-                }
-              />
-            </div>
+            <AddPhoneModal
+              isOpen={isPhoneModalOpen}
+              onClose={() => setIsPhoneModalOpen(false)}
+              onSave={handleSaveNewPhone}
+              existingPhone={
+                formData.phoneNumber ? { phone: formData.phoneNumber } : null
+              }
+            />
           </div>
         </div>
-      </main>
-    </CustomerLayout>
+      </div>
+    </main>
   );
 };
 

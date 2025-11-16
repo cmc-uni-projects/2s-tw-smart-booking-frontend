@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import NotificationSettings from "./NotificationSettings";
-import LanguageSwitcher from "@/layouts/CustomerLayout/LanguageSwitcher";
 import Card from "@/components/common/Card/Card";
 import Button from "@/components/common/Button/Button";
 import Toast from "@/components/common/Notification/Toast";
