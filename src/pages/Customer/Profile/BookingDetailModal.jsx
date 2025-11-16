@@ -4,7 +4,7 @@ import Modal from "@/components/common/Modal/Modal";
 import Button from "@/components/common/Button/Button";
 import {
     CalendarDays, MapPin, Building, BedDouble, User, Hash, CreditCard,
-    Package, Users, PawPrint, ShieldAlert
+    Package, Users, PawPrint, ShieldAlert, Wallet // ✅ 1. Thêm icon Wallet
 } from 'lucide-react';
 
 // (Hàm renderStatusBadge giữ nguyên)
@@ -48,7 +48,8 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onCancelC
         adults = 0,
         children = 0,
         pets = false,
-        cancellationPolicy = "Không có thông tin chính sách hủy."
+        cancellationPolicy = "Không có thông tin chính sách hủy.",
+        paymentMethod = "Chưa rõ" // ✅ 2. Lấy dữ liệu paymentMethod
     } = booking;
 
     const guestString = `${adults} người lớn` + (children > 0 ? `, ${children} trẻ em` : "");
@@ -63,9 +64,9 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onCancelC
             maxWidth="max-w-4xl"
         >
 
-            {/* (Body và Chính sách hủy giữ nguyên) */}
+            {/* Body */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
-                {/* Cột 1 */}
+                {/* Cột 1 (Giữ nguyên) */}
                 <div className="space-y-2">
                     <h3 className="text-lg font-semibold text-gray-700 mb-2">Thông tin đặt phòng</h3>
                     <DetailRow icon={<Hash size={18} />} label="Mã đặt chỗ">
@@ -90,7 +91,8 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onCancelC
                         {petString}
                     </DetailRow>
                 </div>
-                {/* Cột 2 */}
+
+                {/* Cột 2 (Thêm Phương thức thanh toán) */}
                 <div className="space-y-2 mt-6 md:mt-0">
                     <h3 className="text-lg font-semibold text-gray-700 mb-2">Chi tiết</h3>
                     <DetailRow icon={<CalendarDays size={18} />} label="Nhận phòng">
@@ -102,28 +104,26 @@ export default function BookingDetailModal({ isOpen, onClose, booking, onCancelC
                     <DetailRow icon={<CreditCard size={18} />} label="Tổng thanh toán">
                         <span className="text-xl font-bold text-blue-600">{price}</span>
                     </DetailRow>
+
+                    {/* ✅ 3. THÊM MỚI TẠI ĐÂY */}
+                    <DetailRow icon={<Wallet size={18} />} label="Phương thức thanh toán">
+                        {paymentMethod}
+                    </DetailRow>
+
                     <DetailRow icon={<User size={18} />} label="Trạng thái">
                         {renderStatusBadge(booking.status)}
                     </DetailRow>
                 </div>
             </div>
+
+            {/* (Chính sách hủy và Footer giữ nguyên) */}
             <div className="mt-4 pt-4 border-t">
                 <DetailRow icon={<ShieldAlert size={18} className="text-yellow-600" />} label="Chính sách hủy">
                     {cancellationPolicy}
                 </DetailRow>
             </div>
 
-
-            {/* Footer */}
             <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-200">
-                {/* ✅ ĐÃ XÓA NÚT "ĐÓNG" */}
-                {/*
-                <Button variant="outline" onClick={onClose}>
-                    Đóng
-                </Button>
-                */}
-
-                {/* (Giữ lại nút Hủy) */}
                 {(booking.status === "CONFIRMED" || booking.status === "PENDING") && (
                     <Button
                         variant="primary"

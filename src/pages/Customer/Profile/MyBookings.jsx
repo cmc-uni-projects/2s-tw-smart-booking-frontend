@@ -1,13 +1,16 @@
 // src/pages/Customer/Profile/MyBookings.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import Card from "@/components/common/Card/Card";
-import { CalendarDays, MapPin, Loader2, FileText } from "lucide-react";
+import { CalendarDays, MapPin, Loader2, FileText, Search } from "lucide-react";
 import Button from "@/components/common/Button/Button";
 import Toast from "@/components/common/Notification/Toast";
 import ToastPortal from "@/components/common/Notification/ToastPortal";
 import { bookingService } from "@/services/booking.service";
-import BookingDetailModal from "./BookingDetailModal"; // Import Modal
-import CancelBookingModal from "./CancelBookingModal"; // Import Modal Hủy
+import BookingDetailModal from "./BookingDetailModal";
+import CancelBookingModal from "./CancelBookingModal";
+import TabsComponent from "@/components/common/Tabs/TabsComponent";
+import EmptyState from "@/components/common/EmptyState/EmptyState";
 
 // Dữ liệu mẫu (Đã cập nhật)
 const mockBookingsData = [
@@ -22,12 +25,12 @@ const mockBookingsData = [
         totalPrice: 8200000,
         status: "CONFIRMED",
         imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=300&q=80",
-        // --- Thông tin thêm ---
         roomCount: 2,
         adults: 2,
         children: 1,
         pets: true,
-        cancellationPolicy: "Miễn phí hủy trước 18/11/2025. Hủy sau thời gian này sẽ mất 50% phí."
+        cancellationPolicy: "Miễn phí hủy trước 18/11/2025. Hủy sau thời gian này sẽ mất 50% phí.",
+        paymentMethod: "VNPay" // ✅ THÊM MỚI
     },
     {
         id: 2,
@@ -39,12 +42,13 @@ const mockBookingsData = [
         checkOutDate: "2025-12-03",
         totalPrice: 4200000,
         status: "PENDING",
-        imageUrl: "https://images.unsplash.com/photo-1582719478250-c89caE4dc85b?auto=format&fit=crop&w=300&q=80",
+        imageUrl: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         roomCount: 1,
         adults: 2,
         children: 0,
         pets: false,
-        cancellationPolicy: "Hủy trong vòng 24h trước check-in sẽ mất 100% phí."
+        cancellationPolicy: "Hủy trong vòng 24h trước check-in sẽ mất 100% phí.",
+        paymentMethod: "Momo" // ✅ THÊM MỚI
     },
     {
         id: 3,
@@ -61,53 +65,66 @@ const mockBookingsData = [
         adults: 1,
         children: 0,
         pets: false,
-        cancellationPolicy: "Không hoàn hủy."
+        cancellationPolicy: "Không hoàn hủy.",
+        paymentMethod: "ZaloPay" // ✅ THÊM MỚI
     }
 ];
 
+const TABS = [
+    { id: "upcoming", name: "Sắp tới" },
+    { id: "cancelled", name: "Đã hủy" },
+    { id: "all", name: "Tất cả" },
+];
+
 export default function MyBookings() {
-    const [bookings, setBookings] = useState([]);
+    const [bookings, setBookings] = useState([]); // State gốc
     const [loading, setLoading] = useState(true);
     const [toast, setToast] = useState({ show: false, msg: "", type: "info" });
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState("upcoming");
+    const navigate = useNavigate();
 
     const showToast = (msg, type = "info", duration = 2500) => {
         setToast({ show: true, msg, type });
         setTimeout(() => setToast({ show: false, msg: "", type: "info" }), duration);
     };
 
-    // ✅ SỬA LỖI LOGIC TRONG useEffect
     useEffect(() => {
         let mounted = true;
-        // Bỏ 'async' vì chúng ta đang dùng setTimeout
         const load = () => {
             setLoading(true);
             try {
-                // Giả lập API call
                 setTimeout(() => {
                     if (mounted) {
                         setBookings(mockBookingsData);
-                        setLoading(false); // ✅ GỌI setLoading(false) Ở ĐÂY
+                        setLoading(false);
                     }
-                }, 1000); // Đặt cả hai trong cùng 1 timeout
-
+                }, 1000);
             } catch (err) {
                 console.error("fetch bookings error:", err);
                 showToast("Lỗi kết nối. Vui lòng thử lại.", "error");
                 if (mounted) {
-                    setLoading(false); // ✅ Đặt false nếu có lỗi
+                    setLoading(false);
                 }
             }
-            // ❌ Bỏ khối 'finally' có chứa setTimeout
         };
-
         load();
         return () => { mounted = false; };
-    }, []); // Dependency rỗng là đúng
+    }, []);
 
-    // (Hàm renderStatusBadge giữ nguyên)
+    const filteredBookings = useMemo(() => {
+        if (activeTab === "upcoming") {
+            return bookings.filter(b => b.status === "CONFIRMED" || b.status === "PENDING");
+        }
+        if (activeTab === "cancelled") {
+            return bookings.filter(b => b.status === "CANCELLED");
+        }
+        return bookings; // "all"
+    }, [bookings, activeTab]);
+
+    // (Các hàm renderStatusBadge, handleViewDetails, handleCloseModal, handleStartCancel, handleCloseCancelModal, handleConfirmCancel giữ nguyên)
     const renderStatusBadge = (status) => {
         switch (status) {
             case "CONFIRMED":
@@ -121,7 +138,6 @@ export default function MyBookings() {
         }
     };
 
-    // (Các hàm handler giữ nguyên)
     const handleViewDetails = (booking) => {
         setSelectedBooking(booking);
         setIsModalOpen(true);
@@ -159,9 +175,8 @@ export default function MyBookings() {
 
         handleCloseCancelModal();
         showToast("Đã gửi yêu cầu hủy đặt phòng (mock)", "success");
-        // TODO: Gọi API hủy và fetch lại danh sách booking
     };
-
+    // ------------------------------------
 
     if (loading) {
         return (
@@ -171,77 +186,103 @@ export default function MyBookings() {
         );
     }
 
-    if (!bookings || bookings.length === 0) {
-        return <div className="py-10 text-center text-gray-500">Bạn chưa có đơn đặt phòng nào.</div>;
-    }
-
     return (
         <div className="space-y-6">
-            {bookings.map((b) => (
-                <Card key={b.bookingId || b.id} className="p-0 overflow-hidden">
-                    <div className="flex flex-col md:flex-row">
+            <div className="border-b border-gray-200">
+                <TabsComponent
+                    tabs={TABS}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                />
+            </div>
 
-                        <div className="flex-shrink-0 w-full md:w-1/3 h-48 md:h-56">
-                            <img
-                                src={b.imageUrl}
-                                alt={b.hotelName}
-                                className="object-cover w-full h-full"
-                            />
+            {filteredBookings.length === 0 ? (
+                <div className="py-10">
+                    <EmptyState
+                        title={bookings.length === 0 ? "Bạn chưa có đơn đặt phòng nào" : "Không tìm thấy đơn đặt phòng"}
+                        description={bookings.length === 0 ? "Hãy bắt đầu chuyến đi của bạn và đặt ngay!" : "Không có đơn đặt phòng nào khớp với bộ lọc này."}
+                    />
+                    {bookings.length === 0 && (
+                        <div className="text-center mt-6">
+                            <Button
+                                size="lg"
+                                onClick={() => navigate("/hotels")}
+                                leftIcon={<Search size={18} />}
+                            >
+                                Tìm khách sạn ngay
+                            </Button>
                         </div>
-
-                        <div className="flex-1 p-5 flex flex-col justify-between">
-                            <div>
-                                <div className="flex justify-between items-start">
-                                    <h3 className="text-xl font-semibold text-gray-800">
-                                        {b.roomName || b.hotelName || "Đặt chỗ"}
-                                    </h3>
-                                    {renderStatusBadge(b.status)}
+                    )}
+                </div>
+            ) : (
+                <div className="space-y-6">
+                    {filteredBookings.map((b) => (
+                        <Card
+                            key={b.bookingId || b.id}
+                            className={`p-0 overflow-hidden transition-all duration-300 ${
+                                b.status === "CANCELLED" ? "opacity-60 grayscale" : ""
+                            }`}
+                        >
+                            <div className="flex flex-col md:flex-row">
+                                <div className="flex-shrink-0 w-full md:w-1/3 h-48 md:h-56">
+                                    <img
+                                        src={b.imageUrl}
+                                        alt={b.hotelName}
+                                        className="object-cover w-full h-full"
+                                    />
                                 </div>
-
-                                <div className="mt-2 text-sm text-gray-600 space-y-2">
-                                    {b.hotelName && (
-                                        <div className="flex items-center gap-2">
-                                            <MapPin size={14} className="text-gray-500"/>
-                                            <span>{b.hotelName}{b.location ? ` — ${b.location}` : ""}</span>
+                                <div className="flex-1 p-5 flex flex-col justify-between">
+                                    <div>
+                                        <div className="flex justify-between items-start">
+                                            <h3 className="text-xl font-semibold text-gray-800">
+                                                {b.roomName || b.hotelName || "Đặt chỗ"}
+                                            </h3>
+                                            {renderStatusBadge(b.status)}
                                         </div>
-                                    )}
-                                    <div className="flex items-center gap-2">
-                                        <CalendarDays size={14} className="text-gray-500"/>
-                                        <span>
-                                            {new Date(b.checkInDate).toLocaleDateString("vi-VN")} → {new Date(b.checkOutDate).toLocaleDateString("vi-VN")}
-                                        </span>
+                                        <div className="mt-2 text-sm text-gray-600 space-y-2">
+                                            {b.hotelName && (
+                                                <div className="flex items-center gap-2">
+                                                    <MapPin size={14} className="text-gray-500"/>
+                                                    <span>{b.hotelName}{b.location ? ` — ${b.location}` : ""}</span>
+                                                </div>
+                                            )}
+                                            <div className="flex items-center gap-2">
+                                                <CalendarDays size={14} className="text-gray-500"/>
+                                                <span>
+                                                    {new Date(b.checkInDate).toLocaleDateString("vi-VN")} → {new Date(b.checkOutDate).toLocaleDateString("vi-VN")}
+                                                </span>
+                                            </div>
+                                            {b.code && (
+                                                <div className="flex items-center gap-2">
+                                                    <FileText size={14} className="text-gray-500"/>
+                                                    <span><span className="font-medium">Mã đặt chỗ:</span> {b.code}</span>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                    {b.code && (
-                                        <div className="flex items-center gap-2">
-                                            <FileText size={14} className="text-gray-500"/>
-                                            <span><span className="font-medium">Mã đặt chỗ:</span> {b.code}</span>
+                                    <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mt-4 pt-4 border-t border-gray-100">
+                                        <div className="text-lg text-gray-800">
+                                            <span className="font-medium">Tổng tiền: </span>
+                                            <span className="font-bold text-blue-600">
+                                                {typeof b.totalPrice === "number"
+                                                    ? b.totalPrice.toLocaleString("vi-VN")
+                                                    : b.totalPrice || "—"}₫
+                                            </span>
                                         </div>
-                                    )}
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleViewDetails(b)}
+                                        >
+                                            Xem chi tiết
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
-
-                            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mt-4 pt-4 border-t border-gray-100">
-                                <div className="text-lg text-gray-800">
-                                    <span className="font-medium">Tổng tiền: </span>
-                                    <span className="font-bold text-blue-600">
-                                        {typeof b.totalPrice === "number"
-                                            ? b.totalPrice.toLocaleString("vi-VN")
-                                            : b.totalPrice || "—"}₫
-                                    </span>
-                                </div>
-
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleViewDetails(b)}
-                                >
-                                    Xem chi tiết
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </Card>
-            ))}
+                        </Card>
+                    ))}
+                </div>
+            )}
 
             <ToastPortal>
                 {toast.show && (
@@ -250,14 +291,12 @@ export default function MyBookings() {
                     </div>
                 )}
             </ToastPortal>
-
             <BookingDetailModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 booking={selectedBooking}
                 onCancelClick={handleStartCancel}
             />
-
             <CancelBookingModal
                 open={isCancelModalOpen}
                 onClose={handleCloseCancelModal}
