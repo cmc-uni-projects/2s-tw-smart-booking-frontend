@@ -50,19 +50,12 @@ const reviewOwnerApplication = async (applicationId, reviewData) => {
 // ============================
 // 🏨 LẤY DANH SÁCH CƠ SỞ THEO TRẠNG THÁI
 // ============================
-const getPropertiesByStatus = async (status) => {
+const getPropertiesByStatus = async () => {
   try {
-    // ✅ 3. Dùng 'api'
     const response = await api.get(`/admin/properties/pending`);
-    return response.data; 
+    return response.data.data;   // <-- CHỈ TRẢ MẢNG
   } catch (error) {
-    // ... (xử lý lỗi giữ nguyên)
-    console.error(`Error fetching properties with status ${status}:`, error);
-    if (error.response) {
-      throw new Error(error.response.data.message || "Lỗi khi tải danh sách cơ sở");
-    } else {
-      throw new Error("Không thể kết nối máy chủ");
-    }
+    throw new Error(error.response?.data?.message || "Lỗi khi tải danh sách cơ sở");
   }
 };
 

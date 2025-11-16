@@ -103,3 +103,4 @@ const RejectOwnerModal = ({ open, onClose, onConfirm, application }) => {
 };
 
 export default RejectOwnerModal;
+

@@ -17,6 +17,10 @@ import ViewHotelSubmissionModal from "./components/ViewHotelSubmissionModal";
 import ApproveHotelModal from "./components/ApproveHotelModal";
 import RejectHotelModal from "./components/RejectHotelModal";
 
+const API_BASE =
+  (import.meta.env.VITE_REACT_APP_API_URL || "http://localhost:8386/api/v1")
+    .replace("/api/v1", "");
+
 const HotelSubmissionsPage = () => {
   // --- State ---
   const [allSubmissions, setAllSubmissions] = useState([]);
@@ -37,22 +41,36 @@ const HotelSubmissionsPage = () => {
   const fetchSubmissions = async () => {
     try {
       setIsLoading(true);
-      const response = await adminService.getPropertiesByStatus("PENDING");
-      const data = response.data || [];
 
-      const mappedData = data.map((hotel) => ({
-        ...hotel,
-        id: hotel.propertyId,
-        hotelName: hotel.name,
-        ownerName: hotel.owner?.fullName || "Chủ sở hữu ẩn",
-        imageUrl:
-          hotel.images?.[0]?.imageUrl ||
-          "https://via.placeholder.com/400x300?text=No+Image",
-        submittedDate: hotel.createdAt
-          ? new Date(hotel.createdAt).toLocaleDateString("vi-VN")
-          : "N/A",
-        propertyType: hotel.propertyType || "UNKNOWN",
-      }));
+      // Backend trả về: { success, message, data }
+      const data = await adminService.getPropertiesByStatus("PENDING");
+
+      // Mapping để đồng bộ với FE
+      const mappedData = data.map((hotel) => {
+        // Parse images
+        const imagesRaw = hotel.imageUrlsJson
+          ? JSON.parse(hotel.imageUrlsJson)
+          : [];
+
+        const images = imagesRaw.map((img) => ({
+          imageUrl: `${API_BASE}${img.startsWith("/") ? img : "/" + img}`,
+        }));
+
+        // Tên chủ sở hữu
+        const ownerName = hotel.ownerFullName || "Chưa rõ";
+
+        return {
+          ...hotel,
+          id: hotel.propertyId,
+          hotelName: hotel.propertyName,
+          ownerName,
+          images,
+          imageUrl: images[0]?.imageUrl || "/no-image.png",
+          submittedDate: hotel.createdAt
+            ? new Date(hotel.createdAt).toLocaleDateString("vi-VN")
+            : "N/A",
+        };
+      });
 
       setAllSubmissions(mappedData);
     } catch (error) {
@@ -74,7 +92,9 @@ const HotelSubmissionsPage = () => {
     let submissions = [...allSubmissions];
 
     if (filterType !== "ALL") {
-      submissions = submissions.filter((s) => s.propertyType === filterType);
+      submissions = submissions.filter(
+        (s) => s.propertyType === filterType
+      );
     }
 
     if (searchTerm) {
@@ -117,9 +137,37 @@ const HotelSubmissionsPage = () => {
     setTimeout(() => setSelectedHotel(null), 200);
   };
 
-  // TODO: add your confirm handlers here
-  const onConfirmApprove = async () => {};
-  const onConfirmReject = async () => {};
+  // --- DUYỆT ---
+  const onConfirmApprove = async () => {
+    if (!selectedHotel) return;
+    try {
+      await adminService.reviewProperty(selectedHotel.id, {
+        status: "APPROVE",
+        reason: null,
+      });
+      showToast("Đã duyệt cơ sở thành công!", "success");
+      fetchSubmissions();
+      closeModals();
+    } catch (err) {
+      showToast(err.message || "Lỗi khi duyệt cơ sở", "error");
+    }
+  };
+
+  // --- TỪ CHỐI ---
+  const onConfirmReject = async (reason) => {
+    if (!selectedHotel) return;
+    try {
+      await adminService.reviewProperty(selectedHotel.id, {
+        status: "REJECTED",
+        reason,
+      });
+      showToast("Đã từ chối cơ sở!", "success");
+      fetchSubmissions();
+      closeModals();
+    } catch (err) {
+      showToast(err.message || "Lỗi khi từ chối cơ sở", "error");
+    }
+  };
 
   return (
     <>
