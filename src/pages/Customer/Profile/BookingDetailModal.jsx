@@ -4,7 +4,7 @@ import Modal from "@/components/common/Modal/Modal";
 import Button from "@/components/common/Button/Button";
 import {
     CalendarDays, MapPin, Building, BedDouble, User, Hash, CreditCard,
-    Package, Users, PawPrint // <-- Đã thêm 3 icon
+    Package, Users, PawPrint, ShieldAlert
 } from 'lucide-react';
 
 // Hàm helper để render Badge (Tương tự MyBookings.jsx)
@@ -24,7 +24,9 @@ const renderStatusBadge = (status) => {
 // Hàm helper để render các dòng chi tiết
 const DetailRow = ({ icon, label, children }) => (
     <div className="flex items-start py-3">
-        <div className="flex-shrink-0 w-8 text-gray-500">{icon}</div>
+        <div className="flex-shrink-0 w-8 text-gray-500 group-hover:text-[rgb(40,169,224)]">
+            {icon}
+        </div>
         <div className="flex-1">
             <div className="text-sm text-gray-500">{label}</div>
             <div className="text-base font-medium text-gray-800">{children}</div>
@@ -46,7 +48,8 @@ export default function BookingDetailModal({ isOpen, onClose, booking }) {
         roomCount = 1,
         adults = 0,
         children = 0,
-        pets = false
+        pets = false,
+        cancellationPolicy = "Không có thông tin chính sách hủy."
     } = booking;
 
     // Tạo chuỗi hiển thị
@@ -56,7 +59,6 @@ export default function BookingDetailModal({ isOpen, onClose, booking }) {
 
     return (
         <Modal
-            // SỬA LỖI: Thay "isOpen" bằng "open"
             open={isOpen}
             onClose={onClose}
             title="Chi tiết đơn đặt chỗ"
@@ -80,8 +82,6 @@ export default function BookingDetailModal({ isOpen, onClose, booking }) {
                     <DetailRow icon={<BedDouble size={18} />} label="Loại phòng">
                         {booking.roomName}
                     </DetailRow>
-
-                    {/* --- THÊM 3 DÒNG MỚI --- */}
                     <DetailRow icon={<Package size={18} />} label="Số lượng phòng">
                         {roomCount} phòng
                     </DetailRow>
@@ -91,8 +91,6 @@ export default function BookingDetailModal({ isOpen, onClose, booking }) {
                     <DetailRow icon={<PawPrint size={18} />} label="Thú cưng">
                         {petString}
                     </DetailRow>
-                    {/* --- Kết thúc phần thêm mới --- */}
-
                 </div>
 
                 {/* Cột 2: Thời gian & Thanh toán */}
@@ -113,13 +111,27 @@ export default function BookingDetailModal({ isOpen, onClose, booking }) {
                 </div>
             </div>
 
+            {/* Phần Chính sách hủy */}
+            <div className="mt-4 pt-4 border-t">
+                <DetailRow icon={<ShieldAlert size={18} className="text-yellow-600" />} label="Chính sách hủy">
+                    {cancellationPolicy}
+                </DetailRow>
+            </div>
+
+
             {/* Footer */}
             <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-200">
                 <Button variant="outline" onClick={onClose}>
                     Đóng
                 </Button>
-                {booking.status === "CONFIRMED" && (
-                    <Button variant="danger" onClick={() => alert("Chức năng Hủy phòng (TODO)")}>
+
+                {/* ✅ THAY ĐỔI LOGIC: Thêm '|| booking.status === "PENDING"' */}
+                {(booking.status === "CONFIRMED" || booking.status === "PENDING") && (
+                    <Button
+                        variant="primary"
+                        className="!bg-red-600 hover:!bg-red-700 focus:!ring-red-300"
+                        onClick={() => alert("Chức năng Hủy phòng (TODO)")}
+                    >
                         Hủy đặt phòng
                     </Button>
                 )}

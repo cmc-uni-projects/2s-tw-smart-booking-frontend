@@ -25,7 +25,9 @@ const mockBookingsData = [
         roomCount: 2,
         adults: 2,
         children: 1,
-        pets: true
+        pets: true,
+        // ✅ THÊM MỚI: Chính sách hủy
+        cancellationPolicy: "Miễn phí hủy trước 18/11/2025. Hủy sau thời gian này sẽ mất 50% phí."
     },
     {
         id: 2,
@@ -37,12 +39,14 @@ const mockBookingsData = [
         checkOutDate: "2025-12-03",
         totalPrice: 4200000,
         status: "PENDING",
-        imageUrl: "https://images.unsplash.com/photo-1582719478250-c89caE4dc85b?auto=format&fit=crop&w=300&q=80",
+        imageUrl: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         // --- Thông tin thêm ---
         roomCount: 1,
         adults: 2,
         children: 0,
-        pets: false
+        pets: false,
+        // ✅ THÊM MỚI: Chính sách hủy
+        cancellationPolicy: "Đang chờ xác nhận, chưa áp dụng chính sách hủy."
     },
     {
         id: 3,
@@ -59,7 +63,9 @@ const mockBookingsData = [
         roomCount: 1,
         adults: 1,
         children: 0,
-        pets: false
+        pets: false,
+        // ✅ THÊM MỚI: Chính sách hủy
+        cancellationPolicy: "Không hoàn hủy."
     }
 ];
 
