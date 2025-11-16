@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from "react";
 import Card from "@/components/common/Card/Card";
 import CardHeader from "@/components/common/Card/CardHeader";
-// 1. Đã đổi icon sang UserCheck cho phù hợp với "Chủ sở hữu"
 import { UserCheck, Loader2 } from "lucide-react";
-import adminService from "@/services/admin.service"; // 2. Import service (bỏ 'the')
+import adminService from "@/services/admin.service"; 
 import Toast from "@/components/common/Notification/Toast";
 
 // Import components (Đảm bảo đường dẫn đúng)
 import ApprovalCard from "./components/ApprovalCard";
-import ApproveHotelModal from "./components/ApproveHotelModal";
-import RejectHotelModal from "./components/RejectHotelModal";
-import ViewApplicationModal from "./components/ViewApplicationModal";
-// 3. Import EmptyState để hiển thị khi không có dữ liệu
 import EmptyState from "@/components/common/EmptyState/EmptyState";
+
+// ✅ SỬA 1: IMPORT CÁC MODAL ĐÚNG
+import ViewApplicationModal from "./components/ViewApplicationModal";
+import ApproveOwnerModal from "./components/ApproveOwnerModal"; // <-- Sửa
+import RejectOwnerModal from "./components/RejectOwnerModal";   // <-- Sửa
+
 
 const PendingApprovalsPage = () => {
   const [applications, setApplications] = useState([]);
@@ -31,20 +32,16 @@ const PendingApprovalsPage = () => {
     setTimeout(() => setToastData(null), 3000);
   };
 
-  // 4. CẬP NHẬT LOGIC FETCH API
+  // Logic Fetch API (Đã chính xác)
   const fetchApplications = async () => {
     try {
       setIsLoading(true);
-      // Sử dụng API getOwnerApplications với status PENDING
-      const response = await adminService.getOwnerApplications("PENDING");
-      
-      // Đảm bảo response.data là một mảng
-      const data = response.data || []; 
+      const data = await adminService.getOwnerApplications("PENDING");
 
       const mappedData = data.map(app => ({
-        ...app, // Giữ nguyên toàn bộ dữ liệu gốc để modal có thể đọc
+        ...app, 
         id: app.id,
-        hotelName: "Đơn đăng ký Chủ sở hữu", // Đây là label cho Card
+        hotelName: "Đơn đăng ký Chủ sở hữu", 
         ownerName: app.applicantFullName || "Chưa cập nhật",
         email: app.applicantEmail,
         submittedDate: app.createdAt ? new Date(app.createdAt).toLocaleDateString("vi-VN") : "N/A",
@@ -84,37 +81,33 @@ const PendingApprovalsPage = () => {
     setIsViewOpen(false);
     setIsApproveOpen(false);
     setIsRejectOpen(false);
-    setTimeout(() => setSelectedApp(null), 200); // Delay nhỏ để tránh giật UI
+    setTimeout(() => setSelectedApp(null), 200); 
   };
 
-  // --- XỬ LÝ API ---
+  // --- XỬ LÝ API (Đã chính xác) ---
 
-  // 5. CẬP NHẬT LOGIC DUYỆT API
   const onConfirmApprove = async () => {
     if (!selectedApp) return;
     try {
-      // Sử dụng reviewOwnerApplication và gửi payload đúng
       const payload = { status: "APPROVED", reason: null };
       await adminService.reviewOwnerApplication(selectedApp.id, payload);
       
       showToast("Đã duyệt đơn thành công!", "success");
-      fetchApplications(); // Tải lại danh sách
+      fetchApplications(); 
       closeModals();
     } catch (error) {
       showToast(error.message || "Có lỗi khi duyệt đơn", "error");
     }
   };
 
-  // 6. CẬP NHẬT LOGIC TỪ CHỐI API
   const onConfirmReject = async (reason) => {
     if (!selectedApp) return;
     try {
-      // Sử dụng reviewOwnerApplication và gửi payload đúng
       const payload = { status: "REJECTED", reason: reason };
       await adminService.reviewOwnerApplication(selectedApp.id, payload);
 
       showToast("Đã từ chối đơn đăng ký!", "success");
-      fetchApplications(); // Tải lại danh sách
+      fetchApplications(); 
       closeModals();
     } catch (error) {
       showToast(error.message || "Có lỗi khi từ chối đơn", "error");
@@ -130,7 +123,6 @@ const PendingApprovalsPage = () => {
       )}
 
       <Card>
-        {/* 7. Cập nhật Tiêu đề và Icon */}
         <CardHeader
           title="Phê duyệt Đăng ký Chủ sở hữu"
           subtitle={`Bạn có ${applications.length} đơn đăng ký đang chờ xử lý`}
@@ -154,7 +146,6 @@ const PendingApprovalsPage = () => {
                 />
               ))
             ) : (
-              // 8. Sử dụng EmptyState component
               <div className="col-span-full">
                 <EmptyState
                   title="Không có đơn đăng ký"
@@ -167,23 +158,25 @@ const PendingApprovalsPage = () => {
       </Card>
 
       {/* --- RENDER MODALS --- */}
-      {/* Kiểm tra selectedApp trước khi render để tránh lỗi null */}
       {selectedApp && (
         <>
+          {/* 1. Modal Xem chi tiết (Đã đúng) */}
           <ViewApplicationModal
             open={isViewOpen}
             onClose={closeModals}
             application={selectedApp}
           />
 
-          <ApproveHotelModal
+          {/* ✅ SỬA 2: Dùng MODAL DUYỆT OWNER */}
+          <ApproveOwnerModal
             open={isApproveOpen}
             onClose={closeModals}
             application={selectedApp}
             onConfirm={onConfirmApprove}
           />
 
-          <RejectHotelModal
+          {/* ✅ SỬA 3: Dùng MODAL TỪ CHỐI OWNER */}
+          <RejectOwnerModal
             open={isRejectOpen}
             onClose={closeModals}
             application={selectedApp}

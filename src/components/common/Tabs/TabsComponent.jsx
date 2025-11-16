@@ -1,190 +1,133 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
 
-/**
- * Component Tabs có thể cuộn ngang (scrollable) với gạch chân (indicator)
- * và nút bấm cuộn, được tùy chỉnh theo màu sắc chủ đề.
- */
 export default function TabsComponent({ tabs, activeTab, onTabChange }) {
-    const tabsRef = useRef(null);
-    const [showLeftScroll, setShowLeftScroll] = useState(false);
-    const [showRightScroll, setShowRightScroll] = useState(false);
+  const tabsRef = useRef(null);
+  const [showLeft, setShowLeft] = useState(false);
+  const [showRight, setShowRight] = useState(false);
 
-    // --- Logic xử lý Scroll ---
+  // Kiểm tra overflow
+  const checkScrollButtons = () => {
+    const el = tabsRef.current;
+    if (!el) return;
 
-    /**
-     * Kiểm tra xem các nút cuộn (trái/phải) có cần hiển thị không
-     */
-    const checkScrollButtons = () => {
-        const el = tabsRef.current;
-        if (!el) return;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    const sLeft = el.scrollLeft;
 
-        const isOverflowing = el.scrollWidth > el.clientWidth;
-        const scrollLeft = Math.ceil(el.scrollLeft);
-        const scrollWidth = el.scrollWidth;
-        const clientWidth = el.clientWidth;
+    setShowLeft(sLeft > 5);
+    setShowRight(sLeft < maxScroll - 5);
+  };
 
-        setShowLeftScroll(isOverflowing && scrollLeft > 0);
-        // Kiểm tra với sai số 1px
-        setShowRightScroll(isOverflowing && scrollLeft < (scrollWidth - clientWidth - 1));
+  // Tự động scroll tab active vào giữa
+  useLayoutEffect(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+
+    const activeNode = el.querySelector(`[data-tab-id="${activeTab}"]`);
+    if (activeNode) {
+      activeNode.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
+
+    setTimeout(checkScrollButtons, 300);
+  }, [activeTab]);
+
+  // Theo dõi resize & scroll
+  useEffect(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+
+    el.addEventListener("scroll", checkScrollButtons);
+    const ro = new ResizeObserver(checkScrollButtons);
+    ro.observe(el);
+
+    checkScrollButtons();
+
+    return () => {
+      ro.disconnect();
+      el.removeEventListener("scroll", checkScrollButtons);
     };
+  }, []);
 
-    /**
-     * Tự động cuộn tab active vào giữa
-     */
-    useLayoutEffect(() => {
-        const el = tabsRef.current;
-        if (!el) return;
-        
-        const activeTabNode = el.querySelector(`[data-tab-id="${activeTab}"]`);
-        if (activeTabNode) {
-            activeTabNode.scrollIntoView({
-                behavior: 'smooth',
-                inline: 'center',
-                block: 'nearest'
-            });
-        }
-        // Đợi 0.5s cho animation cuộn hoàn tất rồi kiểm tra lại các nút
-        setTimeout(checkScrollButtons, 500); 
-    }, [activeTab]);
+  // Scroll bằng button
+  const scrollByDir = (dir) => {
+    const el = tabsRef.current;
+    if (!el) return;
 
-    /**
-     * Gắn listener để kiểm tra nút cuộn khi resize hoặc scroll
-     */
-    useEffect(() => {
-        const el = tabsRef.current;
-        if (!el) return;
-        
-        const resizeObserver = new ResizeObserver(checkScrollButtons);
-        resizeObserver.observe(el);
-        el.addEventListener('scroll', checkScrollButtons);
+    const amount = el.clientWidth * 0.6 * (dir === "left" ? -1 : 1);
 
-        checkScrollButtons(); // Kiểm tra lần đầu
+    el.scrollBy({ left: amount, behavior: "smooth" });
+    setTimeout(checkScrollButtons, 300);
+  };
 
-        return () => {
-            resizeObserver.unobserve(el);
-            el.removeEventListener('scroll', checkScrollButtons);
-        };
-    }, [tabs]); // Chạy lại nếu danh sách tab thay đổi
+  return (
+    <div className="relative w-full">
+      {/* Scroll Left */}
+      <ScrollBtn visible={showLeft} dir="left" onClick={() => scrollByDir("left")} />
 
-    /**
-     * Xử lý khi bấm nút cuộn trái/phải
-     */
-    const handleScrollClick = (direction) => {
-        const el = tabsRef.current;
-        if (!el) return;
-        
-        const scrollAmount = el.clientWidth * 0.7 * (direction === 'left' ? -1 : 1);
-        el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-        
-        setTimeout(checkScrollButtons, 400); // Đợi animation
-    };
+      {/* Tabs container */}
+      <div
+        ref={tabsRef}
+        className="
+          overflow-x-auto 
+          whitespace-nowrap
+          border-b border-gray-200
+          scrollbar-width-none
+          -ms-overflow-style-none
+          [&::-webkit-scrollbar]:hidden
+        "
+      >
+        <nav className="relative flex px-2">
+          {tabs.map((t) => (
+            <TabBtn key={t.id} tab={t} active={activeTab} onTabChange={onTabChange} />
+          ))}
+        </nav>
+      </div>
 
-    // --- Render ---
-    return (
-        <div className="relative w-full group">
-            
-            {/* Nút cuộn Trái */}
-            <ScrollButton 
-                direction="left" 
-                onClick={handleScrollClick} 
-                isVisible={showLeftScroll} 
-            />
-
-            {/* Container cuộn chứa các tab */}
-            <div
-                ref={tabsRef}
-                className="w-full overflow-x-auto border-b border-gray-200 
-                           scrollbar-width-none -ms-overflow-style-none [&::-webkit-scrollbar]:hidden"
-            >
-                <nav className="flex -mb-px px-2 relative">
-                    {tabs.map((tab) => (
-                        <TabButton
-                            key={tab.id}
-                            tab={tab}
-                            isActive={activeTab === tab.id}
-                            onClick={onTabChange}
-                        />
-                    ))}
-                </nav>
-            </div>
-
-            {/* Nút cuộn Phải */}
-            <ScrollButton 
-                direction="right" 
-                onClick={handleScrollClick} 
-                isVisible={showRightScroll} 
-            />
-        </div>
-    );
+      {/* Scroll Right */}
+      <ScrollBtn visible={showRight} dir="right" onClick={() => scrollByDir("right")} />
+    </div>
+  );
 }
 
-/**
- * Component con cho Nút Tab (để code chính gọn gàng hơn)
- */
-const TabButton = ({ tab, isActive, onClick }) => {
-    return (
-        <div
-            key={tab.id}
-            data-tab-id={tab.id}
-            onClick={() => onClick(tab.id)}
-            className={`
-                relative flex-shrink-0 whitespace-nowrap 
-                cursor-pointer select-none
-                px-4 py-2 text-sm font-medium
-                transition-colors duration-200
-                ${isActive ? 'text-[rgb(40,169,224)]' : 'text-gray-500'}
-            `}
-        >
-            {/* Tên Tab */}
-            <span className="relative z-10">{tab.name}</span>
+const TabBtn = ({ tab, active, onTabChange }) => (
+  <div
+    data-tab-id={tab.id}
+    onClick={() => onTabChange(tab.id)}
+    className={`
+      px-4 py-2 cursor-pointer text-sm font-medium relative
+      transition-colors duration-200 flex-shrink-0 select-none
+      ${active === tab.id ? "text-[rgb(40,169,224)]" : "text-gray-500"}
+    `}
+  >
+    {tab.name}
 
-            {/* Gạch chân (Indicator) */}
-            {isActive && (
-                <motion.div
-                    layoutId="activeTabIndicator"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-[rgb(40,169,224)]"
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                />
-            )}
-        </div>
-    );
-};
+    {active === tab.id && (
+      <motion.div
+        layoutId="tabIndicator"
+        className="absolute bottom-0 left-0 right-0 h-0.5 bg-[rgb(40,169,224)]"
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      />
+    )}
+  </div>
+);
 
-/**
- * Component con cho Nút Cuộn (Trái/Phải)
- */
-const ScrollButton = ({ direction, onClick, isVisible }) => {
-    const isLeft = direction === 'left';
-    return (
-        <button
-            type="button"
-            onClick={() => onClick(direction)}
-            className={`
-                absolute top-0 bottom-0 z-10 w-12 
-                flex items-center justify-center 
-                text-gray-500 hover:text-[rgb(40,169,224)]
-                transition-all duration-300
-                
-                /* Hiệu ứng mờ dần (fade) ở 2 cạnh */
-                ${isLeft 
-                    ? 'left-0 bg-gradient-to-r from-white via-white to-transparent' 
-                    : 'right-0 bg-gradient-to-l from-white via-white to-transparent'
-                }
-
-                /* Ẩn/hiện dựa trên state */
-                ${isVisible 
-                    ? 'opacity-100' 
-                    : 'opacity-0 pointer-events-none'
-                }
-                
-                /* Luôn hiển thị nút trên mobile nếu cần (allowScrollButtonsMobile) */
-                /* Nếu không muốn hiện trên mobile, xóa class 'opacity-100' này */
-                ${isVisible ? 'opacity-100' : 'opacity-0'}
-            `}
-        >
-            {isLeft ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-        </button>
-    );
-};
+const ScrollBtn = ({ visible, dir, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`
+      absolute top-0 bottom-0 w-10 z-20 flex items-center justify-center
+      transition-opacity duration-200
+      ${visible ? "opacity-100" : "opacity-0 pointer-events-none"}
+      ${dir === "left"
+        ? "left-0 bg-gradient-to-r from-white to-transparent"
+        : "right-0 bg-gradient-to-l from-white to-transparent"}
+    `}
+  >
+    {dir === "left" ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
+  </button>
+);
