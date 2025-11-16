@@ -1,7 +1,7 @@
-import React, { useState } from "react"; // 1. Thêm useState
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import { addDays, format } from "date-fns"; // 2. Thêm
+import { addDays, format } from "date-fns";
 import Button from "@/components/common/Button/Button";
 import DateSelector from "@/components/search/DateSelector";
 import GuestSelector from "@/components/search/GuestSelector";
@@ -10,7 +10,6 @@ import DestinationSelector from "@/components/search/DestinationSelector";
 const HeroSection = () => {
   const navigate = useNavigate();
 
-  // 3. Thêm toàn bộ logic State (giống như trước)
   const [destination, setDestination] = useState("");
   const [dates, setDates] = useState({
     startDate: new Date(),
@@ -22,18 +21,23 @@ const HeroSection = () => {
     rooms: 1,
   });
 
-  // 4. Thêm hàm handleSearch để xử lý params
   const handleSearch = () => {
     const params = new URLSearchParams();
-    
-    params.append("city", destination);
-    params.append("keyword", destination); 
+
+    // Bạn đã xử lý rất tốt khi gửi cả city và keyword
+    if (destination) {
+      params.append("city", destination);
+      params.append("keyword", destination);
+    }
+
     params.append("checkIn", format(dates.startDate, "yyyy-MM-dd"));
     params.append("checkOut", format(dates.endDate, "yyyy-MM-dd"));
     params.append("adults", guests.adults);
     params.append("children", guests.children);
     params.append("rooms", guests.rooms);
-    
+
+    // SỬA LỖI Ở ĐÂY:
+    // Chuyển hướng đến /hotels theo đúng ý bạn
     navigate(`/hotels?${params.toString()}`);
   };
 
@@ -55,33 +59,22 @@ const HeroSection = () => {
           Đặt phòng dễ dàng cùng{" "}
           <span className="text-[rgb(40,169,224)]">TravelMate</span>
         </h1>
-        <p className="text-gray-700 text-lg mb-10">
-        </p>
+        <p className="text-gray-700 text-lg mb-10"></p>
 
         <div className="relative z-10 bg-white shadow-xl rounded-2xl border border-gray-100 p-6 md:p-8 grid grid-cols-1 md:grid-cols-4 gap-4 max-w-6xl w-[90%]">
-          
-          {/* 5. Thêm value và onChange vào các component */}
+          {/* Các component của bạn đã gán value và onChange đúng */}
           <DestinationSelector
             value={destination}
             onChange={setDestination}
           />
-          <DateSelector 
-            value={dates} 
-            onChange={setDates} 
-          />
-          <GuestSelector 
-            value={guests} 
-            onChange={setGuests} 
-          />
+          <DateSelector value={dates} onChange={setDates} />
+          <GuestSelector value={guests} onChange={setGuests} />
 
           <div className="flex items-end justify-center">
             <Button
               size="lg"
               className="w-full bg-[rgb(40,169,224)] hover:bg-[#1b98d6] text-white font-semibold shadow-md rounded-lg"
-              
-              // 6. Thay đổi onClick thành handleSearch
               onClick={handleSearch}
-              
               leftIcon={<Search size={18} />}
             >
               Tìm phòng

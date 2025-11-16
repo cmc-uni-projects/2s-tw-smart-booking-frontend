@@ -1,5 +1,4 @@
 import React from 'react';
-import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
 import { Link } from 'react-router-dom';
 import Button from '../../../components/common/Button/Button';
 
@@ -7,7 +6,6 @@ import inboxIllustration from '../../../assets/logo/inbox-illustration.png';
 
 const HelpPage = () => {
     return (
-        <CustomerLayout>
             <div className="bg-gray-50" style={{ minHeight: 'calc(100vh - 80px)' }}>
 
                 <div className="bg-[rgb(40,169,224)] w-full py-6 text-white shadow-sm">
@@ -51,7 +49,6 @@ const HelpPage = () => {
                     </div>
                 </div>
             </div>
-        </CustomerLayout>
     );
 };
 

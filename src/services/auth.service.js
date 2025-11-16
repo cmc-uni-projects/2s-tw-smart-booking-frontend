@@ -1,51 +1,138 @@
-// src/services/auth.service.js
 import axios from "axios";
 
-const API_URL = "http://localhost:8386/api/v1/auth";
+const API_URL = import.meta.env.VITE_REACT_APP_API_URL || "http://localhost:8386/api/v1";
 
-// ✅ Helper lấy header chứa token (chuẩn hóa cách lấy)
-const getAuthHeader = () => {
-    const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
-    return { Authorization: `Bearer ${token}` };
+// ============================
+// 🔒 AUTH SERVICE
+// ============================
+
+// CODE ĐÃ SỬA TRONG auth.service.js
+const login = async (email, password) => {
+  try {
+    const response = await axios.post(`${API_URL}/auth/login`, {
+      email,
+      password,
+    });
+
+    // Sửa 'token' thành 'accessToken'
+    if (response.data && response.data.data.accessToken) { // <-- SỬA Ở ĐÂY
+      const { accessToken, user } = response.data.data; // <-- SỬA Ở ĐÂY
+      localStorage.setItem("accessToken", accessToken); // <-- SỬA Ở ĐÂY
+      localStorage.setItem("user", JSON.stringify(user));
+      return response.data.data; // Trả về { accessToken, user, ... }
+    }
+    // Nếu cấu trúc data không đúng
+    throw new Error(response.data.message || "Login failed");
+  } catch (error) {
+    // Nếu axios ném lỗi (vd: 401, 404, 500)
+    if (error.response && error.response.data) {
+      throw new Error(error.response.data.message || "Login failed");
+    }
+    // Nếu không thể kết nối (lỗi mạng, CORS,...)
+    throw new Error("Cannot connect to server");
+  }
 };
 
-export const authService = {
-  login: (email, password) =>
-    axios.post(`${API_URL}/login`, { email, password }),
-
-  register: (fullName, email, password, confirmPassword) =>
-    axios.post(`${API_URL}/register`, {
+// 2. Đăng ký
+const register = async (fullName, email, password, confirmPassword) => {
+  try {
+    const response = await axios.post(`${API_URL}/auth/register`, {
       fullName,
       email,
       password,
       confirmPassword,
-    }),
-
-  forgotPassword: (email) =>
-    axios.post(`${API_URL}/forgot-password`, { email }),
-
-  resetPassword: (token, newPassword, confirmPassword) =>
-    axios.post(`${API_URL}/reset-password`, {
-      token,
-      newPassword,
-      confirmPassword,
-    }),
-
-  verifyEmail: (token) =>
-    axios.get(`${API_URL}/verify-email`, { params: { token } }),
-
-  changePassword: (currentPassword, newPassword, confirmPassword) =>
-    axios.post(
-      `${API_URL}/change-password`,
-      { currentPassword, newPassword, confirmPassword },
-      { headers: getAuthHeader() }
-    ),
-
-  // ✅ === THÊM HÀM MỚI ===
-  /**
-   * Lấy thông tin người dùng mới nhất từ token (luôn gọi DB)
-   */
-  getMe: () =>
-    axios.get(`${API_URL}/me`, { headers: getAuthHeader() }),
-  // ✅ === KẾT THÚC ===
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw new Error(error.response.data.message || "Registration failed");
+    }
+    throw new Error("Cannot connect to server");
+  }
 };
+
+// 3. Đăng xuất
+const logout = (token) => {
+  if (token) {
+    axios.post(`${API_URL}/auth/logout`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  }
+  
+  localStorage.removeItem("user");
+  // Sửa lỗi: Xóa đúng key "accessToken"
+  localStorage.removeItem("accessToken"); 
+  localStorage.removeItem("token");
+};
+
+// 4. Lấy thông tin user hiện tại từ local storage
+const getCurrentUser = () => {
+  const userStr = localStorage.getItem("user");
+  if (userStr) return JSON.parse(userStr);
+  return null;
+};
+
+// 5. Lấy token
+const getAccessToken = () => {
+  return localStorage.getItem("accessToken") || localStorage.getItem("token");
+};
+
+// 6. Quên mật khẩu
+const forgotPassword = async (email) => {
+  try {
+    const response = await axios.post(`${API_URL}/auth/forgot-password`, { email });
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw new Error(error.response.data.message || "Forgot password failed");
+    }
+    throw new Error("Cannot connect to server");
+  }
+};
+
+// 7. Reset mật khẩu
+const resetPassword = async (token, newPassword) => {
+  try {
+    const response = await axios.post(`${API_URL}/auth/reset-password`, { token, newPassword });
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw new Error(error.response.data.message || "Reset password failed");
+    }
+    throw new Error("Cannot connect to server");
+  }
+};
+
+// 8. Xác thực Email
+const verifyEmail = async (token) => {
+  try {
+    // SỬA Ở ĐÂY: Dùng axios.get và gửi token qua params
+    const response = await axios.get(`${API_URL}/auth/verify-email`, { 
+        params: { token } // Gửi token dưới dạng ?token=...
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.data) {
+      throw new Error(error.response.data.message || "Email verification failed");
+    }
+    throw new Error("Cannot connect to server");
+  }
+};
+
+
+// ▼▼▼ THAY ĐỔI CÁCH EXPORT TẠI ĐÂY ▼▼▼
+// Export một object có tên là "authService"
+export const authService = {
+  login,
+  register,
+  logout,
+  getCurrentUser,
+  getAccessToken,
+  forgotPassword,
+  resetPassword,
+  verifyEmail,
+};
+
+// (Không còn export default nữa)

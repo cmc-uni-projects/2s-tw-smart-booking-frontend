@@ -1,7 +1,6 @@
 // src/pages/Customer/About/About.jsx
 
 import React from "react";
-import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
 import AboutSystem from "./AboutSystem";
 import Commitments from "./Commitments";
 import Partners from "./Partners.jsx";
@@ -9,9 +8,6 @@ import Contact from "./Contact.jsx";
 
 const About = () => {
     return (
-        // ✅ 2. Bọc toàn bộ nội dung bằng CustomerLayout
-        <CustomerLayout>
-            {/* ✅ 3. Thay div bằng <main> cho đúng ngữ nghĩa */}
             <main className="w-full bg-gray-50 text-gray-800">
                 <section
                     className="relative w-full h-[70vh] flex flex-col items-center justify-center text-center text-white overflow-hidden"
@@ -46,7 +42,6 @@ const About = () => {
                 <Contact /> 
                 {/* ID "contact" vẫn ở đây để link hoạt động */}
             </main>
-        </CustomerLayout> // ✅ 4. Đóng CustomerLayout
     );
 };
 

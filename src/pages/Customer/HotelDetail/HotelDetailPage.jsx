@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
 import Breadcrumb from "@/components/common/Breadcrumb/Breadcrumb";
 import Spinner from "@/components/common/Loading/Spinner";
 import Card from "@/components/common/Card/Card";
@@ -353,18 +352,14 @@ export default function HotelDetailPage() {
 
     if (loading) {
         return (
-            <CustomerLayout>
                 <div className="flex justify-center items-center h-[60vh]">
                     <Spinner />
                 </div>
-            </CustomerLayout>
         );
     }
     if (!hotel) {
         return (
-            <CustomerLayout>
                 <div className="text-center py-20">Không tìm thấy khách sạn.</div>
-            </CustomerLayout>
         );
     }
     
@@ -378,7 +373,6 @@ export default function HotelDetailPage() {
     ];
 
     return (
-        <CustomerLayout>
             <main className="max-w-7xl mx-auto px-6 py-8">
 
                 {/* Breadcrumb */}
@@ -502,6 +496,5 @@ export default function HotelDetailPage() {
                 />
 
             </main>
-        </CustomerLayout>
     );
 }
