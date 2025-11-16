@@ -6,70 +6,15 @@ import { CalendarDays, MapPin, Loader2, FileText, Search } from "lucide-react";
 import Button from "@/components/common/Button/Button";
 import Toast from "@/components/common/Notification/Toast";
 import ToastPortal from "@/components/common/Notification/ToastPortal";
-import { bookingService } from "@/services/booking.service";
+import { userService } from "@/services/user.service";
 import BookingDetailModal from "./BookingDetailModal";
 import CancelBookingModal from "./CancelBookingModal";
 import TabsComponent from "@/components/common/Tabs/TabsComponent";
 import EmptyState from "@/components/common/EmptyState/EmptyState";
 
-// Dữ liệu mẫu (Đã cập nhật)
-const mockBookingsData = [
-    {
-        id: 1,
-        code: "TM-12345",
-        hotelName: "The Ocean Resort (Mock)",
-        roomName: "Phòng Deluxe Hướng Biển",
-        location: "Đà Nẵng",
-        checkInDate: "2025-11-20",
-        checkOutDate: "2025-11-25",
-        totalPrice: 8200000,
-        status: "CONFIRMED",
-        imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=300&q=80",
-        roomCount: 2,
-        adults: 2,
-        children: 1,
-        pets: true,
-        cancellationPolicy: "Miễn phí hủy trước 18/11/2025. Hủy sau thời gian này sẽ mất 50% phí.",
-        paymentMethod: "VNPay" // ✅ THÊM MỚI
-    },
-    {
-        id: 2,
-        code: "TM-67890",
-        hotelName: "Hanoi Grand Hotel (Mock)",
-        roomName: "Phòng Standard",
-        location: "Hà Nội",
-        checkInDate: "2025-12-01",
-        checkOutDate: "2025-12-03",
-        totalPrice: 4200000,
-        status: "PENDING",
-        imageUrl: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        roomCount: 1,
-        adults: 2,
-        children: 0,
-        pets: false,
-        cancellationPolicy: "Hủy trong vòng 24h trước check-in sẽ mất 100% phí.",
-        paymentMethod: "Momo" // ✅ THÊM MỚI
-    },
-    {
-        id: 3,
-        code: "TM-54321",
-        hotelName: "Sapa Mountain View (Mock)",
-        roomName: "Bungalow Mây",
-        location: "Sapa",
-        checkInDate: "2025-10-15",
-        checkOutDate: "2025-10-17",
-        totalPrice: 2800000,
-        status: "CANCELLED",
-        imageUrl: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=300&q=80",
-        roomCount: 1,
-        adults: 1,
-        children: 0,
-        pets: false,
-        cancellationPolicy: "Không hoàn hủy.",
-        paymentMethod: "ZaloPay" // ✅ THÊM MỚI
-    }
-];
+// ✅ 1. ĐÃ XÓA mockBookingsData
 
+// Cấu hình các tab
 const TABS = [
     { id: "upcoming", name: "Sắp tới" },
     { id: "cancelled", name: "Đã hủy" },
@@ -91,27 +36,45 @@ export default function MyBookings() {
         setTimeout(() => setToast({ show: false, msg: "", type: "info" }), duration);
     };
 
-    useEffect(() => {
+    // Hàm sắp xếp (để dùng chung)
+    const sortBookings = (data) => {
+        return data.sort((a, b) => {
+            const dateA = new Date(a.checkInDate);
+            const dateB = new Date(b.checkInDate);
+            if (a.status === "CANCELLED" && b.status !== "CANCELLED") return 1;
+            if (a.status !== "CANCELLED" && b.status === "CANCELLED") return -1;
+            return dateA - dateB; // Sắp xếp theo ngày check-in
+        });
+    }
+
+    const fetchBookings = async () => {
         let mounted = true;
-        const load = () => {
-            setLoading(true);
-            try {
-                setTimeout(() => {
-                    if (mounted) {
-                        setBookings(mockBookingsData);
-                        setLoading(false);
-                    }
-                }, 1000);
-            } catch (err) {
-                console.error("fetch bookings error:", err);
-                showToast("Lỗi kết nối. Vui lòng thử lại.", "error");
-                if (mounted) {
-                    setLoading(false);
-                }
+        setLoading(true);
+        try {
+            const response = await userService.getMyBookings();
+            const data = response?.data?.data || response?.data || response || [];
+
+            if (mounted) {
+                const sortedData = sortBookings(data);
+                setBookings(sortedData);
             }
-        };
-        load();
+        } catch (err) {
+            console.error("fetch bookings error:", err);
+            // ✅ 2. XÓA LOGIC FALLBACK: Chỉ báo lỗi
+            showToast("Lỗi kết nối. Không thể tải danh sách đặt phòng.", "error");
+            if (mounted) {
+                setBookings([]); // Đặt là mảng rỗng nếu API lỗi
+            }
+        } finally {
+            if (mounted) {
+                setLoading(false);
+            }
+        }
         return () => { mounted = false; };
+    };
+
+    useEffect(() => {
+        fetchBookings();
     }, []);
 
     const filteredBookings = useMemo(() => {
@@ -124,7 +87,7 @@ export default function MyBookings() {
         return bookings; // "all"
     }, [bookings, activeTab]);
 
-    // (Các hàm renderStatusBadge, handleViewDetails, handleCloseModal, handleStartCancel, handleCloseCancelModal, handleConfirmCancel giữ nguyên)
+    // (Các hàm renderStatusBadge, handleViewDetails, handleCloseModal, handleStartCancel, handleCloseCancelModal giữ nguyên)
     const renderStatusBadge = (status) => {
         switch (status) {
             case "CONFIRMED":
@@ -166,17 +129,36 @@ export default function MyBookings() {
         }, 300);
     };
 
-    const handleConfirmCancel = (booking, reason, otherText) => {
-        console.log("🚀 [MOCK API] YÊU CẦU HỦY:", {
-            bookingId: booking.id,
+    const handleConfirmCancel = async (booking, reason, otherText) => {
+        console.log("🚀 Gửi YÊU CẦU HỦY:", {
+            bookingId: booking.bookingId || booking.id,
             reason: reason,
             details: otherText
         });
 
-        handleCloseCancelModal();
-        showToast("Đã gửi yêu cầu hủy đặt phòng (mock)", "success");
+        try {
+            const response = await userService.cancelBooking({
+                bookingId: booking.bookingId || booking.id,
+                reason: reason,
+                reasonDetail: otherText
+            });
+
+            if (response.data.success || response.success || response.status === 200) {
+                showToast("Hủy đặt phòng thành công!", "success");
+                fetchBookings();
+            } else {
+                // Ném lỗi để đi vào catch
+                throw new Error(response.data.message || "Hủy thất bại");
+            }
+
+        } catch (err) {
+            console.error("Cancel booking error:", err);
+            // ✅ 3. XÓA LOGIC MOCK: Chỉ báo lỗi thật
+            showToast(err.response?.data?.message || err.message || "Lỗi kết nối khi hủy.", "error");
+        } finally {
+            handleCloseCancelModal();
+        }
     };
-    // ------------------------------------
 
     if (loading) {
         return (
@@ -226,7 +208,7 @@ export default function MyBookings() {
                             <div className="flex flex-col md:flex-row">
                                 <div className="flex-shrink-0 w-full md:w-1/3 h-48 md:h-56">
                                     <img
-                                        src={b.imageUrl}
+                                        src={b.imageUrl || b.roomImageUrl || "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=300&q=80"}
                                         alt={b.hotelName}
                                         className="object-cover w-full h-full"
                                     />
