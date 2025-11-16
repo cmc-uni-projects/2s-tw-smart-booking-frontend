@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// ✅ SỬA 1: Thêm 'useCallback' vào import
+import React, { useState, useEffect, useCallback } from "react"; 
 import TextField from "@/components/common/Input/TextField";
 import Select from "@/components/common/Select/Select";
 import Button from "@/components/common/Button/Button";
@@ -13,7 +14,6 @@ import AccountMenu from "./AccountMenu";
 import { Save, X, Plus, Edit, MapPin, Flag, Building } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { userService } from "@/services/user.service";
-// ✅ 1. IMPORT COMPONENT NGÀY SINH MỚI
 import DateOfBirthInput from "@/components/common/Input/DateOfBirthInput";
 
 const PROFILE_TABS = [
@@ -31,7 +31,7 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: "", type: "info" });
-  const [error, setError] = useState(null); // Thêm state lỗi
+  const [error, setError] = useState(null); 
 
   // --- State Dữ liệu ---
   const [userData, setUserData] = useState(null);
@@ -41,7 +41,7 @@ const ProfilePage = () => {
     email: "",
     phoneNumber: "",
     gender: "",
-    birthDate: null, // ✅ 2. THÊM TRƯỜNG NGÀY SINH VÀO STATE
+    birthDate: null, 
     address: "",
     city: "",
     country: "",
@@ -55,7 +55,7 @@ const ProfilePage = () => {
     email: data.email || "",
     phoneNumber: data.phoneNumber || "",
     gender: data.gender || "",
-    birthDate: data.birthDate || null, // ✅ 3. MAP TRƯỜNG NGÀY SINH
+    birthDate: data.birthDate || null,
     address: data.address || "",
     city: data.city || "",
     country: data.country || "",
@@ -68,26 +68,26 @@ const ProfilePage = () => {
     setTimeout(() => setToast((prev) => ({ ...prev, show: false })), duration);
   };
 
-// --- 1. Fetch Profile (✅ ĐÃ SỬA LẠI LẦN NỮA) ---
+  // --- 1. Fetch Profile (✅ SỬA LẠI LOGIC API) ---
+  // (Khắc phục lỗi 'Không thể tải hồ sơ')
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        setError(null); // Reset lỗi
-        
-        // ✅ SỬA 1: API này trả về DTO trực tiếp, không bọc trong {success: ...}
-        // (Giống như code gốc của bạn)
+        setError(null);
+        // API 'getUserDetail' trả về DTO (profileData) trực tiếp
         const profileData = await userService.getUserDetail(); 
 
-        // ✅ SỬA 2: Bỏ hoàn toàn logic 'if (res.success)'
-        // vì 'profileData' chính là dữ liệu
-        const mapped = mapDataToForm(profileData);
-        setUserData(mapped);
-        setFormData(mapped);
+        if (profileData) {
+          const mapped = mapDataToForm(profileData);
+          setUserData(mapped);
+          setFormData(mapped);
+        } else {
+           throw new Error("Không nhận được dữ liệu hồ sơ");
+        }
 
       } catch (error) {
         console.error("Failed to fetch profile:", error);
-        
-        // Nếu API 404 hoặc 500, nó sẽ bị bắt ở đây
+        // Nếu API 404/500, lỗi sẽ được bắt ở đây
         setError(error.message || "Lỗi kết nối máy chủ");
       }
     };
@@ -107,11 +107,17 @@ const ProfilePage = () => {
 
   const isFormDirty = () => JSON.stringify(formData) !== JSON.stringify(userData);
 
+  // ✅ 2. BỌC HÀM 'onChange' TRONG 'useCallback'
+  // (Tốt cho hiệu năng, dù component con mới không còn yêu cầu)
+  const handleDateChange = useCallback((dateString) => {
+    setFormData((prev) => ({ ...prev, birthDate: dateString }));
+  }, []); 
+
   // --- 2. Xử lý Upload Avatar (Giữ nguyên) ---
   const handleAvatarUpload = async (file) => {
-    // (Giữ nguyên code của bạn)
     setIsUploadingAvatar(true);
     try {
+      // API này trả về { success: true, data: ... }
       const res = await userService.uploadAvatar(file);
       
       if (res.success && res.data) {
@@ -134,7 +140,7 @@ const ProfilePage = () => {
   };
 
   // --- 3. Lưu Thông Tin (Giữ nguyên) ---
-  // (Hàm này đã đúng, nó sẽ tự động gửi 'birthDate' vì 'birthDate' nằm trong 'formData')
+  // (API này trả về { data: { success: true, data: ... } })
   const handleSave = async (e) => {
     e.preventDefault();
 
@@ -165,10 +171,10 @@ const ProfilePage = () => {
 
       if (err.response && err.response.status === 409) {
         try {
-          const refreshRes = await userService.getUserDetail();
-          // Sửa ở đây: Phải là refreshRes.success
-          if (refreshRes.success && refreshRes.data.userdetailId) {
-            const realId = refreshRes.data.userdetailId;
+          // API 'getUserDetail' trả về DTO trực tiếp
+          const refreshData = await userService.getUserDetail();
+          if (refreshData && refreshData.userdetailId) {
+            const realId = refreshData.userdetailId;
             const retryData = { ...formData, userdetailId: realId };
             
             const retryRes = await userService.updateUserDetail(retryData);
@@ -199,7 +205,6 @@ const ProfilePage = () => {
 
   // --- 4. Lưu SĐT từ Modal (Giữ nguyên) ---
   const handleSaveNewPhone = async (newPhone) => {
-    // (Giữ nguyên code của bạn)
     const payload = { ...formData, phoneNumber: newPhone };
     setLoading(true);
     try {
@@ -218,10 +223,9 @@ const ProfilePage = () => {
     } catch (err) {
         if (err.response?.status === 409) {
              showToastAndDismiss("Hệ thống đang đồng bộ, vui lòng thử lại sau giây lát.", "warning");
-             userService.getUserDetail().then(res => {
-                // Sửa ở đây: Phải là res.success
-                if(res.success) {
-                    const mapped = mapDataToForm(res.data);
+             userService.getUserDetail().then(refreshData => {
+                if(refreshData) { 
+                    const mapped = mapDataToForm(refreshData);
                     setUserData(mapped);
                     setFormData(prev => ({...prev, userdetailId: mapped.userdetailId}));
                 }
@@ -261,14 +265,11 @@ const ProfilePage = () => {
                 required
               />
 
-              {/* ✅ 4. SỬ DỤNG COMPONENT MỚI TẠI ĐÂY */}
+              {/* ✅ 3. SỬ DỤNG HÀM 'handleDateChange' */}
               <DateOfBirthInput
                 label="Ngày sinh"
                 value={formData.birthDate}
-                onChange={(dateString) => {
-                  // dateString sẽ là "YYYY-MM-DD" hoặc null
-                  setFormData((prev) => ({ ...prev, birthDate: dateString }));
-                }}
+                onChange={handleDateChange} 
               />
 
               <Select
@@ -389,7 +390,7 @@ const ProfilePage = () => {
     );
   };
 
-  // (Các hàm renderSecurityTab, renderMainContent, renderContent giữ nguyên)
+  // (Các hàm render... còn lại giữ nguyên)
   const renderSecurityTab = () => (
     <div className="space-y-10">
       <ChangePassword />
@@ -446,7 +447,7 @@ const ProfilePage = () => {
     }
   };
 
-  // Xử lý trạng thái Loading / Lỗi
+  // Xử lý trạng thái Loading / Lỗi (Giữ nguyên)
   if (error) {
     return (
       <div className="flex flex-col justify-center items-center h-[50vh] p-6">
