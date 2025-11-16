@@ -1,14 +1,12 @@
-import api from "./axios.config.js"; // ✅ 1. IMPORT API INSTANCE
-
-// Đảm bảo REACT_APP_API_URL được định nghĩa trong file .env của bạn
-const API_URL = import.meta.env.VITE_REACT_APP_API_URL || "http://localhost:8386/api/v1";
+import api from "./axios.config.js"; // ✅ Đã import
 
 // ============================
-// 🔍 TÌM KIẾM PROPERTIES
+// 🔍 TÌM KIẾM PROPERTIES (Public)
 // ============================
 const searchProperties = async (city, keyword) => {
   try {
-    const response = await axios.get(`${API_URL}/properties/search`, {
+    // ✅ SỬA: Dùng 'api.get'
+    const response = await api.get(`/properties/search`, {
       params: { city, keyword },
     });
     return response.data;
@@ -19,18 +17,12 @@ const searchProperties = async (city, keyword) => {
 };
 
 // ============================
-// ➕ THÊM PROPERTY (Cũ - Có thể bạn không dùng nữa)
+// ➕ THÊM PROPERTY (Cũ)
 // ============================
 const addProperty = async (propertyData) => {
-  const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
-  if (!token) throw new Error("Token not found");
-
   try {
-    const response = await axios.post(`${API_URL}/properties/add`, propertyData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    // ✅ SỬA: Dùng 'api.post'. Header được thêm tự động.
+    const response = await api.post(`/properties/add`, propertyData);
     return response.data;
   } catch (error) {
     console.error("Error adding property:", error);
@@ -46,15 +38,9 @@ const addProperty = async (propertyData) => {
 // 🔄 CẬP NHẬT PROPERTY
 // ============================
 const updateProperty = async (id, updatedData) => {
-  const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
-  if (!token) throw new Error("Token not found");
-
   try {
-    const response = await axios.put(`${API_URL}/properties/update/${id}`, updatedData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    // ✅ SỬA: Dùng 'api.put'. Header được thêm tự động.
+    const response = await api.put(`/properties/update/${id}`, updatedData);
     return response.data;
   } catch (error) {
     console.error("Error updating property:", error);
@@ -67,11 +53,12 @@ const updateProperty = async (id, updatedData) => {
 };
 
 // ============================
-// ⭐ LẤY PROPERTY NỔI BẬT
+// ⭐ LẤY PROPERTY NỔI BẬT (Public)
 // ============================
 const getFeaturedProperties = async () => {
   try {
-    const response = await axios.get(`${API_URL}/properties/featured`);
+    // ✅ SỬA: Dùng 'api.get'
+    const response = await api.get(`/properties/featured`);
     return response.data;
   } catch (error) {
     console.error("Error fetching featured properties:", error);
@@ -83,32 +70,25 @@ const getFeaturedProperties = async () => {
 // 🚀 HÀM MỚI: GỬI ĐƠN ĐĂNG KÝ PROPERTY (MULTIPART FORMDATA)
 // ==========================================================
 const submitPropertyApplication = async (formData) => {
-  const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
-  if (!token) throw new Error("Token not found");
-
   try {
-    const response = await axios.post(
-      `${API_URL}/properties/submit-application`, // Gọi endpoint mới
-      formData, // Gửi FormData trực tiếp
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          // "Content-Type": "multipart/form-data" sẽ được Axios tự động thêm
-          // khi phát hiện 'formData' là một instance của FormData
-        },
-      }
+    // ✅ SỬA: Dùng 'api.post'. 
+    // Header 'Authorization' và 'Content-Type: multipart/form-data'
+    // sẽ được tự động xử lý.
+    const response = await api.post(
+      `/properties/submit-application`,
+      formData 
     );
     return response.data; // Trả về ApiResponse (success: true, data: PropertyDetailDTO)
   } catch (error) {
     console.error("❌ Error submitting property application:", error);
     if (error.response) {
-      // Ném lỗi từ BE để component bắt
       throw new Error(error.response.data.message || "Gửi đơn thất bại");
     } else {
       throw new Error("Không thể kết nối máy chủ");
     }
   }
 };
+
 // ==========================================================
 // 📦 EXPORT TỔNG
 // ==========================================================
@@ -117,7 +97,7 @@ const propertyService = {
   addProperty,
   updateProperty,
   getFeaturedProperties,
-  submitPropertyApplication, // <-- Thêm hàm mới vào export
+  submitPropertyApplication,
 };
 
 export default propertyService;

@@ -76,13 +76,13 @@ const Header = () => {
     if (hasRole("ADMIN"))
       return {
         label: "Trang quản trị",
-        path: "/admin/dashboard",
+        path: "/admin",
       };
 
     if (hasRole("OWNER"))
       return {
         label: "Trang quản lý",
-        path: "/owner/dashboard",
+        path: "/owner",
       };
 
     return {
