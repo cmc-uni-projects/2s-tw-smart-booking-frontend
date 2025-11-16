@@ -1,9 +1,13 @@
 import React from 'react';
+// 1. Import icon 'User' từ lucide-react (dù file này không dùng trực tiếp)
+// Đây là file chúng ta đã tạo ở các bước trước
+import { User } from 'lucide-react'; 
 
 /**
  * Component TextField mới, đồng bộ style với CustomSelect.
+ * (Đã cập nhật logic icon)
  * @param {string | JSX.Element} label - Nhãn (có thể là JSX để chứa dấu *)
- * @param {JSX.Element} icon - Icon (hiển thị bên trái)
+ * @param {JSX.Element} icon - Icon (hiển thị bên trái, vd: <User />)
  * @param {object} props - Các props còn lại (value, name, onChange, ...)
  */
 const StyledTextField = ({ label, icon, ...props }) => {
@@ -27,7 +31,7 @@ const StyledTextField = ({ label, icon, ...props }) => {
         </label>
       )}
       <div className="relative">
-        {/* Icon (nếu có) */}
+        {/* 2. Icon (nếu có) */}
         {icon && (
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             {/* Clone icon để thêm class text-gray-400 */}

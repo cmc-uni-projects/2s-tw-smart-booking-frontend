@@ -1,19 +1,17 @@
-import api from "./axios.config.js"; // ✅ 1. IMPORT API INSTANCE
-
-// ❌ 2. Xóa API_URL và getAuthHeader (không cần nữa)
+import api from "./axios.config.js"; // API instance
 
 export const userService = {
+
   /**
    * Lấy thông tin chi tiết (User + UserDetail)
    */
   getUserDetail: async () => {
     try {
-      // ✅ 3. Dùng 'api.get'. Header được thêm tự động.
       const res = await api.get(`/user-details/me`);
-      return res.data; // Trả về DTO (profileData) trực tiếp
+      return res.data;
     } catch (error) {
       console.error("Error fetching user detail:", error);
-      throw error; // Ném lỗi để component (ProfilePage) bắt
+      throw error;
     }
   },
 
@@ -22,13 +20,11 @@ export const userService = {
    */
   updateUserDetail: async (data) => {
     try {
-      // ✅ 3. Dùng 'api.put'.
       const res = await api.put(`/user-details/update`, data);
-      return res.data; // Trả về ApiResponse { success, data, ... }
+      return res.data;
     } catch (error) {
       console.error("Error updating user detail:", error);
-      // Ném lỗi đầy đủ để ProfilePage bắt (cho logic 409)
-      throw error; 
+      throw error;
     }
   },
 
@@ -38,12 +34,10 @@ export const userService = {
   uploadAvatar: async (file) => {
     try {
       const formData = new FormData();
-      formData.append("file", file); 
+      formData.append("file", file);
 
-      // ✅ 3. Dùng 'api.post'. 
-      // Cả 'Authorization' và 'Content-Type' đều được tự động xử lý.
       const res = await api.post(`/user-details/upload-avatar`, formData);
-      return res.data; // Trả về { success, data: { profilePhotoUrl: ... } }
+      return res.data;
     } catch (error) {
       console.error("Error uploading avatar:", error);
       throw error;
@@ -55,12 +49,43 @@ export const userService = {
    */
   getProfileStatus: async () => {
     try {
-      // ✅ 3. Dùng 'api.get'.
       const res = await api.get(`/user-details/profile-status`);
-      return res.data; // API sẽ trả về { profileComplete: true/false, missingFields: [...] }
+      return res.data;
     } catch (error) {
       console.error("Error fetching profile status:", error);
       throw error;
     }
-  }
+  },
+
+  /**
+   * HÀM UPLOAD FILE CHUNG
+   * (dùng cho upload CCCD, giấy phép...)
+   * Backend trả về: { fileDownloadUri, fileName, size, contentType }
+   */
+  uploadFile: async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await api.post(`/files/upload`, formData);
+      const data = res.data;
+
+      // Backend trả về fileDownloadUri → FE trả về đúng trường này
+      if (data.fileDownloadUri) {
+        return data.fileDownloadUri;
+      }
+
+      // fallback cho trường hợp BE đổi format
+      if (data.url) {
+        return data.url;
+      }
+
+      console.error("Upload response không hợp lệ:", data);
+      throw new Error("API upload không trả về URL hợp lệ");
+
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      throw error;
+    }
+  },
 };
