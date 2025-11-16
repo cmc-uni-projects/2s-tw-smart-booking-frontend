@@ -7,6 +7,7 @@ import Toast from "@/components/common/Notification/Toast";
 import ToastPortal from "@/components/common/Notification/ToastPortal";
 import { bookingService } from "@/services/booking.service";
 import BookingDetailModal from "./BookingDetailModal"; // Import Modal
+import CancelBookingModal from "./CancelBookingModal"; // Import Modal Hủy
 
 // Dữ liệu mẫu (Đã cập nhật)
 const mockBookingsData = [
@@ -26,7 +27,6 @@ const mockBookingsData = [
         adults: 2,
         children: 1,
         pets: true,
-        // ✅ THÊM MỚI: Chính sách hủy
         cancellationPolicy: "Miễn phí hủy trước 18/11/2025. Hủy sau thời gian này sẽ mất 50% phí."
     },
     {
@@ -39,14 +39,12 @@ const mockBookingsData = [
         checkOutDate: "2025-12-03",
         totalPrice: 4200000,
         status: "PENDING",
-        imageUrl: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        // --- Thông tin thêm ---
+        imageUrl: "https://images.unsplash.com/photo-1582719478250-c89caE4dc85b?auto=format&fit=crop&w=300&q=80",
         roomCount: 1,
         adults: 2,
         children: 0,
         pets: false,
-        // ✅ THÊM MỚI: Chính sách hủy
-        cancellationPolicy: "Đang chờ xác nhận, chưa áp dụng chính sách hủy."
+        cancellationPolicy: "Hủy trong vòng 24h trước check-in sẽ mất 100% phí."
     },
     {
         id: 3,
@@ -59,12 +57,10 @@ const mockBookingsData = [
         totalPrice: 2800000,
         status: "CANCELLED",
         imageUrl: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=300&q=80",
-        // --- Thông tin thêm ---
         roomCount: 1,
         adults: 1,
         children: 0,
         pets: false,
-        // ✅ THÊM MỚI: Chính sách hủy
         cancellationPolicy: "Không hoàn hủy."
     }
 ];
@@ -73,41 +69,43 @@ export default function MyBookings() {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [toast, setToast] = useState({ show: false, msg: "", type: "info" });
-
-    // State quản lý Modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState(null);
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
     const showToast = (msg, type = "info", duration = 2500) => {
         setToast({ show: true, msg, type });
         setTimeout(() => setToast({ show: false, msg: "", type: "info" }), duration);
     };
 
+    // ✅ SỬA LỖI LOGIC TRONG useEffect
     useEffect(() => {
-        // (Logic useEffect giữ nguyên)
         let mounted = true;
-        const load = async () => {
+        // Bỏ 'async' vì chúng ta đang dùng setTimeout
+        const load = () => {
             setLoading(true);
             try {
+                // Giả lập API call
                 setTimeout(() => {
                     if (mounted) {
                         setBookings(mockBookingsData);
+                        setLoading(false); // ✅ GỌI setLoading(false) Ở ĐÂY
                     }
-                }, 1000);
+                }, 1000); // Đặt cả hai trong cùng 1 timeout
 
             } catch (err) {
                 console.error("fetch bookings error:", err);
                 showToast("Lỗi kết nối. Vui lòng thử lại.", "error");
-            } finally {
-                setTimeout(() => {
-                    if (mounted) setLoading(false);
-                }, 1000);
+                if (mounted) {
+                    setLoading(false); // ✅ Đặt false nếu có lỗi
+                }
             }
+            // ❌ Bỏ khối 'finally' có chứa setTimeout
         };
 
         load();
         return () => { mounted = false; };
-    }, []);
+    }, []); // Dependency rỗng là đúng
 
     // (Hàm renderStatusBadge giữ nguyên)
     const renderStatusBadge = (status) => {
@@ -123,19 +121,47 @@ export default function MyBookings() {
         }
     };
 
-    // (Hàm handleViewDetails giữ nguyên)
+    // (Các hàm handler giữ nguyên)
     const handleViewDetails = (booking) => {
         setSelectedBooking(booking);
         setIsModalOpen(true);
     };
 
-    // (Hàm handleCloseModal giữ nguyên)
     const handleCloseModal = () => {
         setIsModalOpen(false);
+        if (!isCancelModalOpen) {
+            setTimeout(() => {
+                setSelectedBooking(null);
+            }, 300);
+        }
+    };
+
+    const handleStartCancel = () => {
+        setIsModalOpen(false);
+        setTimeout(() => {
+            setIsCancelModalOpen(true);
+        }, 300);
+    };
+
+    const handleCloseCancelModal = () => {
+        setIsCancelModalOpen(false);
         setTimeout(() => {
             setSelectedBooking(null);
         }, 300);
     };
+
+    const handleConfirmCancel = (booking, reason, otherText) => {
+        console.log("🚀 [MOCK API] YÊU CẦU HỦY:", {
+            bookingId: booking.id,
+            reason: reason,
+            details: otherText
+        });
+
+        handleCloseCancelModal();
+        showToast("Đã gửi yêu cầu hủy đặt phòng (mock)", "success");
+        // TODO: Gọi API hủy và fetch lại danh sách booking
+    };
+
 
     if (loading) {
         return (
@@ -228,6 +254,14 @@ export default function MyBookings() {
             <BookingDetailModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
+                booking={selectedBooking}
+                onCancelClick={handleStartCancel}
+            />
+
+            <CancelBookingModal
+                open={isCancelModalOpen}
+                onClose={handleCloseCancelModal}
+                onConfirm={handleConfirmCancel}
                 booking={selectedBooking}
             />
         </div>

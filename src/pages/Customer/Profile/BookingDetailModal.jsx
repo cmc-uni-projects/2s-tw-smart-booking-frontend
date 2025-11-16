@@ -7,7 +7,7 @@ import {
     Package, Users, PawPrint, ShieldAlert
 } from 'lucide-react';
 
-// Hàm helper để render Badge (Tương tự MyBookings.jsx)
+// (Hàm renderStatusBadge giữ nguyên)
 const renderStatusBadge = (status) => {
     switch (status) {
         case "CONFIRMED":
@@ -21,7 +21,7 @@ const renderStatusBadge = (status) => {
     }
 };
 
-// Hàm helper để render các dòng chi tiết
+// (Hàm DetailRow giữ nguyên)
 const DetailRow = ({ icon, label, children }) => (
     <div className="flex items-start py-3">
         <div className="flex-shrink-0 w-8 text-gray-500 group-hover:text-[rgb(40,169,224)]">
@@ -34,7 +34,7 @@ const DetailRow = ({ icon, label, children }) => (
     </div>
 );
 
-export default function BookingDetailModal({ isOpen, onClose, booking }) {
+export default function BookingDetailModal({ isOpen, onClose, booking, onCancelClick }) {
     if (!booking) {
         return null;
     }
@@ -43,7 +43,6 @@ export default function BookingDetailModal({ isOpen, onClose, booking }) {
     const checkOut = new Date(booking.checkOutDate).toLocaleDateString("vi-VN");
     const price = booking.totalPrice.toLocaleString("vi-VN") + "₫";
 
-    // Lấy dữ liệu mới từ booking (với giá trị mặc định)
     const {
         roomCount = 1,
         adults = 0,
@@ -52,7 +51,6 @@ export default function BookingDetailModal({ isOpen, onClose, booking }) {
         cancellationPolicy = "Không có thông tin chính sách hủy."
     } = booking;
 
-    // Tạo chuỗi hiển thị
     const guestString = `${adults} người lớn` + (children > 0 ? `, ${children} trẻ em` : "");
     const petString = pets ? "Có mang theo" : "Không mang theo";
 
@@ -62,12 +60,12 @@ export default function BookingDetailModal({ isOpen, onClose, booking }) {
             open={isOpen}
             onClose={onClose}
             title="Chi tiết đơn đặt chỗ"
-            maxWidth="max-w-2xl"
+            maxWidth="max-w-4xl"
         >
 
-            {/* Body */}
+            {/* (Body và Chính sách hủy giữ nguyên) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
-                {/* Cột 1: Thông tin phòng & khách sạn */}
+                {/* Cột 1 */}
                 <div className="space-y-2">
                     <h3 className="text-lg font-semibold text-gray-700 mb-2">Thông tin đặt phòng</h3>
                     <DetailRow icon={<Hash size={18} />} label="Mã đặt chỗ">
@@ -92,8 +90,7 @@ export default function BookingDetailModal({ isOpen, onClose, booking }) {
                         {petString}
                     </DetailRow>
                 </div>
-
-                {/* Cột 2: Thời gian & Thanh toán */}
+                {/* Cột 2 */}
                 <div className="space-y-2 mt-6 md:mt-0">
                     <h3 className="text-lg font-semibold text-gray-700 mb-2">Chi tiết</h3>
                     <DetailRow icon={<CalendarDays size={18} />} label="Nhận phòng">
@@ -110,8 +107,6 @@ export default function BookingDetailModal({ isOpen, onClose, booking }) {
                     </DetailRow>
                 </div>
             </div>
-
-            {/* Phần Chính sách hủy */}
             <div className="mt-4 pt-4 border-t">
                 <DetailRow icon={<ShieldAlert size={18} className="text-yellow-600" />} label="Chính sách hủy">
                     {cancellationPolicy}
@@ -121,16 +116,19 @@ export default function BookingDetailModal({ isOpen, onClose, booking }) {
 
             {/* Footer */}
             <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-200">
+                {/* ✅ ĐÃ XÓA NÚT "ĐÓNG" */}
+                {/*
                 <Button variant="outline" onClick={onClose}>
                     Đóng
                 </Button>
+                */}
 
-                {/* ✅ THAY ĐỔI LOGIC: Thêm '|| booking.status === "PENDING"' */}
+                {/* (Giữ lại nút Hủy) */}
                 {(booking.status === "CONFIRMED" || booking.status === "PENDING") && (
                     <Button
                         variant="primary"
                         className="!bg-red-600 hover:!bg-red-700 focus:!ring-red-300"
-                        onClick={() => alert("Chức năng Hủy phòng (TODO)")}
+                        onClick={onCancelClick}
                     >
                         Hủy đặt phòng
                     </Button>
