@@ -51,7 +51,7 @@ export default function ConfirmModal({
               <div className="flex flex-col items-center gap-3">
                 {icons[type]}
                 <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-                <p className="text-gray-500 text-sm">{message}</p>
+                <div className="text-gray-500 text-sm">{message}</div>
               </div>
 
               <div className="flex justify-center gap-3 mt-6">

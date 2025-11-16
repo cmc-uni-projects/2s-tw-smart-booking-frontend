@@ -4,14 +4,13 @@ import { Check, ChevronDown } from 'lucide-react';
 
 /**
  * Component Select tùy chỉnh đẹp mắt, đồng bộ với TextField.
- * @param {string} label - Nhãn (nếu có).
+ * @param {string | JSX.Element} label - Nhãn (nếu có).
  * @param {any} value - Giá trị hiện tại đang được chọn.
  * @param {function} onChange - Hàm callback khi chọn giá trị mới.
  * @param {Array<{label: string, value: any}>} options - Danh sách các lựa chọn.
  * @param {string} placeholder - Chữ hiển thị khi chưa có giá trị.
  */
 const CustomSelect = ({ label, value, onChange, options, placeholder = "Chọn..." }) => {
-  // Tìm 'label' của 'value' đang được chọn để hiển thị
   const selectedOption = options.find(option => option.value === value);
 
   return (
@@ -23,8 +22,8 @@ const CustomSelect = ({ label, value, onChange, options, placeholder = "Chọn..
       )}
       <Listbox value={value} onChange={onChange}>
         <div className="relative">
-          {/* Đây là nút bấm, được style cho giống TextField */}
-          <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left border border-gray-300 shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+          {/* ✅ SỬA STYLING: Dùng py-2.5 để đồng bộ chiều cao với TextField */}
+          <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white py-2.5 pl-3 pr-10 text-left border border-gray-300 shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
             <span className="block truncate">
               {selectedOption ? selectedOption.label : <span className="text-gray-400">{placeholder}</span>}
             </span>
@@ -37,7 +36,6 @@ const CustomSelect = ({ label, value, onChange, options, placeholder = "Chọn..
             </span>
           </Listbox.Button>
           
-          {/* Đây là phần danh sách (panel) xổ xuống */}
           <Transition
             as={Fragment}
             leave="transition ease-in duration-100"

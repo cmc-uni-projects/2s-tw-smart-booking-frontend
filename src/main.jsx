@@ -1,15 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.jsx';
-import './index.css'; //
+// import App from './App.jsx'; // Xóa dòng này ở đây
 import { BrowserRouter } from 'react-router-dom';
-import { AuthContextProvider } from './context/AuthContext.jsx'; // Import Provider
+import { AuthContextProvider } from './context/AuthContext.jsx'; // <-- ĐƯA LÊN TRÊN
+import App from './App.jsx'; // <-- VÀ ĐƯA XUỐNG DƯỚI NÀY
+import './index.css'; //
+
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {/* AuthContextProvider PHẢI bọc BÊN NGOÀI 
-      BẤT KỲ component nào sử dụng useAuth()
-    */}
     <AuthContextProvider>
       <BrowserRouter>
         <App />

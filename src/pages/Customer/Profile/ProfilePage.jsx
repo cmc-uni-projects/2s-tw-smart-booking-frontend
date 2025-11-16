@@ -1,7 +1,14 @@
-// ✅ SỬA 1: Thêm 'useCallback' vào import
+// ✅ SỬA 1: Thêm 'useCallback', 'Phone', 'Info'
 import React, { useState, useEffect, useCallback } from "react"; 
-import TextField from "@/components/common/Input/TextField";
-import Select from "@/components/common/Select/Select";
+// ❌ SỬA 2: Xóa CustomerLayout (gây lỗi trang trắng)
+// import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout"; 
+
+// ✅ SỬA 3: THAY THẾ TextField BẰNG StyledTextField
+import StyledTextField from "@/components/common/Input/StyledTextField"; 
+// ❌ import TextField from "@/components/common/Input/TextField"; 
+
+// ❌ SỬA 4: Xóa Select cũ
+// import Select from "@/components/common/Select/Select"; 
 import Button from "@/components/common/Button/Button";
 import Card from "@/components/common/Card/Card";
 import Toast from "@/components/common/Notification/Toast";
@@ -9,12 +16,16 @@ import ToastPortal from "@/components/common/Notification/ToastPortal";
 import TabsComponent from "@/components/common/Tabs/TabsComponent";
 import SettingsPage from "./SettingsPage";
 import ChangePassword from "./ChangePassword";
-import AddPhoneModal from "./AddPhoneModal";
+// ❌ SỬA 5: Xóa Modal điện thoại
+// import AddPhoneModal from "./AddPhoneModal"; 
 import AccountMenu from "./AccountMenu";
-import { Save, X, Plus, Edit, MapPin, Flag, Building } from "lucide-react";
+// ✅ SỬA 1 (tiếp): Thêm 'Phone', 'Info'
+import { Save, X, Phone, MapPin, Flag, Building, Info } from "lucide-react"; 
 import { useAuth } from "@/context/AuthContext";
 import { userService } from "@/services/user.service";
 import DateOfBirthInput from "@/components/common/Input/DateOfBirthInput";
+// ✅ SỬA 1 (tiếp): Import CustomSelect mới
+import CustomSelect from "@/components/common/Select/CustomSelect"; 
 
 const PROFILE_TABS = [
   { id: "info", name: "Thông tin tài khoản" },
@@ -27,7 +38,8 @@ const ProfilePage = () => {
   // --- State UI ---
   const [activeTab, setActiveTab] = useState("info");
   const [activeSection, setActiveSection] = useState("account-settings");
-  const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
+  // ❌ SỬA 6: Xóa state modal
+  // const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: "", type: "info" });
@@ -55,7 +67,7 @@ const ProfilePage = () => {
     email: data.email || "",
     phoneNumber: data.phoneNumber || "",
     gender: data.gender || "",
-    birthDate: data.birthDate || null,
+    birthDate: data.birthDate || null, 
     address: data.address || "",
     city: data.city || "",
     country: data.country || "",
@@ -68,13 +80,12 @@ const ProfilePage = () => {
     setTimeout(() => setToast((prev) => ({ ...prev, show: false })), duration);
   };
 
-  // --- 1. Fetch Profile (✅ SỬA LẠI LOGIC API) ---
-  // (Khắc phục lỗi 'Không thể tải hồ sơ')
+  // --- 1. Fetch Profile (✅ SỬA LỖI: Dùng đúng tên hàm) ---
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setError(null);
-        // API 'getUserDetail' trả về DTO (profileData) trực tiếp
+        // ✅ LỖI LÀ Ở ĐÂY: Sửa 'getMyProfile' thành 'getUserDetail'
         const profileData = await userService.getUserDetail(); 
 
         if (profileData) {
@@ -87,7 +98,6 @@ const ProfilePage = () => {
 
       } catch (error) {
         console.error("Failed to fetch profile:", error);
-        // Nếu API 404/500, lỗi sẽ được bắt ở đây
         setError(error.message || "Lỗi kết nối máy chủ");
       }
     };
@@ -107,8 +117,8 @@ const ProfilePage = () => {
 
   const isFormDirty = () => JSON.stringify(formData) !== JSON.stringify(userData);
 
-  // ✅ 2. BỌC HÀM 'onChange' TRONG 'useCallback'
-  // (Tốt cho hiệu năng, dù component con mới không còn yêu cầu)
+  // ✅ SỬA 7: BỌC HÀM 'onChange' TRONG 'useCallback'
+  // (Đây là phần quan trọng để chống lặp vô hạn)
   const handleDateChange = useCallback((dateString) => {
     setFormData((prev) => ({ ...prev, birthDate: dateString }));
   }, []); 
@@ -117,7 +127,6 @@ const ProfilePage = () => {
   const handleAvatarUpload = async (file) => {
     setIsUploadingAvatar(true);
     try {
-      // API này trả về { success: true, data: ... }
       const res = await userService.uploadAvatar(file);
       
       if (res.success && res.data) {
@@ -140,7 +149,6 @@ const ProfilePage = () => {
   };
 
   // --- 3. Lưu Thông Tin (Giữ nguyên) ---
-  // (API này trả về { data: { success: true, data: ... } })
   const handleSave = async (e) => {
     e.preventDefault();
 
@@ -151,7 +159,7 @@ const ProfilePage = () => {
 
     setLoading(true);
     try {
-      const res = await userService.updateUserDetail(formData);
+      const res = await userService.updateProfile(formData);
 
       if (res.data.success) {
         const updatedData = res.data.data;
@@ -171,13 +179,14 @@ const ProfilePage = () => {
 
       if (err.response && err.response.status === 409) {
         try {
-          // API 'getUserDetail' trả về DTO trực tiếp
-          const refreshData = await userService.getUserDetail();
-          if (refreshData && refreshData.userdetailId) {
+          // ✅ SỬA 8: SỬA LỖI LOGIC 409 (Dùng đúng tên hàm)
+          // Sửa 'getMyProfile' thành 'getUserDetail'
+          const refreshData = await userService.getUserDetail(); 
+          if (refreshData && refreshData.userdetailId) { 
             const realId = refreshData.userdetailId;
             const retryData = { ...formData, userdetailId: realId };
             
-            const retryRes = await userService.updateUserDetail(retryData);
+            const retryRes = await userService.updateProfile(retryData);
             if (retryRes.data.success) {
               const newUserData = mapDataToForm(retryRes.data.data);
               setUserData(newUserData);
@@ -203,40 +212,7 @@ const ProfilePage = () => {
     }
   };
 
-  // --- 4. Lưu SĐT từ Modal (Giữ nguyên) ---
-  const handleSaveNewPhone = async (newPhone) => {
-    const payload = { ...formData, phoneNumber: newPhone };
-    setLoading(true);
-    try {
-      const res = await userService.updateUserDetail(payload);
-      if (res.data.success) {
-        const updatedData = res.data.data;
-        const newUserData = mapDataToForm(updatedData);
-        
-        setFormData(newUserData);
-        setUserData(newUserData);
-        
-        updateUser({ phoneNumber: updatedData.phoneNumber });
-
-        showToastAndDismiss("Cập nhật số điện thoại thành công!", "success");
-      }
-    } catch (err) {
-        if (err.response?.status === 409) {
-             showToastAndDismiss("Hệ thống đang đồng bộ, vui lòng thử lại sau giây lát.", "warning");
-             userService.getUserDetail().then(refreshData => {
-                if(refreshData) { 
-                    const mapped = mapDataToForm(refreshData);
-                    setUserData(mapped);
-                    setFormData(prev => ({...prev, userdetailId: mapped.userdetailId}));
-                }
-             });
-        } else {
-            showToastAndDismiss(err.response?.data?.message || "Lỗi cập nhật SĐT", "error");
-        }
-    } finally {
-      setLoading(false);
-    }
-  };
+  // ❌ SỬA 9: Xóa toàn bộ hàm 'handleSaveNewPhone'
 
   // --- RENDER UI ---
 
@@ -248,6 +224,13 @@ const ProfilePage = () => {
     ];
     const dirty = isFormDirty();
 
+    // ✅ HÀM MỚI: Helper để tạo label có dấu *
+    const requiredLabel = (text) => (
+      <span>
+        {text} <span className="text-red-500">*</span>
+      </span>
+    );
+
     return (
       <div className="space-y-10">
         <Card>
@@ -255,53 +238,77 @@ const ProfilePage = () => {
             <h3 className="text-xl font-semibold text-gray-800 border-b pb-4">
               Dữ liệu cá nhân
             </h3>
+            
+            {/* ✅ YÊU CẦU 1: THÊM DÒNG THÔNG BÁO */}
+            <div className="flex items-center gap-2 p-3 bg-orange-50 border border-orange-200 text-orange-700 rounded-lg">
+              <Info size={20} className="flex-shrink-0" />
+              <p className="text-sm italic">
+                Nếu bạn muốn đăng ký trở thành "Chủ sở hữu", hãy điền các trường có dấu *.
+              </p>
+            </div>
 
             <form onSubmit={handleSave} className="space-y-4">
-              <TextField
-                label="Họ và tên"
+              {/* ✅ SỬA 10: DÙNG StyledTextField */}
+              <StyledTextField
+                label={requiredLabel("Họ và tên")}
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleChange}
-                required
+                placeholder="Nhập họ và tên của bạn"
               />
 
-              {/* ✅ 3. SỬ DỤNG HÀM 'handleDateChange' */}
+              {/* ✅ SỬA 10: DÙNG StyledTextField */}
+              <StyledTextField
+                label={requiredLabel("Số điện thoại")}
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                icon={<Phone size={16} />}
+                placeholder="Nhập số điện thoại"
+              />
+
               <DateOfBirthInput
-                label="Ngày sinh"
+                label={requiredLabel("Ngày sinh")}
                 value={formData.birthDate}
                 onChange={handleDateChange} 
               />
 
-              <Select
-                label="Giới tính"
-                name="gender"
+              <CustomSelect
+                label={requiredLabel("Giới tính")}
                 value={formData.gender}
                 onChange={(val) => setFormData((prev) => ({ ...prev, gender: val }))}
                 options={GENDER_OPTIONS}
+                placeholder="Chọn giới tính..."
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <TextField
+                {/* ✅ SỬA 10: DÙNG StyledTextField */}
+                <StyledTextField
                   label="Thành phố / Tỉnh"
                   name="city"
                   value={formData.city}
                   onChange={handleChange}
                   icon={<Building size={16} />}
+                  placeholder="Hà Nội, Hưng Yên,..."
                 />
-                <TextField
+                {/* ✅ SỬA 10: DÙNG StyledTextField */}
+                <StyledTextField
                   label="Quốc gia"
                   name="country"
                   value={formData.country}
                   onChange={handleChange}
                   icon={<Flag size={16} />}
+                  placeholder="Việt Nam"
                 />
               </div>
-              <TextField
+              {/* ✅ SỬA 10: DÙNG StyledTextField */}
+              <StyledTextField
                 label="Địa chỉ chi tiết"
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
                 icon={<MapPin size={16} />}
+                placeholder="Số nhà, tên đường, phường/xã..."
               />
 
               <div className="flex gap-3 pt-4 border-t border-gray-100 mt-4">
@@ -352,40 +359,8 @@ const ProfilePage = () => {
           </div>
         </Card>
 
-        {/* Phone Section (Giữ nguyên) */}
-        <Card>
-          <div className="p-6">
-            <div className="flex justify-between items-center border-b pb-4 mb-4">
-              <div>
-                <h3 className="font-semibold text-lg">Số điện thoại</h3>
-                <p className="text-sm text-gray-500">
-                  Dùng để liên hệ đặt phòng và bảo mật.
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                leftIcon={formData.phoneNumber ? <Edit size={16} /> : <Plus size={16} />}
-                onClick={() => setIsPhoneModalOpen(true)}
-              >
-                {formData.phoneNumber ? "Cập nhật SĐT" : "Thêm SĐT"}
-              </Button>
-            </div>
-            <div className="space-y-3">
-              {formData.phoneNumber ? (
-                <div className="flex justify-between items-center py-2">
-                  <span className="font-medium text-gray-800">
-                    {formData.phoneNumber}
-                  </span>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500 italic">
-                  Chưa cập nhật số điện thoại.
-                </p>
-              )}
-            </div>
-          </div>
-        </Card>
+        {/* ❌ SỬA 11: XÓA BỎ CARD "PHONE SECTION" */}
+        
       </div>
     );
   };
@@ -447,7 +422,8 @@ const ProfilePage = () => {
     }
   };
 
-  // Xử lý trạng thái Loading / Lỗi (Giữ nguyên)
+  // ❌ SỬA 12: XÓA BỎ CustomerLayout (gây lỗi trang trắng)
+  // Xử lý trạng thái Loading / Lỗi
   if (error) {
     return (
       <div className="flex flex-col justify-center items-center h-[50vh] p-6">
@@ -470,6 +446,7 @@ const ProfilePage = () => {
 
   // Render chính (Giữ nguyên)
   return (
+    // ❌ SỬA 12: XÓA BỎ CustomerLayout
     <main className="w-full bg-gray-50 text-gray-800">
       <div className="max-w-7xl mx-auto p-6">
         <div className="grid grid-cols-12 gap-8">
@@ -493,18 +470,13 @@ const ProfilePage = () => {
               )}
             </ToastPortal>
 
-            <AddPhoneModal
-              isOpen={isPhoneModalOpen}
-              onClose={() => setIsPhoneModalOpen(false)}
-              onSave={handleSaveNewPhone}
-              existingPhone={
-                formData.phoneNumber ? { phone: formData.phoneNumber } : null
-              }
-            />
+            {/* ❌ SỬA 13: XÓA BỎ 'AddPhoneModal' */}
+            
           </div>
         </div>
       </div>
     </main>
+    // ❌ SỬA 12: XÓA BỎ CustomerLayout
   );
 };
 
