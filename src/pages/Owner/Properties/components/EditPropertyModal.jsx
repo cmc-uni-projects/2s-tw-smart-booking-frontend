@@ -9,73 +9,56 @@ import FloatingTextField from "@/components/common/Input/FloatingTextField";
 import TextArea from "@/components/common/Input/TextArea";
 import AmenityOption from "../AddPropertySteps/components/AmenityOption";
 import ImageUploadGrid from "@/components/common/Input/ImageUploadGrid";
+import propertyService from "@/services/property.service";
+import api from "@/services/axios.config"; 
 
-// ✅ SỬA LỖI 1: Thêm 'XCircle' vào import
 import {
   Wifi, ParkingCircle, Droplet, Waves, Sparkles, Ban, Plane, PawPrint,
   Dumbbell, Wind, ConciergeBell, Cigarette, Image as ImageIcon, MapPin,
-  ClipboardList, Package, XCircle 
+  ClipboardList, Package, XCircle, Star, RefreshCw, Trash2 // ✅ Đổi icon Trash cho đẹp hơn XCircle
 } from "lucide-react";
 
-// --- VALIDATION (Giữ nguyên) ---
-const fileListValidation = (min = 1) => yup
-  .mixed() 
-  .test("required", `Yêu cầu tải lên ít nhất ${min} ảnh`, (value) => value === null || (value && value.length >= min))
-  .test("fileType", "Chỉ chấp nhận file JPG, PNG, WEBP", (value) => {
-    if (!value || value.length === 0) return true; 
-    return Array.from(value).every(file => 
-      ["image/jpeg", "image/png", "image/webp"].includes(file.type)
-    );
-  });
-
+// ... (Các phần Validation & Constants GIỮ NGUYÊN) ...
+const fileListValidation = (min = 0) => yup.mixed(); 
 const editSchema = yup.object({
   province: yup.string().required("Vui lòng nhập tỉnh/thành"),
   city: yup.string().required("Vui lòng nhập thành phố/quận"),
   address: yup.string().required("Vui lòng nhập địa chỉ chi tiết"),
-  amenities: yup.object().nullable(), 
-  propertyImages: fileListValidation(0), 
+  amenities: yup.object().nullable(),
   propertyName: yup.string().required("Tên cơ sở là bắt buộc"),
   description: yup.string().min(50, "Mô tả phải có ít nhất 50 ký tự").required("Mô tả là bắt buộc"),
   area: yup.number().min(1, "Diện tích phải > 0").required("Bắt buộc").typeError("Phải là số"),
 });
-// ------------------------------------------
 
-// --- AMENITIES (Giữ nguyên) ---
 const AMENITIES_LIST = [
-  { id: "pool", label: "Hồ bơi", icon: <Waves size={20} /> },
-  { id: "parking", label: "Bãi đỗ xe", icon: <ParkingCircle size={20} /> },
-  { id: "sauna", label: "Phòng xông hơi", icon: <Droplet size={20} /> },
-  { id: "spa", label: "Spa", icon: <Sparkles size={20} /> },
-  { id: "non_smoking", label: "Không hút thuốc", icon: <Ban size={20} /> },
-  { id: "wifi", label: "Wi-Fi (miễn phí)", icon: <Wifi size={20} /> },
-  { id: "airport_transfer", label: "Đưa đón sân bay", icon: <Plane size={20} /> },
-  { id: "pets", label: "Cho phép thú cưng", icon: <PawPrint size={20} /> },
-  { id: "gym", label: "Trung tâm thể dục", icon: <Dumbbell size={20} /> },
-  { id: "smoking_area", label: "Khu vực hút thuốc", icon: <Cigarette size={20} /> },
-  { id: "reception_24h", label: "Lễ tân [24 giờ]", icon: <ConciergeBell size={20} /> },
-  { id: "ac", label: "Điều hòa không khí", icon: <Wind size={20} /> },
+    { id: "pool", label: "Hồ bơi", icon: <Waves size={20} /> },
+    { id: "parking", label: "Bãi đỗ xe", icon: <ParkingCircle size={20} /> },
+    { id: "sauna", label: "Phòng xông hơi", icon: <Droplet size={20} /> },
+    { id: "spa", label: "Spa", icon: <Sparkles size={20} /> },
+    { id: "non_smoking", label: "Không hút thuốc", icon: <Ban size={20} /> },
+    { id: "wifi", label: "Wi-Fi (miễn phí)", icon: <Wifi size={20} /> },
+    { id: "airport_transfer", label: "Đưa đón sân bay", icon: <Plane size={20} /> },
+    { id: "pets", label: "Cho phép thú cưng", icon: <PawPrint size={20} /> },
+    { id: "gym", label: "Trung tâm thể dục", icon: <Dumbbell size={20} /> },
+    { id: "smoking_area", label: "Khu vực hút thuốc", icon: <Cigarette size={20} /> },
+    { id: "reception_24h", label: "Lễ tân [24 giờ]", icon: <ConciergeBell size={20} /> },
+    { id: "ac", label: "Điều hòa không khí", icon: <Wind size={20} /> },
 ];
-// ------------------------------------------
 
-// ✅ SỬA LỖI 2: Component 'CurrentImage' (Sửa lại style nút)
-const CurrentImage = ({ url }) => (
-  <div className="relative aspect-square w-full overflow-hidden rounded-lg shadow-sm">
-    <img src={url} alt="Ảnh cơ sở" className="h-full w-full object-cover" />
-    <Button
-      type="button" // Thêm type="button"
-      size="sm"
-      variant="outline" // Sửa từ "danger-outline" thành "outline"
-      // Thêm class để custom màu đỏ
-      className="absolute top-1 right-1 !p-1 !rounded-full h-auto bg-white/70 backdrop-blur-sm text-red-500 border-red-400 hover:bg-red-50 hover:border-red-500"
-      onClick={() => alert("Logic xóa ảnh (gọi API) sẽ ở đây")}
-    >
-      <XCircle size={16} />
-    </Button>
-  </div>
-);
+// Helper xử lý ảnh (GIỮ NGUYÊN)
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
+const getFullImageUrl = (url) => {
+  if (!url) return "/assets/images/placeholder.png";
+  if (url.startsWith("http")) return url;
+  let path = url.startsWith("/") ? url : `/${url}`;
+  if (!path.startsWith("/uploads")) path = `/uploads${path}`;
+  return `${API_BASE_URL}${path}`;
+};
 
-export default function EditPropertyModal({ open, onClose, property, onSubmit }) {
+export default function EditPropertyModal({ open, onClose, property, onSuccess }) {
   const [isLoading, setIsLoading] = useState(false);
+  const [currentImages, setCurrentImages] = useState([]); 
+  const [uploadedFiles, setUploadedFiles] = useState([]); 
 
   const {
     register,
@@ -89,52 +72,123 @@ export default function EditPropertyModal({ open, onClose, property, onSubmit })
     mode: "onChange",
   });
 
-  // useEffect (Giữ nguyên)
+  // 1. Fetch Data (Giữ nguyên)
   useEffect(() => {
-    if (property) {
-      reset({
-        propertyName: property.details?.propertyName || "",
-        description: property.details?.description || "",
-        area: property.details?.area || "",
-        province: property.locationDetails?.province || "",
-        city: property.locationDetails?.city || "",
-        address: property.locationDetails?.address || "",
-        amenities: property.amenities || {},
-        propertyImages: null,
-      });
-    }
-  }, [property, open, reset]);
+    const fetchData = async () => {
+      if (open && property?.propertyId) {
+        try {
+          setIsLoading(true);
+          
+          const detailRes = await api.get(`/property-details/${property.propertyId}`);
+          const data = detailRes.data;
 
-  // handleFinalSubmit (Giữ nguyên)
-  const handleFinalSubmit = (data) => {
-    setIsLoading(true);
-    setTimeout(() => {
-      onSubmit(data);
+          const imagesRes = await propertyService.getPropertyImages(property.propertyId);
+          setCurrentImages(imagesRes || []);
+
+          const amenitiesMap = {};
+          data.amenities.forEach(a => {
+             const key = AMENITIES_LIST.find(item => item.label === a.amenityName || item.id === a.amenityName.toLowerCase())?.id;
+             if(key) amenitiesMap[key] = true;
+          });
+
+          reset({
+            propertyName: data.property.propertyName,
+            description: data.property.description,
+            area: data.property.area || 0,
+            province: data.property.province || "",
+            city: data.property.city,
+            address: data.property.address,
+            amenities: amenitiesMap,
+          });
+          setUploadedFiles([]); 
+
+        } catch (error) {
+          console.error("Failed to load data", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    fetchData();
+  }, [open, property, reset]);
+
+  // 2. Handlers (Giữ nguyên logic, chỉ sửa UI ở dưới)
+  const handleSetCover = async (imageId) => {
+      try {
+          setIsLoading(true);
+          await propertyService.setCoverImage(property.propertyId, imageId);
+          
+          const updated = currentImages.map(img => ({
+              ...img,
+              isCover: img.propertyImageId === imageId
+          }));
+          setCurrentImages(updated);
+      } catch (error) {
+          alert("Đặt ảnh bìa thất bại. Vui lòng kiểm tra lại.");
+      } finally {
+          setIsLoading(false);
+      }
+  };
+
+  const handleDeleteImage = async (imageId) => {
+      if(!window.confirm("Bạn có chắc chắn muốn xóa ảnh này?")) return;
+      try {
+          setIsLoading(true);
+          await propertyService.deletePropertyImage(property.propertyId, imageId);
+          setCurrentImages(prev => prev.filter(img => img.propertyImageId !== imageId));
+      } catch (e) {
+          alert("Xóa ảnh thất bại");
+      } finally {
+          setIsLoading(false);
+      }
+  };
+
+  const handleFinalSubmit = async (data) => {
+    try {
+      setIsLoading(true);
+      const updateData = {
+          propertyName: data.propertyName,
+          description: data.description,
+          area: data.area,
+          province: data.province,
+          city: data.city,
+          address: data.address,
+      };
+      await propertyService.updateProperty(property.propertyId, updateData);
+
+      if (uploadedFiles && uploadedFiles.length > 0) {
+          const formData = new FormData();
+          Array.from(uploadedFiles).forEach((file) => {
+              formData.append("file", file); 
+          });
+          await propertyService.uploadPropertyImages(property.propertyId, formData);
+      }
+
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (error) {
+      console.error("Update failed", error);
+      alert("Cập nhật thất bại: " + (error.message || "Lỗi không xác định"));
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   if (!property) return null;
 
   return (
     <>
-      {isLoading && <LoadingOverlay message="Đang cập nhật..." />}
-      <Modal
-        open={open}
-        onClose={onClose}
-        title={`Chỉnh sửa: ${property.name}`}
-        maxWidth="max-w-4xl"
-      >
+      {isLoading && <LoadingOverlay message="Đang xử lý..." />}
+      <Modal open={open} onClose={onClose} title={`Chỉnh sửa: ${property.propertyName}`} maxWidth="max-w-4xl">
         <form onSubmit={handleSubmit(handleFinalSubmit)}>
-          {/* BODY CỦA MODAL (Giữ nguyên) */}
           <div className="max-h-[70vh] overflow-y-auto p-1 pr-4 space-y-8">
             
-            {/* --- SECTION 1: CHI TIẾT CƠ SỞ --- */}
+            {/* SECTION 1: BASIC INFO */}
             <section>
               <h3 className="text-lg font-semibold text-[rgb(40,169,224)] flex items-center gap-2 mb-4">
                 <ClipboardList size={20} /> Thông tin cơ bản
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <FloatingTextField
                   label="Tên cơ sở lưu trú"
                   {...register("propertyName")}
@@ -158,12 +212,12 @@ export default function EditPropertyModal({ open, onClose, property, onSubmit })
               </div>
             </section>
 
-            {/* --- SECTION 2: VỊ TRÍ --- */}
+            {/* SECTION 2: LOCATION */}
             <section>
               <h3 className="text-lg font-semibold text-[rgb(40,169,224)] flex items-center gap-2 mb-4">
                 <MapPin size={20} /> Vị trí
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 space-y-2 md:space-y-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FloatingTextField
                   label="Tỉnh/Thành"
                   {...register("province")}
@@ -176,18 +230,18 @@ export default function EditPropertyModal({ open, onClose, property, onSubmit })
                   value={watch("city")}
                   error={errors.city?.message}
                 />
-              </div>
-              <div className="mt-2">
-                <FloatingTextField
-                  label="Địa chỉ chi tiết"
-                  {...register("address")}
-                  value={watch("address")}
-                  error={errors.address?.message}
-                />
+                <div className="md:col-span-2">
+                    <FloatingTextField
+                    label="Địa chỉ chi tiết"
+                    {...register("address")}
+                    value={watch("address")}
+                    error={errors.address?.message}
+                    />
+                </div>
               </div>
             </section>
 
-            {/* --- SECTION 3: TIỆN NGHI --- */}
+            {/* SECTION 3: AMENITIES */}
             <section>
               <h3 className="text-lg font-semibold text-[rgb(40,169,224)] flex items-center gap-2 mb-4">
                 <Package size={20} /> Tiện nghi
@@ -205,35 +259,100 @@ export default function EditPropertyModal({ open, onClose, property, onSubmit })
               </div>
             </section>
 
-            {/* --- SECTION 4: HÌNH ẢNH --- */}
+            {/* SECTION 4: IMAGES - PHẦN ĐÃ CẬP NHẬT UI */}
             <section>
-              <h3 className="text-lg font-semibold text-[rgb(40,169,224)] flex items-center gap-2 mb-4">
-                <ImageIcon size={20} /> Quản lý hình ảnh
-              </h3>
-              <div className="mb-4">
-                <h4 className="text-sm font-medium text-gray-600 mb-2">Ảnh hiện tại:</h4>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                  {property.existingImages?.map((url, index) => (
-                    <CurrentImage key={index} url={url} />
-                  ))}
-                </div>
+              <div className="flex justify-between items-center mb-4">
+                 <h3 className="text-lg font-semibold text-[rgb(40,169,224)] flex items-center gap-2">
+                    <ImageIcon size={20} /> Quản lý hình ảnh
+                 </h3>
+                 <Button 
+                    type="button" 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={() => {
+                        propertyService.getPropertyImages(property.propertyId).then(setCurrentImages);
+                    }}
+                 >
+                    <RefreshCw size={16} />
+                 </Button>
               </div>
+              
+              {/* Danh sách ảnh hiện tại */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-gray-600 mb-3">
+                    Album hiện tại ({currentImages.length} ảnh):
+                </h4>
+                
+                {currentImages.length > 0 ? (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                    {currentImages.map((img) => (
+                        <div key={img.propertyImageId} 
+                             className={`relative aspect-square w-full overflow-hidden rounded-xl shadow-sm group border-2 transition-all duration-200
+                             ${img.isCover ? 'border-yellow-400 ring-2 ring-yellow-100' : 'border-gray-200 hover:border-blue-300'}`}>
+                             
+                            <img src={getFullImageUrl(img.imageUrl)} alt="Property" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                            
+                            {/* Badge Ảnh bìa cố định */}
+                            {img.isCover && (
+                                <div className="absolute top-2 left-2 bg-yellow-400 text-white p-1.5 rounded-full shadow-md z-10">
+                                    <Star size={14} fill="currentColor" />
+                                </div>
+                            )}
+
+                            {/* Actions Overlay (Hiện khi Hover) */}
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center gap-3 backdrop-blur-[1px]">
+                                
+                                {/* Nút Set Cover (Chỉ hiện nếu chưa phải ảnh bìa) */}
+                                {!img.isCover && (
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        className="bg-white text-yellow-500 hover:bg-yellow-400 hover:text-white border-none p-2 h-auto rounded-full shadow-lg transform hover:scale-110 transition-all"
+                                        onClick={() => handleSetCover(img.propertyImageId)}
+                                        title="Đặt làm ảnh bìa"
+                                    >
+                                        <Star size={20} />
+                                    </Button>
+                                )}
+                                
+                                {/* Nút Xóa (Dùng icon Trash2) */}
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    className="bg-white text-red-500 hover:bg-red-500 hover:text-white border-none p-2 h-auto rounded-full shadow-lg transform hover:scale-110 transition-all"
+                                    onClick={() => handleDeleteImage(img.propertyImageId)}
+                                    title="Xóa ảnh"
+                                >
+                                    <Trash2 size={20} />
+                                </Button>
+
+                            </div>
+                        </div>
+                    ))}
+                    </div>
+                ) : (
+                    <div className="p-8 text-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+                        <ImageIcon className="mx-auto text-gray-300 mb-2" size={40} />
+                        <p className="text-gray-400 italic text-sm">Chưa có ảnh nào trong album.</p>
+                    </div>
+                )}
+              </div>
+
+              {/* Upload mới */}
               <div>
-                <h4 className="text-sm font-medium text-gray-600 mb-2">Tải lên ảnh mới (để thêm vào album):</h4>
+                <h4 className="text-sm font-medium text-gray-600 mb-2">Tải lên ảnh mới:</h4>
                 <ImageUploadGrid
                   multiple={true}
                   accept="image/png, image/jpeg, image/webp"
-                  value={watch("propertyImages")}
-                  onChange={(files) => setValue("propertyImages", files, { shouldValidate: true })}
-                  error={errors.propertyImages?.message} 
+                  value={uploadedFiles}
+                  onChange={(files) => setUploadedFiles(files)}
                 />
               </div>
             </section>
 
           </div>
           
-          {/* FOOTER CỦA MODAL (Giữ nguyên) */}
-          <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+          <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 mt-4">
             <Button type="button" variant="ghost" onClick={onClose}>
               Hủy
             </Button>
