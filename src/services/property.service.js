@@ -1,5 +1,14 @@
 import api from "./axios.config.js";
 
+const getOwnerActiveProperties = async () => {
+  try {
+    const response = await api.get("/properties/my-active-properties");
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
 // ============================
 // 🔍 TÌM KIẾM PROPERTIES
 // ============================
@@ -110,7 +119,8 @@ const propertyService = {
   getPropertyImages,    // ✅ Mới
   uploadPropertyImages, // ✅ Mới
   deletePropertyImage,  // ✅ Mới
-  setCoverImage,        // ✅ Mới
+  setCoverImage,
+  getOwnerActiveProperties,        // ✅ Mới
 };
 
 export default propertyService;

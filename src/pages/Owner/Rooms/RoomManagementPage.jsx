@@ -1,83 +1,179 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import Card from "@/components/common/Card/Card";
-import CardHeader from "@/components/common/Card/CardHeader";
-import { Building2 } from "lucide-react";
-import PropertyRowCard from "./components/PropertyRowCard"; // Import card khách sạn
-import EmptyState from "@/components/common/EmptyState/EmptyState"; // Import EmptyState
-
-// ----- MOCK DATA (Lấy từ PropertyListPage) -----
-// Chúng ta chỉ cần dữ liệu này để demo trang chọn
-const mockProperties = [
-  {
-    id: 1,
-    name: "Khách sạn The Grand Plaza", 
-    location: "Quận 1, TP. Hồ Chí Minh", 
-    imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400&q=80",
-    status: "APPROVED",
-    isEnable: true,
-    roomCount: 15, // (Giả lập số phòng)
-  },
-  {
-    id: 2,
-    name: "Sunrise Resort (Đang chờ)",
-    location: "Phú Quốc, Kiên Giang",
-    imageUrl: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=400&q=80",
-    status: "PENDING",
-    isEnable: false,
-    roomCount: 0,
-  },
-  {
-    id: 3,
-    name: "Ocean View (Tạm tắt)",
-    location: "Vũng Tàu",
-    imageUrl: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=400&q=80",
-    status: "APPROVED",
-    isEnable: false, // Bị vô hiệu hóa
-    roomCount: 10,
-  },
-];
-// ------------------------------------
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Plus, ArrowLeft, BedDouble, Loader2 } from "lucide-react";
+import Button from "@/components/common/Button/Button";
+import RoomCard from "./components/RoomCard";
+import EditRoomModal from "./components/EditRoomModal";
+import roomService from "@/services/room.service";
+import api from "@/services/axios.config";
+import { motion, AnimatePresence } from "framer-motion";
+import Toast from "@/components/common/Notification/Toast";
+import ConfirmModal from "@/components/common/Modal/ConfirmModal";
 
 const RoomManagementPage = () => {
+  const { propertyId } = useParams();
   const navigate = useNavigate();
+  
+  const [property, setProperty] = useState(null);
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [toastData, setToastData] = useState(null);
 
-  // 1. Lọc danh sách khách sạn: Chỉ lấy cái ĐÃ DUYỆT và ĐANG KÍCH HOẠT
-  const activeProperties = mockProperties.filter(
-    p => p.status === "APPROVED" && p.isEnable === true
-  );
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  
+  // Confirm State
+  const [confirmData, setConfirmData] = useState({ open: false, id: null });
 
-  // 2. Xử lý khi bấm "Xem phòng"
-  const handleViewRoomsClick = (propertyId) => {
-    navigate(`/owner/rooms/${propertyId}`); // Chuyển trang
+  const showToast = (message, type = "info") => {
+    setToastData({ message, type });
+    setTimeout(() => setToastData(null), 3000);
   };
 
-  return (
-    <Card>
-      <CardHeader
-        title="Quản lý Phòng"
-        subtitle="Chọn một cơ sở lưu trú để xem và chỉnh sửa danh sách phòng."
-        icon={<Building2 className="text-[rgb(40,169,224)]" />}
-      />
+  // Fetch Data với Log chi tiết
+  const fetchData = async () => {
+    console.log(`🚀 [RoomPage] Bắt đầu tải dữ liệu cho Property ID: ${propertyId}`);
+    const totalStart = performance.now();
+
+    try {
+      setLoading(true);
+
+      // 1. Đo thời gian lấy thông tin Property
+      const propStart = performance.now();
+      const propRes = await api.get(`/property-details/${propertyId}`);
+      console.log(`   🔹 [API Property Info] Xong sau ${(performance.now() - propStart).toFixed(2)}ms`, propRes.data);
+      setProperty(propRes.data.property);
+
+      // 2. Đo thời gian lấy danh sách phòng
+      const roomStart = performance.now();
+      const roomsRes = await roomService.getRoomsByProperty(propertyId);
+      console.log(`   🔹 [API Get Rooms] Xong sau ${(performance.now() - roomStart).toFixed(2)}ms`, roomsRes.data);
+      setRooms(roomsRes.data || []); 
       
-      {/* Danh sách các khách sạn (dạng card-row) */}
-      <div className="mt-6 space-y-6">
-        {activeProperties.length > 0 ? (
-          activeProperties.map((property) => (
-            <PropertyRowCard
-              key={property.id}
-              property={property}
-              onViewRoomsClick={handleViewRoomsClick}
-            />
-          ))
-        ) : (
-          <EmptyState
-            title="Không có cơ sở nào đang hoạt động"
-            description="Bạn cần có ít nhất một cơ sở lưu trú đã được 'Phê duyệt' và 'Kích hoạt' để quản lý phòng."
-          />
-        )}
+    } catch (error) {
+      console.error("❌ [RoomPage] Lỗi tải dữ liệu:", error);
+      showToast("Không thể tải dữ liệu", "error");
+    } finally {
+      setLoading(false);
+      console.log(`✅ [RoomPage] TỔNG THỜI GIAN: ${(performance.now() - totalStart).toFixed(2)}ms`);
+    }
+  };
+
+  useEffect(() => {
+    if (propertyId) fetchData();
+  }, [propertyId]);
+
+  // Handlers
+  const handleAddRoom = () => {
+    setSelectedRoom(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditRoom = (room) => {
+    setSelectedRoom(room);
+    setIsModalOpen(true);
+  };
+
+  const requestDeleteRoom = (roomId) => {
+      setConfirmData({ open: true, id: roomId });
+  };
+
+  const handleDeleteRoom = async () => {
+      if (!confirmData.id) return;
+      try {
+          console.time("DeleteRoomAPI");
+          await roomService.deleteRoom(confirmData.id);
+          console.timeEnd("DeleteRoomAPI");
+          
+          showToast("Đã xóa phòng thành công", "success");
+          setConfirmData({ open: false, id: null });
+          fetchData(); 
+      } catch (error) {
+          console.error("Lỗi xóa phòng:", error);
+          showToast("Xóa phòng thất bại", "error");
+      }
+  };
+
+  const handleModalSuccess = () => {
+      setIsModalOpen(false);
+      fetchData();
+      showToast(selectedRoom ? "Cập nhật phòng thành công" : "Thêm phòng mới thành công", "success");
+  };
+
+  if (loading && !property) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin text-blue-600" size={40}/></div>;
+
+  return (
+    <div className="p-6 min-h-screen bg-gray-50/30">
+      {toastData && <div className="fixed top-24 right-6 z-[9999]"><Toast message={toastData.message} type={toastData.type} /></div>}
+
+      <ConfirmModal 
+          open={confirmData.open}
+          onClose={() => setConfirmData({ open: false, id: null })}
+          onConfirm={handleDeleteRoom}
+          title="Xác nhận xóa phòng"
+          description="Bạn có chắc chắn muốn xóa phòng này không? Hành động này không thể hoàn tác."
+          confirmText="Xóa ngay"
+          cancelText="Hủy"
+          isDanger={true}
+      />
+
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <Button variant="ghost" iconOnly onClick={() => navigate("/owner/rooms")} className="hover:bg-gray-200">
+            <ArrowLeft size={20} />
+        </Button>
+        <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                Quản lý phòng <span className="text-gray-400 font-light">|</span> <span className="text-blue-600">{property?.propertyName}</span>
+            </h1>
+            <p className="text-gray-500 text-sm mt-1">Thiết lập các loại phòng và giá cho cơ sở này</p>
+        </div>
+        <div className="ml-auto">
+            <Button onClick={handleAddRoom} leftIcon={<Plus size={20} />} className="shadow-lg shadow-blue-500/20">
+                Thêm phòng mới
+            </Button>
+        </div>
       </div>
-    </Card>
+
+      {/* Room Grid */}
+      {rooms.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <AnimatePresence>
+                {rooms.map(room => (
+                    <RoomCard 
+                        key={room.roomId} 
+                        room={room} 
+                        onEdit={() => handleEditRoom(room)}
+                        onDelete={() => requestDeleteRoom(room.roomId)}
+                    />
+                ))}
+            </AnimatePresence>
+          </div>
+      ) : (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center h-96 bg-white rounded-3xl border border-dashed border-gray-200"
+          >
+              <div className="bg-blue-50 p-6 rounded-full mb-4">
+                  <BedDouble size={48} className="text-blue-400" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Chưa có phòng nào</h3>
+              <p className="text-gray-500 mb-6">Hãy tạo các hạng phòng để khách hàng có thể đặt lịch.</p>
+              <Button onClick={handleAddRoom} variant="outline">Tạo phòng đầu tiên</Button>
+          </motion.div>
+      )}
+
+      {/* Edit/Add Modal */}
+      <EditRoomModal 
+         open={isModalOpen} 
+         onClose={() => setIsModalOpen(false)}
+         room={selectedRoom}
+         propertyId={propertyId}
+         onSuccess={handleModalSuccess}
+         showToast={showToast}
+      />
+    </div>
   );
 };
 

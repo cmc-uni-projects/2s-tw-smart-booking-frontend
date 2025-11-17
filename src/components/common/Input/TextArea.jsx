@@ -1,66 +1,65 @@
-// src/components/common/Input/TextArea.jsx
-import React, { useState } from "react";
+import React from "react";
 
 export default function TextArea({
   label,
-  rows = 4,
   error = "",
-  ...props // (name, onChange, onBlur, value, ref) từ ...register()
+  disabled = false,
+  className = "",
+  rows = 4,
+  ...props
 }) {
-  const [focused, setFocused] = useState(false);
-
-  // Lấy 'value' từ props
-  const value = props.value;
-
-  // Logic "Nổi" (Floating)
-  const stringValue = String(value ?? '');
-  const isFloating = focused || stringValue.length > 0;
-
   const hasError = !!error;
 
   return (
-    // Bọc <div> để lỗi không làm "giật" layout
-    <div className="w-full">
+    <div className={`w-full ${className}`}>
       <div className="relative w-full">
         <textarea
           id={label}
+          disabled={disabled}
           rows={rows}
-          {...props} // Truyền props (ref, name, value...) từ react-hook-form
-          onFocus={(e) => {
-            setFocused(true);
-            props.onFocus && props.onFocus(e); // Gọi onFocus gốc nếu có
-          }}
-          onBlur={(e) => {
-            setFocused(false); // Luôn set false khi blur
-            props.onBlur && props.onBlur(e); // Gọi onBlur gốc của hook-form
-          }}
-          placeholder={label}
-          className={`peer w-full rounded-xl border ${
-            hasError
+          placeholder=" " // ✅ QUAN TRỌNG: Placeholder khoảng trắng để kích hoạt CSS
+          {...props}
+          className={`
+            peer w-full rounded-xl border bg-white px-4 py-3
+            text-gray-800 shadow-sm transition-all duration-200 outline-none
+            placeholder-transparent
+            focus:ring-2
+            resize-none /* Ngăn người dùng kéo giãn làm vỡ layout */
+            ${disabled ? "bg-gray-50 cursor-not-allowed" : ""}
+            ${hasError
               ? "border-red-400 focus:border-red-400 ring-red-100"
               : "border-gray-300 focus:border-[rgb(40,169,224)] ring-[rgb(40,169,224,0.15)]"
-          } bg-white py-3 px-4 text-gray-800 placeholder-transparent shadow-sm 
-             focus:ring-2 transition-all duration-200 resize-none`}
+            }
+          `}
         />
-        {/* Label (floating) */}
+
         <label
           htmlFor={label}
-          className={`absolute left-4 transition-all duration-200 pointer-events-none ${
-            isFloating
-              ? `text-xs -top-2.5 bg-white px-1 ${
-                  hasError ? "text-red-500" : "text-[rgb(40,169,224)]"
-                }`
-              : `text-sm top-3.5 ${hasError ? "text-red-400" : "text-gray-500"}`
-          }`}
+          className={`
+            absolute left-4 transition-all duration-200 pointer-events-none bg-white px-1
+
+            /* 1. Trạng thái mặc định (Có dữ liệu hoặc Focus) -> Label bay lên */
+            -top-2.5 text-xs
+
+            /* 2. Trạng thái Placeholder hiện (Rỗng & Không focus) -> Label nằm trong */
+            peer-placeholder-shown:top-3.5
+            peer-placeholder-shown:text-sm
+            peer-placeholder-shown:text-gray-500
+
+            /* 3. Trạng thái Focus (Luôn bay lên & đổi màu) */
+            peer-focus:-top-2.5
+            peer-focus:text-xs
+            ${hasError ? "peer-focus:text-red-500 text-red-500" : "peer-focus:text-[rgb(40,169,224)] text-[rgb(40,169,224)]"}
+          `}
         >
           {label}
         </label>
       </div>
-      
-      {/* Giữ chỗ cho lỗi để tránh "giật" layout */}
-      <p className="text-xs text-red-500 mt-1 ml-1 h-4">
-        {hasError ? error : <span>&nbsp;</span>}
-      </p>
+
+      {/* Error Message */}
+      <div className="min-h-[20px] mt-1 ml-1">
+         {hasError && <p className="text-xs text-red-500 animate-fadeIn">{error}</p>}
+      </div>
     </div>
   );
 }
