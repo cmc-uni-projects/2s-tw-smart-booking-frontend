@@ -1,92 +1,70 @@
-import api from "./axios.config.js"; // ✅ 1. IMPORT API INSTANCE
+import api from "./axios.config.js";
 
-// ❌ 2. Xóa API_URL và getAuthHeader (không cần nữa)
-// const API_URL = ...
-// const getAuthHeader = () => { ... };
-
-// ============================
-// 🧑‍💼 LẤY CÁC ĐƠN ĐĂNG KÝ (OWNER)
-// ============================
-const getOwnerApplications = async (status) => {
-  try {
-    // ✅ 3. Dùng 'api' (headers được tự động thêm)
-    const response = await api.get(`/admin/owner-applications`, {
-      params: { status },
-    });
-    return response.data; 
-  } catch (error) {
-    // ... (xử lý lỗi giữ nguyên)
-    console.error("Error fetching owner applications:", error);
-    if (error.response) {
-      throw new Error(error.response.data.message || "Failed to fetch applications");
-    } else {
-      throw new Error("Cannot connect to server");
-    }
-  }
-};
-
-// ============================
-// 📝 DUYỆT ĐƠN ĐĂNG KÝ (OWNER)
-// ============================
-const reviewOwnerApplication = async (applicationId, reviewData) => {
-  try {
-    // ✅ 3. Dùng 'api'
-    const response = await api.post(
-      `/admin/owner-applications/${applicationId}/review`,
-      reviewData 
-    );
-    return response.data; // Trả về ApiResponse
-  } catch (error) {
-    // ... (xử lý lỗi giữ nguyên)
-    console.error("Error reviewing owner application:", error);
-    if (error.response) {
-      throw new Error(error.response.data.message || "Failed to review application");
-    } else {
-      throw new Error("Cannot connect to server");
-    }
-  }
-};
-
-// ============================
-// 🏨 LẤY DANH SÁCH CƠ SỞ THEO TRẠNG THÁI
-// ============================
-const getPropertiesByStatus = async () => {
-  try {
-    const response = await api.get(`/admin/properties/pending`);
-    return response.data.data;   // <-- CHỈ TRẢ MẢNG
-  } catch (error) {
-    throw new Error(error.response?.data?.message || "Lỗi khi tải danh sách cơ sở");
-  }
-};
-
-// ============================
-// 🏤 DUYỆT CƠ SỞ (APPROVE / REJECTED)
-// ============================
-const reviewProperty = async (propertyId, reviewData) => {
-  try {
-    // ✅ 3. Dùng 'api'
-    const response = await api.post(
-      `/admin/properties/${propertyId}/review`,
-      reviewData
-    );
-    return response.data; 
-  } catch (error) {
-    // ... (xử lý lỗi giữ nguyên)
-    console.error(`Error reviewing property ${propertyId}:`, error);
-    if (error.response) {
-      throw new Error(error.response.data.message || "Lỗi khi duyệt cơ sở");
-    } else {
-      throw new Error("Không thể kết nối máy chủ");
-    }
-  }
-};
-
-// Export (giữ nguyên)
 const adminService = {
-  getOwnerApplications,
-  reviewOwnerApplication,
-  getPropertiesByStatus, 
-  reviewProperty,
+  // ============================
+  // 🧑‍💼 LẤY CÁC ĐƠN ĐĂNG KÝ OWNER (Giữ nguyên)
+  // ============================
+  getOwnerApplications: async (status) => {
+    try {
+      const response = await api.get(`/admin/owner-applications`, {
+        params: { status },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching owner applications:", error);
+      throw new Error(error.response?.data?.message || "Failed to fetch applications");
+    }
+  },
+
+  // ============================
+  // 📝 DUYỆT ĐƠN ĐĂNG KÝ OWNER (Giữ nguyên)
+  // ============================
+  reviewOwnerApplication: async (applicationId, reviewData) => {
+    try {
+      const response = await api.post(
+        `/admin/owner-applications/${applicationId}/review`,
+        reviewData
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error reviewing owner application:", error);
+      throw new Error(error.response?.data?.message || "Failed to review application");
+    }
+  },
+
+  // ============================
+  // 🏨 LẤY DANH SÁCH CƠ SỞ THEO TRẠNG THÁI (🔴 ĐÃ SỬA)
+  // ============================
+  getPropertiesByStatus: async (status) => {
+    try {
+      // ✅ GỌI API ĐỘNG: /api/v1/admin/properties/status?status=PENDING
+      const response = await api.get(`/admin/properties/status`, {
+        params: { status }, 
+      });
+      
+      // ✅ Backend trả về List trực tiếp, nên chỉ cần response.data
+      return response.data; 
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+      throw new Error(error.response?.data?.message || "Lỗi khi tải danh sách cơ sở");
+    }
+  },
+
+  // ============================
+  // 🏤 DUYỆT CƠ SỞ (APPROVE / REJECTED) (🟢 GIỮ NGUYÊN VÌ ĐÃ ĐÚNG URL)
+  // ============================
+  reviewProperty: async (propertyId, reviewData) => {
+    try {
+      const response = await api.post(
+        `/admin/properties/${propertyId}/review`,
+        reviewData
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error reviewing property ${propertyId}:`, error);
+      throw new Error(error.response?.data?.message || "Lỗi khi duyệt cơ sở");
+    }
+  },
 };
 
 export default adminService;
