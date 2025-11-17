@@ -1,5 +1,22 @@
 import api from "./axios.config.js";
 
+
+
+// ============================
+// 📤 SUBMIT PROPERTY APPLICATION
+// ============================
+const submitPropertyApplication = async (formData) => {
+  try {
+    const response = await api.post("/properties/submit-application", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+
 const getOwnerActiveProperties = async () => {
   try {
     const response = await api.get("/properties/my-active-properties");
@@ -120,7 +137,8 @@ const propertyService = {
   uploadPropertyImages, // ✅ Mới
   deletePropertyImage,  // ✅ Mới
   setCoverImage,
-  getOwnerActiveProperties,        // ✅ Mới
+  getOwnerActiveProperties,
+  submitPropertyApplication,        // ✅ Mới
 };
 
 export default propertyService;

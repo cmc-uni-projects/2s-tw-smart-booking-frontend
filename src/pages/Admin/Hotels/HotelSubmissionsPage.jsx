@@ -93,7 +93,7 @@ const HotelSubmissionsPage = () => {
           ...hotel,
           id: hotel.propertyId,
           hotelName: hotel.propertyName,
-          ownerName: hotel.ownerFullName || "Chưa rõ",
+          ownerName: hotel.ownerName || "Chưa rõ",
           images,
           imageUrl: displayImage, // Dùng trường này để hiển thị Card
           submittedDate: hotel.createdAt

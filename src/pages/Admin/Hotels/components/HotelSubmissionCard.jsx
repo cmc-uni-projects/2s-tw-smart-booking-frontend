@@ -97,16 +97,6 @@ const HotelSubmissionCard = ({ hotel, onViewDetails, onApprove, onReject }) => {
                 {hotel.address}, {hotel.city}
               </span>
             </div>
-
-            <div className="flex items-center">
-              <Calendar size={14} className="mr-2 flex-shrink-0 text-gray-500" />
-              <span>
-                Ngày nộp:{" "}
-                <span className="font-semibold text-gray-800">
-                  {hotel.createdAt || hotel.submittedDate}
-                </span>
-              </span>
-            </div>
           </div>
         </div>
 
