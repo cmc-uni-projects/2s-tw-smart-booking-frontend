@@ -1,21 +1,26 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Card from "@/components/common/Card/Card";
 import CardHeader from "@/components/common/Card/CardHeader";
-import { Hotel, Loader2 } from "lucide-react";
+import { Hotel, Loader2, RefreshCw } from "lucide-react";
 import adminService from "@/services/admin.service";
 import Toast from "@/components/common/Notification/Toast";
 import EmptyState from "@/components/common/EmptyState/EmptyState";
 import { AnimatePresence, motion } from "framer-motion";
+import Button from "@/components/common/Button/Button";
 
-// Filters
+// Filters Components
 import SubmissionSearchBar from "./components/SubmissionSearchBar";
 import SubmissionTypeFilter from "./components/SubmissionTypeFilter";
+import SubmissionStatusFilter from "./components/SubmissionStatusFilter";
 
 // Cards + Modals
 import HotelSubmissionCard from "./components/HotelSubmissionCard";
 import ViewHotelSubmissionModal from "./components/ViewHotelSubmissionModal";
 import ApproveHotelModal from "./components/ApproveHotelModal";
 import RejectHotelModal from "./components/RejectHotelModal";
+
+const API_BASE = (import.meta.env.VITE_REACT_APP_API_URL || "http://localhost:8386/api/v1")
+  .replace("/api/v1", "");
 
 const HotelSubmissionsPage = () => {
   // --- State ---
@@ -32,57 +37,104 @@ const HotelSubmissionsPage = () => {
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("ALL");
+  const [filterStatus, setFilterStatus] = useState("PENDING"); // Mặc định là Chờ duyệt
 
-  // --- Fetch ---
+  // --- Fetch Data ---
   const fetchSubmissions = async () => {
     try {
       setIsLoading(true);
-      const response = await adminService.getPropertiesByStatus("PENDING");
-      const data = response.data || [];
+      let data = [];
 
-      const mappedData = data.map((hotel) => ({
-        ...hotel,
-        id: hotel.propertyId,
-        hotelName: hotel.name,
-        ownerName: hotel.owner?.fullName || "Chủ sở hữu ẩn",
-        imageUrl:
-          hotel.images?.[0]?.imageUrl ||
-          "https://via.placeholder.com/400x300?text=No+Image",
-        submittedDate: hotel.createdAt
-          ? new Date(hotel.createdAt).toLocaleDateString("vi-VN")
-          : "N/A",
-        propertyType: hotel.propertyType || "UNKNOWN",
-      }));
+      // Logic lấy dữ liệu dựa trên Tab đang chọn
+      if (filterStatus === "ALL") {
+        // Nếu chọn tất cả, gọi song song các trạng thái để gộp lại
+        // Lưu ý: Backend enum là "APPROVE" chứ không phải "APPROVED"
+        const [pending, approved, rejected] = await Promise.allSettled([
+          adminService.getPropertiesByStatus("PENDING"),
+          adminService.getPropertiesByStatus("APPROVE"), 
+          adminService.getPropertiesByStatus("REJECTED")
+        ]);
+        
+        // Gộp kết quả từ các promise thành công
+        if (pending.status === "fulfilled") data = [...data, ...pending.value];
+        if (approved.status === "fulfilled") data = [...data, ...approved.value];
+        if (rejected.status === "fulfilled") data = [...data, ...rejected.value];
+
+      } else {
+        // Map UI Status sang Backend Enum
+        let statusToSend = filterStatus;
+        if (filterStatus === "APPROVED") statusToSend = "APPROVE"; // Fix lệch tên Enum
+
+        data = await adminService.getPropertiesByStatus(statusToSend);
+      }
+
+      // Mapping dữ liệu để đồng bộ với Frontend
+      const mappedData = data.map((hotel) => {
+        // Parse images
+        let images = [];
+        try {
+          const imagesRaw = hotel.imageUrlsJson ? JSON.parse(hotel.imageUrlsJson) : [];
+          images = imagesRaw.map((img) => ({
+            imageUrl: `${API_BASE}${img.startsWith("/") ? img : "/" + img}`,
+          }));
+        } catch (e) {
+          images = [];
+        }
+
+        // Xử lý ảnh bìa (ưu tiên coverImage từ DTO mới, fallback sang ảnh đầu tiên hoặc placeholder)
+        let displayImage = "/assets/images/placeholder.png"; // Ảnh mặc định
+        if (hotel.coverImage) {
+            displayImage = `${API_BASE}${hotel.coverImage.startsWith("/") ? hotel.coverImage : "/" + hotel.coverImage}`;
+        } else if (images.length > 0) {
+            displayImage = images[0].imageUrl;
+        }
+
+        return {
+          ...hotel,
+          id: hotel.propertyId,
+          hotelName: hotel.propertyName,
+          ownerName: hotel.ownerName || "Chưa rõ",
+          images,
+          imageUrl: displayImage, // Dùng trường này để hiển thị Card
+          submittedDate: hotel.createdAt
+            ? new Date(hotel.createdAt).toLocaleDateString("vi-VN")
+            : "N/A",
+        };
+      });
+
+      // Sắp xếp: Mới nhất lên đầu
+      mappedData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       setAllSubmissions(mappedData);
     } catch (error) {
-      showToast(
-        error.message || "Không thể tải danh sách cơ sở",
-        "error"
-      );
+      console.error(error);
+      showToast("Không thể tải danh sách cơ sở. Vui lòng thử lại.", "error");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Gọi API khi filterStatus thay đổi (Chuyển Tab)
   useEffect(() => {
     fetchSubmissions();
-  }, []);
+  }, [filterStatus]);
 
-  // --- Filtering ---
+  // --- Client-side Filtering (Search & Type) ---
   const filteredSubmissions = useMemo(() => {
     let submissions = [...allSubmissions];
 
+    // 1. Lọc theo Loại hình
     if (filterType !== "ALL") {
       submissions = submissions.filter((s) => s.propertyType === filterType);
     }
 
+    // 2. Lọc theo Từ khóa (Tên khách sạn hoặc Chủ sở hữu)
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
       submissions = submissions.filter(
         (s) =>
-          s.hotelName.toLowerCase().includes(q) ||
-          s.ownerName.toLowerCase().includes(q)
+          (s.hotelName && s.hotelName.toLowerCase().includes(q)) ||
+          (s.ownerName && s.ownerName.toLowerCase().includes(q))
       );
     }
 
@@ -117,44 +169,104 @@ const HotelSubmissionsPage = () => {
     setTimeout(() => setSelectedHotel(null), 200);
   };
 
-  // TODO: add your confirm handlers here
-  const onConfirmApprove = async () => {};
-  const onConfirmReject = async () => {};
+  // --- API Actions ---
+  const onConfirmApprove = async () => {
+    if (!selectedHotel) return;
+    try {
+      await adminService.reviewProperty(selectedHotel.id, {
+        status: "APPROVE",
+        reason: null,
+      });
+      showToast(`Đã duyệt "${selectedHotel.hotelName}" thành công!`, "success");
+      fetchSubmissions(); // Reload list
+      closeModals();
+    } catch (err) {
+      showToast(err.message || "Lỗi khi duyệt cơ sở", "error");
+    }
+  };
+
+  const onConfirmReject = async (reason) => {
+    if (!selectedHotel) return;
+    try {
+      await adminService.reviewProperty(selectedHotel.id, {
+        status: "REJECTED",
+        reason,
+      });
+      showToast(`Đã từ chối "${selectedHotel.hotelName}"!`, "success");
+      fetchSubmissions(); // Reload list
+      closeModals();
+    } catch (err) {
+      showToast(err.message || "Lỗi khi từ chối cơ sở", "error");
+    }
+  };
 
   return (
     <>
-      {/* Toast */}
+      {/* Toast Notification */}
       {toastData && (
         <div className="fixed top-24 right-6 z-[9999]">
           <Toast message={toastData.message} type={toastData.type} />
         </div>
       )}
 
-      <Card className="overflow-hidden">
-        <CardHeader
-          title="Phê duyệt Đơn đăng ký Cơ sở"
-          subtitle={`Bạn có ${filteredSubmissions.length} cơ sở đang chờ phê duyệt`}
-          icon={<Hotel className="text-blue-600" />}
-        />
-
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 bg-gray-50 border rounded-lg p-4 mt-4 shadow-inner">
-          <SubmissionSearchBar onSearch={setSearchTerm} />
-          <SubmissionTypeFilter
-            currentType={filterType}
-            onTypeChange={setFilterType}
+      <Card className="overflow-hidden min-h-screen bg-gray-50/50 border-none shadow-none">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+           <CardHeader
+            title="Quản lý Đơn đăng ký"
+            subtitle="Phê duyệt và quản lý các cơ sở lưu trú mới"
+            icon={<Hotel className="text-blue-600" />}
+            className="p-0"
           />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={fetchSubmissions} 
+            leftIcon={<RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />}
+            className="bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+          >
+            Làm mới
+          </Button>
         </div>
 
-        {/* List */}
-        <div className="mt-6">
+        {/* --- BỘ LỌC GIAO DIỆN MỚI --- */}
+        <div className="flex flex-col gap-4 bg-white p-5 rounded-2xl shadow-sm border border-gray-200 mb-6">
+          
+          {/* Dòng 1: Tabs Trạng thái */}
+          <div className="w-full overflow-x-auto pb-2 md:pb-0">
+            <SubmissionStatusFilter
+              currentStatus={filterStatus}
+              onStatusChange={setFilterStatus}
+            />
+          </div>
+
+          <div className="h-px bg-gray-100 w-full"></div>
+
+          {/* Dòng 2: Tìm kiếm & Loại hình */}
+          <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+            <div className="w-full md:w-2/3">
+                 <SubmissionSearchBar onSearch={setSearchTerm} initialValue={searchTerm} />
+            </div>
+            <div className="w-full md:w-1/3 flex justify-end">
+                 <SubmissionTypeFilter
+                    currentType={filterType}
+                    onTypeChange={setFilterType}
+                 />
+            </div>
+          </div>
+        </div>
+
+        {/* --- DANH SÁCH KẾT QUẢ --- */}
+        <div className="mt-2">
           {isLoading ? (
-            <div className="flex justify-center py-24">
-              <Loader2 className="animate-spin text-blue-500" size={42} />
+            <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-dashed border-gray-200">
+              <Loader2 className="animate-spin text-blue-500 mb-3" size={42} />
+              <p className="text-gray-500 text-sm font-medium">Đang tải dữ liệu...</p>
             </div>
           ) : (
-            <motion.div layout className="flex flex-col gap-6">
-              <AnimatePresence>
+            <motion.div layout className="flex flex-col gap-4">
+              <AnimatePresence mode="popLayout">
                 {filteredSubmissions.length > 0 ? (
                   filteredSubmissions.map((hotel) => (
                     <HotelSubmissionCard
@@ -168,16 +280,17 @@ const HotelSubmissionsPage = () => {
                 ) : (
                   <motion.div
                     layout
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0 }}
+                    className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm"
                   >
                     <EmptyState
-                      title="Không tìm thấy cơ sở"
+                      title="Không tìm thấy dữ liệu"
                       description={
-                        allSubmissions.length
-                          ? "Không có cơ sở nào khớp với tiêu chí tìm kiếm/lọc."
-                          : "Hiện tại không có cơ sở nào đang chờ xử lý."
+                        searchTerm || filterType !== "ALL"
+                          ? "Không có kết quả nào khớp với bộ lọc của bạn."
+                          : "Danh sách hiện tại đang trống."
                       }
                     />
                   </motion.div>

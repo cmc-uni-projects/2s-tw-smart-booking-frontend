@@ -1,10 +1,14 @@
-import React, { useState } from "react";
+// ✅ SỬA 1: Import thêm useEffect, useState
+import React, { useState, useEffect } from "react"; 
 import { useNavigate } from "react-router-dom";
+import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
 import Stepper from "./BecomeOwnerSteps/Stepper";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+// ✅ SỬA 2: Import userService
 import { ownerService } from "@/services/owner.service";
+import { userService } from "@/services/user.service"; // <-- ĐÃ THÊM DÒNG NÀY
 
 import Step1_PersonalInfo from "./BecomeOwnerSteps/Step1_PersonalInfo";
 import Step2_BusinessInfo from "./BecomeOwnerSteps/Step2_BusinessInfo";
@@ -15,7 +19,20 @@ import Button from "@/components/common/Button/Button";
 import { ArrowLeft, ArrowRight, Send } from "lucide-react";
 import LoadingOverlay from "@/components/common/Loading/LoadingOverlay";
 
-// ✅ Validation cho file ảnh (JPG, PNG, WEBP)
+// --- ✅ SỬA 3: Thêm Helper chuyển đổi ngày ---
+/**
+ * Chuyển 'yyyy-mm-dd' (từ API) sang Date object (cho Form/Yup)
+ */
+const parseApiDate = (isoDate) => {
+  if (!isoDate || !isoDate.includes('-')) return null;
+  try {
+    const [y, m, d] = isoDate.split('-').map(Number);
+    return new Date(y, m - 1, d); // Tháng trong JS là 0-11
+  } catch (e) { return null; }
+};
+// --- Hết Helper ---
+
+// (Validation schema giữ nguyên)
 const fileValidation = yup
   .mixed()
   .test("required", "Vui lòng tải lên file", (value) => value && value.length > 0)
@@ -25,7 +42,6 @@ const fileValidation = yup
     return ["image/jpeg", "image/png", "image/webp"].includes(file.type);
   });
 
-// ✅ Schema validation cho 3 bước đầu
 const schemas = [
   yup.object().shape({
     personalFullName: yup.string().required("Họ tên là bắt buộc"),
@@ -49,9 +65,13 @@ const schemas = [
 
 export default function BecomeOwnerPage() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Dùng cho việc submit
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  // State cho việc tải dữ liệu ban đầu
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [profileData, setProfileData] = useState(null);
 
   const currentSchema = schemas[currentStep];
   const {
@@ -66,6 +86,31 @@ export default function BecomeOwnerPage() {
     mode: "onChange",
   });
 
+  // useEffect để tải dữ liệu profile (Giữ nguyên)
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setIsDataLoading(true);
+        const data = await userService.getUserDetail();
+        
+        if (data.fullName) setValue("personalFullName", data.fullName, { shouldValidate: true });
+        if (data.email) setValue("personalEmail", data.email, { shouldValidate: true });
+        if (data.phoneNumber) setValue("personalPhone", data.phoneNumber, { shouldValidate: true });
+        if (data.dateOfBirth) {
+          setValue("personalDob", parseApiDate(data.dateOfBirth), { shouldValidate: true });
+        }
+        setProfileData(data); 
+
+      } catch (err) {
+        console.error("Không thể tải thông tin cá nhân:", err);
+      } finally {
+        setIsDataLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [setValue]); 
+
+
   const steps = [
     { name: "Thông tin cá nhân" },
     { name: "Thông tin kinh doanh" },
@@ -73,7 +118,7 @@ export default function BecomeOwnerPage() {
     { name: "Hoàn tất" },
   ];
 
-  // ✅ Chuyển bước
+  // (Các hàm handleNext, handleBack, handleRetry giữ nguyên)
   const handleNext = async () => {
     const isValid = await trigger();
     if (isValid && currentStep < 2) setCurrentStep((prev) => prev + 1);
@@ -89,38 +134,28 @@ export default function BecomeOwnerPage() {
     setCurrentStep(2);
   };
 
-  // ✅ Gửi đơn đăng ký
+  // ✅ SỬA 4: Sửa lại hàm onFinalSubmit
   const onFinalSubmit = async (data) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // 🧩 1️⃣ Upload các file lên server
-      const uploadFile = async (file) => {
-        const token = localStorage.getItem("token");
-        const formData = new FormData();
-        formData.append("file", file);
-        const res = await fetch("http://localhost:8386/api/v1/files/upload", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        });
-        if (!res.ok) throw new Error("Upload failed");
-        const json = await res.json();
-        return json.url; // Backend trả về URL công khai
-      };
-
+      // ❌ XÓA BỎ HÀM 'uploadFile' DÙNG 'fetch'
+      
+      // 🧩 1️⃣ Upload các file lên server DÙNG SERVICE
+      // (userService.uploadFile đã dùng 'api' instance,
+      // nó sẽ tự động thêm token VÀ 'Content-Type: multipart')
       const [idFrontUrl, idBackUrl, licenseUrl] = await Promise.all([
-        uploadFile(data.personalIdFront[0]),
-        uploadFile(data.personalIdBack[0]),
-        uploadFile(data.businessLicenseFile[0]),
+        userService.uploadFile(data.personalIdFront[0]),
+        userService.uploadFile(data.personalIdBack[0]),
+        userService.uploadFile(data.businessLicenseFile[0]),
       ]);
 
-      // 🧩 2️⃣ Chuẩn hóa ngày sinh
+      // 🧩 2️⃣ Chuẩn hóa ngày sinh (Giữ nguyên)
       const dob = new Date(data.personalDob);
       const dobIso = dob.toISOString().split("T")[0];
 
-      // 🧩 3️⃣ Gửi DTO JSON lên backend
+      // 🧩 3️⃣ Gửi DTO JSON lên backend (Giữ nguyên)
       const payload = {
         personalFullName: data.personalFullName,
         personalEmail: data.personalEmail,
@@ -135,9 +170,12 @@ export default function BecomeOwnerPage() {
         businessLicenseNumber: data.businessLicenseNumber,
       };
 
+      // Dùng service (đã sửa)
       await ownerService.submitApplication(payload);
     } catch (err) {
       console.error("❌ Lỗi gửi đơn:", err);
+      // Lỗi "Internal server error: Current request is not a multipart request"
+      // sẽ hiển thị ở đây nếu 'userService.uploadFile' thất bại
       const message = err.message || "Lỗi kết nối. Vui lòng thử lại.";
       setError(message);
     } finally {
@@ -146,16 +184,28 @@ export default function BecomeOwnerPage() {
     }
   };
 
+  // (stepComponents và JSX giữ nguyên)
   const stepComponents = [
-    <Step1_PersonalInfo register={register} errors={errors} watch={watch} setValue={setValue} />,
+    <Step1_PersonalInfo 
+      register={register} 
+      errors={errors} 
+      watch={watch} 
+      setValue={setValue} 
+      profileData={profileData}
+      isDataLoading={isDataLoading}
+    />,
     <Step2_BusinessInfo register={register} errors={errors} setValue={setValue} watch={watch} />,
     <Step3_Review watch={watch} />,
     <Step4_Success error={error} onRetry={handleRetry} />,
   ];
 
   return (
-    <>
-      {isLoading && <LoadingOverlay message="Đang gửi đơn đăng ký..." />}
+    <CustomerLayout>
+      {(isLoading || isDataLoading) && (
+        <LoadingOverlay 
+          message={isLoading ? "Đang gửi đơn đăng ký..." : "Đang tải thông tin..."} 
+        />
+      )}
       <div className="max-w-4xl mx-auto py-12 px-6">
         <Stepper steps={steps} currentStep={currentStep} />
         <div className="bg-white p-8 rounded-2xl shadow-lg mt-8 border border-gray-100">
@@ -178,6 +228,7 @@ export default function BecomeOwnerPage() {
                     type="button"
                     onClick={handleNext}
                     rightIcon={<ArrowRight size={18} />}
+                    disabled={isDataLoading} 
                   >
                     Tiếp theo
                   </Button>
@@ -195,6 +246,6 @@ export default function BecomeOwnerPage() {
           </form>
         </div>
       </div>
-    </>
+    </CustomerLayout>
   );
 }

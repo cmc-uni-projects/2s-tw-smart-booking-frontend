@@ -1,5 +1,4 @@
 import React from "react";
-// ❌ Không cần import { Routes, Route, Navigate } ở đây
 import ProtectedRoute from "./ProtectedRoute";
 import OwnerLayout from "../layouts/OwnerLayout/OwnerLayout";
 import OwnerDashboard from "../pages/Owner/Dashboard/OwnerDashboard";
@@ -9,7 +8,6 @@ import RoomManagementPage from "@/pages/Owner/Rooms/RoomManagementPage";
 import RoomListPage from "@/pages/Owner/Rooms/RoomListPage";
 import PlaceholderPage from "@/pages/Owner/PlaceholderPage";
 
-// ✅ Chuyển đổi const OwnerRoutes = () => { ... } thành một mảng:
 const ownerRoutes = [
   {
     path: "/owner",
@@ -21,6 +19,7 @@ const ownerRoutes = [
       </OwnerLayout>
     ),
   },
+  // --- QUẢN LÝ TÀI SẢN ---
   {
     path: "/owner/properties",
     element: (
@@ -41,12 +40,15 @@ const ownerRoutes = [
       </OwnerLayout>
     ),
   },
+  
+  // --- QUẢN LÝ PHÒNG (ĐÃ SỬA) ---
   {
     path: "/owner/rooms",
     element: (
       <OwnerLayout>
         <ProtectedRoute requiredRole="OWNER">
-          <RoomManagementPage />
+          {/* ✅ SỬA: Trang danh sách Property để chọn quản lý phòng */}
+          <RoomListPage /> 
         </ProtectedRoute>
       </OwnerLayout>
     ),
@@ -56,11 +58,14 @@ const ownerRoutes = [
     element: (
       <OwnerLayout>
         <ProtectedRoute requiredRole="OWNER">
-          <RoomListPage />
+          {/* ✅ SỬA: Trang quản lý chi tiết phòng của 1 Property */}
+          <RoomManagementPage /> 
         </ProtectedRoute>
       </OwnerLayout>
     ),
   },
+
+  // --- CÁC TRANG KHÁC ---
   {
     path: "/owner/bookings",
     element: (
@@ -113,4 +118,4 @@ const ownerRoutes = [
   },
 ];
 
-export default ownerRoutes; // ✅ Export mảng
+export default ownerRoutes;

@@ -1,22 +1,25 @@
-import axios from "axios";
-
-const API_BASE_URL = "http://localhost:8386/api/v1";
+import api from "./axios.config.js"; // ✅ Đã import
 
 export const ownerService = {
-  // 🟩 Gửi JSON DTO (application)
+  /**
+   * Gửi JSON DTO (đơn đăng ký làm Owner)
+   */
   submitApplication: async (payload) => {
-    const token =
-      localStorage.getItem("accessToken") || localStorage.getItem("token"); // ✅ fix key
-
-    if (!token) throw new Error("Token not found — user must login first.");
-
-    const res = await axios.post(`${API_BASE_URL}/applications/submit-owner`, payload, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      withCredentials: true,
-    });
-    return res.data;
+    try {
+      // ✅ SỬA: Dùng 'api.post' và đường dẫn tương đối.
+      // Interceptor sẽ tự động thêm 'Authorization' header.
+      const res = await api.post("/applications/submit-owner", payload);
+      
+      // Giả sử API trả về { success: true, message: "...", data: ... }
+      return res.data;
+      
+    } catch (error) {
+      // Xử lý lỗi
+      console.error("Error submitting owner application:", error);
+      if (error.response && error.response.data) {
+        throw new Error(error.response.data.message || "Gửi đơn thất bại");
+      }
+      throw new Error("Không thể kết nối máy chủ");
+    }
   },
 };

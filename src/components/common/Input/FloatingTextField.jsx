@@ -1,5 +1,4 @@
-// src/components/common/Input/FloatingTextField.jsx
-import React, { useState } from "react";
+import React from "react";
 
 export default function FloatingTextField({
   label,
@@ -7,17 +6,15 @@ export default function FloatingTextField({
   icon,
   error = "",
   disabled = false,
-  ...props 
+  className = "",
+  ...props
 }) {
-  const [focused, setFocused] = useState(false);
-  const value = props.value;
-  const stringValue = String(value ?? '');
-  const isFloating = focused || stringValue.length > 0;
   const hasError = !!error;
 
   return (
-    <div className="w-full">
+    <div className={`w-full ${className}`}>
       <div className="relative w-full">
+        {/* Icon (nếu có) */}
         {icon && (
           <span className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors ${
             hasError ? "text-red-400" : "text-gray-400"
@@ -26,48 +23,56 @@ export default function FloatingTextField({
           </span>
         )}
 
-        {/* ✅ SỬA LỖI 2: Thêm class `h-[58px]` */}
+        {/* Input Field */}
         <input
           id={label}
           type={type}
-          {...props} 
-          onFocus={(e) => {
-            setFocused(true);
-            props.onFocus && props.onFocus(e);
-          }}
-          onBlur={(e) => {
-            setFocused(false);
-            props.onBlur && props.onBlur(e);
-          }}
-          placeholder={label}
           disabled={disabled}
-          className={`peer w-full h-[58px] rounded-xl border ${
-            hasError
-              ? "border-red-400 focus:border-red-400 ring-red-100" 
+          placeholder=" " // ✅ QUAN TRỌNG: Placeholder khoảng trắng để kích hoạt CSS
+          {...props}
+          className={`
+            peer w-full h-[58px] rounded-xl border bg-white py-3 pr-4
+            ${icon ? "pl-10" : "pl-4"}
+            text-gray-800 shadow-sm transition-all duration-200 outline-none
+            placeholder-transparent /* Ẩn placeholder đi */
+            focus:ring-2
+            ${disabled ? "bg-gray-50 cursor-not-allowed" : ""}
+            ${hasError
+              ? "border-red-400 focus:border-red-400 ring-red-100"
               : "border-gray-300 focus:border-[rgb(40,169,224)] ring-[rgb(40,169,224,0.15)]"
-          } bg-white py-3 ${icon ? "pl-10" : "pl-4"} pr-4 text-gray-800 placeholder-transparent shadow-sm 
-            focus:ring-2 transition-all duration-200
-            ${disabled ? "bg-gray-50 cursor-not-allowed" : ""}`}
+            }
+          `}
         />
 
-        {/* Label (floating) */}
+        {/* Floating Label */}
         <label
           htmlFor={label}
-          className={`absolute ${icon ? "left-10" : "left-4"} transition-all duration-200 pointer-events-none ${
-            isFloating
-              ? `text-xs -top-2.5 bg-white px-1 ${
-                  hasError ? "text-red-500" : "text-[rgb(40,169,224)]"
-                }`
-              : `text-sm top-3.5 ${hasError ? "text-red-400" : "text-gray-500"}`
-          }`}
+          className={`
+            absolute transition-all duration-200 pointer-events-none bg-white px-1
+            ${icon ? "left-10" : "left-4"}
+
+            /* --- TRẠNG THÁI 1: Mặc định (Có dữ liệu hoặc Focus) -> Label bay lên --- */
+            -top-2.5 text-xs
+
+            /* --- TRẠNG THÁI 2: Input rỗng & Không focus -> Label nằm giữa --- */
+            peer-placeholder-shown:top-3.5
+            peer-placeholder-shown:text-sm
+            peer-placeholder-shown:text-gray-500
+
+            /* --- TRẠNG THÁI 3: Khi Focus (Luôn bay lên & đổi màu) --- */
+            peer-focus:-top-2.5
+            peer-focus:text-xs
+            ${hasError ? "peer-focus:text-red-500 text-red-500" : "peer-focus:text-[rgb(40,169,224)] text-[rgb(40,169,224)]"}
+          `}
         >
           {label}
         </label>
       </div>
 
-      <p className="text-xs text-red-500 mt-1 ml-1 h-4">
-        {hasError ? error : <span>&nbsp;</span>}
-      </p>
+      {/* Error Message */}
+      <div className="min-h-[20px] mt-1 ml-1">
+         {hasError && <p className="text-xs text-red-500 animate-fadeIn">{error}</p>}
+      </div>
     </div>
   );
 }

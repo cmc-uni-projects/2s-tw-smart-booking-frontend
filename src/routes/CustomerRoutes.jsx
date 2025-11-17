@@ -157,13 +157,9 @@ const customerRoutes = [
   {
     path: "/partner/register",
     element: (
-      // CustomerLayout phải nằm ngoài cùng
-      <CustomerLayout>
-        {/* Thay thế <ProtectedRoute> bằng <PartnerRoute> */}
         <PartnerRoute> 
           <BecomeOwnerPage />
         </PartnerRoute>
-      </CustomerLayout>
     ),
   },
 ];

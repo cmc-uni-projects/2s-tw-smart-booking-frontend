@@ -1,14 +1,37 @@
-import axios from "axios";
+import api from "./axios.config.js";
 
-// Đảm bảo REACT_APP_API_URL được định nghĩa trong file .env của bạn
-const API_URL = import.meta.env.VITE_REACT_APP_API_URL || "http://localhost:8386/api/v1";
+
+
+// ============================
+// 📤 SUBMIT PROPERTY APPLICATION
+// ============================
+const submitPropertyApplication = async (formData) => {
+  try {
+    const response = await api.post("/properties/submit-application", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+
+const getOwnerActiveProperties = async () => {
+  try {
+    const response = await api.get("/properties/my-active-properties");
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
 
 // ============================
 // 🔍 TÌM KIẾM PROPERTIES
 // ============================
 const searchProperties = async (city, keyword) => {
   try {
-    const response = await axios.get(`${API_URL}/properties/search`, {
+    const response = await api.get(`/properties/search`, {
       params: { city, keyword },
     });
     return response.data;
@@ -19,105 +42,103 @@ const searchProperties = async (city, keyword) => {
 };
 
 // ============================
-// ➕ THÊM PROPERTY (Cũ - Có thể bạn không dùng nữa)
+// 🏠 LẤY DANH SÁCH CỦA OWNER
 // ============================
-const addProperty = async (propertyData) => {
-  const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
-  if (!token) throw new Error("Token not found");
-
+const getOwnerProperties = async () => {
   try {
-    const response = await axios.post(`${API_URL}/properties/add`, propertyData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await api.get("/properties/my-properties");
     return response.data;
   } catch (error) {
-    console.error("Error adding property:", error);
-    if (error.response) {
-      throw new Error(error.response.data.message || "Failed to add property");
-    } else {
-      throw new Error("Cannot connect to server");
-    }
+    throw error.response?.data || error.message;
   }
 };
 
 // ============================
-// 🔄 CẬP NHẬT PROPERTY
+// ⚙️ CẬP NHẬT THÔNG TIN CƠ BẢN
 // ============================
 const updateProperty = async (id, updatedData) => {
-  const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
-  if (!token) throw new Error("Token not found");
-
   try {
-    const response = await axios.put(`${API_URL}/properties/update/${id}`, updatedData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await api.put(`/properties/update/${id}`, updatedData);
     return response.data;
   } catch (error) {
-    console.error("Error updating property:", error);
-    if (error.response) {
-      throw new Error(error.response.data.message || "Failed to update property");
-    } else {
-      throw new Error("Cannot connect to server");
-    }
+    throw error.response?.data || new Error("Failed to update property");
   }
 };
 
-// ============================
-// ⭐ LẤY PROPERTY NỔI BẬT
-// ============================
-const getFeaturedProperties = async () => {
+// ==========================================================
+// 🖼️ QUẢN LÝ HÌNH ẢNH (THEO CONTROLLER MỚI)
+// ==========================================================
+
+// 1. Lấy danh sách ảnh
+const getPropertyImages = async (propertyId) => {
   try {
-    const response = await axios.get(`${API_URL}/properties/featured`);
+    // GET /api/v1/propertyImage/{propertyId}
+    const response = await api.get(`/propertyImage/${propertyId}`);
+    return response.data; // Trả về List<PropertyImageResponseDTO>
+  } catch (error) {
+    console.error("Error fetching images:", error);
+    throw error;
+  }
+};
+
+// 2. Upload nhiều ảnh
+const uploadPropertyImages = async (propertyId, formData) => {
+  try {
+    // POST /api/v1/propertyImage/upload-multiple/{propertyId}
+    const response = await api.post(
+      `/propertyImage/upload-multiple/${propertyId}`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
     return response.data;
   } catch (error) {
-    console.error("Error fetching featured properties:", error);
+    console.error("Error uploading images:", error);
+    throw error;
+  }
+};
+
+// 3. Xóa ảnh
+const deletePropertyImage = async (propertyId, imageId) => {
+  try {
+    // DELETE /api/v1/propertyImage/delete/{propertyId}/{imageId}
+    const response = await api.delete(`/propertyImage/delete/${propertyId}/${imageId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting image:", error);
+    throw error;
+  }
+};
+
+// 4. Đặt ảnh bìa
+const setCoverImage = async (propertyId, imageId) => {
+  try {
+    // ⚠️ Lưu ý: Controller của bạn đang là @PutMapping("/{imageId}/set-cover")
+    // nhưng lại yêu cầu @PathVariable propertyId. 
+    // Code dưới đây giả định bạn sẽ sửa backend thành @PutMapping("/{propertyId}/{imageId}/set-cover")
+    // Nếu không sửa backend, code này sẽ lỗi 404 hoặc 400.
+    const response = await api.put(`/propertyImage/${propertyId}/${imageId}/set-cover`);
+    return response.data;
+  } catch (error) {
+    console.error("Error setting cover image:", error);
     throw error;
   }
 };
 
 // ==========================================================
-// 🚀 HÀM MỚI: GỬI ĐƠN ĐĂNG KÝ PROPERTY (MULTIPART FORMDATA)
-// ==========================================================
-const submitPropertyApplication = async (formData) => {
-  const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
-  if (!token) throw new Error("Token not found");
-
-  try {
-    const response = await axios.post(
-      `${API_URL}/properties/submit-application`, // Gọi endpoint mới
-      formData, // Gửi FormData trực tiếp
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          // "Content-Type": "multipart/form-data" sẽ được Axios tự động thêm
-          // khi phát hiện 'formData' là một instance của FormData
-        },
-      }
-    );
-    return response.data; // Trả về ApiResponse (success: true, data: PropertyDetailDTO)
-  } catch (error) {
-    console.error("❌ Error submitting property application:", error);
-    if (error.response) {
-      // Ném lỗi từ BE để component bắt
-      throw new Error(error.response.data.message || "Gửi đơn thất bại");
-    } else {
-      throw new Error("Không thể kết nối máy chủ");
-    }
-  }
-};
-// ==========================================================
-// 📦 EXPORT TỔNG
+// 📦 EXPORT
 // ==========================================================
 const propertyService = {
   searchProperties,
-  addProperty,
+  getOwnerProperties,
   updateProperty,
-  getFeaturedProperties,
-  submitPropertyApplication, // <-- Thêm hàm mới vào export
+  getPropertyImages,    // ✅ Mới
+  uploadPropertyImages, // ✅ Mới
+  deletePropertyImage,  // ✅ Mới
+  setCoverImage,
+  getOwnerActiveProperties,
+  submitPropertyApplication,        // ✅ Mới
 };
 
 export default propertyService;

@@ -1,95 +1,101 @@
 import React from "react";
-import Card from "@/components/common/Card/Card";
-import Badge from "@/components/common/Badge/Badge";
+import { Edit, Trash2, Users, Image as ImageIcon, Crown, Sparkles, CheckCircle2 } from "lucide-react"; // ❌ Đã bỏ DollarSign
 import Button from "@/components/common/Button/Button";
-import { Users, Tag, Edit, Eye, EyeOff } from "lucide-react";
-import { ROOM_STATUS_OPTIONS } from "./roomData.jsx"; 
+import { motion } from "framer-motion";
 
-// Lấy ảnh bìa (isCover: true)
-const getCoverImage = (images) => {
-  if (!images || images.length === 0) {
-    return "https://images.unsplash.com/photo-1540518614846-713b0e193c79?auto=format&fit=crop&w=400&q=80";
-  }
-  const cover = images.find(img => img.isCover);
-  return cover ? cover.url : images[0].url; 
+// Helper ảnh
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
+const getFullImageUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  let path = url.startsWith("/") ? url : `/${url}`;
+  if (!path.startsWith("/uploads")) path = `/uploads${path}`;
+  return `${API_BASE_URL}${path}`;
 };
 
-// Lấy nhãn của trạng thái (vd: "AVAILABLE" -> "Sẵn sàng (Available)")
-const getStatusLabel = (statusValue) => {
-  return ROOM_STATUS_OPTIONS.find(opt => opt.value === statusValue)?.label || statusValue;
+// Component Nhãn loại phòng
+const CategoryBadge = ({ category }) => {
+    const type = category?.toUpperCase() || "STANDARD";
+    switch (type) {
+        case "SUITE":
+            return (
+                <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg shadow-orange-500/30 border border-white/20 backdrop-blur-md animate-pulse-slow">
+                    <Crown size={14} fill="currentColor" />
+                    <span>Suite</span>
+                </div>
+            );
+        case "DELUXE":
+            return (
+                <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md shadow-indigo-500/20 border border-white/20">
+                    <Sparkles size={14} />
+                    <span>Deluxe</span>
+                </div>
+            );
+        case "STANDARD":
+        default:
+            return (
+                <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-white/90 backdrop-blur text-gray-700 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
+                    <CheckCircle2 size={14} className="text-blue-500"/>
+                    <span>Standard</span>
+                </div>
+            );
+    }
 };
 
-// Lấy màu cho Badge trạng thái
-const getStatusColor = (statusValue) => {
-  switch (statusValue) {
-    case "AVAILABLE": return "success";
-    case "CLEANING": return "warning";
-    case "OCCUPIED": return "primary";
-    case "OUT_OF_ORDER": return "danger";
-    default: return "gray";
-  }
-};
-
-export default function RoomCard({ room, onEditClick }) {
-  const { roomName, roomCategory, capacity, pricePerNight, roomStatus, isActive, images } = room;
-  const coverImage = getCoverImage(images);
+const RoomCard = ({ room, onEdit, onDelete }) => {
+  const coverImage = room.coverImage 
+    ? getFullImageUrl(room.coverImage) 
+    : null;
 
   return (
-    <Card className="p-0 overflow-hidden group flex flex-col justify-between h-full shadow-md">
-      {/* Phần hình ảnh */}
-      <div className="relative h-48 w-full overflow-hidden">
-        <img
-          src={coverImage}
-          alt={roomName}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-        />
-        {/* Lớp phủ trạng thái (Chỉ còn 1 Badge) */}
-        <div className="absolute top-3 right-3 z-10">
-          <Badge color={isActive ? "success" : "gray"} icon={isActive ? <Eye size={14} /> : <EyeOff size={14} />}>
-            {isActive ? "Đang kích hoạt" : "Vô hiệu hóa"}
-          </Badge>
-        </div>
-        
-        {/* ✅ ĐÃ XÓA Badge trạng thái phòng (roomStatus) khỏi đây */}
-        
+    <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+      className="group bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-300 flex flex-row h-44"
+    >
+      {/* Image Left */}
+      <div className="w-1/3 relative bg-gray-100 overflow-hidden">
+         {coverImage ? (
+             <img src={coverImage} alt={room.roomName} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+         ) : (
+             <div className="absolute inset-0 flex items-center justify-center text-gray-400 flex-col bg-gray-50">
+                 <ImageIcon size={24} className="opacity-40 mb-1" />
+                 <span className="text-[10px] font-medium opacity-60">Chưa có ảnh</span>
+             </div>
+         )}
+         <CategoryBadge category={room.roomCategory} />
       </div>
 
-      {/* Phần nội dung */}
-      <div className="p-5 flex-1">
-        <h3 className="font-semibold text-lg text-gray-800 truncate" title={roomName}>
-          {roomName}
-        </h3>
-        <p className="text-sm text-gray-500 mt-1">{roomCategory}</p>
-        
-        {/* ✅ DI DỜI Badge trạng thái phòng (roomStatus) VÀO ĐÂY */}
-        <div className="mt-3">
-           <Badge color={getStatusColor(roomStatus)} icon={false}>
-            {getStatusLabel(roomStatus)}
-          </Badge>
-        </div>
-        
-        <div className="flex justify-between items-center mt-3 pt-3 border-t">
-           <div className="flex items-center gap-1.5 text-sm text-gray-600">
-             <Users size={16} />
-             <span>{capacity} người</span>
-           </div>
-           <div className="flex items-center gap-1.5 text-sm font-semibold text-[rgb(40,169,224)]">
-             <Tag size={16} />
-             <span>{pricePerNight.toLocaleString('vi-VN')} VNĐ</span>
-           </div>
-        </div>
-      </div>
+      {/* Content Right */}
+      <div className="w-2/3 p-4 flex flex-col justify-between relative">
+         <div>
+             <h3 className="font-bold text-gray-900 text-lg mb-1 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                {room.roomName}
+             </h3>
+             
+             {/* ✅ SỬA ĐỔI Ở ĐÂY: Định dạng tiền tệ VND */}
+             <p className="text-blue-600 font-bold text-lg flex items-baseline">
+                 {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(room.pricePerNight)}
+                 <span className="text-sm text-gray-400 font-normal ml-1">/ đêm</span>
+             </p>
+         </div>
 
-      {/* Phần chân (Actions) */}
-      <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
-        <Button
-          size="sm"
-          onClick={() => onEditClick(room)}
-          leftIcon={<Edit size={16} />}
-        >
-          Sửa thông tin phòng
-        </Button>
+         <div className="flex items-center gap-4 text-sm text-gray-500 my-2">
+             <div className="flex items-center bg-gray-50 px-2 py-1 rounded-md border border-gray-100" title="Sức chứa">
+                <Users size={14} className="mr-1.5 text-blue-500"/> 
+                <span className="font-medium text-gray-700">{room.capacity} người</span>
+             </div>
+         </div>
+
+         <div className="flex gap-2 mt-auto pt-2 border-t border-gray-50">
+             <Button size="sm" variant="outline" className="flex-1 border-gray-200 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50" onClick={onEdit}>
+                 <Edit size={14} className="mr-1.5" /> Sửa
+             </Button>
+             <Button size="sm" variant="outline" className="text-red-500 border-gray-200 hover:bg-red-50 hover:border-red-500 px-3" onClick={onDelete}>
+                 <Trash2 size={16} />
+             </Button>
+         </div>
       </div>
-    </Card>
+    </motion.div>
   );
-}
+};
+
+export default RoomCard;

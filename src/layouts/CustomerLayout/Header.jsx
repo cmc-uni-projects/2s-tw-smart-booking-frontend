@@ -18,6 +18,7 @@ import ConfirmModal from "../../components/common/Modal/ConfirmModal";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Avatar from "../../components/common/Avatar/Avatar";
 
+
 const Header = () => {
   const navigate = useNavigate();
   const { currentUser, logout, hasRole } = useAuth();
@@ -76,13 +77,13 @@ const Header = () => {
     if (hasRole("ADMIN"))
       return {
         label: "Trang quản trị",
-        path: "/admin/dashboard",
+        path: "/admin",
       };
 
     if (hasRole("OWNER"))
       return {
         label: "Trang quản lý",
-        path: "/owner/dashboard",
+        path: "/owner",
       };
 
     return {

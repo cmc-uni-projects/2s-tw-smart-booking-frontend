@@ -1,213 +1,230 @@
-// src/pages/Owner/Properties/PropertyListPage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Plus, Search, Building2, Loader2 } from "lucide-react";
+import Button from "@/components/common/Button/Button";
 import { useNavigate } from "react-router-dom";
-import { Building2 } from "lucide-react";
-import Card from "@/components/common/Card/Card";
-import CardHeader from "@/components/common/Card/CardHeader";
+import propertyService from "@/services/property.service";
 import PropertyCard from "./components/PropertyCard";
-import ConfirmModal from "@/components/common/Modal/ConfirmModal";
-import ViewSubmissionModal from "./components/ViewSubmissionModal";
-import EditPropertyModal from "./components/EditPropertyModal"; // ✅ 1. Import Modal Sửa mới
+import { AnimatePresence, motion } from "framer-motion";
 
-// (MOCK DATA ĐÃ ĐƯỢC CẬP NHẬT VỚI DỮ LIỆU CHI TIẾT)
-const mockProperties = [
-  {
-    id: 1,
-    name: "Khách sạn The Grand Plaza", // Dùng cho Card
-    location: "Quận 1, TP. Hồ Chí Minh", // Dùng cho Card
-    imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400&q=80", // Dùng cho Card
-    status: "APPROVED",
-    isEnable: true,
-    
-    // --- Dữ liệu chi tiết cho Form Sửa ---
-    details: {
-      propertyName: "Khách sạn The Grand Plaza",
-      description: "Tọa lạc tại trung tâm Quận 1, The Grand Plaza mang đến trải nghiệm sang trọng bậc nhất với hồ bơi vô cực và nhà hàng 5 sao. Mô tả này đủ dài để vượt qua validation 50 ký tự.",
-      area: 2500,
-    },
-    locationDetails: {
-      province: "TP. Hồ Chí Minh",
-      city: "Quận 1",
-      address: "123 đường Nguyễn Huệ",
-    },
-    amenities: {
-      pool: true,
-      wifi: true,
-      parking: true,
-      reception_24h: true,
-      gym: false,
-    },
-    // Lưu ý: Rất khó để mock FileList, chúng ta sẽ để phần upload ảnh riêng
-    existingImages: [
-      "https://images.unsplash.com/photo-1566073771259-6a8506099945",
-      "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb",
-    ]
-  },
-  {
-    id: 2,
-    name: "Sunrise Resort (Đang chờ)",
-    location: "Phú Quốc, Kiên Giang",
-    imageUrl: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=400&q=80",
-    status: "PENDING",
-    isEnable: false,
-    // (Các đơn PENDING/REJECTED không cần dữ liệu form)
-  },
-  {
-    id: 3,
-    name: "Ocean View (Tạm tắt)",
-    location: "Vũng Tàu",
-    imageUrl: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=400&q=80",
-    status: "APPROVED",
-    isEnable: false,
-     // --- Dữ liệu chi tiết cho Form Sửa ---
-    details: {
-      propertyName: "Ocean View (Tạm tắt)",
-      description: "Khách sạn ven biển Vũng Tàu với view triệu đô. Đảm bảo mô tả này cũng đủ 50 ký tự để không bị lỗi validation khi mở form.",
-      area: 1800,
-    },
-    locationDetails: {
-      province: "Bà Rịa - Vũng Tàu",
-      city: "TP. Vũng Tàu",
-      address: "456 đường Hạ Long",
-    },
-    amenities: {
-      pool: true,
-      wifi: true,
-      parking: false,
-      reception_24h: true,
-      gym: true,
-    },
-    existingImages: [
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
-    ]
-  },
-  {
-    id: 4,
-    name: "Mountain Retreat (Bị từ chối)",
-    location: "Sapa, Lào Cai",
-    imageUrl: "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?auto=format&fit=crop&w=400&q=80",
-    status: "REJECTED",
-    isEnable: false,
-  },
-];
+// Import Modals
+import ViewPropertyModal from "./components/ViewPropertyModal";
+import EditPropertyModal from "./components/EditPropertyModal";
+import Toast from "@/components/common/Notification/Toast"; // ✅ Import Toast
 
 const PropertyListPage = () => {
-  const properties = mockProperties;
   const navigate = useNavigate();
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("ALL");
 
-  // ----- QUẢN LÝ STATE CHO MODAL -----
+  // Modal State
   const [selectedProperty, setSelectedProperty] = useState(null);
-  const [isToggleModalOpen, setToggleModalOpen] = useState(false);
-  const [isViewModalOpen, setViewModalOpen] = useState(false);
-  const [isEditModalOpen, setEditModalOpen] = useState(false); // ✅ 2. Thêm state cho modal Sửa
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  
+  // ✅ Toast State
+  const [toastData, setToastData] = useState(null);
 
-  // ----- CÁC HÀM XỬ LÝ SỰ KIỆN -----
-
-  // 1. Xử lý khi bấm SỬA: Mở modal Sửa
-  const handleEditClick = (property) => {
-    setSelectedProperty(property);
-    setEditModalOpen(true); // ✅ 3. Mở modal Sửa
+  // Helpers
+  const showToast = (message, type = "info") => {
+      setToastData({ message, type });
+      setTimeout(() => setToastData(null), 3000);
   };
 
-  // 2. Xử lý khi bấm VÔ HIỆU HÓA / KÍCH HOẠT: Mở modal xác nhận
-  const handleToggleClick = (property) => {
-    setSelectedProperty(property);
-    setToggleModalOpen(true);
+  // Fetch Data
+  const fetchProperties = async () => {
+    try {
+      setLoading(true);
+      const res = await propertyService.getOwnerProperties();
+      setProperties(res.data || []); 
+    } catch (error) {
+      console.error("Failed to fetch properties", error);
+      showToast("Không thể tải danh sách tài sản", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // 3. Xử lý khi bấm XEM CHI TIẾT (cho PENDING/REJECTED): Mở modal thông tin
-  const handleViewClick = (property) => {
-    setSelectedProperty(property);
-    setViewModalOpen(true);
+  useEffect(() => {
+    fetchProperties();
+  }, []);
+
+  // Handlers
+  const handleViewProperty = (property) => {
+      setSelectedProperty(property);
+      setIsViewModalOpen(true);
+  };
+  
+  const handleEditProperty = (property) => {
+      setSelectedProperty(property);
+      setIsEditModalOpen(true);
   };
 
-  // 4. Hàm đóng tất cả modal
+  const handleEditSuccess = () => {
+      setIsEditModalOpen(false);
+      setSelectedProperty(null);
+      fetchProperties(); 
+      showToast("Cập nhật thông tin thành công!", "success"); // ✅ Thông báo thành công
+  };
+  
   const closeModals = () => {
-    setSelectedProperty(null);
-    setToggleModalOpen(false);
-    setViewModalOpen(false);
-    setEditModalOpen(false); // ✅ 4. Thêm đóng modal Sửa
+      setIsViewModalOpen(false);
+      setIsEditModalOpen(false);
+      setSelectedProperty(null);
   };
 
-  // 5. Hàm XÁC NHẬN VÔ HIỆU HÓA / KÍCH HOẠT
-  const handleConfirmToggle = () => {
-    console.log("ĐANG THAY ĐỔI TRẠNG THÁI CHO:", selectedProperty.name);
-    closeModals();
-    alert(`Đã ${selectedProperty.isEnable ? 'vô hiệu hóa' : 'kích hoạt'} ${selectedProperty.name}`);
-  };
+  // Filter & Stats (Giữ nguyên logic cũ)
+  const filteredProperties = properties.filter(p => {
+      const matchSearch = 
+        p.propertyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.city?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchStatus = 
+        filterStatus === "ALL" ? true :
+        filterStatus === "ACTIVE" ? (p.propertyStatus === "APPROVE" || p.propertyStatus === "APPROVED") :
+        p.propertyStatus === filterStatus;
+      return matchSearch && matchStatus;
+  });
 
-  // ✅ 6. Hàm XÁC NHẬN LƯU THAY ĐỔI (Từ Modal Sửa)
-  const handleConfirmEdit = (data) => {
-    // TODO: Gọi API để CẬP NHẬT property với 'data'
-    console.log("===============================");
-    console.log("🚀 [MOCK API] ĐANG CẬP NHẬT DỮ LIỆU CHO:", selectedProperty.name);
-    console.log("Dữ liệu mới:", data);
-    console.log("===============================");
-    
-    closeModals();
-    alert("Đã cập nhật thành công (mock)!");
-    // (Sau khi gọi API thật, bạn nên fetch lại danh sách properties)
+  const stats = {
+      total: properties.length,
+      active: properties.filter(p => p.propertyStatus === 'APPROVE' || p.propertyStatus === 'APPROVED').length,
+      pending: properties.filter(p => p.propertyStatus === 'PENDING').length
   };
-  // ------------------------------------
 
   return (
-    <>
-      <Card>
-        <div className="mb-4">
-          <CardHeader
-            title="Quản lý Cơ sở lưu trú"
-            subtitle={`Bạn đang quản lý ${properties.length} cơ sở.`}
-            icon={<Building2 className="text-[rgb(40,169,224)]" />}
-          />
+    <div className="p-6 min-h-screen bg-gray-50/30">
+      
+      {/* ✅ Render Toast */}
+      {toastData && (
+        <div className="fixed top-24 right-6 z-[9999]">
+          <Toast message={toastData.message} type={toastData.type} />
         </div>
+      )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {properties.map((property) => (
-            <PropertyCard
-              key={property.id}
-              property={property}
-              onEditClick={handleEditClick}
-              onToggleClick={handleToggleClick}
-              onViewClick={handleViewClick}
-            />
-          ))}
+      {/* ... (Header & Filters giữ nguyên code cũ) ... */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Tài sản của tôi</h1>
+          <p className="text-gray-500 mt-1">Quản lý và theo dõi trạng thái các cơ sở lưu trú của bạn</p>
         </div>
-      </Card>
+        <Button 
+            onClick={() => navigate("/owner/properties/new")} 
+            leftIcon={<Plus size={20} />}
+            className="shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all"
+        >
+          Thêm cơ sở mới
+        </Button>
+      </div>
 
-      {/* ----- KHAI BÁO CÁC MODAL ----- */}
+      <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm mb-8">
+         <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
+             <div className="relative w-full lg:w-1/3">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input 
+                    type="text"
+                    placeholder="Tìm theo tên khách sạn, địa chỉ..."
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all text-sm"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+             </div>
+             <div className="flex p-1 bg-gray-100 rounded-xl overflow-hidden w-full lg:w-auto">
+                {[
+                    { id: "ALL", label: "Tất cả" },
+                    { id: "ACTIVE", label: "Đang hoạt động" },
+                    { id: "PENDING", label: "Chờ duyệt" }
+                ].map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setFilterStatus(tab.id)}
+                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex-1 lg:flex-none whitespace-nowrap
+                            ${filterStatus === tab.id 
+                                ? "bg-white text-blue-600 shadow-sm" 
+                                : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"}`}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
+             </div>
+             <div className="hidden xl:flex gap-6 text-sm border-l border-gray-100 pl-6">
+                 <div className="text-center">
+                     <p className="text-xs text-gray-400 uppercase font-semibold tracking-wider">Tổng số</p>
+                     <p className="font-bold text-gray-800 text-lg">{stats.total}</p>
+                 </div>
+                 <div className="text-center">
+                     <p className="text-xs text-gray-400 uppercase font-semibold tracking-wider">Hoạt động</p>
+                     <p className="font-bold text-green-600 text-lg">{stats.active}</p>
+                 </div>
+                 <div className="text-center">
+                     <p className="text-xs text-gray-400 uppercase font-semibold tracking-wider">Chờ duyệt</p>
+                     <p className="font-bold text-yellow-600 text-lg">{stats.pending}</p>
+                 </div>
+             </div>
+         </div>
+      </div>
 
-      {/* 1. Modal Xác nhận (Toggle Enable/Disable) */}
-      <ConfirmModal
-        open={isToggleModalOpen}
-        onClose={closeModals}
-        onConfirm={handleConfirmToggle}
-        title={selectedProperty?.isEnable ? "Xác nhận Vô hiệu hóa" : "Xác nhận Kích hoạt"}
-        message={
-          <span>
-            Bạn có chắc chắn muốn {selectedProperty?.isEnable ? "VÔ HIỆU HÓA" : "KÍCH HOẠT"}{" "}
-            cơ sở <strong>{selectedProperty?.name}</strong>?
-          </span>
-        }
-        type={selectedProperty?.isEnable ? "warning" : "success"}
-        confirmText={selectedProperty?.isEnable ? "Vô hiệu hóa" : "Kích hoạt"}
-        cancelText="Hủy"
-      />
+      {/* Content Grid */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center h-64">
+          <Loader2 className="animate-spin text-blue-600 mb-4" size={40} />
+          <p className="text-gray-500 font-medium">Đang tải dữ liệu...</p>
+        </div>
+      ) : filteredProperties.length > 0 ? (
+        <motion.div 
+            layout 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+        >
+          <AnimatePresence>
+            {filteredProperties.map((property) => (
+              <PropertyCard 
+                key={property.propertyId} 
+                property={property} 
+                onView={() => handleViewProperty(property)} 
+                onEdit={() => handleEditProperty(property)} 
+              />
+            ))}
+          </AnimatePresence>
+        </motion.div>
+      ) : (
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }} 
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-col items-center justify-center h-96 bg-white rounded-3xl border border-dashed border-gray-200 shadow-sm"
+        >
+            <div className="bg-blue-50 p-6 rounded-full mb-6 animate-pulse">
+               <Building2 size={64} className="text-blue-400" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+                {searchTerm ? "Không tìm thấy kết quả" : "Bạn chưa có cơ sở lưu trú nào"}
+            </h3>
+            <p className="text-gray-500 mb-8 max-w-md text-center leading-relaxed">
+                {searchTerm 
+                    ? `Không tìm thấy khách sạn nào phù hợp với từ khóa "${searchTerm}".` 
+                    : "Hãy bắt đầu hành trình kinh doanh của bạn bằng cách đăng ký cơ sở lưu trú đầu tiên ngay hôm nay!"}
+            </p>
+            {!searchTerm && (
+                <Button onClick={() => navigate("/owner/properties/new")} className="shadow-lg shadow-blue-500/20">
+                    Đăng ký ngay
+                </Button>
+            )}
+        </motion.div>
+      )}
 
-      {/* 2. Modal Xem chi tiết (Pending/Rejected) */}
-      <ViewSubmissionModal
-        open={isViewModalOpen}
-        onClose={closeModals}
-        property={selectedProperty}
+      <ViewPropertyModal 
+        open={isViewModalOpen} 
+        onClose={closeModals} 
+        property={selectedProperty} 
       />
       
-      {/* ✅ 7. Modal Sửa thông tin */}
       <EditPropertyModal
         open={isEditModalOpen}
         onClose={closeModals}
         property={selectedProperty}
-        onSubmit={handleConfirmEdit}
+        onSuccess={handleEditSuccess}
+        showToast={showToast} // ✅ Truyền hàm showToast xuống Modal
       />
-    </>
+    </div>
   );
 };
 
