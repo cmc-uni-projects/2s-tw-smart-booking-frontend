@@ -10,16 +10,17 @@ import TextArea from "@/components/common/Input/TextArea";
 import ImageUploadGrid from "@/components/common/Input/ImageUploadGrid";
 import AmenityOption from "../../Properties/AddPropertySteps/components/AmenityOption";
 import roomService from "@/services/room.service";
-import api from "@/services/axios.config"; // Để gọi API detail (nếu cần thêm logic)
+import api from "@/services/axios.config";
 
 import {
   Tv, Wind, Coffee, Wifi, Bath, Snowflake, 
   BedDouble, Users, DollarSign, Image as ImageIcon, Package, Trash2,
-  Wine, Ban // Thêm icon cho Minibar và Non-smoking
+  Wine, Ban, Star, RefreshCw // ✅ Đã import đủ icon
 } from "lucide-react";
 
 // --- CONFIG ---
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
+
 const getFullImageUrl = (url) => {
   if (!url) return "/assets/images/placeholder.png";
   if (url.startsWith("http")) return url;
@@ -28,7 +29,7 @@ const getFullImageUrl = (url) => {
   return `${API_BASE_URL}${path}`;
 };
 
-// ✅ CẬP NHẬT DANH SÁCH TIỆN NGHI PHÒNG (Khớp với DataInitializer.java)
+// Amenities & Categories (Giữ nguyên)
 const ROOM_AMENITIES = [
   { id: "tv", label: "TV", icon: <Tv size={20} /> },
   { id: "ac", label: "Điều hòa", icon: <Snowflake size={20} /> },
@@ -40,14 +41,12 @@ const ROOM_AMENITIES = [
   { id: "non_smoking", label: "Không hút thuốc", icon: <Ban size={20} /> },
 ];
 
-// Danh sách loại phòng (Khớp với Enum Backend)
 const ROOM_CATEGORIES = [
     { value: "STANDARD", label: "Tiêu chuẩn (Standard)" },
     { value: "DELUXE", label: "Sang trọng (Deluxe)" },
     { value: "SUITE", label: "Cao cấp (Suite)" },
 ];
 
-// Validation Schema
 const schema = yup.object({
   roomName: yup.string().required("Vui lòng nhập tên phòng"),
   roomCategory: yup.string().required("Chọn loại phòng"),
@@ -59,7 +58,7 @@ const schema = yup.object({
 
 export default function EditRoomModal({ open, onClose, room, propertyId, onSuccess, showToast }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [currentImages, setCurrentImages] = useState([]);
+  const [currentImages, setCurrentImages] = useState([]); // Danh sách ảnh (có ID & isCover)
   const [newImages, setNewImages] = useState([]);
 
   const isEditMode = !!room;
@@ -73,20 +72,16 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
     }
   });
 
-  // Load Data khi mở Modal
+  // 1. Load Data & Fetch Real Images
   useEffect(() => {
     if (open) {
       if (room) {
         // --- EDIT MODE ---
-        // Map amenities list -> object { tv: true, ac: true... }
+        // Map amenities
         const amenityMap = {};
-        // Lưu ý: Backend trả về List<String> amenities (tên/id của amenity)
-        // Nếu room.amenities là List<String> (tên) hoặc List<Object> (chi tiết)
         if(room.amenities) {
              room.amenities.forEach(item => {
-                 // item có thể là string tên ("tv") hoặc object ({amenityName: "tv"})
                  const name = typeof item === 'string' ? item : item.amenityName;
-                 // Tìm ID tương ứng trong danh sách cứng của FE
                  const key = ROOM_AMENITIES.find(a => a.label === name || a.id === name.toLowerCase())?.id;
                  if(key) amenityMap[key] = true;
              });
@@ -101,18 +96,19 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
           amenities: amenityMap,
         });
         
-        // Load ảnh hiện tại từ DTO
-        // room.images là List<String> urls
-        if (room.images && Array.isArray(room.images)) {
-             // Map string url sang object để hiển thị
-             const mappedImages = room.images.map((url, index) => ({
-                 roomImageId: index, // Dùng index tạm làm ID vì DTO RoomResponseDTO hiện tại chỉ trả List<String> url
-                 imageUrl: url
-             }));
-             setCurrentImages(mappedImages);
-        } else {
-            setCurrentImages([]);
-        }
+        // ✅ QUAN TRỌNG: Gọi API lấy danh sách ảnh chi tiết (để có ID và isCover)
+        // Vì object 'room' từ list bên ngoài chỉ chứa List<String> url
+        const fetchImages = async () => {
+            try {
+                // Gọi service lấy ảnh phòng (Bạn cần đảm bảo đã thêm hàm này vào room.service.js)
+                const images = await roomService.getRoomImages(room.roomId);
+                setCurrentImages(images || []);
+            } catch (error) {
+                console.error("Failed to load room images", error);
+                setCurrentImages([]);
+            }
+        };
+        fetchImages();
 
       } else {
         // --- ADD MODE ---
@@ -130,21 +126,51 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
     }
   }, [open, room, reset]);
 
-  // Xử lý Xóa ảnh 
-  // Lưu ý: Vì RoomResponseDTO hiện tại chỉ trả List<String> URL ảnh, ta không có ID ảnh thực tế để gọi API xóa từng cái.
-  // Cần cập nhật RoomResponseDTO ở Backend trả về List<RoomImageResponseDTO> để có ID thì mới xóa chính xác được.
-  // Tạm thời disable nút xóa ở Edit Mode hoặc chỉ xóa trên UI.
-  const handleDeleteImage = async (index) => {
-     if(!window.confirm("Xóa ảnh này? (Lưu ý: Cần lưu lại để áp dụng)")) return;
-     // Xóa khỏi state hiển thị
-     setCurrentImages(prev => prev.filter((_, i) => i !== index));
+  // 2. Xử lý Đặt ảnh bìa (Giống EditPropertyModal)
+  const handleSetCover = async (imageId) => {
+      if (!room?.roomId) return;
+      try {
+          setIsLoading(true);
+          await roomService.setRoomCoverImage(room.roomId, imageId);
+          
+          // Update UI local
+          const updated = currentImages.map(img => ({
+              ...img,
+              isCover: img.roomImageId === imageId
+          }));
+          setCurrentImages(updated);
+          if(showToast) showToast("Đã đặt ảnh bìa", "success");
+      } catch (e) {
+          if(showToast) showToast("Lỗi đặt ảnh bìa", "error");
+      } finally {
+          setIsLoading(false);
+      }
   };
 
+  // 3. Xử lý Xóa ảnh (Giống EditPropertyModal)
+  const handleDeleteImage = async (imageId) => {
+     if (!room?.roomId) return;
+     if(!window.confirm("Bạn có chắc muốn xóa ảnh này?")) return;
+     
+     try {
+         setIsLoading(true);
+         await roomService.deleteRoomImage(room.roomId, imageId);
+         
+         // Update UI local
+         setCurrentImages(prev => prev.filter(img => img.roomImageId !== imageId));
+         if(showToast) showToast("Đã xóa ảnh", "success");
+     } catch (e) {
+         if(showToast) showToast("Lỗi xóa ảnh", "error");
+     } finally {
+         setIsLoading(false);
+     }
+  };
+
+  // 4. Submit Form
   const onSubmit = async (data) => {
     try {
       setIsLoading(true);
       
-      // 1. Chuẩn bị dữ liệu JSON
       const selectedAmenities = Object.keys(data.amenities || {}).filter(key => data.amenities[key]);
       
       const roomDataObj = {
@@ -157,23 +183,16 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
           amenities: selectedAmenities 
       };
 
-      // 2. ✅ CHUẨN BỊ FORMDATA (Dùng chung cho cả Add và Update)
       const formData = new FormData();
-      // Backend yêu cầu @RequestPart("roomData") là chuỗi JSON
       formData.append("roomData", JSON.stringify(roomDataObj));
       
-      // Append ảnh mới nếu có
       if (newImages.length > 0) {
           Array.from(newImages).forEach(file => formData.append("images", file));
       }
 
-      // 3. Gọi Service
       if (!isEditMode) {
-          // --- ADD ROOM ---
           await roomService.addRoom(formData);
       } else {
-          // --- UPDATE ROOM ---
-          // Bây giờ gửi formData thay vì object thường
           await roomService.updateRoom(room.roomId, formData);
       }
 
@@ -199,57 +218,34 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
       >
         <form onSubmit={handleSubmit(onSubmit)} className="p-1 max-h-[75vh] overflow-y-auto pr-2">
            
-           {/* 1. THÔNG TIN CƠ BẢN */}
+           {/* SECTION 1 & 2: INFO & AMENITIES (Giữ nguyên như cũ) */}
            <section className="mb-6">
                <h4 className="text-blue-600 font-semibold mb-3 flex items-center gap-2"><BedDouble size={20}/> Thông tin phòng</h4>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                   <FloatingTextField 
-                        label="Tên phòng (Số phòng)" 
-                        placeholder=" " 
-                        {...register("roomName")} 
-                        error={errors.roomName?.message} 
-                   />
+                   <FloatingTextField label="Tên phòng (Số phòng)" placeholder=" " {...register("roomName")} error={errors.roomName?.message} />
                    
                    <div className="relative">
-                       <select 
-                         {...register("roomCategory")}
-                         className="w-full px-4 py-3.5 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-blue-100 outline-none appearance-none pt-5 pb-2"
-                       >
-                           {ROOM_CATEGORIES.map(cat => (
-                               <option key={cat.value} value={cat.value}>{cat.label}</option>
-                           ))}
+                       <select {...register("roomCategory")} className="w-full px-4 py-3.5 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-blue-100 outline-none appearance-none pt-5 pb-2">
+                           {ROOM_CATEGORIES.map(cat => (<option key={cat.value} value={cat.value}>{cat.label}</option>))}
                        </select>
                        <label className="absolute left-4 top-1 text-xs text-gray-500 font-medium pointer-events-none">Loại phòng</label>
                    </div>
 
                    <div className="relative">
-                        <FloatingTextField 
-                            label="Giá mỗi đêm (VNĐ)" 
-                            type="number" 
-                            placeholder=" " 
-                            {...register("pricePerNight")} 
-                            error={errors.pricePerNight?.message} 
-                        />
+                        <FloatingTextField label="Giá mỗi đêm (VNĐ)" type="number" placeholder=" " {...register("pricePerNight")} error={errors.pricePerNight?.message} />
                         <DollarSign className="absolute right-3 top-3.5 text-gray-400 pointer-events-none" size={18}/>
                    </div>
 
                    <div className="relative">
-                        <FloatingTextField 
-                            label="Sức chứa (Người)" 
-                            type="number" 
-                            placeholder=" " 
-                            {...register("capacity")} 
-                            error={errors.capacity?.message} 
-                        />
+                        <FloatingTextField label="Sức chứa (Người)" type="number" placeholder=" " {...register("capacity")} error={errors.capacity?.message} />
                         <Users className="absolute right-3 top-3.5 text-gray-400 pointer-events-none" size={18}/>
                    </div>
                </div>
                <div className="mt-4">
-                    <TextArea label="Mô tả phòng" rows={3} {...register("description")} placeholder="Mô tả chi tiết về phòng..." />
+                    <TextArea label="Mô tả phòng" rows={3} placeholder=" " {...register("description")} />
                </div>
            </section>
 
-           {/* 2. TIỆN NGHI (Đã cập nhật list) */}
            <section className="mb-6">
                <h4 className="text-blue-600 font-semibold mb-3 flex items-center gap-2"><Package size={20}/> Tiện nghi phòng</h4>
                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -259,33 +255,92 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
                </div>
            </section>
 
-           {/* 3. HÌNH ẢNH */}
+           {/* ✅ SECTION 3: HÌNH ẢNH (GIAO DIỆN MỚI GIỐNG PROPERTY) */}
            <section>
-               <h4 className="text-blue-600 font-semibold mb-3 flex items-center gap-2"><ImageIcon size={20}/> Hình ảnh</h4>
+               <div className="flex justify-between items-center mb-4">
+                 <h4 className="text-blue-600 font-semibold flex items-center gap-2">
+                    <ImageIcon size={20}/> Quản lý hình ảnh
+                 </h4>
+                 {/* Nút Refresh */}
+                 <Button 
+                    type="button" 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={() => {
+                        if(room?.roomId) roomService.getRoomImages(room.roomId).then(setCurrentImages);
+                    }}
+                 >
+                    <RefreshCw size={16} />
+                 </Button>
+               </div>
                
-               {/* Ảnh hiện có (chỉ hiện khi Edit) */}
-               {isEditMode && currentImages.length > 0 && (
-                   <div className="grid grid-cols-4 gap-3 mb-4">
-                       {currentImages.map((img, index) => (
-                           <div key={index} className="relative aspect-video rounded-lg overflow-hidden group">
-                               <img src={getFullImageUrl(img.imageUrl)} className="w-full h-full object-cover" alt="Room" />
-                               <div className="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center">
-                                   {/* Tạm thời ẩn nút xóa vì thiếu ID ảnh trong DTO */}
-                                   {/* <Button type="button" size="sm" className="bg-white text-red-600 hover:bg-red-50 border-none" onClick={() => handleDeleteImage(index)}>
-                                       <Trash2 size={16}/>
-                                   </Button> */}
-                               </div>
-                           </div>
-                       ))}
-                   </div>
-               )}
+               {/* Danh sách ảnh hiện tại */}
+               <div className="mb-6">
+                   {currentImages.length > 0 ? (
+                       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                           {currentImages.map((img) => (
+                               <div key={img.roomImageId} 
+                                    className={`relative aspect-video w-full overflow-hidden rounded-xl shadow-sm group border-2 transition-all duration-200
+                                    ${img.isCover ? 'border-yellow-400 ring-2 ring-yellow-100' : 'border-gray-200 hover:border-blue-300'}`}>
+                                    
+                                   <img src={getFullImageUrl(img.imageUrl)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Room" />
+                                   
+                                   {/* Badge Ảnh bìa */}
+                                   {img.isCover && (
+                                       <div className="absolute top-2 left-2 bg-yellow-400 text-white p-1 rounded-full shadow-md z-10">
+                                           <Star size={12} fill="currentColor" />
+                                       </div>
+                                   )}
 
-               <ImageUploadGrid 
-                  multiple={true} 
-                  value={newImages} 
-                  onChange={setNewImages} 
-                  placeholder="Tải lên ảnh phòng (Tối đa 5 ảnh)"
-               />
+                                   {/* Actions Overlay */}
+                                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center gap-2 backdrop-blur-[1px]">
+                                       {/* Nút Set Cover */}
+                                       {!img.isCover && (
+                                           <Button
+                                               type="button"
+                                               size="sm"
+                                               className="bg-white text-yellow-500 hover:bg-yellow-400 hover:text-white border-none p-2 h-auto rounded-full shadow-lg transform hover:scale-110 transition-all"
+                                               onClick={() => handleSetCover(img.roomImageId)}
+                                               title="Đặt làm ảnh bìa"
+                                           >
+                                               <Star size={18} />
+                                           </Button>
+                                       )}
+                                       
+                                       {/* Nút Xóa */}
+                                       <Button
+                                           type="button"
+                                           size="sm"
+                                           className="bg-white text-red-500 hover:bg-red-500 hover:text-white border-none p-2 h-auto rounded-full shadow-lg transform hover:scale-110 transition-all"
+                                           onClick={() => handleDeleteImage(img.roomImageId)}
+                                           title="Xóa ảnh"
+                                       >
+                                           <Trash2 size={18} />
+                                       </Button>
+                                   </div>
+                               </div>
+                           ))}
+                       </div>
+                   ) : (
+                       <div className="p-8 text-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+                           <ImageIcon className="mx-auto text-gray-300 mb-2" size={40} />
+                           <p className="text-gray-400 italic text-sm">
+                               {isEditMode ? "Chưa có ảnh nào trong album." : "Lưu phòng trước để quản lý ảnh chi tiết."}
+                           </p>
+                       </div>
+                   )}
+               </div>
+
+               {/* Upload mới */}
+               <div>
+                   <h4 className="text-sm font-medium text-gray-600 mb-2">Tải lên ảnh mới:</h4>
+                   <ImageUploadGrid 
+                     multiple={true} 
+                     value={newImages} 
+                     onChange={setNewImages} 
+                     placeholder="Tải lên ảnh phòng (Tối đa 5 ảnh)"
+                   />
+               </div>
            </section>
 
            {/* FOOTER */}

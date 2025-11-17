@@ -43,7 +43,9 @@ const CategoryBadge = ({ category }) => {
 };
 
 const RoomCard = ({ room, onEdit, onDelete }) => {
-  const coverImage = room.images && room.images.length > 0 ? getFullImageUrl(room.images[0]) : null;
+  const coverImage = room.coverImage 
+    ? getFullImageUrl(room.coverImage) 
+    : null;
 
   return (
     <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.9 }}

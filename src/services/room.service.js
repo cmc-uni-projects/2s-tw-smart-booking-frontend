@@ -1,6 +1,42 @@
 import api from "./axios.config";
 
 const roomService = {
+
+    // ✅ 1. Lấy danh sách ảnh của phòng (để refresh)
+  getRoomImages: async (roomId) => {
+      try {
+          // Giả sử bạn đã có API này ở Controller: GET /api/v1/room-images/{roomId}
+          // Nếu chưa, hãy dùng api getRoomDetail cũng được, nhưng API riêng sẽ nhẹ hơn
+          const response = await api.get(`/room-images/${roomId}`); 
+          return response.data; 
+      } catch (error) {
+          console.error(error);
+          return [];
+      }
+  },
+
+  // ✅ 2. Xóa ảnh phòng
+  deleteRoomImage: async (roomId, imageId) => {
+      try {
+          // API: DELETE /api/v1/room-images/delete/{roomId}/{imageId}
+          const response = await api.delete(`/room-images/delete/${roomId}/${imageId}`);
+          return response.data;
+      } catch (error) {
+          throw error.response?.data || error.message;
+      }
+  },
+
+  // ✅ 3. Đặt ảnh bìa phòng
+  setRoomCoverImage: async (roomId, imageId) => {
+      try {
+          // API: PUT /api/v1/room-images/{roomId}/{imageId}/set-cover
+          const response = await api.put(`/room-images/${roomId}/${imageId}/set-cover`);
+          return response.data;
+      } catch (error) {
+          throw error.response?.data || error.message;
+      }
+  },
+
   // 1. Lấy danh sách phòng theo Property ID
   getRoomsByProperty: async (propertyId) => {
     try {

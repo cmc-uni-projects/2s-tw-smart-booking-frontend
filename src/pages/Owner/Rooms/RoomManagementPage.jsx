@@ -46,10 +46,39 @@ const RoomManagementPage = () => {
       setProperty(propRes.data.property);
 
       // 2. Đo thời gian lấy danh sách phòng
-      const roomStart = performance.now();
-      const roomsRes = await roomService.getRoomsByProperty(propertyId);
-      console.log(`   🔹 [API Get Rooms] Xong sau ${(performance.now() - roomStart).toFixed(2)}ms`, roomsRes.data);
-      setRooms(roomsRes.data || []); 
+const roomStart = performance.now();
+const roomsRes = await roomService.getRoomsByProperty(propertyId);
+console.log(`   🔹 [API Get Rooms] Xong sau ${(performance.now() - roomStart).toFixed(2)}ms`, roomsRes.data);
+
+// roomsRes.data = [{ roomId, roomName, images: [...] }, ...]
+
+const roomsData = roomsRes.data || [];
+
+const roomsWithCover = await Promise.all(
+    roomsData.map(async (room) => {
+        try {
+            const imgs = await roomService.getRoomImages(room.roomId); // [{roomImageId, imageUrl, isCover}, ...]
+
+            const cover = imgs.find(i => i.cover);
+
+            const coverImageUrl = cover ? cover.imageUrl : (imgs[0]?.imageUrl || null);
+
+            return {
+                ...room,
+                coverImage: coverImageUrl   // ★★ Quan trọng
+            };
+
+        } catch (err) {
+            console.error("Lỗi load ảnh phòng:", err);
+            return {
+                ...room,
+                coverImage: room.images?.[0] || null
+            };
+        }
+    })
+);
+
+setRooms(roomsWithCover); 
       
     } catch (error) {
       console.error("❌ [RoomPage] Lỗi tải dữ liệu:", error);
