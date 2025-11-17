@@ -12,13 +12,14 @@ import AccountMenu from "./AccountMenu";
 // ✅ SỬA 1 (tiếp): Thêm 'User'
 import { Save, X, Phone, MapPin, Flag, Building, Info, Calendar, User, Users } from "lucide-react"; 
 import { useAuth } from "@/context/AuthContext";
+// ✅ Service đã được gộp vào user.service (từ nhánh develop)
 import { userService } from "@/services/user.service";
 import DatePickerInput from "@/components/common/Input/DatePickerInput"; 
 import CustomSelect from "@/components/common/Select/CustomSelect"; 
 
 const PROFILE_TABS = [
-  { id: "info", name: "Thông tin tài khoản" },
-  { id: "security", name: "Mật khẩu & Bảo mật" },
+    { id: "info", name: "Thông tin tài khoản" },
+    { id: "security", name: "Mật khẩu & Bảo mật" },
 ];
 
 // --- (Các hàm Helper chuyển đổi ngày giữ nguyên) ---
@@ -192,9 +193,12 @@ const ProfilePage = () => {
               showToastAndDismiss("Đã đồng bộ và cập nhật thành công!", "success");
               return;
             }
-          }
-        } catch (retryErr) {
-          console.error("Auto-recovery failed:", retryErr);
+        } catch (err) {
+            console.error("Upload failed:", err);
+            const msg = err.response?.data?.message || "Lỗi khi tải ảnh lên.";
+            showToastAndDismiss(msg, "error");
+        } finally {
+            setIsUploadingAvatar(false);
         }
       }
       // Đây là phần hiển thị toast lỗi
@@ -206,15 +210,18 @@ const ProfilePage = () => {
   };
 
 
-  // --- RENDER UI ---
+    // --- 4. Lưu SĐT từ Modal (✅ Giữ logic từ develop) ---
+    const handleSaveNewPhone = async (newPhone) => {
+        const payload = { ...formData, phoneNumber: newPhone };
+        setLoading(true);
+        try {
+            const res = await userService.updateUserDetail(payload);
+            if (res.data.success) {
+                const updatedData = res.data.data;
+                const newUserData = mapDataToForm(updatedData);
 
-  const renderInfoTab = () => {
-    const GENDER_OPTIONS = [
-      { label: "Nam", value: "Nam" },
-      { label: "Nữ", value: "Nữ" },
-      { label: "Khác", value: "Khác" },
-    ];
-    const dirty = isFormDirty();
+                setFormData(newUserData);
+                setUserData(newUserData);
 
     const requiredLabel = (text) => (
       <span>
@@ -369,46 +376,8 @@ const ProfilePage = () => {
                 Hành động này không thể hoàn tác. Mọi dữ liệu sẽ bị xóa vĩnh viễn.
               </p>
             </div>
-            <Button variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
-              Xóa
-            </Button>
-          </div>
-        </div>
-      </Card>
-    </div>
-  );
-
-  const renderMainContent = () => {
-    if (activeSection === "account-settings") {
-      return (
-        <>
-          <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">
-              Chỉnh sửa hồ sơ cá nhân
-            </h1>
-          </div>
-          <TabsComponent
-            tabs={PROFILE_TABS}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
-          <div className="mt-8 md:mt-10">{renderContent()}</div>
-        </>
-      );
+        );
     }
-    if (activeSection === "notification-settings") {
-      return <SettingsPage />;
-    }
-    return <h1 className="text-2xl font-bold text-gray-700">Chức năng đang phát triển</h1>;
-  };
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case "info": return renderInfoTab();
-      case "security": return renderSecurityTab();
-      default: return null;
-    }
-  };
 
   // Xử lý trạng thái Loading / Lỗi
   if (error) {
@@ -423,7 +392,7 @@ const ProfilePage = () => {
     );
   }
 
-  if (!currentUser || !userData) {
+    // ✅ Render chính (Giữ lại từ develop, không lồng CustomerLayout)
     return (
       <div className="flex justify-center items-center h-[50vh]">
         <p className="text-gray-500">Đang tải dữ liệu...</p>

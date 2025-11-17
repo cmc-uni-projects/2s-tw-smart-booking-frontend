@@ -52,64 +52,64 @@ const BookingHistory = () => {
   };
 
   return (
-    <CustomerDashboardLayout>
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">
-          🧾 Lịch sử đặt phòng
-        </h1>
+      <CustomerDashboardLayout>
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-2xl font-bold text-gray-800 mb-6">
+            🧾 Lịch sử đặt phòng
+          </h1>
 
-        {bookings.length === 0 ? (
-          <div className="text-center py-10 text-gray-500">
-            <p>Chưa có đơn đặt phòng nào.</p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <Table>
-              <thead className="bg-gray-100 text-gray-700 text-sm uppercase">
-                <tr>
-                  <th className="px-4 py-3 text-left">Mã đơn</th>
-                  <th className="px-4 py-3 text-left">Khách sạn</th>
-                  <th className="px-4 py-3 text-center">Ngày nhận</th>
-                  <th className="px-4 py-3 text-center">Ngày trả</th>
-                  <th className="px-4 py-3 text-right">Tổng tiền</th>
-                  <th className="px-4 py-3 text-center">Trạng thái</th>
-                  <th className="px-4 py-3 text-center">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody className="text-gray-700">
-                {bookings.map((b) => (
-                  <tr key={b.id} className="border-t hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-gray-800">
-                      #{b.id.toString().padStart(5, "0")}
-                    </td>
-                    <td className="px-4 py-3">{b.hotelName}</td>
-                    <td className="px-4 py-3 text-center">
-                      {new Date(b.checkIn).toLocaleDateString("vi-VN")}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {new Date(b.checkOut).toLocaleDateString("vi-VN")}
-                    </td>
-                    <td className="px-4 py-3 text-right font-semibold text-[rgb(40,169,224)]">
-                      {b.totalPrice.toLocaleString("vi-VN")}₫
-                    </td>
-                    <td className="px-4 py-3 text-center">{renderStatus(b.status)}</td>
-                    <td className="px-4 py-3 text-center">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => alert(`Chi tiết đơn #${b.id}`)}
-                      >
-                        Xem chi tiết
-                      </Button>
-                    </td>
+          {bookings.length === 0 ? (
+              <div className="text-center py-10 text-gray-500">
+                <p>Chưa có đơn đặt phòng nào.</p>
+              </div>
+          ) : (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <Table>
+                  <thead className="bg-gray-100 text-gray-700 text-sm uppercase">
+                  <tr>
+                    <th className="px-4 py-3 text-left">Mã đơn</th>
+                    <th className="px-4 py-3 text-left">Khách sạn</th>
+                    <th className="px-4 py-3 text-center">Ngày nhận</th>
+                    <th className="px-4 py-3 text-center">Ngày trả</th>
+                    <th className="px-4 py-3 text-right">Tổng tiền</th>
+                    <th className="px-4 py-3 text-center">Trạng thái</th>
+                    <th className="px-4 py-3 text-center">Thao tác</th>
                   </tr>
-                ))}
-              </tbody>
-            </Table>
-          </div>
-        )}
-      </div>
-    </CustomerDashboardLayout>
+                  </thead>
+                  <tbody className="text-gray-700">
+                  {bookings.map((b) => (
+                      <tr key={b.id} className="border-t hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 font-medium text-gray-800">
+                          #{b.id.toString().padStart(5, "0")}
+                        </td>
+                        <td className="px-4 py-3">{b.hotelName}</td>
+                        <td className="px-4 py-3 text-center">
+                          {new Date(b.checkIn).toLocaleDateString("vi-VN")}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {new Date(b.checkOut).toLocaleDateString("vi-VN")}
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold text-[rgb(40,169,224)]">
+                          {b.totalPrice.toLocaleString("vi-VN")}₫
+                        </td>
+                        <td className="px-4 py-3 text-center">{renderStatus(b.status)}</td>
+                        <td className="px-4 py-3 text-center">
+                          <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => alert(`Chi tiết đơn #${b.id}`)}
+                          >
+                            Xem chi tiết
+                          </Button>
+                        </td>
+                      </tr>
+                  ))}
+                  </tbody>
+                </Table>
+              </div>
+          )}
+        </div>
+      </CustomerDashboardLayout>
   );
 };
 
