@@ -123,7 +123,7 @@ export default function Step5_Review({ watch, register, errors }) {
                     </Link>{" "}
                     và{" "}
                     <Link
-                        to="/owner/terms-of-service"
+                        to="/owner/partner-policy"  /* ✅ ĐÃ SỬA LINK */
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[rgb(40,169,224)] hover:underline font-medium"
@@ -139,6 +139,7 @@ export default function Step5_Review({ watch, register, errors }) {
                     {errors.terms.message}
                 </p>
             )}
+
 
             {/* Thông báo cuối */}
             <div className="flex items-center gap-3 rounded-lg bg-blue-50 p-4 text-sm text-blue-800 border border-blue-200">
