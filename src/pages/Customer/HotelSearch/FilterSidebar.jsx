@@ -70,6 +70,14 @@ export default function FilterSidebar() {
                     <CheckboxOption label="Trên 3.000.000₫" />
                 </FilterSection>
 
+                {/* +++ THÊM MỚI: KHOẢNG CÁCH TỪ SÂN BAY +++ */}
+                <FilterSection title="Khoảng cách từ sân bay">
+                    <CheckboxOption label="Dưới 5 km" />
+                    <CheckboxOption label="5 km - 10 km" />
+                    <CheckboxOption label="10 km - 20 km" />
+                    <CheckboxOption label="Trên 20 km" />
+                </FilterSection>
+
                 {/* +++ THÊM MỚI: TIỆN NGHI +++ */}
                 <FilterSection title="Tiện nghi">
                     <CheckboxOption label="Hồ bơi" />
@@ -79,6 +87,7 @@ export default function FilterSidebar() {
                     <CheckboxOption label="Lễ tân 24/7" />
                     <CheckboxOption label="Phòng tập gym" />
                 </FilterSection>
+
 
                 {/* Lọc theo Địa điểm (Loại hình) */}
                 <FilterSection title="Loại hình cư trú">
