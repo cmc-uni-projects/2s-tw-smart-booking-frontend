@@ -88,7 +88,6 @@ export default function FilterSidebar() {
                     <CheckboxOption label="Phòng tập gym" />
                 </FilterSection>
 
-
                 {/* Lọc theo Địa điểm (Loại hình) */}
                 <FilterSection title="Loại hình cư trú">
                     <CheckboxOption label="Hotel" />
