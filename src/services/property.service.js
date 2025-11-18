@@ -29,10 +29,14 @@ const getOwnerActiveProperties = async () => {
 // ============================
 // 🔍 TÌM KIẾM PROPERTIES
 // ============================
-const searchProperties = async (city, keyword) => {
+const searchProperties = async (keyword, guests) => {
   try {
+    // ✅ SỬA: Gửi đúng params mà Backend yêu cầu
     const response = await api.get(`/properties/search`, {
-      params: { city, keyword },
+      params: { 
+        keyword: keyword || "", // Nếu null thì gửi chuỗi rỗng
+        guests: guests || 1     // Mặc định là 1 khách
+      },
     });
     return response.data;
   } catch (error) {

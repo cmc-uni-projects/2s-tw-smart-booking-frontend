@@ -10,7 +10,7 @@ import DestinationSelector from "@/components/search/DestinationSelector";
 const HeroSection = () => {
   const navigate = useNavigate();
 
-  const [destination, setDestination] = useState("");
+  const [destination, setDestination] = useState(""); // Đây là "keyword"
   const [dates, setDates] = useState({
     startDate: new Date(),
     endDate: addDays(new Date(), 1),
@@ -21,28 +21,30 @@ const HeroSection = () => {
     rooms: 1,
   });
 
+  // ✅ CẬP NHẬT HÀM TÌM KIẾM
   const handleSearch = () => {
     const params = new URLSearchParams();
-
-    // Bạn đã xử lý rất tốt khi gửi cả city và keyword
+    
+    // 1. Input người dùng (Destination/Keyword)
+    // Nếu không nhập gì, backend sẽ trả về tất cả
     if (destination) {
-      params.append("city", destination);
-      params.append("keyword", destination);
+      params.append("keyword", destination); 
     }
 
+    // 2. Số lượng khách (Tổng người lớn + trẻ em)
+    const totalGuests = guests.adults + guests.children;
+    params.append("guests", totalGuests);
+
+    // (Các tham số khác giữ nguyên để dùng cho trang lọc sau này)
     params.append("checkIn", format(dates.startDate, "yyyy-MM-dd"));
     params.append("checkOut", format(dates.endDate, "yyyy-MM-dd"));
-    params.append("adults", guests.adults);
-    params.append("children", guests.children);
     params.append("rooms", guests.rooms);
-
-    // SỬA LỖI Ở ĐÂY:
-    // Chuyển hướng đến /hotels theo đúng ý bạn
+    
+    // Điều hướng sang trang danh sách
     navigate(`/hotels?${params.toString()}`);
   };
 
   return (
-    // Toàn bộ giao diện của bạn được giữ nguyên
     <section className="relative w-full bg-gradient-to-b from-white to-[#f4fbff] pb-24">
       {/* Ảnh nền */}
       <div className="relative h-[500px] overflow-hidden">
@@ -53,22 +55,28 @@ const HeroSection = () => {
         />
       </div>
 
-      {/* Sửa z-index */}
       <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-4 z-30">
         <h1 className="text-4xl md:text-5xl font-extrabold text-[#006494] mb-4">
           Đặt phòng dễ dàng cùng{" "}
           <span className="text-[rgb(40,169,224)]">TravelMate</span>
         </h1>
-        <p className="text-gray-700 text-lg mb-10"></p>
+        <p className="text-gray-700 text-lg mb-10">
+        </p>
 
         <div className="relative z-10 bg-white shadow-xl rounded-2xl border border-gray-100 p-6 md:p-8 grid grid-cols-1 md:grid-cols-4 gap-4 max-w-6xl w-[90%]">
-          {/* Các component của bạn đã gán value và onChange đúng */}
+          
           <DestinationSelector
             value={destination}
             onChange={setDestination}
           />
-          <DateSelector value={dates} onChange={setDates} />
-          <GuestSelector value={guests} onChange={setGuests} />
+          <DateSelector 
+            value={dates} 
+            onChange={setDates} 
+          />
+          <GuestSelector 
+            value={guests} 
+            onChange={setGuests} 
+          />
 
           <div className="flex items-end justify-center">
             <Button
