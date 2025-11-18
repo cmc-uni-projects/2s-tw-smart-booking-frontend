@@ -1,6 +1,6 @@
   // src/context/AuthContext.jsx
-  import React, { createContext, useContext, useState, useEffect } from 'react';
-  import { authService } from '../services/auth.service';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { authService } from '../services/auth.service';
 
   export const AuthContext = createContext();
 
@@ -39,17 +39,11 @@
       }
     };
 
-    // Code đã sửa trong AuthContext.jsx
-  const logout = () => {
-    // Lấy token HIỆN TẠI để gửi cho service
-    const currentToken = authService.getAccessToken(); 
-    
-    // Gọi service: nó sẽ tự gọi API và xóa localStorage
-    authService.logout(currentToken); 
-    
-    // Chỉ cần cập nhật state của React
-    setCurrentUser(null); 
-  };
+  const logout = () => {
+    const currentToken = authService.getAccessToken();
+    authService.logout(currentToken);
+    setCurrentUser(null);
+  };
 
     // ✅ HÀM MỚI: Cập nhật thông tin user mà không cần login lại
     const updateUser = (userData) => {
