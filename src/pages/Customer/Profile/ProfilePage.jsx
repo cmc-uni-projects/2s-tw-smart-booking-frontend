@@ -162,51 +162,61 @@ const ProfilePage = () => {
     }
   };
 
-  // --- 3. Lưu Thông Tin (✅ SỬA LỖI: Dùng đúng tên hàm) ---
+  // --- 3. Lưu Thông Tin (ĐÃ SỬA LỖI LOGIC RESPONSE) ---
   const handleSave = async (e) => {
     e.preventDefault();
+
     if (!formData.fullName.trim()) {
       showToastAndDismiss("Họ tên không được để trống", "warning");
       return;
     }
+    
     const payload = {
       ...formData,
-      dateOfBirth: formatApiDate(formData.dateOfBirth)
+      birthDate: formatApiDate(formData.birthDate) 
     };
 
     setLoading(true);
     try {
-      // ✅ LỖI LÀ Ở ĐÂY: Sửa 'updateProfile' thành 'updateUserDetail'
-      const res = await userService.updateUserDetail(payload);
+      const res = await userService.updateUserDetail(payload); 
 
-      if (res.data.success) {
-        const updatedData = res.data.data;
-        const newUserData = mapDataToForm(updatedData);
+      // ✅ SỬA 1: Kiểm tra 'res.success' thay vì 'res.data.success'
+      if (res.success) {
+        // ✅ SỬA 2: Lấy dữ liệu từ 'res.data' thay vì 'res.data.data'
+        const updatedData = res.data; 
+        const newUserData = mapDataToForm(updatedData); 
+        
         setUserData(newUserData);
         setFormData(newUserData);
+        
         if (updatedData.fullName !== currentUser.fullName) {
           updateUser({ fullName: updatedData.fullName });
         }
+
         showToastAndDismiss("Lưu thông tin thành công!", "success");
       }
     } catch (err) {
       console.error("Save error:", err);
+
       if (err.response && err.response.status === 409) {
         try {
           const refreshData = await userService.getUserDetail();
           if (refreshData && refreshData.userdetailId) {
             const realId = refreshData.userdetailId;
-            const retryData = { ...payload, userdetailId: realId };
-
-            // ✅ LỖI LÀ Ở ĐÂY: Sửa 'updateProfile' thành 'updateUserDetail'
+            const retryData = { ...payload, userdetailId: realId }; 
+            
             const retryRes = await userService.updateUserDetail(retryData);
-            if (retryRes.data.success) {
-              const newUserData = mapDataToForm(retryRes.data.data);
+            
+            // ✅ SỬA 3: Sửa logic retry tương tự
+            if (retryRes.success) {
+              const newUserData = mapDataToForm(retryRes.data); // Sửa retryRes.data.data -> retryRes.data
               setUserData(newUserData);
               setFormData(newUserData);
-              if (retryRes.data.data.fullName !== currentUser.fullName) {
-                updateUser({ fullName: retryRes.data.data.fullName });
+              
+              if (retryRes.data.fullName !== currentUser.fullName) {
+                updateUser({ fullName: retryRes.data.fullName });
               }
+
               showToastAndDismiss("Đã đồng bộ và cập nhật thành công!", "success");
               return;
             }
@@ -215,8 +225,8 @@ const ProfilePage = () => {
           console.error("Auto-recovery failed:", retryErr);
         }
       }
-      // Đây là phần hiển thị toast lỗi
-      const errorMsg = err?.response?.data?.message || err.message || "Có lỗi xảy ra khi lưu.";
+
+      const errorMsg = err.response?.data?.message || "Có lỗi xảy ra khi lưu.";
       showToastAndDismiss(errorMsg, "error");
     } finally {
       setLoading(false);

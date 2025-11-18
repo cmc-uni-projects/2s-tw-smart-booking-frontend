@@ -27,133 +27,135 @@ import ProtectedRoute from "@/routes/ProtectedRoute";
 import PartnerRoute from "@/routes/PartnerRoute";
 
 const customerRoutes = [
-    {
-        path: "/",
-        element: (
-            <CustomerLayout>
-                <HomePage />
-            </CustomerLayout>
-        ),
-    },
-    {
-        path: "/about",
-        element: (
-            <CustomerLayout>
-                <About />
-            </CustomerLayout>
-        ),
-    },
-    {
-        path: "/help",
-        element: (
-            <CustomerLayout>
-                <HelpPage />
-            </CustomerLayout>
-        ),
-    },
-    {
-        path: "/contact",
-        element: (
-            <CustomerLayout>
-                <Contact />
-            </CustomerLayout>
-        ),
-    },
-    {
-        path: "/hotels",
-        element: (
-            <CustomerLayout>
-                <HotelSearchPage />
-            </CustomerLayout>
-        ),
-    },
-    {
-        path: "/hotels/:id",
-        element: (
-            <CustomerLayout>
-                <HotelDetailPage />
-            </CustomerLayout>
-        ),
-    },
-    {
-        path: "/partner-with-us",
-        element: (
-            <CustomerLayout>
-                <PartnerLandingPage />
-            </CustomerLayout>
-        ),
-    },
-    {
-        path: "/customer/profile",
-        element: (
-            <CustomerLayout>
-                <ProtectedRoute roles={["CUSTOMER"]}>
-                    <ProfilePage />
-                </ProtectedRoute>
-            </CustomerLayout>
-        ),
-    },
-    {
-        path: "/customer/profile/settings",
-        element: (
-            <ProtectedRoute roles={["CUSTOMER"]}>
-                <CustomerDashboardLayout>
-                    <SettingsPage />
-                </CustomerDashboardLayout>
-            </ProtectedRoute>
-        ),
-    },
-    {
-        path: "/customer/profile/change-password",
-        element: (
-            <ProtectedRoute roles={["CUSTOMER"]}>
-                <CustomerDashboardLayout>
-                    <ChangePassword />
-                </CustomerDashboardLayout>
-            </ProtectedRoute>
-        ),
-    },
-    {
-        path: "/customer/profile/notifications",
-        element: (
-            <ProtectedRoute roles={["CUSTOMER"]}>
-                <CustomerDashboardLayout>
-                    <NotificationSettings />
-                </CustomerDashboardLayout>
-            </ProtectedRoute>
-        ),
-    },
-    {
-        path: "/customer/profile/language",
-        element: (
-            <ProtectedRoute roles={["CUSTOMER"]}>
-                <CustomerDashboardLayout>
-                    <LanguageSettings />
-                </CustomerDashboardLayout>
-            </ProtectedRoute>
-        ),
-    },
-    {
-        path: "/customer/my-bookings",
-        element: (
-            <ProtectedRoute roles={["CUSTOMER"]}>
-                <CustomerDashboardLayout>
-                    <BookingHistory />
-                </CustomerDashboardLayout>
-            </ProtectedRoute>
-        ),
-    },
-    {
-        path: "/customer/my-inbox",
-        element: (
-            <ProtectedRoute roles={["CUSTOMER"]}>
-                <CustomerDashboardLayout>
-                    <MyInboxPage />
-                </CustomerDashboardLayout>
-            </ProtectedRoute>
-        ),
-    },
-
+  // ... (Tất cả các route khác của bạn / /about /hotels /customer/profile ...)
+  // ... (Giữ nguyên các route này)
+  {
+    path: "/",
+    element: (
+      <CustomerLayout>
+        <HomePage />
+      </CustomerLayout>
+    ),
+  },
+  {
+    path: "/about",
+    element: (
+      <CustomerLayout>
+        <About />
+      </CustomerLayout>
+    ),
+  },
+  {
+    path: "/help",
+    element: (
+      <CustomerLayout>
+        <HelpPage />
+      </CustomerLayout>
+    ),
+  },
+  {
+    path: "/contact",
+    element: (
+      <CustomerLayout>
+        <Contact />
+      </CustomerLayout>
+    ),
+  },
+  {
+    path: "/hotels",
+    element: (
+      <CustomerLayout>
+        <HotelSearchPage />
+      </CustomerLayout>
+    ),
+  },
+  {
+    path: "/hotels/:hotelId",
+    element: (
+      <CustomerLayout>
+        <HotelDetailPage />
+      </CustomerLayout>
+    ),
+  },
+  {
+    path: "/partner-with-us",
+    element: (
+      <CustomerLayout>
+        <PartnerLandingPage />
+      </CustomerLayout>
+    ),
+  },
+  {
+  path: "/customer/profile",
+  element: (
+    <CustomerLayout>
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <ProfilePage />
+      </ProtectedRoute>
+    </CustomerLayout>
+  ),
+},
+  {
+    path: "/customer/profile/settings",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerDashboardLayout>
+          <SettingsPage />
+        </CustomerDashboardLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/customer/profile/change-password",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerDashboardLayout>
+          <ChangePassword />
+        </CustomerDashboardLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/customer/profile/notifications",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerDashboardLayout>
+          <NotificationSettings />
+        </CustomerDashboardLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/customer/profile/language",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerDashboardLayout>
+          <LanguageSettings />
+        </CustomerDashboardLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/customer/my-bookings",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerDashboardLayout>
+          <BookingHistory />
+        </CustomerDashboardLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/customer/my-inbox",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerDashboardLayout>
+          <MyInboxPage />
+        </CustomerDashboardLayout>
+      </ProtectedRoute>
+    ),
+  },
+  
 
     // ✅ ROUTE LỊCH SỬ GIAO DỊCH (giữ nguyên)
     {
