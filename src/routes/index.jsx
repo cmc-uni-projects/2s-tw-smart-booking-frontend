@@ -1,32 +1,28 @@
 import React from "react";
-// 1. Thêm Navigate
 import { Routes, Route, Navigate } from "react-router-dom";
-// 2. Thêm useAuth
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "@/context/AuthContext"; // Sử dụng alias @
 
-// 3. Import các mảng routes (giữ nguyên)
-import customerRoutes from "./CustomerRoutes";
-import adminRoutes from "./AdminRoutes";
-import ownerRoutes from "./OwnerRoutes";
+// Import các mảng routes từ các file cấu hình riêng
+import customerRoutes from "@/routes/CustomerRoutes";
+import adminRoutes from "@/routes/AdminRoutes";
+import ownerRoutes from "@/routes/OwnerRoutes";
 
-// 4. Import các trang Auth (giữ nguyên)
-import Login from "../pages/Auth/Login";
-import Register from "../pages/Auth/Register";
-import ForgotPassword from "../pages/Auth/ForgotPassword";
-import ResetPassword from "../pages/Auth/ResetPassword";
-import VerifyEmail from "../pages/Auth/VerifyEmail";
+// Import các trang Auth
+import Login from "@/pages/Auth/Login";
+import Register from "@/pages/Auth/Register";
+import ForgotPassword from "@/pages/Auth/ForgotPassword";
+import ResetPassword from "@/pages/Auth/ResetPassword";
+import VerifyEmail from "@/pages/Auth/VerifyEmail";
 
-/**
- * Đây là cách đúng để render một mảng routes trong React Router v6
- */
+// Import trang Preview Component (Dành cho dev/test)
+import ComponentsPreview from "@/pages/ComponentsPreview";
+
 const AppRoutes = () => {
-    // 5. Lấy currentUser từ context
     const { currentUser } = useAuth();
 
     return (
         <Routes>
-            {/* === 1. CÁC ROUTE CHUNG (AUTH) === */}
-            {/* 6. Thêm logic điều hướng giống App.jsx cũ vào đây */}
+            {/* === 1. AUTH ROUTES (Xử lý chuyển hướng nếu đã đăng nhập) === */}
             <Route
                 path="/login"
                 element={currentUser ? <Navigate to="/" replace /> : <Login />}
@@ -39,23 +35,39 @@ const AppRoutes = () => {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
 
-            {/* === 2. CÁC ROUTE CỦA CUSTOMER === */}
-            {/* Lặp qua mảng customerRoutes (sẽ chạy file CustomerRoutes.jsx) */}
+            {/* === 2. DEV ROUTE (Xem trước các component UI) === */}
+            <Route path="/components" element={<ComponentsPreview />} />
+
+            {/* === 3. DYNAMIC ROUTES (Load từ các file cấu hình routes con) === */}
+
+            {/* Customer Routes (Bao gồm TransactionHistory, Profile, Booking...) */}
             {customerRoutes.map((route, index) => (
-                <Route key={`customer-${index}`} path={route.path} element={route.element} />
+                <Route
+                    key={`customer-${index}`}
+                    path={route.path}
+                    element={route.element}
+                />
             ))}
 
-            {/* === 3. CÁC ROUTE CỦA ADMIN === */}
+            {/* Admin Routes */}
             {adminRoutes.map((route, index) => (
-                <Route key={`admin-${index}`} path={route.path} element={route.element} />
+                <Route
+                    key={`admin-${index}`}
+                    path={route.path}
+                    element={route.element}
+                />
             ))}
 
-            {/* === 4. CÁC ROUTE CỦA OWNER === */}
+            {/* Owner Routes */}
             {ownerRoutes.map((route, index) => (
-                <Route key={`owner-${index}`} path={route.path} element={route.element} />
+                <Route
+                    key={`owner-${index}`}
+                    path={route.path}
+                    element={route.element}
+                />
             ))}
 
-            {/* 7. Thêm route 404 (lấy từ App.jsx cũ) */}
+            {/* 4. Fallback 404 - Chuyển hướng về trang chủ nếu không khớp route nào */}
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     );
