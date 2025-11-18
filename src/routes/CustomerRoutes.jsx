@@ -17,14 +17,15 @@ import NotificationSettings from "../pages/Customer/Profile/NotificationSettings
 import LanguageSettings from "../pages/Customer/Profile/LanguageSettings";
 import PartnerLandingPage from "../pages/Partner/PartnerLandingPage";
 import BecomeOwnerPage from "../pages/Customer/Profile/BecomeOwnerPage";
+import BookingPage from "../pages/Customer/Booking/BookingPage";
+import PaymentPage from "../pages/Customer/Booking/PaymentPage";
 
 import ProtectedRoute from "../routes/ProtectedRoute";
 // === 1. IMPORT PARTNER ROUTE ===
 import PartnerRoute from "../routes/PartnerRoute"; // <-- THÊM DÒNG NÀY
 
 const customerRoutes = [
-  // ... (Tất cả các route khác của bạn / /about /hotels /customer/profile ...)
-  // ... (Giữ nguyên các route này)
+
   {
     path: "/",
     element: (
@@ -160,6 +161,27 @@ const customerRoutes = [
         <PartnerRoute> 
           <BecomeOwnerPage />
         </PartnerRoute>
+    ),
+  },
+
+  {
+    path: "/booking",
+    element: (
+      <CustomerLayout>
+        <ProtectedRoute roles={["CUSTOMER"]}>
+          <BookingPage />
+        </ProtectedRoute>
+      </CustomerLayout>
+    ),
+  },
+  {
+    path: "/booking/payment",
+    element: (
+      <CustomerLayout>
+        <ProtectedRoute roles={["CUSTOMER"]}>
+          <PaymentPage />
+        </ProtectedRoute>
+      </CustomerLayout>
     ),
   },
 ];

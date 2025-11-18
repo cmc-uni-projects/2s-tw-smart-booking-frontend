@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import CustomerLayout from '@/layouts/CustomerLayout/CustomerLayout';
 import Card from '@/components/common/Card/Card';
 import Button from '@/components/common/Button/Button';
 import Divider from '@/components/common/Divider/Divider';
@@ -147,11 +146,9 @@ export default function PaymentPage() {
     if (!bookingData || !bookingData.room || !bookingData.hotel) {
         // (Code check lỗi giữ nguyên)
         return (
-            <CustomerLayout>
                 <div className="text-center py-20 max-w-7xl mx-auto px-6">
                     <h1 className="text-2xl font-bold mb-4">Lỗi</h1><p className="text-gray-600 mb-6">Không tìm thấy thông tin đặt phòng.</p><Button onClick={() => navigate('/hotels')}>Quay về trang chủ</Button>
                 </div>
-            </CustomerLayout>
         );
     }
 
@@ -169,7 +166,6 @@ export default function PaymentPage() {
     };
 
     return (
-        <CustomerLayout>
             <main className="max-w-7xl mx-auto px-6 py-8">
                 <h1 className="text-3xl font-bold mb-2 text-gray-800">Bạn muốn thanh toán thế nào?</h1>
                 <p className="text-gray-600 mb-8">Thanh toán an toàn</p>
@@ -203,6 +199,5 @@ export default function PaymentPage() {
                     onClose={() => setIsSuccessOpen(false)} 
                 />
             </main>
-        </CustomerLayout>
     );
 }

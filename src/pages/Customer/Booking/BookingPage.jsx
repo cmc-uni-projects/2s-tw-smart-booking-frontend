@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import CustomerLayout from '@/layouts/CustomerLayout/CustomerLayout';
 import Card from '@/components/common/Card/Card';
 import Button from '@/components/common/Button/Button';
 import Divider from '@/components/common/Divider/Divider'; 
@@ -103,13 +102,11 @@ export default function BookingPage() {
   if (!hotel || !room) {
     // (Phần code xử lý lỗi giữ nguyên)
     return (
-      <CustomerLayout>
         <div className="text-center py-20 max-w-7xl mx-auto px-6">
           <h1 className="text-2xl font-bold mb-4">Lỗi Đặt phòng</h1>
           <p className="text-gray-600 mb-6">Không tìm thấy thông tin phòng. Vui lòng quay lại và chọn phòng.</p>
           <Button onClick={() => navigate('/hotels')}>Tìm khách sạn</Button>
         </div>
-      </CustomerLayout>
     );
   }
 
@@ -127,7 +124,6 @@ export default function BookingPage() {
   };
 
   return (
-    <CustomerLayout>
       <main className="max-w-7xl mx-auto px-6 py-8">
         <Button
           variant="ghost"
@@ -162,6 +158,5 @@ export default function BookingPage() {
           </div>
         </div>
       </main>
-    </CustomerLayout>
   );
 }
