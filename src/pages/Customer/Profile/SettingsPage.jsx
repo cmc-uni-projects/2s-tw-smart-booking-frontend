@@ -4,6 +4,7 @@ import Card from "@/components/common/Card/Card";
 import Button from "@/components/common/Button/Button";
 import Toast from "@/components/common/Notification/Toast";
 import ToastPortal from "@/components/common/Notification/ToastPortal";
+import LanguageSwitcher from "@/layouts/CustomerLayout/LanguageSwitcher.jsx";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({ notifications: true });

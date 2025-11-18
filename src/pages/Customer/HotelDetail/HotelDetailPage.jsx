@@ -1,4 +1,4 @@
-// src/pages/Customer/HotelDetail/HotelDetailPage.jsx
+// src/pages/Customer/HotelDetail/HotelDetailPage.jsx (ĐÃ SỬA LỖI DataCloneError)
 
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
@@ -7,7 +7,6 @@ import Spinner from "@/components/common/Loading/Spinner";
 import Card from "@/components/common/Card/Card";
 import Button from "@/components/common/Button/Button";
 import Badge from "@/components/common/Badge/Badge";
-// ✅ 1. Import TabsComponent
 import TabsComponent from "@/components/common/Tabs/TabsComponent"; 
 import {
     MapPin, Star, Wifi, Waves, ParkingCircle, Utensils, Users, Maximize, Bed, Images, FileText,
@@ -144,8 +143,9 @@ const RoomDetailModal = ({ room, open, onClose }) => {
                             <ServiceItem text="Đồ vệ sinh cá nhân" />
                         </ul>
                     </div>
+                    {/* Chú ý: Nút này chỉ đóng modal, nút "Đặt" thật sự nằm ở RoomRow */}
                     <Button size="lg" className="w-full mt-6" onClick={onClose}>
-                        Chọn phòng này
+                        Đóng
                     </Button>
                 </div>
             </div>
@@ -153,6 +153,7 @@ const RoomDetailModal = ({ room, open, onClose }) => {
     );
 };
 
+// ✅✅✅ BẮT ĐẦU SỬA FILE NÀY TẠI ĐÂY ✅✅✅
 const RoomRow = ({ room, onInfoClick }) => {
     return (
         <Card className="p-4 !shadow-md">
@@ -231,12 +232,37 @@ const RoomRow = ({ room, onInfoClick }) => {
                         </p>
                         <span className="text-xs text-gray-500">đã gồm thuế & phí / đêm</span>
                     </div>
-                    <Button size="md" className="w-full mt-2">Đặt</Button>
+                    
+                    {/* Đây là chỗ sửa. 
+                      Chúng ta bỏ <Button> và tự style cho <Link>
+                      Thay vì state={{ hotel: MOCK_DETAIL, room: room }}
+                      Chúng ta tạo một object MỚI chỉ chứa dữ liệu an toàn (không có icon)
+                    */}
+                    <Link 
+                      to="/booking" 
+                      state={{
+                        hotel: {
+                          id: MOCK_DETAIL.id,
+                          name: MOCK_DETAIL.name,
+                          location: MOCK_DETAIL.location,
+                          image: MOCK_DETAIL.images[0] // Chỉ gửi URL ảnh, không gửi icon
+                        },
+                        room: room // room object an toàn, có thể gửi
+                      }}
+                      className="inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 
+                                 px-4 py-2 text-sm 
+                                 bg-[rgb(40,169,224)] text-white hover:bg-[rgb(26,140,189)] 
+                                 w-full mt-2"
+                    >
+                      Đặt
+                    </Link>
                 </div>
             </div>
         </Card>
     );
 };
+// ✅✅✅ KẾT THÚC SỬA FILE NÀY ✅✅✅
+
 
 const FilterChip = ({ children }) => (
     <Button
@@ -450,13 +476,10 @@ export default function HotelDetailPage() {
                         </div>
                     </Card>
 
-                    {/* ✅ KHU VỰC TAB ĐÃ ĐƯỢC THAY THẾ */}
+                    {/* KHU VỰC TAB */}
                     <div>
                         {/* 1. Thanh Tab (Sticky) */}
                         <div className="sticky top-16 z-30 bg-white shadow-sm border-b border-gray-100">
-                            {/* Thêm padding ngang (px-6) vào wrapper
-                                vì TabsComponent không tự chứa padding ngang
-                            */}
                             <div className="px-6">
                                 <TabsComponent 
                                     tabs={TABS} 
@@ -466,7 +489,7 @@ export default function HotelDetailPage() {
                             </div>
                         </div>
 
-                        {/* 2. Card Nội dung (Bỏ mt-6) */}
+                        {/* 2. Card Nội dung */}
                         <Card className="p-0 overflow-hidden !rounded-t-none">
                             <div className="animate-fadeIn">
                                 {activeTab === 'rooms' && <RoomListSection rooms={hotel.rooms} onRoomInfoClick={handleOpenRoomDetail} />}
