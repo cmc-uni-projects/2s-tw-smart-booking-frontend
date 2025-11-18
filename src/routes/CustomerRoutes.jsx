@@ -66,7 +66,7 @@ const customerRoutes = [
     ),
   },
   {
-    path: "/hotels/:id",
+    path: "/hotels/:hotelId",
     element: (
       <CustomerLayout>
         <HotelDetailPage />

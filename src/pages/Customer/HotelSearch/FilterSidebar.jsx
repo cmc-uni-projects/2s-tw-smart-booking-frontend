@@ -12,6 +12,7 @@ const FilterSection = ({ title, children }) => (
     </div>
 );
 
+
 // Một lựa chọn checkbox
 const CheckboxOption = ({ label, count }) => (
     <label className="flex items-center justify-between text-sm text-gray-600 hover:text-gray-900 cursor-pointer">

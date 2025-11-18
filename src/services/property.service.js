@@ -130,19 +130,30 @@ const setCoverImage = async (propertyId, imageId) => {
   }
 };
 
+//Lấy chi tiết thông tin cơ sở
+const getPropertyDetail = async (id) => {
+  try {
+    const response = await api.get(`/properties/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
 // ==========================================================
 // 📦 EXPORT
 // ==========================================================
 const propertyService = {
   searchProperties,
   getOwnerProperties,
+  getPropertyDetail,
   updateProperty,
-  getPropertyImages,    // ✅ Mới
-  uploadPropertyImages, // ✅ Mới
-  deletePropertyImage,  // ✅ Mới
+  getPropertyImages,   
+  uploadPropertyImages,
+  deletePropertyImage,  
   setCoverImage,
   getOwnerActiveProperties,
-  submitPropertyApplication,        // ✅ Mới
+  submitPropertyApplication,     
 };
 
 export default propertyService;
