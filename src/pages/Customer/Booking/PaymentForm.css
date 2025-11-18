@@ -1,0 +1,83 @@
+.payment-form-container {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* === CẬP NHẬT Ở ĐÂY === /
+.form-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; 
+
+    / Thêm 3 dòng này /
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb; / Đường kẻ mờ /
+}
+.form-header-icon {
+    / Đổi màu icon /
+    color: rgb(40, 169, 224); 
+    flex-shrink: 0;
+}
+.form-header h2 {
+    margin: 0;
+
+    / Làm tiêu đề nổi bật hơn /
+    font-size: 1.5rem; / (tương đương text-2xl) /
+    font-weight: 600; / (tương đương font-semibold) /
+    color: #111827;  / (màu đen nhạt, text-gray-900) /
+}
+/ === KẾT THÚC CẬP NHẬT === /
+
+
+/ Lựa chọn thanh toán (Giữ nguyên) /
+.payment-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.payment-option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.payment-option.selected {
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+/ Logo (Giữ nguyên) /
+.payment-logo {
+    width: 80px; / Đặt chiều rộng cố định /
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px; / Đặt chiều cao cố định /
+}
+.payment-logo img {
+    max-height: 100%; / Logo sẽ vừa với chiều cao 30px /
+    max-width: 100%;  / Đảm bảo logo không bị tràn /
+    object-fit: contain; / Giữ tỷ lệ ảnh /
+}
+
+/ Tên phương thức (Giữ nguyên) /
+.payment-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+/ Nút Radio (Giữ nguyên) */
+.payment-option input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
