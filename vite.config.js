@@ -28,5 +28,7 @@ export default defineConfig({
     alias: {
       '@': path.resolve(dirname, './src'),
     },
+    // ✅ Ngăn chặn React bị load nhiều bản (gây lỗi invalid hook)
+    dedupe: ['react', 'react-dom'],
   },
 });
