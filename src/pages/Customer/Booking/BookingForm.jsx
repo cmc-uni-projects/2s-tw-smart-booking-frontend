@@ -3,7 +3,6 @@ import { useAuth } from '@/context/AuthContext';
 import './BookingForm.css';
 import { Contact, Users, CheckSquare, FileText, Ban } from 'lucide-react';
 
-// Component PhoneInput
 const PhoneInput = ({ value, onChange }) => (
     <div className="phone-input-wrapper">
         <select className="country-code" defaultValue="+84">
@@ -22,107 +21,87 @@ const PhoneInput = ({ value, onChange }) => (
     </div>
 );
 
-const BookingForm = ({ onChange }) => {
+const BookingForm = ({ onChange, initialData }) => {
     const { currentUser } = useAuth();
 
-    // State cho form Liên hệ
-    const [contact, setContact] = useState({
+    // ✅ State Contact: Lấy từ initialData
+    const [contact, setContact] = useState(initialData?.contact || {
         fullName: '',
         phone: '',
         email: '',
     });
 
-    // validation lỗi
     const [errors, setErrors] = useState({
         fullName: '',
         phone: '',
         email: '',
     });
 
-    // State cho tên khách
-    const [guestName, setGuestName] = useState('');
+    // ✅ State GuestName: Lấy từ initialData
+    const [guestName, setGuestName] = useState(initialData?.guestName || '');
 
-    // State cho checkbox "Tôi đặt cho chính mình"
-    const [isBookingForSelf, setIsBookingForSelf] = useState(false);
+    // ✅ SỬA QUAN TRỌNG: Kiểm tra thông minh để tick checkbox
+    // Nếu có dữ liệu cũ và Tên khách == Tên liên hệ -> Tick vào checkbox
+    const [isBookingForSelf, setIsBookingForSelf] = useState(() => {
+        if (initialData?.contact?.fullName && initialData?.guestName) {
+            return initialData.contact.fullName === initialData.guestName;
+        }
+        return false;
+    });
 
-    // State cho Yêu cầu đặc biệt
-    const [specialRequests, setSpecialRequests] = useState({
+    // ✅ State SpecialRequests: Lấy từ initialData
+    const [specialRequests, setSpecialRequests] = useState(initialData?.specialRequests || {
         nonSmoking: false,
         connectingRoom: false,
         highFloor: false,
     });
 
-    // gửi dữ liệu lên component cha
     useEffect(() => {
         const allDetails = {
             contact,
             guestName,
             specialRequests,
         };
-
         if (onChange) {
             onChange(allDetails);
         }
     }, [contact, guestName, specialRequests, onChange]);
 
-    // Khi tick "Tôi đặt cho chính mình"
+    // Xử lý khi click "Tôi đặt cho chính mình"
     useEffect(() => {
         if (isBookingForSelf) {
             setGuestName(contact.fullName);
-        } else {
-            setGuestName('');
-        }
+        } 
+        // ⚠️ Đã xóa đoạn else { setGuestName('') } để tránh lỗi xóa tên khi load lại trang
     }, [isBookingForSelf, contact.fullName]);
 
-    // validate họ tên
+    // --- CÁC HÀM VALIDATE (GIỮ NGUYÊN) ---
     const validateFullName = (name) => {
-        if (!name.trim())
-            return "Họ tên không được để trống.";
-
+        if (!name.trim()) return "Họ tên không được để trống.";
         const regex = /^[A-Za-zÀ-ỹ\s]+$/;
-
-        if (!regex.test(name))
-            return "Họ tên chỉ được chứa chữ cái và khoảng trắng.";
-
+        if (!regex.test(name)) return "Họ tên chỉ được chứa chữ cái và khoảng trắng.";
         return '';
     };
 
-    // validate số điện thoại
     const validatePhone = (phone) => {
-        // Cho phép 0xxxxxxxxx hoặc 9 số nếu bỏ 0
         const regex = /^0[0-9]{9}$/;
-
-        if (!regex.test(phone))
-            return "Số điện thoại phải đúng 10 số và bắt đầu bằng 0.";
-
+        if (!regex.test(phone)) return "Số điện thoại phải đúng 10 số và bắt đầu bằng 0.";
         return '';
     };
 
-    // validate email
     const validateEmail = (email) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-        if (!emailRegex.test(email))
-            return "Email không hợp lệ.";
-
+        if (!emailRegex.test(email)) return "Email không hợp lệ.";
         return '';
     };
 
     const handleContactChange = (e) => {
         const { name, value } = e.target;
-
         setContact({ ...contact, [name]: value });
 
-        // cập nhật lỗi theo từng input
-        if (name === 'fullName') {
-            setErrors({ ...errors, fullName: validateFullName(value) });
-        }
-        if (name === 'phone') {
-            setErrors({ ...errors, phone: validatePhone(value) });
-        }
-        if (name === 'email') {
-            setErrors({ ...errors, email: validateEmail(value) });
-        }
+        if (name === 'fullName') setErrors({ ...errors, fullName: validateFullName(value) });
+        if (name === 'phone') setErrors({ ...errors, phone: validatePhone(value) });
+        if (name === 'email') setErrors({ ...errors, email: validateEmail(value) });
     };
 
     const handleRequestChange = (e) => {
@@ -135,7 +114,7 @@ const BookingForm = ({ onChange }) => {
     return (
         <div className="booking-form-container">
 
-            {/* === PHẦN 1: THÔNG TIN LIÊN HỆ === */}
+            {/* PHẦN 1: LIÊN HỆ */}
             <div className="form-section">
                 <div className="form-header">
                     <Contact size={20} className="form-header-icon" />
@@ -154,9 +133,7 @@ const BookingForm = ({ onChange }) => {
                         onChange={handleContactChange}
                         required
                     />
-                    {errors.fullName && (
-                        <small style={{ color: "red" }}>{errors.fullName}</small>
-                    )}
+                    {errors.fullName && <small style={{ color: "red" }}>{errors.fullName}</small>}
                     <small>Như trên CMND/Hộ chiếu (không dấu)</small>
                 </div>
 
@@ -167,10 +144,8 @@ const BookingForm = ({ onChange }) => {
                             value={contact.phone}
                             onChange={handleContactChange}
                         />
-                        {errors.phone && (
-                            <small style={{ color: "red" }}>{errors.phone}</small>
-                        )}
-                        <small>VD: +84 901234567 trong đó (+84) là mã quốc gia và 901234567 là số di động</small>
+                        {errors.phone && <small style={{ color: "red" }}>{errors.phone}</small>}
+                        <small>VD: +84 901234567</small>
                     </div>
 
                     <div className="form-group">
@@ -184,9 +159,7 @@ const BookingForm = ({ onChange }) => {
                             onChange={handleContactChange}
                             required
                         />
-                        {errors.email && (
-                            <small style={{ color: "red" }}>{errors.email}</small>
-                        )}
+                        {errors.email && <small style={{ color: "red" }}>{errors.email}</small>}
                         <small>Ví dụ: email@example.com</small>
                     </div>
                 </div>
@@ -202,7 +175,7 @@ const BookingForm = ({ onChange }) => {
                 </div>
             </div>
 
-            {/* === PHẦN 2: CHI TIẾT KHÁCH === */}
+            {/* PHẦN 2: KHÁCH HÀNG */}
             <div className="form-section">
                 <div className="form-header">
                     <Users size={20} className="form-header-icon" />
@@ -221,18 +194,18 @@ const BookingForm = ({ onChange }) => {
                         readOnly={isBookingForSelf}
                         required
                     />
-                    <small>Người dùng Việt Nam: Họ + Tên đệm + Tên. Khác: Tên + Họ.</small>
+                    <small>Người dùng Việt Nam: Họ + Tên đệm + Tên.</small>
                 </div>
             </div>
 
-            {/* === PHẦN 3: YÊU CẦU ĐẶC BIỆT === */}
+            {/* PHẦN 3: YÊU CẦU ĐẶC BIỆT */}
             <div className="form-section">
                 <div className="form-header">
                     <CheckSquare size={20} className="form-header-icon" />
                     <h2>Yêu cầu đặc biệt</h2>
                 </div>
                 <p className="form-description" style={{ paddingLeft: 0, margin: '0 0 1.5rem 0' }}>
-                    Bạn cần thêm giường phụ hoặc có yêu cầu đặc biệt? Gửi yêu cầu và khách sạn sẽ cố gắng đáp ứng nguyện vọng của bạn.
+                    Bạn cần thêm giường phụ hoặc có yêu cầu đặc biệt?
                 </p>
 
                 <div className="special-requests-grid">
@@ -269,18 +242,16 @@ const BookingForm = ({ onChange }) => {
                         <label htmlFor="highFloor">Tầng lầu</label>
                     </div>
                 </div>
-
                 <a href="#" className="read-more-link">Đọc tất cả</a>
             </div>
 
-            {/* === PHẦN 4: CHÍNH SÁCH CHỖ Ở === */}
+            {/* PHẦN 4: CHÍNH SÁCH */}
             <div className="form-section">
                 <div className="form-header">
                     <FileText size={20} className="form-header-icon" />
                     <h2>Chính sách Chỗ ở</h2>
                     <a href="#" className="read-more-link ml-auto">Đọc tất cả</a>
                 </div>
-
                 <div className="policy-item">
                     <Ban size={18} className="policy-icon no-smoking" />
                     <div className="policy-content">

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Button from '@/components/common/Button/Button';
 import { X } from 'lucide-react';
-import qrCodeImage from '../../../assets/logo/qrcode.jpg';
+import qrCodeImage from '../../../assets/logo/QR.jpg';
 
 const QRCodeModal = ({ isOpen, onClose, onConfirm }) => {
     const [timeLeft, setTimeLeft] = useState(300); // 5 phút
