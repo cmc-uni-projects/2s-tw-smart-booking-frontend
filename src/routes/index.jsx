@@ -1,3 +1,4 @@
+// src/routes/index.jsx
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -17,8 +18,9 @@ import VerifyEmail from "@/pages/Auth/VerifyEmail";
 // Import trang Preview Component
 import ComponentsPreview from "@/pages/ComponentsPreview";
 
-// ✅ CẬP NHẬT IMPORT ĐÚNG ĐƯỜNG DẪN
+// ✅ CẬP NHẬT IMPORT CÁC TRANG CHÍNH SÁCH
 import TermsOfService from "@/pages/Owner/TermsOfService/TermsOfService";
+import PartnerPolicy from "@/pages/Owner/TermsOfService/PartnerPolicy"; // <--- Import mới
 
 const AppRoutes = () => {
     const { currentUser } = useAuth();
@@ -42,8 +44,11 @@ const AppRoutes = () => {
             <Route path="/components" element={<ComponentsPreview />} />
 
             {/* === 3. PUBLIC ROUTES === */}
-            {/* Route này vẫn giữ nguyên URL để Step5_Review gọi tới */}
+            {/* Điều khoản dịch vụ */}
             <Route path="/owner/terms-of-service" element={<TermsOfService />} />
+
+            {/* ✅ Route mới cho Chính sách Đối tác */}
+            <Route path="/owner/partner-policy" element={<PartnerPolicy />} />
 
             {/* === 4. DYNAMIC ROUTES === */}
             {customerRoutes.map((route, index) => (
