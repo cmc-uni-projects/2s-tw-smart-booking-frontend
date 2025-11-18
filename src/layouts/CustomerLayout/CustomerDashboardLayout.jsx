@@ -1,12 +1,12 @@
-// src/layouts/CustomerLayout/CustomerDashboardLayout.jsx (ĐÃ SỬA ĐỂ TRÁNH LỖI XUNG ĐỘT LAYOUT)
-
+// src/layouts/CustomerLayout/CustomerDashboardLayout.jsx
 import React from "react";
-// ❌ KHÔNG IMPORT Sidebar
 import Header from "./Header";
 import Footer from "./Footer";
-import { Outlet } from "react-router-dom";
+// ❌ Bỏ import Outlet vì chúng ta dùng children
+// import { Outlet } from "react-router-dom";
 
-const CustomerDashboardLayout = () => {
+// ✅ 1. Nhận prop 'children'
+const CustomerDashboardLayout = ({ children }) => {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
 
@@ -16,7 +16,8 @@ const CustomerDashboardLayout = () => {
                 {/* ❌ ĐÃ XÓA Sidebar Cấp 1 */}
 
                 <main className="flex-1 p-0"> {/* p-0 để ProfilePage tự quản lý padding */}
-                    <Outlet />
+                    {/* ✅ 2. Thay Outlet bằng children để hiển thị nội dung trang con */}
+                    {children}
                 </main>
             </div>
 
