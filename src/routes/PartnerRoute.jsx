@@ -37,6 +37,7 @@ const PartnerRoute = ({ children }) => {
       navigate(hasRole("ADMIN") ? "/admin/dashboard" : "/owner/dashboard", { replace: true });
       return;
     }
+    
 
     // 3. CUSTOMER → kiểm tra hồ sơ
     const checkProfile = async () => {

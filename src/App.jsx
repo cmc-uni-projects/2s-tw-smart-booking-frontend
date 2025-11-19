@@ -1,8 +1,16 @@
-import AppRoutes from "./routes/index.jsx";
-import "./styles/global.css";
+// src/App.jsx
+import { BrowserRouter } from "react-router-dom";
+import { AuthContextProvider } from "./context/AuthContext";
+import AppRoutes from "./routes";
 
 function App() {
-  return <AppRoutes />;
+  return (
+    <AuthContextProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </AuthContextProvider>
+  );
 }
 
 export default App;
