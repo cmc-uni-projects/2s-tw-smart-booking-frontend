@@ -1,21 +1,61 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, User, Home, LayoutDashboard, Building2, ChevronRight } from "lucide-react";
+import { LogOut, User, Home, LayoutDashboard, Building2, ChevronRight, ShieldCheck, Smile } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import Avatar from "@/components/common/Avatar/Avatar";
+import { userService } from "@/services/user.service"; // Import service
 
 const OwnerProfileDropdown = ({ onClose }) => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, hasRole } = useAuth();
   const navigate = useNavigate();
+  
+  // State để lưu avatar mới nhất từ API
+  const [currentAvatar, setCurrentAvatar] = useState(currentUser?.profilePhotoUrl);
+  const [roleLabel, setRoleLabel] = useState("ĐỐI TÁC");
+
+  // Style giống hệt Customer
+  const dropdownLinkClass =
+    "flex items-center justify-between w-full text-left px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-[rgb(40,169,224)] transition-all group";
+
+  // 1. Gọi API lấy thông tin mới nhất (Avatar) khi mount
+  useEffect(() => {
+    const fetchLatestUserInfo = async () => {
+      try {
+        const data = await userService.getUserDetail();
+        if (data && data.profilePhotoUrl) {
+          setCurrentAvatar(data.profilePhotoUrl);
+        }
+      } catch (error) {
+        console.error("Failed to fetch fresh user details:", error);
+      }
+    };
+
+    fetchLatestUserInfo();
+    determineRoleLabel();
+  }, []);
+
+  // 2. Logic xác định Role hiển thị
+  const determineRoleLabel = () => {
+    if (hasRole("ADMIN")) {
+      setRoleLabel("QUẢN TRỊ VIÊN");
+    } else if (hasRole("OWNER")) {
+      setRoleLabel("ĐỐI TÁC");
+    } else {
+      setRoleLabel("KHÁCH HÀNG");
+    }
+  };
+
+  // Icon cho role
+  const getRoleIcon = () => {
+    if (hasRole("ADMIN")) return <ShieldCheck size={10} className="mr-1" />;
+    if (hasRole("OWNER")) return <Building2 size={10} className="mr-1" />;
+    return <Smile size={10} className="mr-1" />;
+  };
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
-
-  // Style giống hệt Customer
-  const dropdownLinkClass =
-    "flex items-center justify-between w-full text-left px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-[rgb(40,169,224)] transition-all group";
 
   if (!currentUser) return null;
 
@@ -24,21 +64,23 @@ const OwnerProfileDropdown = ({ onClose }) => {
       
       {/* === 1. HEADER GRADIENT (Đồng bộ Customer) === */}
       <div className="bg-gradient-to-r from-[rgb(40,169,224)] to-[#006494] p-5 text-white relative overflow-hidden">
-        {/* Họa tiết nền mờ cho đẹp */}
+        {/* Họa tiết nền mờ */}
         <div className="absolute -top-6 -right-6 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
         
         <div className="flex items-center gap-3 relative z-10">
           <Avatar
-            src={currentUser.profilePhotoUrl}
+            src={currentAvatar} // Sử dụng state avatar mới nhất
             name={currentUser.fullName}
-            size={52} // Size lớn hơn chút cho Owner
+            size={52}
             className="border-[3px] border-white/30 shadow-md"
           />
           <div className="overflow-hidden">
             <p className="font-bold text-lg truncate leading-tight">{currentUser.fullName}</p>
             <p className="text-xs text-blue-100 truncate font-medium opacity-90">{currentUser.email}</p>
+            
+            {/* Badge hiển thị Role động */}
             <div className="mt-1.5 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-white/20 text-white border border-white/20 shadow-sm">
-               <Building2 size={10} className="mr-1" /> ĐỐI TÁC
+               {getRoleIcon()} {roleLabel}
             </div>
           </div>
         </div>
@@ -111,3 +153,4 @@ const OwnerProfileDropdown = ({ onClose }) => {
 };
 
 export default OwnerProfileDropdown;
+    
