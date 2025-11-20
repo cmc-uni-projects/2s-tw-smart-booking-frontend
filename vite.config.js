@@ -24,4 +24,7 @@ export default defineConfig({
     // ✅ THÊM ĐOẠN NÀY: Ép buộc sử dụng React từ root node_modules
     dedupe: ['react', 'react-dom'], 
   },
+  define: {
+    global: "window",
+  },
 });
