@@ -13,6 +13,7 @@ import {
   CheckSquare, 
   List, // 1. Thêm icon List
   ChevronDown, // 1. Thêm icon ChevronDown
+  TicketPercent,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -57,6 +58,8 @@ const AdminSidebar = () => {
     { name: "Quản lý Bookings", icon: <CalendarCheck size={20} />, path: "/admin/bookings" },
     { name: "Quản lý Reviews", icon: <Star size={20} />, path: "/admin/reviews" },
     { name: "Cài đặt Hệ thống", icon: <Settings size={20} />, path: "/admin/settings" },
+
+    { name: "Quản lý Khuyến mãi", icon: <TicketPercent size={20} />, path: "/admin/promotions" },
   ];
 
   // Hàm bật/tắt menu con
