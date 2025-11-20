@@ -4,19 +4,13 @@ import {
     Layers, Hash, CheckCircle2, AlertCircle
 } from "lucide-react";
 
-// --- COMPONENT CON: CUSTOM INPUT (Đã nâng cấp Date Picker) ---
+// --- COMPONENT CON: CUSTOM INPUT ---
 const CustomInput = ({ label, name, value, onChange, type = "text", placeholder, icon: Icon, error, disabled }) => {
     const inputRef = useRef(null);
-
-    // Hàm xử lý khi bấm vào Icon lịch -> Mở lịch chọn ngày
     const handleIconClick = () => {
         if (type === 'date' && inputRef.current) {
-            // showPicker() là API mới của trình duyệt để mở popup native
-            if (inputRef.current.showPicker) {
-                inputRef.current.showPicker();
-            } else {
-                inputRef.current.focus(); // Fallback cho trình duyệt cũ
-            }
+            if (inputRef.current.showPicker) inputRef.current.showPicker();
+            else inputRef.current.focus();
         }
     };
 
@@ -33,11 +27,10 @@ const CustomInput = ({ label, name, value, onChange, type = "text", placeholder,
               ${type === 'date' ? 'cursor-pointer hover:bg-blue-50 p-1.5 rounded-lg' : 'pointer-events-none pl-2'}
             `}
                     >
-                        {/* Icon được làm nổi bật (màu xanh) nếu là Date Picker */}
                         <Icon
                             size={type === 'date' ? 20 : 18}
                             className={type === 'date' ? "text-[rgb(40,169,224)]" : "text-gray-400 group-focus-within:text-blue-500"}
-                            strokeWidth={type === 'date' ? 2.5 : 2} // Icon lịch đậm hơn chút
+                            strokeWidth={type === 'date' ? 2.5 : 2}
                         />
                     </div>
                 )}
@@ -55,7 +48,6 @@ const CustomInput = ({ label, name, value, onChange, type = "text", placeholder,
                         : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white'
                     }
             ${disabled ? 'opacity-60 cursor-not-allowed' : ''}
-            /* CSS Ẩn icon lịch mặc định của browser */
             [&::-webkit-calendar-picker-indicator]:hidden
             [&::-webkit-inner-spin-button]:appearance-none
           `}
@@ -66,7 +58,7 @@ const CustomInput = ({ label, name, value, onChange, type = "text", placeholder,
     );
 };
 
-// --- COMPONENT CON: CUSTOM SELECT (Đã đổi tên option) ---
+// --- COMPONENT CON: CUSTOM SELECT ---
 const CustomSelect = ({ label, name, value, onChange, options, icon: Icon }) => (
     <div className="space-y-1.5">
         <label className="text-sm font-semibold text-gray-700 ml-1">{label}</label>
@@ -80,14 +72,12 @@ const CustomSelect = ({ label, name, value, onChange, options, icon: Icon }) => 
                 name={name}
                 value={value}
                 onChange={onChange}
-                // Thêm rounded-xl để bo góc khung select
                 className={`w-full ${Icon ? 'pl-10' : 'px-4'} pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none appearance-none cursor-pointer transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white`}
             >
                 {options.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
             </select>
-            {/* Mũi tên custom */}
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                 <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m1 1 4 4 4-4"/></svg>
             </div>
@@ -107,6 +97,7 @@ const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
         maxDiscount: "",
         startDate: "",
         endDate: "",
+        isActive: true,
     });
 
     const [errors, setErrors] = useState({});
@@ -116,7 +107,10 @@ const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
             setErrors({});
             if (initialData) {
                 const { target, ...rest } = initialData;
-                setFormData(rest);
+                setFormData({
+                    ...rest,
+                    isActive: rest.isActive !== undefined ? rest.isActive : true
+                });
             } else {
                 setFormData({
                     code: "",
@@ -128,6 +122,7 @@ const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
                     maxDiscount: 0,
                     startDate: "",
                     endDate: "",
+                    isActive: true,
                 });
             }
         }
@@ -136,35 +131,26 @@ const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: null }));
-        }
+        if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
+    };
+
+    const toggleStatus = () => {
+        setFormData(prev => ({ ...prev, isActive: !prev.isActive }));
     };
 
     const validateForm = () => {
         const newErrors = {};
-
         if (!formData.code.trim()) newErrors.code = "Mã không được để trống";
         else if (formData.code.length < 3) newErrors.code = "Mã phải ít nhất 3 ký tự";
-
         if (!formData.name.trim()) newErrors.name = "Tên chương trình là bắt buộc";
-
         if (!formData.value) newErrors.value = "Nhập giá trị giảm";
         else if (Number(formData.value) <= 0) newErrors.value = "Giá trị phải lớn hơn 0";
-
-        if (formData.type === 'PERCENT' && Number(formData.value) > 100) {
-            newErrors.value = "Giảm giá % không được quá 100%";
-        }
-
+        if (formData.type === 'PERCENT' && Number(formData.value) > 100) newErrors.value = "Giảm giá % không quá 100%";
         if (!formData.startDate) newErrors.startDate = "Chọn ngày bắt đầu";
         if (!formData.endDate) newErrors.endDate = "Chọn ngày kết thúc";
-
-        if (formData.startDate && formData.endDate) {
-            if (new Date(formData.startDate) > new Date(formData.endDate)) {
-                newErrors.endDate = "Ngày kết thúc phải sau ngày bắt đầu";
-            }
+        if (formData.startDate && formData.endDate && new Date(formData.startDate) > new Date(formData.endDate)) {
+            newErrors.endDate = "Ngày kết thúc phải sau ngày bắt đầu";
         }
-
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -198,136 +184,61 @@ const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
 
                 {/* Body */}
                 <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
-
-                    {/* Hàng 1 */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                         <div className="sm:col-span-1">
-                            <CustomInput
-                                label="Mã Code (Voucher)"
-                                name="code"
-                                value={formData.code}
-                                onChange={handleChange}
-                                placeholder="VD: SALE50"
-                                icon={Tag}
-                                error={errors.code}
-                            />
+                            <CustomInput label="Mã Code (Voucher)" name="code" value={formData.code} onChange={handleChange} placeholder="VD: SALE50" icon={Tag} error={errors.code} />
                         </div>
                         <div className="sm:col-span-2">
-                            <CustomInput
-                                label="Tên chương trình"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="VD: Siêu sale tháng 11"
-                                icon={CheckCircle2}
-                                error={errors.name}
-                            />
+                            <CustomInput label="Tên chương trình" name="name" value={formData.name} onChange={handleChange} placeholder="VD: Siêu sale tháng 11" icon={CheckCircle2} error={errors.name} />
                         </div>
                     </div>
 
-                    {/* Hàng 2: Card màu nhạt */}
                     <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <CustomSelect
-                            label="Loại giảm giá"
-                            name="type"
-                            value={formData.type}
-                            onChange={handleChange}
-                            icon={Layers}
-                            options={[
-                                { value: "PERCENT", label: "Giảm theo % (Phần trăm)" },
-                                // Đã đổi tên theo yêu cầu
-                                { value: "FIXED", label: "Giảm giá cố định (VNĐ)" }
-                            ]}
+                        <CustomSelect label="Loại giảm giá" name="type" value={formData.type} onChange={handleChange} icon={Layers}
+                                      options={[ { value: "PERCENT", label: "Giảm theo % (Phần trăm)" }, { value: "FIXED", label: "Giảm giá cố định (VNĐ)" } ]}
                         />
-                        <CustomInput
-                            label={formData.type === 'PERCENT' ? "Mức giảm (%)" : "Số tiền (VNĐ)"}
-                            name="value"
-                            type="number"
-                            value={formData.value}
-                            onChange={handleChange}
-                            placeholder={formData.type === 'PERCENT' ? "VD: 20" : "VD: 50000"}
-                            icon={formData.type === 'PERCENT' ? Percent : DollarSign}
-                            error={errors.value}
-                        />
+                        <CustomInput label={formData.type === 'PERCENT' ? "Mức giảm (%)" : "Số tiền (VNĐ)"} name="value" type="number" value={formData.value} onChange={handleChange} placeholder={formData.type === 'PERCENT' ? "VD: 20" : "VD: 50000"} icon={formData.type === 'PERCENT' ? Percent : DollarSign} error={errors.value} />
                     </div>
 
-                    {/* Hàng 3 */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                        <CustomInput
-                            label="Đơn tối thiểu"
-                            name="minOrder"
-                            type="number"
-                            value={formData.minOrder}
-                            onChange={handleChange}
-                            icon={DollarSign}
-                            placeholder="0"
-                        />
-
+                        <CustomInput label="Đơn tối thiểu" name="minOrder" type="number" value={formData.minOrder} onChange={handleChange} icon={DollarSign} placeholder="0" />
                         {formData.type === 'PERCENT' ? (
-                            <CustomInput
-                                label="Giảm tối đa"
-                                name="maxDiscount"
-                                type="number"
-                                value={formData.maxDiscount}
-                                onChange={handleChange}
-                                icon={DollarSign}
-                                placeholder="VD: 200000"
-                            />
+                            <CustomInput label="Giảm tối đa" name="maxDiscount" type="number" value={formData.maxDiscount} onChange={handleChange} icon={DollarSign} placeholder="VD: 200000" />
                         ) : (
-                            <div className="opacity-50">
-                                <CustomInput label="Giảm tối đa" value="-" disabled />
-                            </div>
+                            <div className="opacity-50"><CustomInput label="Giảm tối đa" value="-" disabled /></div>
                         )}
-
-                        <CustomInput
-                            label="Số lượng mã"
-                            name="quantity"
-                            type="number"
-                            value={formData.quantity}
-                            onChange={handleChange}
-                            icon={Hash}
-                            placeholder="100"
-                        />
+                        <CustomInput label="Số lượng mã" name="quantity" type="number" value={formData.quantity} onChange={handleChange} icon={Hash} placeholder="100" />
                     </div>
 
-                    {/* Hàng 4: Date Pickers đã nâng cấp */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <CustomInput
-                            label="Ngày bắt đầu"
-                            name="startDate"
-                            type="date"
-                            value={formData.startDate}
-                            onChange={handleChange}
-                            icon={Calendar}
-                            error={errors.startDate}
-                        />
-                        <CustomInput
-                            label="Ngày kết thúc"
-                            name="endDate"
-                            type="date"
-                            value={formData.endDate}
-                            onChange={handleChange}
-                            icon={Calendar}
-                            error={errors.endDate}
-                        />
+                        <CustomInput label="Ngày bắt đầu" name="startDate" type="date" value={formData.startDate} onChange={handleChange} icon={Calendar} error={errors.startDate} />
+                        <CustomInput label="Ngày kết thúc" name="endDate" type="date" value={formData.endDate} onChange={handleChange} icon={Calendar} error={errors.endDate} />
                     </div>
-
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
-                    <button
-                        onClick={onClose}
-                        className="px-5 py-2.5 rounded-xl text-gray-600 font-medium hover:bg-gray-200 transition-colors"
+                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-4">
+
+                    {/* Toggle Switch */}
+                    <div
+                        className="flex items-center gap-3 cursor-pointer group"
+                        onClick={toggleStatus}
                     >
-                        Hủy bỏ
-                    </button>
-                    <button
-                        onClick={handleSubmit}
-                        className="px-6 py-2.5 rounded-xl bg-[rgb(40,169,224)] text-white font-semibold shadow-lg shadow-blue-200 hover:bg-[rgb(26,140,189)] hover:shadow-none transition-all transform active:scale-95"
-                    >
-                        {initialData ? "Lưu thay đổi" : "Hoàn tất tạo mới"}
-                    </button>
+                        <div className={`w-12 h-7 rounded-full p-1 transition-colors duration-300 ease-in-out flex items-center ${formData.isActive ? 'bg-green-500' : 'bg-gray-300'}`}>
+                            <div className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ${formData.isActive ? 'translate-x-5' : 'translate-x-0'}`} />
+                        </div>
+                        <span className={`font-medium text-sm ${formData.isActive ? 'text-green-600' : 'text-gray-500'}`}>
+                {formData.isActive ? "Đang hoạt động" : "Đang tạm dừng"}
+              </span>
+                    </div>
+
+                    {/* Button chính */}
+                    <div>
+                        <button onClick={handleSubmit} className="px-6 py-2.5 rounded-xl bg-[rgb(40,169,224)] text-white font-semibold shadow-lg shadow-blue-200 hover:bg-[rgb(26,140,189)] hover:shadow-none transition-all transform active:scale-95">
+                            {/* ✅ ĐỔI TÊN Ở ĐÂY: initialData ? "Lưu thay đổi" : "Thêm" */}
+                            {initialData ? "Lưu thay đổi" : "Thêm"}
+                        </button>
+                    </div>
                 </div>
 
             </div>
