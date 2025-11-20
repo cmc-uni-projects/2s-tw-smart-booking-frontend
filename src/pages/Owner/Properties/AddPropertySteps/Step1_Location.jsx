@@ -1,37 +1,18 @@
+// src/pages/Owner/Properties/AddPropertySteps/Step1_Location.jsx
+
 import React, { useState, useEffect, useRef } from "react";
 import { MapPin, Navigation, Search } from "lucide-react";
 import FloatingTextField from "@/components/common/Input/FloatingTextField";
 import CustomSelect from "@/components/common/Select/CustomSelect";
+import AdminSelectorsWithApi from "./components/AdminSelectorsWithApi"; 
 
 import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import "mapbox-gl/dist/mapbox-gl.css"; // Đã sửa lỗi import CSS
 
 const PRIMARY_COLOR = "rgb(40,169,224)";
 
-// =========================
-// DEMO DATA HÀNH CHÍNH VIỆT NAM
-// (Bạn có thể thay bằng JSON VNPost đầy đủ sau)
-// =========================
-const vnAdministrativeData = {
-  "Hà Nội": {
-    "Quận Ba Đình": ["Phường Điện Biên", "Phường Kim Mã", "Phường Ngọc Hà"],
-    "Quận Hoàn Kiếm": ["Phường Hàng Trống", "Phường Hàng Bạc", "Phường Hàng Đào"],
-    "Quận Cầu Giấy": ["Phường Dịch Vọng", "Phường Dịch Vọng Hậu", "Phường Nghĩa Tân"],
-  },
-  "Hồ Chí Minh": {
-    "Quận 1": ["Phường Bến Nghé", "Phường Bến Thành", "Phường Nguyễn Thái Bình"],
-    "Quận 3": ["Phường Võ Thị Sáu", "Phường 7", "Phường 8"],
-    "Thành phố Thủ Đức": ["Phường Linh Đông", "Phường Hiệp Bình Chánh", "Phường Thủ Thiêm"],
-  },
-  "Đà Nẵng": {
-    "Quận Hải Châu": ["Phường Hải Châu 1", "Phường Hải Châu 2"],
-    "Quận Sơn Trà": ["Phường An Hải Bắc", "Phường An Hải Đông"],
-  },
-};
+// ... (Các component con LocationHeader, MapSearchBox, CoordinatesDisplay giữ nguyên)
 
-// =========================
-// HEADER UI
-// =========================
 const LocationHeader = () => (
   <div className="bg-[rgb(240,249,255)] p-4 rounded-xl border border-[rgb(221,238,255)] flex gap-3 items-start">
     <div className="p-2 bg-white rounded-lg shadow-sm text-[rgb(40,169,224)]">
@@ -47,9 +28,6 @@ const LocationHeader = () => (
   </div>
 );
 
-// =========================
-// SEARCH BOX + SUGGESTIONS
-// =========================
 const MapSearchBox = ({
   searchQuery,
   onSearchChange,
@@ -84,9 +62,6 @@ const MapSearchBox = ({
   </div>
 );
 
-// =========================
-// COORDINATES DISPLAY
-// =========================
 const CoordinatesDisplay = ({ lat, lng }) => (
   <div className="flex gap-6 text-xs text-gray-500 bg-gray-50 p-3 rounded-lg border border-gray-200 justify-center items-center">
     <div className="flex flex-col items-center">
@@ -110,73 +85,6 @@ const CoordinatesDisplay = ({ lat, lng }) => (
 );
 
 // =========================
-// ADMIN SELECTORS (TỈNH → QUẬN → PHƯỜNG)
-// =========================
-const AdminSelectors = ({ watch, setValue, errors }) => {
-  const city = watch("city");
-  const district = watch("district");
-  const ward = watch("ward");
-
-  const provinceOptions = Object.keys(vnAdministrativeData).map((name) => ({
-    value: name,
-    label: name,
-  }));
-
-  const handleCityChange = (val) => {
-    setValue("city", val, { shouldValidate: true });
-    setValue("district", "", { shouldValidate: false });
-    setValue("ward", "", { shouldValidate: false });
-  };
-
-  const districtOptions =
-    city && vnAdministrativeData[city]
-      ? Object.keys(vnAdministrativeData[city]).map((name) => ({
-          value: name,
-          label: name,
-        }))
-      : [];
-
-  const wardOptions =
-    city && district && vnAdministrativeData[city]?.[district]
-      ? vnAdministrativeData[city][district].map((name) => ({
-          value: name,
-          label: name,
-        }))
-      : [];
-
-  return (
-    <>
-      <CustomSelect
-        label="Tỉnh / Thành phố"
-        options={provinceOptions}
-        value={city}
-        onChange={handleCityChange}
-        error={errors.city?.message}
-        required
-      />
-
-      <CustomSelect
-        label="Quận / Huyện"
-        options={districtOptions}
-        value={district}
-        onChange={(val) => setValue("district", val, { shouldValidate: true })}
-        error={errors.district?.message}
-        disabled={!city}
-      />
-
-      <CustomSelect
-        label="Phường / Xã"
-        options={wardOptions}
-        value={ward}
-        onChange={(val) => setValue("ward", val, { shouldValidate: true })}
-        error={errors.ward?.message}
-        disabled={!district}
-      />
-    </>
-  );
-};
-
-// =========================
 // MAIN COMPONENT
 // =========================
 const Step1_Location = ({ register, setValue, watch, errors }) => {
@@ -185,6 +93,12 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
   const latWatch = watch("latitude");
   const lngWatch = watch("longitude");
   const currentCountry = watch("country");
+  
+  // [NEW] Register hidden fields for codes
+  register("provinceCode"); 
+  register("districtCode"); 
+  // [NEW] Register the new field for ward (tên phường/xã)
+  register("ward"); 
 
   const [viewState, setViewState] = useState(() => ({
     lng: lngWatch ? Number(lngWatch) : 105.804817,
@@ -205,13 +119,13 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
   const [suggestions, setSuggestions] = useState([]);
 
   // =========================
-  // REVERSE GEOCODE (ĐI TỪ TOẠ ĐỘ → ĐỊA CHỈ)
+  // REVERSE GEOCODE (ĐI TỪ TOẠ ĐỘ → ĐỊA CHỈ) - Giữ nguyên
   // =========================
   const reverseGeocode = async (lng, lat) => {
     try {
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${
         mapboxgl.accessToken
-      }&language=vi&types=address,street,place,locality,neighborhood&country=VN&limit=1`;
+      }&language=vi&types=address,street,place,locality,neighborhood,region&country=VN&limit=1`;
 
       const res = await fetch(url);
       const data = await res.json();
@@ -225,7 +139,7 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
         ctx.find((c) => c.id && c.id.includes(keyword));
 
       const country = getById("country")?.text || "Việt Nam";
-      const region = getById("region")?.text; // Tỉnh/thành
+      const region = getById("region")?.text; 
       const city =
         getById("place")?.text ||
         getById("locality")?.text ||
@@ -239,18 +153,22 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
         "";
 
       setValue("address", place.place_name, { shouldValidate: true });
+      // [UPDATE] Cập nhật các trường tên và code
+      if (region) setValue("province", region, { shouldValidate: true });
       if (city) setValue("city", city, { shouldValidate: true });
+      if (district) setValue("ward", district, { shouldValidate: true }); 
       setValue("country", country, { shouldValidate: true });
-      if (district) setValue("district", district, { shouldValidate: false });
-      if (ward) setValue("ward", ward, { shouldValidate: false });
+      
+      // [NEW] Cần clear mã code (provinceCode/districtCode) nếu người dùng thả ghim.
+      setValue("provinceCode", "");
+      setValue("districtCode", "");
+
     } catch (err) {
       console.error("Reverse geocoding error:", err);
     }
   };
 
-  // =========================
-  // INIT MAP
-  // =========================
+  // ... (Phần INIT MAP giữ nguyên logic) ...
   useEffect(() => {
     if (mapRef.current) return;
 
@@ -317,8 +235,8 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
         zoom: mapRef.current.getZoom(),
       }));
     });
-  }, []);
-
+  }, [mapRef]); // eslint-disable-line react-hooks/exhaustive-deps
+  
   // Đồng bộ nếu form có lat/lng từ trước (VD load draft)
   useEffect(() => {
     if (
@@ -334,12 +252,11 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
       setMarkerPosition({ lng, lat });
       mapRef.current?.flyTo({ center: [lng, lat], zoom: 15 });
     }
-  }, [latWatch, lngWatch]);
+  }, [latWatch, lngWatch]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // =========================
-  // GEOLOCATION BUTTON
-  // =========================
+  // ... (GEOLOCATION BUTTON và SEARCH/AUTOCOMPLETE giữ nguyên) ...
   const handleGetCurrentLocation = () => {
+    // ... (logic giữ nguyên)
     if (!navigator.geolocation) {
       return alert("Trình duyệt không hỗ trợ định vị.");
     }
@@ -361,13 +278,10 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
       () => alert("Không thể lấy vị trí của bạn.")
     );
   };
-
-  // =========================
-  // SEARCH / AUTOCOMPLETE (GIỚI HẠN VIỆT NAM)
-// =========================
+  
   const handleSearchChange = async (value) => {
     setSearchQuery(value);
-
+    
     if (!value.trim()) {
       setSuggestions([]);
       return;
@@ -421,14 +335,21 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
       ctx.find((c) => c.id?.includes("ward"))?.text ||
       "";
 
+    // [UPDATE] Cập nhật các trường tên (Province/City/Ward)
+    if (region) setValue("province", region, { shouldValidate: true });
     if (city) setValue("city", city, { shouldValidate: true });
+    if (district) setValue("ward", district, { shouldValidate: true });
+    
+    // [NEW] Clear mã code khi dùng search Mapbox
+    setValue("provinceCode", "");
+    setValue("districtCode", "");
+    
     setValue("country", country, { shouldValidate: true });
-    if (district) setValue("district", district, { shouldValidate: false });
-    if (ward) setValue("ward", ward, { shouldValidate: false });
 
     setSearchQuery(place.place_name);
     setSuggestions([]);
   };
+
 
   // =========================
   // RENDER
@@ -448,8 +369,14 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
           />
         </div>
 
-        {/* TỈNH/THÀNH - QUẬN/HUYỆN - PHƯỜNG/XÃ */}
-        <AdminSelectors watch={watch} setValue={setValue} errors={errors} />
+        {/* [NEW] TỈNH/THÀNH - QUẬN/HUYỆN - PHƯỜNG/XÃ (Dùng component mới) */}
+        <AdminSelectorsWithApi 
+            watch={watch} 
+            setValue={setValue} 
+            errors={errors} 
+            mapRef={mapRef} 
+            markerRef={markerRef} 
+        />
 
         <FloatingTextField
           label="Quốc gia"
