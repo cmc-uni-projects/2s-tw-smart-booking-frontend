@@ -117,11 +117,11 @@ const Register = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:8080/oauth2/authorization/google";
+    window.location.href = "http://localhost:8386/oauth2/authorization/google";
   };
 
   const handleFacebookLogin = () => {
-    window.location.href = "http://localhost:8080/oauth2/authorization/facebook";
+    window.location.href = "http://localhost:8386/oauth2/authorization/facebook";
   };
 
 
