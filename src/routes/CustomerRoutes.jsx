@@ -18,6 +18,7 @@ import NotificationSettings from "@/pages/Customer/Profile/NotificationSettings"
 import LanguageSettings from "@/pages/Customer/Profile/LanguageSettings";
 import PartnerLandingPage from "@/pages/Partner/PartnerLandingPage";
 import BecomeOwnerPage from "@/pages/Customer/Profile/BecomeOwnerPage";
+import ExploreMapPage from "@/pages/Customer/Explore/ExploreMapPage";
 
 // ✅ Cập nhật đường dẫn import cho TransactionHistory
 import TransactionHistory from "@/pages/Customer/Profile/TransactionHistory/TransactionHistory";
@@ -116,6 +117,12 @@ const customerRoutes = [
     ),
   },
   {
+    path: "explore",
+    element: <ExploreMapPage />,
+    title: "Khám phá trên bản đồ"
+  },
+
+  {
     path: "/customer/profile/notifications",
     element: (
       <ProtectedRoute roles={["CUSTOMER"]}>
@@ -135,6 +142,7 @@ const customerRoutes = [
       </ProtectedRoute>
     ),
   },
+  
   {
     path: "/customer/my-bookings",
     element: (
@@ -155,6 +163,7 @@ const customerRoutes = [
       </ProtectedRoute>
     ),
   },
+  
   
 
     // ✅ ROUTE LỊCH SỬ GIAO DỊCH (giữ nguyên)
