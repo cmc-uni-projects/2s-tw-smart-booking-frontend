@@ -5,7 +5,7 @@ import PromotionFormModal from "./components/PromotionFormModal";
 import {
   Plus, Edit, Trash2, Tag, Search, Filter,
   Copy, CheckCircle2, AlertCircle, Ticket, Coins,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, ArrowRight
 } from "lucide-react";
 
 // --- COMPONENT CON: THẺ THỐNG KÊ ---
@@ -22,7 +22,7 @@ const StatCard = ({ title, value, icon: Icon, colorClass, bgClass }) => (
 );
 
 const PromotionManager = () => {
-  // 1. Mock Data (30 items để test phân trang)
+  // 1. Mock Data (30 items)
   const [promotions, setPromotions] = useState([
     { id: 1, code: "SUMMER2025", name: "Hè rực rỡ - Giảm giá cực sâu", type: "PERCENT", value: 20, quantity: 100, minOrder: 500000, maxDiscount: 200000, startDate: "2025-06-01", endDate: "2025-08-31", isActive: true },
     { id: 2, code: "WELCOME", name: "Chào bạn mới", type: "FIXED", value: 100000, quantity: 50, minOrder: 0, maxDiscount: 100000, startDate: "2025-01-01", endDate: "2025-12-31", isActive: true },
@@ -61,6 +61,7 @@ const PromotionManager = () => {
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [filterType, setFilterType] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
+  const [jumpPage, setJumpPage] = useState(""); // State cho ô nhập trang
   const itemsPerPage = 5;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -92,9 +93,9 @@ const PromotionManager = () => {
     setCurrentPage(1);
   }, [searchTerm, filterStatus, filterType]);
 
-  // ✅ LOGIC MỚI: TẠO DANH SÁCH TRANG THÔNG MINH (CÓ DẤU ...)
+  // Logic danh sách trang thông minh
   const getPaginationGroup = () => {
-    const delta = 1; // Số trang hiển thị 2 bên trang hiện tại
+    const delta = 1;
     const range = [];
     const rangeWithDots = [];
     let l;
@@ -118,6 +119,20 @@ const PromotionManager = () => {
     });
 
     return rangeWithDots;
+  };
+
+  // ✅ HÀM XỬ LÝ JUMP TO PAGE (ĐI ĐẾN TRANG)
+  const handleJumpPage = (e) => {
+    if (e.key === 'Enter') {
+        const page = parseInt(jumpPage);
+        if (!isNaN(page) && page >= 1 && page <= totalPages) {
+            setCurrentPage(page);
+            setJumpPage(""); // Reset input sau khi jump
+        } else {
+            // Có thể thêm toast báo lỗi nhẹ nếu muốn
+            // alert("Số trang không hợp lệ");
+        }
+    }
   };
 
   const stats = {
@@ -257,7 +272,7 @@ const PromotionManager = () => {
 
             <div className="mt-auto border-t border-gray-100">
                 {/* Pagination Controls */}
-                <div className="px-6 py-4 flex items-center justify-between bg-gray-50/50">
+                <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between bg-gray-50/50 gap-4">
                     <span className="text-sm text-gray-500">
                         Hiển thị <span className="font-semibold text-gray-700">{paginatedData.length}</span> / <span className="font-semibold text-gray-700">{filteredPromotions.length}</span> kết quả
                     </span>
@@ -271,7 +286,6 @@ const PromotionManager = () => {
                             <ChevronLeft size={18} />
                         </button>
 
-                        {/* ✅ RENDER DANH SÁCH TRANG THÔNG MINH */}
                         <div className="flex gap-1">
                             {getPaginationGroup().map((item, index) => (
                                 <button
@@ -299,6 +313,28 @@ const PromotionManager = () => {
                         >
                             <ChevronRight size={18} />
                         </button>
+
+                        {/* ✅ TÍNH NĂNG MỚI: ĐI ĐẾN TRANG */}
+                        <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200">
+                            <span className="text-sm text-gray-500 whitespace-nowrap">Đi đến:</span>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    className="w-12 h-8 pl-2 pr-1 rounded-lg border border-gray-200 text-sm text-center focus:outline-none focus:border-[rgb(40,169,224)] focus:ring-1 focus:ring-[rgb(40,169,224)] transition-all"
+                                    placeholder={currentPage}
+                                    value={jumpPage}
+                                    onChange={(e) => {
+                                        // Chỉ cho phép nhập số
+                                        const val = e.target.value;
+                                        if (val === '' || /^[0-9]+$/.test(val)) {
+                                            setJumpPage(val);
+                                        }
+                                    }}
+                                    onKeyDown={handleJumpPage}
+                                />
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
