@@ -91,15 +91,32 @@ export default function BecomeOwnerPage() {
     const fetchProfile = async () => {
       try {
         setIsDataLoading(true);
-        const data = await userService.getUserDetail();
+        const response = await userService.getUserDetail();
         
-        if (data.fullName) setValue("personalFullName", data.fullName, { shouldValidate: true });
-        if (data.email) setValue("personalEmail", data.email, { shouldValidate: true });
-        if (data.phoneNumber) setValue("personalPhone", data.phoneNumber, { shouldValidate: true });
-        if (data.dateOfBirth) {
-          setValue("personalDob", parseApiDate(data.dateOfBirth), { shouldValidate: true });
+        // Kiểm tra cấu trúc response (đề phòng service đã return response.data)
+        // Nếu API trả về { data: { fullName: ... } } thì lấy response.data
+        // Nếu API trả về trực tiếp { fullName: ... } thì lấy response
+        const userData = response.data || response;
+
+        console.log("User Data fetched:", userData); // Debug xem dữ liệu về chưa
+
+        if (userData) {
+            // Điền dữ liệu vào form
+            if (userData.fullName) setValue("personalFullName", userData.fullName, { shouldValidate: true });
+            if (userData.email) setValue("personalEmail", userData.email, { shouldValidate: true });
+            if (userData.phoneNumber) setValue("personalPhone", userData.phoneNumber, { shouldValidate: true });
+            
+            // Map địa chỉ nếu có
+            if (userData.address) setValue("personalAddress", userData.address, { shouldValidate: true });
+
+            // Map ngày sinh
+            if (userData.dateOfBirth) {
+                setValue("personalDob", parseApiDate(userData.dateOfBirth), { shouldValidate: true });
+            }
+            
+            // Lưu vào state để truyền xuống con (dùng cho logic disable input)
+            setProfileData(userData);
         }
-        setProfileData(data); 
 
       } catch (err) {
         console.error("Không thể tải thông tin cá nhân:", err);
@@ -108,7 +125,7 @@ export default function BecomeOwnerPage() {
       }
     };
     fetchProfile();
-  }, [setValue]); 
+  }, [setValue]);
 
 
   const steps = [
