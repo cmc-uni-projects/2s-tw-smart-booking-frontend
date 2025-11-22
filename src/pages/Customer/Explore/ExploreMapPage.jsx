@@ -1,26 +1,24 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { createRoot } from "react-dom/client";
 import { useNavigate } from "react-router-dom";
 import propertyService from "@/services/property.service";
 
-// Import các components con đã tách
+// Components con
 import MapHotelCard from "./components/MapHotelCard";
 import MapHeader from "./components/MapHeader";
-import MapSearchHereButton from "./components/MapSearchHereButton";
 import MapUserLocationButton from "./components/MapUserLocationButton";
 import MapLoadingOverlay from "./components/MapLoadingOverlay";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
-// Helper format giá
-const formatShortPrice = (price) => {
-  if (!price) return "Liên hệ";
-  if (price >= 1000000) {
-    return (price / 1000000).toFixed(1).replace(/\.0$/, '') + "tr";
-  }
-  return (price / 1000).toFixed(0) + "k";
+// ✅ 1. HÀM FORMAT GIÁ MỚI (Đầy đủ: 500.000 VND)
+const formatFullPrice = (price) => {
+  if (!price && price !== 0) return "Liên hệ";
+  // Format dạng 1.000.000
+  const formatted = new Intl.NumberFormat('vi-VN').format(price);
+  return `${formatted} VND`;
 };
 
 export default function ExploreMapPage() {
@@ -32,6 +30,7 @@ export default function ExploreMapPage() {
 
   // --- States ---
   const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const [properties, setProperties] = useState([]);
   const [showSearchHereBtn, setShowSearchHereBtn] = useState(false);
   
@@ -39,7 +38,7 @@ export default function ExploreMapPage() {
   const [minRating, setMinRating] = useState(0);
   const [priceRange, setPriceRange] = useState("all"); 
 
-  // --- 1. Init Map ---
+  // --- Init Map ---
   useEffect(() => {
     if (map.current) return;
 
@@ -48,14 +47,13 @@ export default function ExploreMapPage() {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/streets-v12", 
-      center: [105.804817, 21.028511],
+      center: [105.804817, 21.028511], // Default Hanoi
       zoom: 13,
       attributionControl: false,
       pitch: 0,
     });
 
-    // Ẩn compass mặc định để dùng nút custom nếu muốn
-    map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "bottom-right");
+    map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false, showZoom: false }), "bottom-right");
 
     map.current.on("load", () => {
       setIsLoading(false);
@@ -68,46 +66,73 @@ export default function ExploreMapPage() {
 
   }, []);
 
-  // --- 2. Handle Filter Change ---
+  // --- Filter Client-side ---
   useEffect(() => {
     if (properties.length > 0) {
         renderMarkers(properties);
     }
   }, [minRating, priceRange]);
 
-  // --- 3. Map Actions ---
+  // --- Handle Search & Filter ---
+  const handleFilterChange = useCallback(async (filters) => {
+    setIsSearching(true);
+    try {
+        // 1. Geocoding: Bay tới địa điểm
+        if (filters.keyword && map.current) {
+            try {
+                const geoUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(filters.keyword)}.json?access_token=${MAPBOX_TOKEN}&country=vn&types=region,place,locality&limit=1`;
+                const geoRes = await fetch(geoUrl);
+                const geoData = await geoRes.json();
+
+                if (geoData.features && geoData.features.length > 0) {
+                    const [lng, lat] = geoData.features[0].center;
+                    map.current.flyTo({ center: [lng, lat], zoom: 12, essential: true });
+                }
+            } catch (geoError) {
+                console.error("Geocoding error:", geoError);
+            }
+        }
+
+        // 2. Search API Backend
+        const data = await propertyService.searchProperties(filters.keyword, filters.guests);
+        setProperties(data || []);
+        renderMarkers(data || []);
+
+    } catch (error) {
+        console.error("Search error:", error);
+    } finally {
+        setIsSearching(false);
+    }
+  }, []);
+
+  // --- Map Utils ---
   const getUserLocation = () => {
     if (!navigator.geolocation) return;
-    setIsLoading(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
-        map.current.flyTo({ center: [longitude, latitude], zoom: 14, essential: true });
-        
-        // Marker User (Chấm xanh)
-        const el = document.createElement('div');
-        el.innerHTML = `
-            <div class="relative flex items-center justify-center w-8 h-8">
-                <div class="w-4 h-4 bg-blue-600 border-[3px] border-white rounded-full shadow-lg z-10"></div>
-                <div class="absolute w-full h-full bg-blue-400/30 rounded-full animate-ping"></div>
-            </div>
-        `;
-        new mapboxgl.Marker({ element: el }).setLngLat([longitude, latitude]).addTo(map.current);
-
-        fetchNearbyProperties(latitude, longitude);
+        if (map.current) {
+            map.current.flyTo({ center: [longitude, latitude], zoom: 14, essential: true });
+            // User Marker
+            const el = document.createElement('div');
+            el.innerHTML = `<div class="relative flex items-center justify-center w-6 h-6"><div class="w-4 h-4 bg-blue-600 border-2 border-white rounded-full shadow-lg z-10"></div><div class="absolute w-full h-full bg-blue-500/40 rounded-full animate-ping"></div></div>`;
+            new mapboxgl.Marker({ element: el }).setLngLat([longitude, latitude]).addTo(map.current);
+            fetchNearbyProperties(latitude, longitude);
+        }
       },
-      () => fetchNearbyProperties(21.028511, 105.804817) // Fallback
+      () => fetchNearbyProperties(21.028511, 105.804817)
     );
   };
 
   const handleSearchHere = () => {
+    if (!map.current) return;
     const center = map.current.getCenter();
     fetchNearbyProperties(center.lat, center.lng);
     setShowSearchHereBtn(false);
   };
 
   const fetchNearbyProperties = async (lat, lng) => {
-    setIsLoading(true);
+    setIsSearching(true);
     try {
       const data = await propertyService.findNearbyProperties(lat, lng, 15);
       setProperties(data || []);
@@ -115,18 +140,18 @@ export default function ExploreMapPage() {
     } catch (error) {
       console.error(error);
     } finally {
-      setIsLoading(false);
+      setIsSearching(false);
     }
   };
 
-  // --- 4. Render Markers (Price Tags) ---
+  // --- ✅ 2. RENDER MARKERS (THIẾT KẾ MỚI) ---
   const renderMarkers = (data) => {
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
 
     if (!data || data.length === 0) return;
 
-    // Filter Logic Client-side
+    // Filter Logic
     let filteredData = data.filter(p => (p.rating || 0) >= minRating);
     if (priceRange === 'low') filteredData = filteredData.filter(p => p.minPrice < 1000000);
     if (priceRange === 'mid') filteredData = filteredData.filter(p => p.minPrice >= 1000000 && p.minPrice < 3000000);
@@ -134,17 +159,31 @@ export default function ExploreMapPage() {
 
     filteredData.forEach((hotel) => {
         const el = document.createElement("div");
-        el.className = "price-marker cursor-pointer transition-all duration-200 hover:z-50 hover:scale-110";
+        // Thêm class 'group' và 'z-index' cao để marker nổi lên trên các marker khác
+        el.className = "custom-marker cursor-pointer hover:z-[999] relative";
         
-        const priceText = formatShortPrice(hotel.minPrice);
+        const priceText = formatFullPrice(hotel.minPrice);
         
-        // UI Marker Giá
+        // HTML Marker mới: To hơn, đậm hơn, hiển thị đầy đủ giá
         el.innerHTML = `
-            <div class="flex flex-col items-center">
-                <div class="bg-white text-gray-800 font-bold text-xs px-2.5 py-1.5 rounded-lg shadow-md border border-gray-200 whitespace-nowrap hover:bg-blue-600 hover:text-white transition-colors hover:border-blue-600">
+            <div class="flex flex-col items-center transition-transform duration-200 hover:scale-105 group">
+                <div class="
+                    bg-white text-gray-900 border-2 border-gray-100 
+                    font-extrabold text-sm px-3 py-2 rounded-xl shadow-xl 
+                    whitespace-nowrap 
+                    group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 
+                    transition-colors duration-200
+                ">
                     ${priceText}
                 </div>
-                <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white shadow-sm -mt-[1px]"></div>
+                <div class="
+                    w-0 h-0 
+                    border-l-[8px] border-l-transparent 
+                    border-r-[8px] border-r-transparent 
+                    border-t-[8px] border-t-white 
+                    group-hover:border-t-blue-600 
+                    shadow-sm -mt-[2px] transition-colors duration-200
+                "></div>
             </div>
         `;
 
@@ -154,7 +193,6 @@ export default function ExploreMapPage() {
 
             map.current.flyTo({ center: [hotel.longitude, hotel.latitude], zoom: 15, speed: 1.5, curve: 1 });
 
-            // Render Popup React Component vào DOM node
             const popupNode = document.createElement("div");
             const root = createRoot(popupNode);
             
@@ -167,7 +205,7 @@ export default function ExploreMapPage() {
             );
 
             const popup = new mapboxgl.Popup({
-                offset: 15,
+                offset: 25, // Đẩy popup lên cao hơn chút vì marker giờ to hơn
                 closeButton: false,
                 closeOnClick: true,
                 maxWidth: 'none',
@@ -191,32 +229,21 @@ export default function ExploreMapPage() {
   return (
     <div className="relative w-full h-screen overflow-hidden bg-gray-50 font-sans">
       
-      {/* 1. Header & Filters */}
       <MapHeader 
         navigate={navigate}
-        minRating={minRating}
-        setMinRating={setMinRating}
-        priceRange={priceRange}
-        setPriceRange={setPriceRange}
+        onFilterChange={handleFilterChange}
+        isSearching={isSearching}
+        minRating={minRating} setMinRating={setMinRating}
+        priceRange={priceRange} setPriceRange={setPriceRange}
       />
 
-      {/* 2. Map Container */}
-      <div ref={mapContainer} className="w-full h-full" />
+      <div ref={mapContainer} className="w-full h-full focus:outline-none" />
 
-      {/* 3. Floating Buttons */}
-      <MapSearchHereButton 
-        visible={showSearchHereBtn && !isLoading} 
-        onClick={handleSearchHere} 
-      />
 
-      <MapUserLocationButton 
-        onClick={getUserLocation} 
-      />
+      <MapUserLocationButton onClick={getUserLocation} />
 
-      {/* 4. Loading */}
       <MapLoadingOverlay isLoading={isLoading} />
       
-      {/* Styles Global cho Popup của Mapbox */}
       <style>{`
         .modern-popup .mapboxgl-popup-content {
             padding: 0 !important;
@@ -228,7 +255,7 @@ export default function ExploreMapPage() {
             border-top-color: white !important;
             margin-bottom: -1px;
         }
-        .mapboxgl-ctrl-logo { display: none !important; }
+        .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib { display: none !important; }
       `}</style>
     </div>
   );
