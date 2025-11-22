@@ -72,13 +72,22 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, promoCode }) => {
 const ActionMenu = ({ promo, onEdit, onDelete, onRequestToggle }) => {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef(null);
+
     useEffect(() => {
         const handleClickOutside = (event) => { if (menuRef.current && !menuRef.current.contains(event.target)) setIsOpen(false); };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const isExpired = new Date(promo.endDate) < new Date();
+    const parseDate = (dateInput) => {
+        if (!dateInput) return new Date();
+        if (Array.isArray(dateInput)) {
+            return new Date(dateInput[0], dateInput[1] - 1, dateInput[2]);
+        }
+        return new Date(dateInput);
+    };
+
+    const isExpired = parseDate(promo.endDate) < new Date();
     const isPaused = !promo.isActive;
 
     return (
@@ -94,7 +103,8 @@ const ActionMenu = ({ promo, onEdit, onDelete, onRequestToggle }) => {
                             </button>
                         )}
                         <div className="border-t border-gray-100 my-1"></div>
-                        <button onClick={() => { onDelete(promo.id); setIsOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"><Trash2 size={16} /> Xóa</button>
+                        {/* Nút Xóa: Gọi onDelete được truyền vào từ props */}
+                        <button onClick={() => { onDelete(promo); setIsOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"><Trash2 size={16} /> Xóa</button>
                     </div>
                 </div>
             )}
@@ -139,8 +149,8 @@ const PromotionManager = () => {
                 usedCount: item.usageCount || 0,
                 minOrder: item.minBookingAmount,
                 maxDiscount: item.maxDiscountAmount,
-                startDate: item.startDate, // Có thể là array [2025, 11, 20]
-                endDate: item.endDate,
+                startDate: item.startDate, // Giữ nguyên data gốc
+                endDate: item.endDate,     // Giữ nguyên data gốc
                 isActive: item.status === "ACTIVE",
             }));
             mappedData.sort((a, b) => b.id - a.id);
@@ -158,7 +168,6 @@ const PromotionManager = () => {
     const getPromoStatus = (promo) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        // Xử lý ngày nếu là array để so sánh
         let endDate = promo.endDate;
         if (Array.isArray(endDate)) {
             endDate = new Date(endDate[0], endDate[1]-1, endDate[2]);
@@ -231,7 +240,7 @@ const PromotionManager = () => {
         { key: "name", label: "Tên chương trình" },
         { key: "details", label: "Chi tiết giảm" },
         { key: "usageProgress", label: "Lượt sử dụng" },
-        { key: "endDate", label: "Hết hạn" },
+        { key: "endDateDisplay", label: "Hết hạn" },
         { key: "statusLabel", label: "Trạng thái" },
         { key: "actions", label: "Hành động" },
     ];
@@ -239,7 +248,6 @@ const PromotionManager = () => {
     const handleCopy = (text) => showToast("success", `Đã copy mã: ${text}`);
     const handleRequestToggleStatus = (promo) => setStatusConfirm({ isOpen: true, promo });
 
-    // ✅ UPDATED: Xử lý update Status an toàn hơn
     const handleConfirmToggleStatus = async () => {
         if (statusConfirm.promo) {
             try {
@@ -250,7 +258,7 @@ const PromotionManager = () => {
                 await fetchPromotions();
                 showToast("success", "Cập nhật trạng thái thành công!");
             } catch (error) {
-                console.error(error);
+                console.error("Lỗi update:", error);
                 const errMsg = error.response?.data?.message || error.message || "Lỗi cập nhật trạng thái";
                 showToast("error", errMsg);
             }
@@ -259,6 +267,7 @@ const PromotionManager = () => {
     };
 
     const handleRequestDelete = (promo) => setDeleteConfirm({ isOpen: true, promo });
+
     const handleConfirmDelete = async () => {
         if (deleteConfirm.promo) {
             try {
@@ -326,6 +335,7 @@ const PromotionManager = () => {
 
             return {
                 ...item,
+
                 codeDisplay: (
                     <div className="flex items-center gap-2 group cursor-pointer" onClick={() => handleCopy(item.code)} title="Click để copy">
                         <span className={`font-mono font-bold px-2 py-1 rounded border transition-colors ${status === 'ACTIVE' ? 'text-[rgb(40,169,224)] bg-blue-50 border-blue-100 group-hover:bg-blue-100' : (status === 'PAUSED' ? 'text-orange-600 bg-orange-50 border-orange-100 group-hover:bg-orange-100' : 'text-gray-500 bg-gray-100 border-gray-200')}`}>{item.code}</span>
@@ -345,7 +355,8 @@ const PromotionManager = () => {
                         </div>
                     </div>
                 ),
-                endDate: (
+
+                endDateDisplay: (
                     <div className="flex flex-col">
                         <span className="text-gray-600 whitespace-nowrap font-medium">{formatDate(item.endDate)}</span>
                         {status === 'ACTIVE' && daysRemaining > 0 && daysRemaining <= 7 && (
@@ -362,7 +373,13 @@ const PromotionManager = () => {
                 ),
                 actions: (
                     <div className="flex justify-center">
-                        <ActionMenu promo={item} onEdit={(p) => { setEditingPromo(p); setIsModalOpen(true); }} onRequestDelete={handleRequestDelete} onRequestToggle={handleRequestToggleStatus} />
+                        {/* ✅ ĐÃ SỬA: Thay onRequestDelete thành onDelete để khớp với component ActionMenu */}
+                        <ActionMenu
+                            promo={item}
+                            onEdit={(p) => { setEditingPromo(p); setIsModalOpen(true); }}
+                            onDelete={handleRequestDelete}
+                            onRequestToggle={handleRequestToggleStatus}
+                        />
                     </div>
                 )
             };
@@ -420,4 +437,3 @@ const PromotionManager = () => {
 };
 
 export default PromotionManager;
-
