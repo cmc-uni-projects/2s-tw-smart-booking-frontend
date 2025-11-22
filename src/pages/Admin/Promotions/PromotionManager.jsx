@@ -6,10 +6,10 @@ import {
     Plus, Edit, Trash2, Tag, Search,
     Copy, CheckCircle2, AlertCircle, Ticket, Coins,
     ChevronLeft, ChevronRight, MoreVertical, PauseCircle, PlayCircle, XCircle,
-    AlertTriangle, Clock
+    AlertTriangle, Clock, RefreshCw
 } from "lucide-react";
 
-// --- COMPONENT CON: MODAL XÁC NHẬN TRẠNG THÁI ---
+// --- COMPONENT CON: MODAL XÁC NHẬN TRẠNG THÁI (STATUS) ---
 const StatusConfirmModal = ({ isOpen, onClose, onConfirm, promo }) => {
     if (!isOpen || !promo) return null;
 
@@ -42,8 +42,43 @@ const StatusConfirmModal = ({ isOpen, onClose, onConfirm, promo }) => {
     );
 };
 
+// --- COMPONENT CON: MODAL XÁC NHẬN XÓA (DELETE) - MỚI ---
+const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, promoCode }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity animate-fadeIn p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100 animate-slideUp">
+                <div className="p-6 text-center">
+                    {/* Icon Thùng rác đỏ */}
+                    <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-red-100 text-red-600">
+                        <Trash2 size={32} />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">
+                        Xóa khuyến mãi?
+                    </h3>
+                    <p className="text-gray-500 text-sm mb-6">
+                        Bạn có chắc chắn muốn xóa vĩnh viễn mã <span className="font-bold text-gray-800 mx-1">{promoCode}</span> không?
+                        <br/>
+                        <span className="text-red-500 font-medium italic mt-1 block">Hành động này không thể hoàn tác!</span>
+                    </p>
+                    <div className="flex gap-3 justify-center">
+                        <button onClick={onClose} className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors w-1/2">
+                            Hủy bỏ
+                        </button>
+                        <button onClick={onConfirm} className="px-5 py-2.5 rounded-xl text-white font-semibold shadow-lg shadow-red-200 bg-red-500 hover:bg-red-600 transition-transform active:scale-95 w-1/2 flex items-center justify-center gap-2">
+                            <Trash2 size={18}/>
+                            Xóa ngay
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // --- HELPER: Action Menu ---
-const ActionMenu = ({ promo, onEdit, onDelete, onRequestToggle }) => {
+const ActionMenu = ({ promo, onEdit, onRequestDelete, onRequestToggle }) => {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef(null);
 
@@ -73,7 +108,7 @@ const ActionMenu = ({ promo, onEdit, onDelete, onRequestToggle }) => {
                             </button>
                         )}
                         <div className="border-t border-gray-100 my-1"></div>
-                        <button onClick={() => { onDelete(promo.id); setIsOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"><Trash2 size={16} /> Xóa</button>
+                        <button onClick={() => { onRequestDelete(promo); setIsOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"><Trash2 size={16} /> Xóa</button>
                     </div>
                 </div>
             )}
@@ -96,44 +131,46 @@ const PromotionManager = () => {
         return date.toISOString().split('T')[0];
     };
 
+    // Mock Data
     const [promotions, setPromotions] = useState([
-        { id: 1, code: "SUMMER2025", name: "Hè rực rỡ 2025", type: "PERCENT", value: 20, quantity: 1000, usedCount: 150, minOrder: 500000, maxDiscount: 200000, startDate: getDate(-10), endDate: getDate(60), isActive: true },
-        { id: 2, code: "WELCOME_NEW", name: "Chào thành viên mới", type: "FIXED", value: 50000, quantity: 5000, usedCount: 200, minOrder: 0, maxDiscount: 50000, startDate: getDate(-30), endDate: getDate(365), isActive: true },
-        { id: 3, code: "APP_ONLY", name: "Ưu đãi đặt trên App", type: "PERCENT", value: 10, quantity: 2000, usedCount: 450, minOrder: 200000, maxDiscount: 50000, startDate: getDate(-5), endDate: getDate(90), isActive: true },
-        { id: 4, code: "WEEKEND_FUN", name: "Cuối tuần vui vẻ", type: "PERCENT", value: 15, quantity: 500, usedCount: 20, minOrder: 300000, maxDiscount: 100000, startDate: getDate(0), endDate: getDate(30), isActive: true },
-        { id: 5, code: "NIGHT_OWL", name: "Cú đêm săn sale", type: "FIXED", value: 30000, quantity: 300, usedCount: 10, minOrder: 150000, maxDiscount: 30000, startDate: getDate(-2), endDate: getDate(15), isActive: true },
-        { id: 6, code: "FLASH_SALE", name: "Flash Sale Giờ Vàng", type: "PERCENT", value: 50, quantity: 100, usedCount: 92, minOrder: 0, maxDiscount: 50000, startDate: getDate(-1), endDate: getDate(2), isActive: true },
-        { id: 7, code: "LIMITED_VIP", name: "Đặc quyền VIP", type: "FIXED", value: 500000, quantity: 50, usedCount: 45, minOrder: 2000000, maxDiscount: 500000, startDate: getDate(-5), endDate: getDate(10), isActive: true },
-        { id: 8, code: "HOT_DEAL", name: "Deal sốc tháng 11", type: "PERCENT", value: 40, quantity: 200, usedCount: 150, minOrder: 100000, maxDiscount: 200000, startDate: getDate(-3), endDate: getDate(5), isActive: true },
-        { id: 9, code: "LAST_CHANCE", name: "Cơ hội cuối cùng", type: "FIXED", value: 100000, quantity: 20, usedCount: 18, minOrder: 0, maxDiscount: 100000, startDate: getDate(-1), endDate: getDate(1), isActive: true },
-        { id: 10, code: "CLEARANCE", name: "Xả kho vé máy bay", type: "PERCENT", value: 30, quantity: 1000, usedCount: 980, minOrder: 0, maxDiscount: 500000, startDate: getDate(-10), endDate: getDate(5), isActive: true },
-        { id: 11, code: "EXPIRING_SOON_1", name: "Khuyến mãi sắp hết 1", type: "PERCENT", value: 10, quantity: 1000, usedCount: 100, minOrder: 0, maxDiscount: 50000, startDate: getDate(-20), endDate: getDate(1), isActive: true },
-        { id: 12, code: "EXPIRING_SOON_3", name: "Khuyến mãi sắp hết 3", type: "FIXED", value: 20000, quantity: 500, usedCount: 200, minOrder: 0, maxDiscount: 20000, startDate: getDate(-10), endDate: getDate(3), isActive: true },
-        { id: 13, code: "EXPIRING_SOON_7", name: "Khuyến mãi sắp hết 7", type: "PERCENT", value: 15, quantity: 1000, usedCount: 500, minOrder: 0, maxDiscount: 100000, startDate: getDate(-15), endDate: getDate(6), isActive: true },
-        { id: 14, code: "URGENT_SALE", name: "Gấp! Chỉ còn hôm nay", type: "PERCENT", value: 60, quantity: 50, usedCount: 10, minOrder: 0, maxDiscount: 200000, startDate: getDate(0), endDate: getDate(0), isActive: true },
-        { id: 15, code: "PAUSED_PROMO", name: "Khuyến mãi tạm ngưng", type: "PERCENT", value: 25, quantity: 100, usedCount: 20, minOrder: 0, maxDiscount: 100000, startDate: getDate(-5), endDate: getDate(20), isActive: false },
-        { id: 16, code: "HOLD_ON", name: "Chờ duyệt lại", type: "FIXED", value: 50000, quantity: 200, usedCount: 0, minOrder: 500000, maxDiscount: 50000, startDate: getDate(10), endDate: getDate(30), isActive: false },
-        { id: 17, code: "SYSTEM_MAINTENANCE", name: "Bảo trì hệ thống", type: "PERCENT", value: 5, quantity: 10000, usedCount: 500, minOrder: 0, maxDiscount: 10000, startDate: getDate(-100), endDate: getDate(100), isActive: false },
-        { id: 18, code: "PAST_SUMMER", name: "Hè năm ngoái", type: "PERCENT", value: 50, quantity: 100, usedCount: 100, minOrder: 0, maxDiscount: 200000, startDate: getDate(-400), endDate: getDate(-365), isActive: true },
-        { id: 19, code: "YESTERDAY_GONE", name: "Vừa hết hôm qua", type: "FIXED", value: 100000, quantity: 50, usedCount: 49, minOrder: 0, maxDiscount: 100000, startDate: getDate(-5), endDate: getDate(-1), isActive: true },
-        { id: 20, code: "OLD_TET", name: "Tết 2024", type: "FIXED", value: 88000, quantity: 88, usedCount: 88, minOrder: 0, maxDiscount: 88000, startDate: getDate(-365), endDate: getDate(-360), isActive: false },
-        { id: 21, code: "TEST_PAGINATION_1", name: "Mã test phân trang 1", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
-        { id: 22, code: "TEST_PAGINATION_2", name: "Mã test phân trang 2", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
-        { id: 23, code: "TEST_PAGINATION_3", name: "Mã test phân trang 3", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
-        { id: 24, code: "TEST_PAGINATION_4", name: "Mã test phân trang 4", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
-        { id: 25, code: "TEST_PAGINATION_5", name: "Mã test phân trang 5", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
-        { id: 26, code: "TEST_PAGINATION_6", name: "Mã test phân trang 6", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
-        { id: 27, code: "TEST_PAGINATION_7", name: "Mã test phân trang 7", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
-        { id: 28, code: "TEST_PAGINATION_8", name: "Mã test phân trang 8", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
-        { id: 29, code: "TEST_PAGINATION_9", name: "Mã test phân trang 9", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
-        { id: 30, code: "TEST_PAGINATION_10", name: "Mã test phân trang 10", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
-        { id: 31, code: "TEST_PAGINATION_11", name: "Mã test phân trang 11", type: "FIXED", value: 10000, quantity: 100, usedCount: 10, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
-        { id: 32, code: "TEST_PAGINATION_12", name: "Mã test phân trang 12", type: "FIXED", value: 10000, quantity: 100, usedCount: 10, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
-        { id: 33, code: "TEST_PAGINATION_13", name: "Mã test phân trang 13", type: "FIXED", value: 10000, quantity: 100, usedCount: 10, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
-        { id: 34, code: "TEST_PAGINATION_14", name: "Mã test phân trang 14", type: "FIXED", value: 10000, quantity: 100, usedCount: 10, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
-        { id: 35, code: "TEST_PAGINATION_15", name: "Mã test phân trang 15", type: "FIXED", value: 10000, quantity: 100, usedCount: 10, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
+        { id: 1, code: "SUMMER2025", name: "Hè rực rỡ 2025", type: "PERCENT", value: 20, quantity: 1000, usedCount: 150, usageLimitPerUser: 1, minOrder: 500000, maxDiscount: 200000, startDate: getDate(-10), endDate: getDate(60), isActive: true },
+        { id: 2, code: "WELCOME_NEW", name: "Chào thành viên mới", type: "FIXED", value: 50000, quantity: 5000, usedCount: 200, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 50000, startDate: getDate(-30), endDate: getDate(365), isActive: true },
+        { id: 3, code: "APP_ONLY", name: "Ưu đãi đặt trên App", type: "PERCENT", value: 10, quantity: 2000, usedCount: 450, usageLimitPerUser: 1, minOrder: 200000, maxDiscount: 50000, startDate: getDate(-5), endDate: getDate(90), isActive: true },
+        { id: 4, code: "WEEKEND_FUN", name: "Cuối tuần vui vẻ", type: "PERCENT", value: 15, quantity: 500, usedCount: 20, usageLimitPerUser: 2, minOrder: 300000, maxDiscount: 100000, startDate: getDate(0), endDate: getDate(30), isActive: true },
+        { id: 5, code: "NIGHT_OWL", name: "Cú đêm săn sale", type: "FIXED", value: 30000, quantity: 300, usedCount: 10, usageLimitPerUser: 1, minOrder: 150000, maxDiscount: 30000, startDate: getDate(-2), endDate: getDate(15), isActive: true },
+        { id: 6, code: "FLASH_SALE", name: "Flash Sale Giờ Vàng", type: "PERCENT", value: 50, quantity: 100, usedCount: 92, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 50000, startDate: getDate(-1), endDate: getDate(2), isActive: true },
+        { id: 7, code: "LIMITED_VIP", name: "Đặc quyền VIP", type: "FIXED", value: 500000, quantity: 50, usedCount: 45, usageLimitPerUser: 1, minOrder: 2000000, maxDiscount: 500000, startDate: getDate(-5), endDate: getDate(10), isActive: true },
+        { id: 8, code: "HOT_DEAL", name: "Deal sốc tháng 11", type: "PERCENT", value: 40, quantity: 200, usedCount: 150, usageLimitPerUser: 1, minOrder: 100000, maxDiscount: 200000, startDate: getDate(-3), endDate: getDate(5), isActive: true },
+        { id: 9, code: "LAST_CHANCE", name: "Cơ hội cuối cùng", type: "FIXED", value: 100000, quantity: 20, usedCount: 18, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 100000, startDate: getDate(-1), endDate: getDate(1), isActive: true },
+        { id: 10, code: "CLEARANCE", name: "Xả kho vé máy bay", type: "PERCENT", value: 30, quantity: 1000, usedCount: 980, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 500000, startDate: getDate(-10), endDate: getDate(5), isActive: true },
+        { id: 11, code: "EXPIRING_SOON_1", name: "Khuyến mãi sắp hết 1", type: "PERCENT", value: 10, quantity: 1000, usedCount: 100, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 50000, startDate: getDate(-20), endDate: getDate(1), isActive: true },
+        { id: 12, code: "EXPIRING_SOON_3", name: "Khuyến mãi sắp hết 3", type: "FIXED", value: 20000, quantity: 500, usedCount: 200, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 20000, startDate: getDate(-10), endDate: getDate(3), isActive: true },
+        { id: 13, code: "EXPIRING_SOON_7", name: "Khuyến mãi sắp hết 7", type: "PERCENT", value: 15, quantity: 1000, usedCount: 500, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 100000, startDate: getDate(-15), endDate: getDate(6), isActive: true },
+        { id: 14, code: "URGENT_SALE", name: "Gấp! Chỉ còn hôm nay", type: "PERCENT", value: 60, quantity: 50, usedCount: 10, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 200000, startDate: getDate(0), endDate: getDate(0), isActive: true },
+        { id: 15, code: "PAUSED_PROMO", name: "Khuyến mãi tạm ngưng", type: "PERCENT", value: 25, quantity: 100, usedCount: 20, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 100000, startDate: getDate(-5), endDate: getDate(20), isActive: false },
+        { id: 16, code: "HOLD_ON", name: "Chờ duyệt lại", type: "FIXED", value: 50000, quantity: 200, usedCount: 0, usageLimitPerUser: 1, minOrder: 500000, maxDiscount: 50000, startDate: getDate(10), endDate: getDate(30), isActive: false },
+        { id: 17, code: "SYSTEM_MAINTENANCE", name: "Bảo trì hệ thống", type: "PERCENT", value: 5, quantity: 10000, usedCount: 500, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 10000, startDate: getDate(-100), endDate: getDate(100), isActive: false },
+        { id: 18, code: "PAST_SUMMER", name: "Hè năm ngoái", type: "PERCENT", value: 50, quantity: 100, usedCount: 100, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 200000, startDate: getDate(-400), endDate: getDate(-365), isActive: true },
+        { id: 19, code: "YESTERDAY_GONE", name: "Vừa hết hôm qua", type: "FIXED", value: 100000, quantity: 50, usedCount: 49, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 100000, startDate: getDate(-5), endDate: getDate(-1), isActive: true },
+        { id: 20, code: "OLD_TET", name: "Tết 2024", type: "FIXED", value: 88000, quantity: 88, usedCount: 88, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 88000, startDate: getDate(-365), endDate: getDate(-360), isActive: false },
+        { id: 21, code: "TEST_PAGINATION_1", name: "Mã test phân trang 1", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
+        { id: 22, code: "TEST_PAGINATION_2", name: "Mã test phân trang 2", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
+        { id: 23, code: "TEST_PAGINATION_3", name: "Mã test phân trang 3", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
+        { id: 24, code: "TEST_PAGINATION_4", name: "Mã test phân trang 4", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
+        { id: 25, code: "TEST_PAGINATION_5", name: "Mã test phân trang 5", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
+        { id: 26, code: "TEST_PAGINATION_6", name: "Mã test phân trang 6", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
+        { id: 27, code: "TEST_PAGINATION_7", name: "Mã test phân trang 7", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
+        { id: 28, code: "TEST_PAGINATION_8", name: "Mã test phân trang 8", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
+        { id: 29, code: "TEST_PAGINATION_9", name: "Mã test phân trang 9", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
+        { id: 30, code: "TEST_PAGINATION_10", name: "Mã test phân trang 10", type: "PERCENT", value: 10, quantity: 100, usedCount: 10, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
+        { id: 31, code: "TEST_PAGINATION_11", name: "Mã test phân trang 11", type: "FIXED", value: 10000, quantity: 100, usedCount: 10, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
+        { id: 32, code: "TEST_PAGINATION_12", name: "Mã test phân trang 12", type: "FIXED", value: 10000, quantity: 100, usedCount: 10, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
+        { id: 33, code: "TEST_PAGINATION_13", name: "Mã test phân trang 13", type: "FIXED", value: 10000, quantity: 100, usedCount: 10, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
+        { id: 34, code: "TEST_PAGINATION_14", name: "Mã test phân trang 14", type: "FIXED", value: 10000, quantity: 100, usedCount: 10, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
+        { id: 35, code: "TEST_PAGINATION_15", name: "Mã test phân trang 15", type: "FIXED", value: 10000, quantity: 100, usedCount: 10, usageLimitPerUser: 1, minOrder: 0, maxDiscount: 10000, startDate: getDate(10), endDate: getDate(20), isActive: true },
     ]);
 
+    // State
     const [searchTerm, setSearchTerm] = useState("");
     const [filterStatus, setFilterStatus] = useState("ALL");
     const [filterType, setFilterType] = useState("ALL");
@@ -144,6 +181,10 @@ const PromotionManager = () => {
     const [editingPromo, setEditingPromo] = useState(null);
     const [statusConfirm, setStatusConfirm] = useState({ isOpen: false, promo: null });
 
+    // ✅ STATE MỚI: Quản lý modal Xóa
+    const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, promo: null });
+
+    // Helper functions
     const getPromoStatus = (promo) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -232,6 +273,19 @@ const PromotionManager = () => {
         }
     };
 
+    // ✅ XỬ LÝ XÓA: Mở Modal
+    const handleRequestDelete = (promo) => {
+        setDeleteConfirm({ isOpen: true, promo });
+    };
+
+    // ✅ XỬ LÝ XÓA: Xác nhận xóa
+    const handleConfirmDelete = () => {
+        if (deleteConfirm.promo) {
+            setPromotions(prev => prev.filter(item => item.id !== deleteConfirm.promo.id));
+            setDeleteConfirm({ isOpen: false, promo: null });
+        }
+    };
+
     const formatDate = (dateString) => {
         if (!dateString) return "";
         const date = new Date(dateString);
@@ -299,13 +353,12 @@ const PromotionManager = () => {
                     </>
                 ),
 
-                // ✅ CĂN GIỮA ICON 3 CHẤM
                 actions: (
                     <div className="flex justify-center">
                         <ActionMenu
                             promo={item}
                             onEdit={(p) => { setEditingPromo(p); setIsModalOpen(true); }}
-                            onDelete={handleDelete}
+                            onRequestDelete={handleRequestDelete} // ✅ Gọi modal xóa mới
                             onRequestToggle={handleRequestToggleStatus}
                         />
                     </div>
@@ -321,12 +374,6 @@ const PromotionManager = () => {
             const newId = Date.now();
             setPromotions(prev => [{ ...data, id: newId, usedCount: 0 }, ...prev]);
             setCurrentPage(1);
-        }
-    };
-
-    const handleDelete = (id) => {
-        if (window.confirm("Bạn có chắc muốn xóa mã này không?")) {
-            setPromotions(prev => prev.filter(item => item.id !== id));
         }
     };
 
@@ -414,7 +461,22 @@ const PromotionManager = () => {
             </div>
 
             <PromotionFormModal open={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleSave} initialData={editingPromo} />
-            <StatusConfirmModal isOpen={statusConfirm.isOpen} onClose={() => setStatusConfirm({ isOpen: false, promo: null })} onConfirm={handleConfirmToggleStatus} promo={statusConfirm.promo} />
+
+            {/* ✅ MODAL STATUS */}
+            <StatusConfirmModal
+                isOpen={statusConfirm.isOpen}
+                onClose={() => setStatusConfirm({ isOpen: false, promo: null })}
+                onConfirm={handleConfirmToggleStatus}
+                promo={statusConfirm.promo}
+            />
+
+            {/* ✅ MODAL DELETE MỚI */}
+            <DeleteConfirmModal
+                isOpen={deleteConfirm.isOpen}
+                onClose={() => setDeleteConfirm({ isOpen: false, promo: null })}
+                onConfirm={handleConfirmDelete}
+                promoCode={deleteConfirm.promo?.code}
+            />
         </div>
     );
 };
