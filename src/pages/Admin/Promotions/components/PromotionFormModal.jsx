@@ -109,7 +109,7 @@ const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
                 const { target, ...rest } = initialData;
                 setFormData({
                     ...rest,
-                    isActive: rest.isActive !== undefined ? rest.isActive : true
+                    isActive: rest.isActive !== undefined ? rest.isActive : true,
                 });
             } else {
                 setFormData({
@@ -134,10 +134,6 @@ const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
         if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
     };
 
-    const toggleStatus = () => {
-        setFormData(prev => ({ ...prev, isActive: !prev.isActive }));
-    };
-
     const validateForm = () => {
         const newErrors = {};
         if (!formData.code.trim()) newErrors.code = "Mã không được để trống";
@@ -157,7 +153,8 @@ const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
 
     const handleSubmit = () => {
         if (validateForm()) {
-            onSubmit(formData);
+            // Luôn gửi kèm usageLimitPerUser = 1
+            onSubmit({ ...formData, usageLimitPerUser: 1 });
             onClose();
         }
     };
@@ -207,9 +204,10 @@ const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
                         ) : (
                             <div className="opacity-50"><CustomInput label="Giảm tối đa" value="-" disabled /></div>
                         )}
-                        <CustomInput label="Số lượng mã" name="quantity" type="number" value={formData.quantity} onChange={handleChange} icon={Hash} placeholder="100" />
+                        <CustomInput label="Tổng số lượng phát hành" name="quantity" type="number" value={formData.quantity} onChange={handleChange} icon={Hash} placeholder="1000" />
                     </div>
 
+                    {/* Hàng Ngày tháng (Đã xóa Giới hạn mỗi khách) */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <CustomInput label="Ngày bắt đầu" name="startDate" type="date" value={formData.startDate} onChange={handleChange} icon={Calendar} error={errors.startDate} />
                         <CustomInput label="Ngày kết thúc" name="endDate" type="date" value={formData.endDate} onChange={handleChange} icon={Calendar} error={errors.endDate} />
@@ -217,28 +215,11 @@ const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-4">
-
-                    {/* Toggle Switch */}
-                    <div
-                        className="flex items-center gap-3 cursor-pointer group"
-                        onClick={toggleStatus}
-                    >
-                        <div className={`w-12 h-7 rounded-full p-1 transition-colors duration-300 ease-in-out flex items-center ${formData.isActive ? 'bg-green-500' : 'bg-gray-300'}`}>
-                            <div className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-300 ${formData.isActive ? 'translate-x-5' : 'translate-x-0'}`} />
-                        </div>
-                        <span className={`font-medium text-sm ${formData.isActive ? 'text-green-600' : 'text-gray-500'}`}>
-                {formData.isActive ? "Đang hoạt động" : "Đang tạm dừng"}
-              </span>
-                    </div>
-
-                    {/* Button chính */}
-                    <div>
-                        <button onClick={handleSubmit} className="px-6 py-2.5 rounded-xl bg-[rgb(40,169,224)] text-white font-semibold shadow-lg shadow-blue-200 hover:bg-[rgb(26,140,189)] hover:shadow-none transition-all transform active:scale-95">
-                            {/* ✅ ĐỔI TÊN Ở ĐÂY: initialData ? "Lưu thay đổi" : "Thêm" */}
-                            {initialData ? "Lưu thay đổi" : "Thêm"}
-                        </button>
-                    </div>
+                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+                    <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-gray-600 font-medium hover:bg-gray-200 transition-colors">Hủy bỏ</button>
+                    <button onClick={handleSubmit} className="px-6 py-2.5 rounded-xl bg-[rgb(40,169,224)] text-white font-semibold shadow-lg shadow-blue-200 hover:bg-[rgb(26,140,189)] hover:shadow-none transition-all transform active:scale-95">
+                        {initialData ? "Lưu thay đổi" : "Thêm"}
+                    </button>
                 </div>
 
             </div>
