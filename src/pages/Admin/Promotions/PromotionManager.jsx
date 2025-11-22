@@ -248,13 +248,24 @@ const PromotionManager = () => {
     const handleCopy = (text) => showToast("success", `Đã copy mã: ${text}`);
     const handleRequestToggleStatus = (promo) => setStatusConfirm({ isOpen: true, promo });
 
+    // src/pages/Admin/Promotions/PromotionManager.jsx
+
     const handleConfirmToggleStatus = async () => {
         if (statusConfirm.promo) {
+            // FIX: Đảm bảo trường startDate không bị null để tránh lỗi Validation 400 từ Backend
+            const dataToSend = {
+                ...statusConfirm.promo,
+                isActive: !statusConfirm.promo.isActive // Chỉ thay đổi trường trạng thái
+            };
+
+            // Nếu startDate bị thiếu/null (do dữ liệu cũ hoặc lỗi mapping), dùng endDate làm giá trị thay thế
+            // để thỏa mãn validator của Backend.
+            if (!dataToSend.startDate) {
+                dataToSend.startDate = dataToSend.endDate;
+            }
+
             try {
-                await promotionService.updatePromotion(statusConfirm.promo.id, {
-                    ...statusConfirm.promo,
-                    isActive: !statusConfirm.promo.isActive
-                });
+                await promotionService.updatePromotion(dataToSend.id, dataToSend); // Sử dụng dataToSend đã được sửa lỗi
                 await fetchPromotions();
                 showToast("success", "Cập nhật trạng thái thành công!");
             } catch (error) {

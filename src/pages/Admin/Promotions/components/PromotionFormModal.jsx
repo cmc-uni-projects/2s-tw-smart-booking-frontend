@@ -127,3 +127,4 @@ const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
 };
 
 export default PromotionFormModal;
+
