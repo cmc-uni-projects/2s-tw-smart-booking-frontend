@@ -16,7 +16,27 @@ import {
 const showToast = (type, message) => {
     toast.custom((t) => (
         <Toast type={type} message={message} onClose={() => toast.dismiss(t.id)} />
-    ), { duration: 3000, position: 'top-right' });
+    ), {
+        duration: 3000,
+        position: 'bottom-center' // ✅ Đổi vị trí thông báo
+    });
+};
+
+// --- HELPER PARSE DATE (Xử lý mảng LocalDateTime từ BE hoặc String) ---
+const parseDate = (dateInput) => {
+    if (!dateInput) return new Date();
+    if (Array.isArray(dateInput)) {
+        // Backend trả về mảng [yyyy, MM, dd, HH, mm, ss]
+        return new Date(
+            dateInput[0],
+            dateInput[1] - 1,
+            dateInput[2],
+            dateInput[3] || 0,
+            dateInput[4] || 0,
+            dateInput[5] || 0
+        );
+    }
+    return new Date(dateInput);
 };
 
 // --- STATUS MODAL ---
@@ -57,7 +77,7 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, promoCode }) => {
                 <div className="p-6 text-center">
                     <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-red-100 text-red-600"><Trash2 size={32} /></div>
                     <h3 className="text-xl font-bold text-gray-800 mb-2">Xóa khuyến mãi?</h3>
-                    <p className="text-gray-500 text-sm mb-6">Bạn có chắc chắn muốn xóa vĩnh viễn mã <span className="font-bold text-gray-800 mx-1">{promoCode}</span> không?<br/><span className="text-red-500 font-medium italic mt-1 block">Hành động này không thể hoàn tác!</span></p>
+                    <p className="text-gray-500 text-sm mb-6">Bạn có chắc chắn muốn xóa mã <span className="font-bold text-gray-800 mx-1">{promoCode}</span> không?<br/><span className="text-red-500 font-medium italic mt-1 block">Mã sẽ bị vô hiệu hóa và chuyển vào thùng rác.</span></p>
                     <div className="flex gap-3 justify-center">
                         <button onClick={onClose} className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors w-1/2">Hủy bỏ</button>
                         <button onClick={onConfirm} className="px-5 py-2.5 rounded-xl text-white font-semibold shadow-lg shadow-red-200 bg-red-500 hover:bg-red-600 transition-transform active:scale-95 w-1/2 flex items-center justify-center gap-2"><Trash2 size={18}/> Xóa ngay</button>
@@ -79,14 +99,6 @@ const ActionMenu = ({ promo, onEdit, onDelete, onRequestToggle }) => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const parseDate = (dateInput) => {
-        if (!dateInput) return new Date();
-        if (Array.isArray(dateInput)) {
-            return new Date(dateInput[0], dateInput[1] - 1, dateInput[2]);
-        }
-        return new Date(dateInput);
-    };
-
     const isExpired = parseDate(promo.endDate) < new Date();
     const isPaused = !promo.isActive;
 
@@ -103,7 +115,6 @@ const ActionMenu = ({ promo, onEdit, onDelete, onRequestToggle }) => {
                             </button>
                         )}
                         <div className="border-t border-gray-100 my-1"></div>
-                        {/* Nút Xóa: Gọi onDelete được truyền vào từ props */}
                         <button onClick={() => { onDelete(promo); setIsOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"><Trash2 size={16} /> Xóa</button>
                     </div>
                 </div>
@@ -149,8 +160,8 @@ const PromotionManager = () => {
                 usedCount: item.usageCount || 0,
                 minOrder: item.minBookingAmount,
                 maxDiscount: item.maxDiscountAmount,
-                startDate: item.startDate, // Giữ nguyên data gốc
-                endDate: item.endDate,     // Giữ nguyên data gốc
+                startDate: item.startDate,
+                endDate: item.endDate,
                 isActive: item.status === "ACTIVE",
             }));
             mappedData.sort((a, b) => b.id - a.id);
@@ -166,16 +177,10 @@ const PromotionManager = () => {
     useEffect(() => { fetchPromotions(); }, []);
 
     const getPromoStatus = (promo) => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        let endDate = promo.endDate;
-        if (Array.isArray(endDate)) {
-            endDate = new Date(endDate[0], endDate[1]-1, endDate[2]);
-        } else {
-            endDate = new Date(endDate);
-        }
+        const now = new Date();
+        const endDate = parseDate(promo.endDate);
 
-        if (endDate < today) return "EXPIRED";
+        if (endDate < now) return "EXPIRED";
         if (!promo.isActive) return "PAUSED";
         return "ACTIVE";
     };
@@ -248,24 +253,19 @@ const PromotionManager = () => {
     const handleCopy = (text) => showToast("success", `Đã copy mã: ${text}`);
     const handleRequestToggleStatus = (promo) => setStatusConfirm({ isOpen: true, promo });
 
-    // src/pages/Admin/Promotions/PromotionManager.jsx
-
     const handleConfirmToggleStatus = async () => {
         if (statusConfirm.promo) {
-            // FIX: Đảm bảo trường startDate không bị null để tránh lỗi Validation 400 từ Backend
             const dataToSend = {
                 ...statusConfirm.promo,
-                isActive: !statusConfirm.promo.isActive // Chỉ thay đổi trường trạng thái
+                isActive: !statusConfirm.promo.isActive
             };
 
-            // Nếu startDate bị thiếu/null (do dữ liệu cũ hoặc lỗi mapping), dùng endDate làm giá trị thay thế
-            // để thỏa mãn validator của Backend.
             if (!dataToSend.startDate) {
                 dataToSend.startDate = dataToSend.endDate;
             }
 
             try {
-                await promotionService.updatePromotion(dataToSend.id, dataToSend); // Sử dụng dataToSend đã được sửa lỗi
+                await promotionService.updatePromotion(dataToSend.id, dataToSend);
                 await fetchPromotions();
                 showToast("success", "Cập nhật trạng thái thành công!");
             } catch (error) {
@@ -313,27 +313,22 @@ const PromotionManager = () => {
         }
     };
 
-    const formatDate = (dateInput) => {
+    const formatDateTimeDisplay = (dateInput) => {
         if (!dateInput) return "";
-        let date;
-        if (Array.isArray(dateInput)) {
-            date = new Date(dateInput[0], dateInput[1] - 1, dateInput[2]);
-        } else {
-            date = new Date(dateInput);
-        }
-        return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const date = parseDate(dateInput);
+        return date.toLocaleString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
     };
 
     const getDaysRemaining = (dateInput) => {
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        let end;
-        if (Array.isArray(dateInput)) {
-            end = new Date(dateInput[0], dateInput[1] - 1, dateInput[2]);
-        } else {
-            end = new Date(dateInput);
-        }
-        const diffTime = end - today;
+        const now = new Date();
+        const end = parseDate(dateInput);
+        const diffTime = end - now;
         return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     };
 
@@ -369,9 +364,12 @@ const PromotionManager = () => {
 
                 endDateDisplay: (
                     <div className="flex flex-col">
-                        <span className="text-gray-600 whitespace-nowrap font-medium">{formatDate(item.endDate)}</span>
+                        <span className="text-gray-600 whitespace-nowrap font-medium text-sm">{formatDateTimeDisplay(item.endDate)}</span>
                         {status === 'ACTIVE' && daysRemaining > 0 && daysRemaining <= 7 && (
-                            <span className="text-[10px] text-orange-500 flex items-center gap-1 font-medium mt-0.5"><Clock size={10} /> Sắp hết hạn</span>
+                            <span className="text-[10px] text-orange-500 flex items-center gap-1 font-medium mt-0.5"><Clock size={10} /> Còn {daysRemaining} ngày</span>
+                        )}
+                        {status === 'EXPIRED' && (
+                            <span className="text-[10px] text-red-400 flex items-center gap-1 font-medium mt-0.5">Đã kết thúc</span>
                         )}
                     </div>
                 ),
@@ -384,7 +382,6 @@ const PromotionManager = () => {
                 ),
                 actions: (
                     <div className="flex justify-center">
-                        {/* ✅ ĐÃ SỬA: Thay onRequestDelete thành onDelete để khớp với component ActionMenu */}
                         <ActionMenu
                             promo={item}
                             onEdit={(p) => { setEditingPromo(p); setIsModalOpen(true); }}
