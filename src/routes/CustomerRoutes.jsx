@@ -1,5 +1,6 @@
 console.warn("LOG BẮT BUỘC: File CustomerRoutes.jsx (bản mới nhất) ĐÃ CHẠY!");
 import React from "react";
+// --- Chuẩn hóa alias ---
 import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
 import CustomerDashboardLayout from "@/layouts/CustomerLayout/CustomerDashboardLayout";
 import HomePage from "@/pages/Customer/Home/HomePage";
@@ -8,7 +9,14 @@ import HelpPage from "@/pages/Customer/About/HelpPage";
 import Contact from "@/pages/Customer/About/Contact";
 import HotelSearchPage from "@/pages/Customer/HotelSearch/HotelSearchPage";
 import HotelDetailPage from "@/pages/Customer/HotelDetail/HotelDetailPage";
-import BookingHistory from "@/pages/Customer/Booking/BookingHistory";
+
+// ✅ IMPORT MỚI: CÁC TRANG BOOKING & PAYMENT
+import BookingPage from "@/pages/Customer/Booking/BookingPage";
+import PaymentPage from "@/pages/Customer/Booking/PaymentPage";
+
+// ✅ CẬP NHẬT: Dùng MyBookings (đã tích hợp API) thay vì BookingHistory cũ
+import MyBookings from "@/pages/Customer/Profile/MyBookings"; 
+
 import MyInboxPage from "@/pages/Customer/About/MyInboxPage";
 import ProfilePage from "@/pages/Customer/Profile/ProfilePage";
 import SettingsPage from "@/pages/Customer/Profile/SettingsPage";
@@ -20,10 +28,7 @@ import BecomeOwnerPage from "@/pages/Customer/Profile/BecomeOwnerPage";
 import ExploreMapPage from "@/pages/Customer/Explore/ExploreMapPage";
 import TransactionHistory from "@/pages/Customer/Profile/TransactionHistory/TransactionHistory";
 
-// ✅ IMPORT MỚI: BOOKING & PAYMENT
-import BookingPage from "@/pages/Customer/Booking/BookingPage";
-import PaymentPage from "@/pages/Customer/Booking/PaymentPage";
-
+// --- Chuẩn hóa alias ---
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import PartnerRoute from "@/routes/PartnerRoute";
 
@@ -76,8 +81,8 @@ const customerRoutes = [
       </CustomerLayout>
     ),
   },
-  
-  // ✅ THÊM MỚI: TRANG ĐẶT PHÒNG
+
+  // ✅ ROUTE ĐẶT PHÒNG (Yêu cầu đăng nhập)
   {
     path: "/booking/:propertyId",
     element: (
@@ -88,7 +93,8 @@ const customerRoutes = [
       </ProtectedRoute>
     ),
   },
-  // ✅ THÊM MỚI: TRANG THANH TOÁN
+
+  // ✅ ROUTE THANH TOÁN (Yêu cầu đăng nhập)
   {
     path: "/booking/payment/:bookingId",
     element: (
@@ -163,16 +169,19 @@ const customerRoutes = [
       </ProtectedRoute>
     ),
   },
+  
+  // ✅ CẬP NHẬT: Dùng MyBookings Component
   {
     path: "/customer/my-bookings",
     element: (
       <ProtectedRoute roles={["CUSTOMER"]}>
         <CustomerDashboardLayout>
-          <BookingHistory />
+          <MyBookings />
         </CustomerDashboardLayout>
       </ProtectedRoute>
     ),
   },
+
   {
     path: "/customer/my-inbox",
     element: (
@@ -183,16 +192,18 @@ const customerRoutes = [
       </ProtectedRoute>
     ),
   },
+  
   {
     path: "/customer/transactions",
     element: (
       <ProtectedRoute roles={["CUSTOMER"]}>
         <CustomerDashboardLayout>
-          <TransactionHistory />
+            <TransactionHistory />
         </CustomerDashboardLayout>
       </ProtectedRoute>
     ),
   },
+
   {
     path: "/partner/register",
     element: (
