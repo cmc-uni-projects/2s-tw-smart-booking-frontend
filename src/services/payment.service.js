@@ -11,6 +11,17 @@ const paymentService = {
       throw error.response?.data || error.message;
     }
   },
+  requestRefund: async (bookingId, reason) => {
+    try {
+      // Gửi reason qua params (hoặc body tùy backend, ở đây dùng params cho đồng bộ)
+      const response = await api.post(`/payment/request-refund/${bookingId}`, null, {
+          params: { reason }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 
   // ✅ MỚI: Lấy lịch sử giao dịch
   getHistoryByUser: async (userId) => {

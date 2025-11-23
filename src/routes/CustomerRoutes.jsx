@@ -9,6 +9,7 @@ import HelpPage from "@/pages/Customer/About/HelpPage";
 import Contact from "@/pages/Customer/About/Contact";
 import HotelSearchPage from "@/pages/Customer/HotelSearch/HotelSearchPage";
 import HotelDetailPage from "@/pages/Customer/HotelDetail/HotelDetailPage";
+import Refunds from "@/pages/Customer/Profile/Refunds";
 
 // ✅ IMPORT MỚI: CÁC TRANG BOOKING & PAYMENT
 import BookingPage from "@/pages/Customer/Booking/BookingPage";
@@ -212,6 +213,17 @@ const customerRoutes = [
       </PartnerRoute>
     ),
   },
+{
+        path: "/customer/refunds",
+        element: (
+            <ProtectedRoute roles={["CUSTOMER"]}>
+                <CustomerDashboardLayout>
+                    <Refunds />
+                </CustomerDashboardLayout>
+            </ProtectedRoute>
+        ),
+    },
+
 ];
 
 export default customerRoutes;
