@@ -9,7 +9,7 @@ import {
     Plus, Edit, Trash2, Tag, Search,
     Copy, CheckCircle2, AlertCircle, Ticket,
     ChevronLeft, ChevronRight, MoreVertical, PauseCircle, PlayCircle, XCircle,
-    AlertTriangle, Clock
+    AlertTriangle, Clock, RotateCw
 } from "lucide-react";
 
 // --- HELPER TOAST ---
@@ -18,15 +18,14 @@ const showToast = (type, message) => {
         <Toast type={type} message={message} onClose={() => toast.dismiss(t.id)} />
     ), {
         duration: 3000,
-        position: 'bottom-center' // ✅ Đổi vị trí thông báo
+        position: 'bottom-center'
     });
 };
 
-// --- HELPER PARSE DATE (Xử lý mảng LocalDateTime từ BE hoặc String) ---
+// --- HELPER PARSE DATE ---
 const parseDate = (dateInput) => {
     if (!dateInput) return new Date();
     if (Array.isArray(dateInput)) {
-        // Backend trả về mảng [yyyy, MM, dd, HH, mm, ss]
         return new Date(
             dateInput[0],
             dateInput[1] - 1,
@@ -175,6 +174,12 @@ const PromotionManager = () => {
     };
 
     useEffect(() => { fetchPromotions(); }, []);
+
+    // --- HÀM RELOAD MỚI ---
+    const handleReload = async () => {
+        await fetchPromotions();
+        showToast("success", "Dữ liệu đã được làm mới!");
+    };
 
     const getPromoStatus = (promo) => {
         const now = new Date();
@@ -401,7 +406,18 @@ const PromotionManager = () => {
             <Toaster />
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div><h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2"><Tag className="text-[rgb(40,169,224)]" /> Quản lý Khuyến mãi</h1><p className="text-gray-500 mt-1 text-sm">Tạo và quản lý các mã giảm giá, voucher cho khách hàng.</p></div>
-                <div className="flex gap-3"><Button onClick={() => { setEditingPromo(null); setIsModalOpen(true); }} leftIcon={<Plus size={18} />}>Thêm mã mới</Button></div>
+                <div className="flex gap-3">
+                    {/* Nút Reload */}
+                    <button
+                        onClick={handleReload}
+                        disabled={isLoading}
+                        className="p-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 hover:text-[rgb(40,169,224)] hover:border-[rgb(40,169,224)] transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
+                        title="Làm mới dữ liệu"
+                    >
+                        <RotateCw size={20} className={`transition-transform ${isLoading ? 'animate-spin' : 'group-hover:rotate-180'}`} />
+                    </button>
+                    <Button onClick={() => { setEditingPromo(null); setIsModalOpen(true); }} leftIcon={<Plus size={18} />}>Thêm mã mới</Button>
+                </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <StatCard title="Tổng mã khuyến mãi" value={stats.total} icon={Ticket} bgClass="bg-blue-50" colorClass="text-blue-600" />
