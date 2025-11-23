@@ -7,7 +7,7 @@ import toast, { Toaster } from "react-hot-toast";
 import Toast from "@/components/common/Notification/Toast";
 import {
     Plus, Edit, Trash2, Tag, Search,
-    Copy, CheckCircle2, AlertCircle, Ticket, Coins,
+    Copy, CheckCircle2, AlertCircle, Ticket,
     ChevronLeft, ChevronRight, MoreVertical, PauseCircle, PlayCircle, XCircle,
     AlertTriangle, Clock
 } from "lucide-react";
