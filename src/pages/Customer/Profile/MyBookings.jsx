@@ -14,7 +14,7 @@ import AccountMenu from "./AccountMenu";
 // Modals
 import BookingDetailModal from "./BookingDetailModal";
 import CancelBookingModal from "./CancelBookingModal";
-import RequestRefundModal from "./RequestRefundModal"; // ✅ Modal mới
+import RequestRefundModal from "./RequestRefundModal"; // ✅ Modal Yêu cầu hoàn tiền
 
 // Services & Context
 import bookingService from "@/services/booking.service";
@@ -123,7 +123,6 @@ export default function MyBookings() {
 
     // Mở Modal Hủy (Từ chi tiết hoặc nút hủy)
     const handleStartCancel = (booking) => {
-        // Nếu gọi từ modal chi tiết, booking có thể undefined, lấy từ state selected
         const targetBooking = booking || selectedBooking;
         setSelectedBooking(targetBooking);
         setIsDetailModalOpen(false);
@@ -314,7 +313,7 @@ export default function MyBookings() {
                                                         </Button>
                                                     )}
 
-                                                    {/* ✅ NÚT YÊU CẦU HOÀN TIỀN (Logic: Đã Hủy + Có tiền hoàn + Đã thanh toán + Chưa yêu cầu) */}
+                                                    {/* ✅ NÚT YÊU CẦU HOÀN TIỀN */}
                                                     {b.status === "CANCELLED" && 
                                                      b.refundAmount > 0 && 
                                                      b.paymentStatus === "APPROVED" && (
@@ -360,7 +359,7 @@ export default function MyBookings() {
                 isOpen={isDetailModalOpen}
                 onClose={() => setIsDetailModalOpen(false)}
                 booking={selectedBooking}
-                onCancelClick={() => handleStartCancel()} // Chuyển sang modal hủy
+                onCancelClick={() => handleStartCancel()} 
             />
 
             {/* Modal Xác nhận Hủy */}

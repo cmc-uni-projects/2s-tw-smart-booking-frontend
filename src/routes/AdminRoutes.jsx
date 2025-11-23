@@ -5,8 +5,7 @@ import AdminLayout from "../layouts/AdminLayout/AdminLayout";
 import AdminDashboard from "../pages/Admin/Dashboard/AdminDashboard";
 import PendingApprovalsPage from "../pages/Admin/Hotels/PendingApprovalsPage";
 import HotelSubmissionsPage from "../pages/Admin/Hotels/HotelSubmissionsPage";
-// import UserListPage from "../pages/Admin/Users/UserListPage";
-
+import TransactionManagementPage from "@/pages/Admin/Transactions/TransactionManagementPage";
 // ✅ Chuyển đổi const AdminRoutes = () => { ... } thành một mảng:
 const adminRoutes = [
   {
@@ -39,17 +38,14 @@ const adminRoutes = [
       </AdminLayout>
     ),
   },
-  // {
-  //   path: "/admin/users",
-  //   element: (
-  //     <AdminLayout>
-  //       <ProtectedRoute requiredRole="ADMIN">
-  //         <UserListPage />
-  //       </ProtectedRoute>
-  //     </AdminLayout>
-  //   ),
-  // },
-  // Không cần Route "*" ở đây vì index.jsx đã xử lý 404
+  {
+        path: "/admin/transactions",
+        element: (
+            <AdminLayout>
+                <TransactionManagementPage />
+            </AdminLayout>
+        ),
+    },
 ];
 
 export default adminRoutes; // ✅ Export mảng
