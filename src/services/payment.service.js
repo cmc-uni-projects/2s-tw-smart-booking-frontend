@@ -1,8 +1,10 @@
 import api from "./axios.config";
 
 const paymentService = {
+  // 1. Khách hàng thanh toán (Chuyển khoản / Tiền mặt)
   submitPayment: async (bookingId, note = "") => {
     try {
+      // Backend dùng @RequestParam cho note
       const response = await api.post("/payment/submit", null, {
         params: { bookingId, note }
       });
@@ -11,23 +13,24 @@ const paymentService = {
       throw error.response?.data || error.message;
     }
   },
-  requestRefund: async (bookingId, reason) => {
+
+  // 2. Lấy lịch sử giao dịch của User
+  getHistoryByUser: async (userId) => {
     try {
-      // Gửi reason qua params (hoặc body tùy backend, ở đây dùng params cho đồng bộ)
-      const response = await api.post(`/payment/request-refund/${bookingId}`, null, {
-          params: { reason }
-      });
-      return response.data;
+      const response = await api.get(`/payment/user/${userId}`);
+      // Kiểm tra nếu backend trả về ApiResponse { data: [...] }
+      return response.data?.data || response.data || [];
     } catch (error) {
       throw error.response?.data || error.message;
     }
   },
 
-  // ✅ MỚI: Lấy lịch sử giao dịch
-  getHistoryByUser: async (userId) => {
+  // ✅ 3. Gửi yêu cầu hoàn tiền (Cập nhật: Gửi Object JSON)
+  requestRefund: async (bookingId, refundData) => {
+    // refundData gồm: { reason, bankName, accountNumber, accountHolder }
     try {
-      const response = await api.get(`/payment/user/${userId}`);
-      return response.data; // Trả về mảng PaymentResponseDTO
+      const response = await api.post(`/payment/request-refund/${bookingId}`, refundData);
+      return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }

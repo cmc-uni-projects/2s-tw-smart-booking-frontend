@@ -1,8 +1,50 @@
 import React from 'react';
-import { RefreshCw, User, Building, Calendar, Mail, Phone, ArrowRight, AlertCircle } from 'lucide-react';
+import { User, Building, Calendar, Mail, Phone, ArrowRight, AlertCircle, CheckCircle, RotateCcw, XCircle } from 'lucide-react';
 import Button from '@/components/common/Button/Button';
 import Badge from '@/components/common/Badge/Badge';
 
+// --- 1. ĐỊNH NGHĨA BADGE TRỰC TIẾP TẠI ĐÂY ---
+const StatusBadge = ({ status }) => {
+    switch (status) {
+        case 'APPROVED': 
+            return (
+                <Badge className="bg-green-100 text-green-700 border border-green-200 flex items-center gap-1.5 px-2.5 py-1">
+                    <CheckCircle size={12} strokeWidth={2.5} /> 
+                    <span className="font-semibold">Thành công</span>
+                </Badge>
+            );
+        case 'REFUND_REQUESTED': 
+            return (
+                <Badge className="bg-red-100 text-red-700 border border-red-200 animate-pulse flex items-center gap-1.5 px-2.5 py-1">
+                    <AlertCircle size={12} strokeWidth={2.5} /> 
+                    <span className="font-bold">Yêu cầu hoàn tiền</span>
+                </Badge>
+            );
+        case 'REFUNDED': 
+            return (
+                <Badge className="bg-[rgb(40,169,224)]/10 text-[rgb(40,169,224)] border border-[rgb(40,169,224)]/20 flex items-center gap-1.5 px-2.5 py-1">
+                    <RotateCcw size={12} strokeWidth={2.5} /> 
+                    <span className="font-semibold">Đã hoàn tiền</span>
+                </Badge>
+            );
+        case 'FAILED': 
+        case 'REJECTED':
+            return (
+                <Badge className="bg-red-50 text-red-600 border border-red-100 flex items-center gap-1.5 px-2.5 py-1">
+                    <XCircle size={12} strokeWidth={2.5} /> 
+                    <span>Thất bại</span>
+                </Badge>
+            );
+        default: 
+            return (
+                <Badge className="bg-gray-100 text-gray-500 border border-gray-200 px-2.5 py-1">
+                    {status || 'Chưa rõ'}
+                </Badge>
+            );
+    }
+};
+
+// --- 2. COMPONENT ROW CHÍNH ---
 const TransactionRow = ({ transaction, onViewDetail }) => {
     // Destructure dữ liệu từ API (Dạng phẳng)
     const {
@@ -21,30 +63,10 @@ const TransactionRow = ({ transaction, onViewDetail }) => {
         });
     };
 
-    // Render Badge Trạng thái (Màu sắc theo yêu cầu)
-    const renderStatus = () => {
-        switch (paymentStatus) {
-            case 'APPROVED': 
-                return <Badge className="bg-green-100 text-green-700 border-green-200">Thành công</Badge>;
-            case 'REFUND_REQUESTED': 
-                return (
-                    <Badge className="bg-red-100 text-red-700 border-red-200 animate-pulse flex items-center gap-1">
-                        <AlertCircle size={12} /> Yêu cầu hoàn tiền
-                    </Badge>
-                );
-            case 'REFUNDED': 
-                return <Badge className="bg-purple-100 text-purple-700 border-purple-200">Đã hoàn tiền</Badge>;
-            case 'FAILED': 
-                return <Badge className="bg-gray-100 text-gray-600 border border-gray-200">Thất bại</Badge>;
-            default: 
-                return <Badge className="bg-gray-100 text-gray-500">{paymentStatus}</Badge>;
-        }
-    };
-
     return (
-        <div className="group bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 flex flex-col md:flex-row items-start md:items-center gap-4">
+        <div className="group bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md hover:border-[rgb(40,169,224)]/50 transition-all duration-200 flex flex-col md:flex-row items-start md:items-center gap-4">
             
-            {/* 1. ID & Ngày */}
+            {/* Cột 1: ID & Ngày */}
             <div className="w-full md:w-[15%] shrink-0 flex md:flex-col justify-between md:justify-center gap-1">
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-gray-900">#{paymentId}</span>
@@ -57,7 +79,7 @@ const TransactionRow = ({ transaction, onViewDetail }) => {
                 </div>
             </div>
 
-            {/* 2. Thông tin Khách hàng */}
+            {/* Cột 2: Thông tin Khách hàng */}
             <div className="w-full md:w-[25%] pl-0 md:pl-4 md:border-l border-gray-100">
                 <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0 mt-1">
@@ -79,7 +101,7 @@ const TransactionRow = ({ transaction, onViewDetail }) => {
                 </div>
             </div>
 
-            {/* 3. Thông tin Khách sạn */}
+            {/* Cột 3: Thông tin Khách sạn */}
             <div className="w-full md:w-[20%] pl-0 md:pl-4 md:border-l border-gray-100">
                 <div className="flex items-center gap-2">
                     <Building size={16} className="text-gray-400 shrink-0" />
@@ -89,27 +111,28 @@ const TransactionRow = ({ transaction, onViewDetail }) => {
                 </div>
             </div>
 
-            {/* 4. Số tiền & Trạng thái */}
+            {/* Cột 4: Số tiền & Trạng thái */}
             <div className="w-full md:w-[25%] flex flex-row md:flex-col justify-between md:justify-center items-center md:items-end pl-0 md:pl-4 md:border-l border-gray-100">
                 <div className="text-right">
                     <span className="block text-lg font-bold text-blue-600">{formatMoney(amount)}₫</span>
                     {refundedAmount > 0 && (
-                        <span className="block text-xs text-purple-600 font-medium bg-purple-50 px-1.5 py-0.5 rounded mt-0.5">
+                        <span className="block text-xs text-[rgb(40,169,224)] font-medium bg-[rgb(40,169,224)]/10 px-1.5 py-0.5 rounded mt-0.5">
                             - {formatMoney(refundedAmount)}₫ (Hoàn)
                         </span>
                     )}
                 </div>
                 <div className="mt-0 md:mt-1">
-                    {renderStatus()}
+                    {/* ✅ Sử dụng StatusBadge nội bộ */}
+                    <StatusBadge status={paymentStatus} />
                 </div>
             </div>
 
-            {/* 5. Nút Hành động: LUÔN HIỆN NÚT "XEM CHI TIẾT" */}
+            {/* Cột 5: Nút Hành động */}
             <div className="w-full md:w-[15%] flex justify-end pl-0 md:pl-2">
                 <Button 
                     variant="outline" 
                     size="sm" 
-                    className={`w-full md:w-auto border-gray-200 hover:border-blue-300 hover:text-blue-600 ${
+                    className={`w-full md:w-auto border-gray-200 hover:border-[rgb(40,169,224)] hover:text-[rgb(40,169,224)] ${
                         paymentStatus === 'REFUND_REQUESTED' ? 'border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-300' : ''
                     }`}
                     onClick={() => onViewDetail(transaction)}

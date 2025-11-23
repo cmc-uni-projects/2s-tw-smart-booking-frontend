@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '@/components/common/Modal/Modal';
 import Button from '@/components/common/Button/Button';
-import { AlertCircle, CreditCard, Landmark, User } from 'lucide-react';
+import { AlertCircle, CreditCard, Landmark, User, Hash } from 'lucide-react';
 
 export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking }) {
-    // State cho các trường nhập liệu
+    // State lưu trữ thông tin form
     const [formData, setFormData] = useState({
         reason: '',
         bankName: '',
@@ -34,7 +34,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
 
         // 1. Validate
         if (!reason.trim() || !bankName.trim() || !accountNumber.trim() || !accountHolder.trim()) {
-            setError('Vui lòng điền đầy đủ thông tin.');
+            setError('Vui lòng điền đầy đủ thông tin (Lý do & Tài khoản nhận tiền).');
             return;
         }
         if (reason.trim().length < 5) {
@@ -44,25 +44,21 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
 
         setSubmitting(true);
 
-        // 2. Gộp thông tin
-        const fullReasonData = `
-            [LÝ DO]: ${reason}
-            --------------------------------
-            [THÔNG TIN NHẬN TIỀN]:
-            - Ngân hàng: ${bankName}
-            - STK: ${accountNumber}
-            - Chủ TK: ${accountHolder.toUpperCase()}
-        `.trim();
-
-        // 3. Gọi callback
-        await onConfirm(booking, fullReasonData);
+        // 2. Gọi callback onConfirm với object dữ liệu chuẩn
+        // (Hàm này ở MyBookings.jsx sẽ gọi paymentService.requestRefund)
+        await onConfirm(booking, {
+            reason: reason.trim(),
+            bankName: bankName.trim(),
+            accountNumber: accountNumber.trim(),
+            accountHolder: accountHolder.toUpperCase().trim()
+        });
         
         setSubmitting(false);
     };
 
     return (
         <Modal
-            open={isOpen} // ✅ SỬA LỖI QUAN TRỌNG TẠI ĐÂY (Sửa isOpen -> open)
+            open={isOpen}
             onClose={onClose}
             title="Gửi yêu cầu hoàn tiền"
             maxWidth="max-w-lg"
@@ -70,13 +66,13 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
             <div className="space-y-5">
                 {/* Info Box */}
                 <div className="bg-orange-50 text-orange-800 p-3 rounded-lg flex gap-3 text-sm border border-orange-100">
-                    <AlertCircle className="shrink-0 w-5 h-5" />
+                    <AlertCircle className="shrink-0 w-5 h-5 mt-0.5" />
                     <div>
-                        <p className="font-semibold mb-1">Lưu ý quan trọng:</p>
+                        <p className="font-semibold mb-1">Thông tin hoàn tiền:</p>
                         <p>
-                            Số tiền hoàn lại dự kiến: <span className="font-bold">{new Intl.NumberFormat('vi-VN').format(booking?.refundAmount || 0)}₫</span>.
+                            Số tiền dự kiến hoàn lại: <span className="font-bold text-red-600">{new Intl.NumberFormat('vi-VN').format(booking?.refundAmount || 0)}₫</span>.
                         </p>
-                        <p className="mt-1">
+                        <p className="mt-1 text-xs opacity-90">
                             Vui lòng cung cấp chính xác thông tin tài khoản ngân hàng để Admin thực hiện chuyển khoản.
                         </p>
                     </div>
@@ -89,7 +85,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                     </label>
                     <textarea
                         name="reason"
-                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all"
+                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all placeholder:text-gray-400"
                         rows={3}
                         placeholder="VD: Tôi bận việc đột xuất, chuyến bay bị hủy..."
                         value={formData.reason}
@@ -120,14 +116,17 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                         </div>
                         <div>
                             <label className="text-xs font-medium text-gray-500 mb-1 block">Số tài khoản <span className="text-red-500">*</span></label>
-                            <input
-                                type="text"
-                                name="accountNumber"
-                                className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-mono"
-                                placeholder="VD: 0338..."
-                                value={formData.accountNumber}
-                                onChange={handleChange}
-                            />
+                            <div className="relative">
+                                <Hash size={14} className="absolute left-3 top-3 text-gray-400" />
+                                <input
+                                    type="text"
+                                    name="accountNumber"
+                                    className="w-full border border-gray-300 rounded-lg pl-9 p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-mono"
+                                    placeholder="VD: 0338..."
+                                    value={formData.accountNumber}
+                                    onChange={handleChange}
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -156,7 +155,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                         Hủy bỏ
                     </Button>
                     <Button 
-                        className="bg-orange-600 hover:bg-orange-700 text-white shadow-md"
+                        className="bg-orange-600 hover:bg-orange-700 text-white shadow-md px-6"
                         onClick={handleSubmit}
                         disabled={submitting}
                     >

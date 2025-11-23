@@ -20,7 +20,7 @@ import adminService from '@/services/admin.service';
 
 export default function TransactionManagementPage() {
     const [transactions, setTransactions] = useState([]);
-    const [loading, setLoading] = useState(true); // ✅ State tên là 'loading'
+    const [loading, setLoading] = useState(true);
     const [isActionLoading, setIsActionLoading] = useState(false);
     
     // Filter & Pagination State
@@ -40,6 +40,7 @@ export default function TransactionManagementPage() {
         setLoading(true);
         try {
             const data = await adminService.getAllTransactions();
+            // Kiểm tra an toàn dữ liệu trả về
             const dataArray = Array.isArray(data) ? data : (data?.data || []);
             
             // Sắp xếp: REFUND_REQUESTED lên đầu -> Mới nhất
@@ -49,7 +50,7 @@ export default function TransactionManagementPage() {
                 return new Date(b.paymentDate || 0) - new Date(a.paymentDate || 0);
             });
             setTransactions(sorted);
-            setCurrentPage(1); 
+            setCurrentPage(1); // Reset về trang 1 khi reload
         } catch (error) {
             console.error("Error fetching transactions:", error);
             setToast({ show: true, message: 'Lỗi tải dữ liệu giao dịch', type: 'error' });
@@ -64,21 +65,24 @@ export default function TransactionManagementPage() {
 
     // --- 2. HANDLERS ---
     
+    // Mở Modal Chi tiết
     const handleViewDetail = (trx) => {
         setDetailTransaction(trx);
     };
 
+    // Chuyển từ Modal Chi tiết -> Modal Hoàn tiền
     const handleOpenRefund = (trx) => {
-        setDetailTransaction(null);
-        setTimeout(() => setRefundTransaction(trx), 200);
+        setDetailTransaction(null); // Đóng modal chi tiết
+        setTimeout(() => setRefundTransaction(trx), 200); // Mở modal hoàn tiền
     };
 
+    // Xác nhận Hoàn tiền (Gọi API)
     const handleConfirmRefund = async (bookingId) => {
         setIsActionLoading(true);
         try {
             await adminService.approveRefund(bookingId);
             setToast({ show: true, message: 'Đã hoàn tiền thành công!', type: 'success' });
-            await fetchTransactions(); 
+            await fetchTransactions(); // Reload list để cập nhật trạng thái
         } catch (error) {
             setToast({ show: true, message: error.message || 'Lỗi hoàn tiền', type: 'error' });
         } finally {
@@ -91,10 +95,12 @@ export default function TransactionManagementPage() {
     const filteredList = useMemo(() => {
         let result = transactions;
 
+        // Lọc theo Status Tab
         if (filterStatus !== 'ALL') {
             result = result.filter(t => t.paymentStatus === filterStatus);
         }
 
+        // Lọc theo Search Keyword
         if (searchTerm) {
             const q = searchTerm.toLowerCase();
             result = result.filter(t => 
@@ -107,6 +113,7 @@ export default function TransactionManagementPage() {
         return result;
     }, [transactions, filterStatus, searchTerm]);
 
+    // Tính toán Pagination
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = filteredList.slice(indexOfFirstItem, indexOfLastItem);
@@ -143,7 +150,6 @@ export default function TransactionManagementPage() {
                         variant="outline" 
                         size="sm" 
                         onClick={fetchTransactions} 
-                        // ✅ SỬA LỖI Ở ĐÂY: Dùng 'loading' thay vì 'isLoading'
                         leftIcon={<RefreshCw size={16} className={loading ? "animate-spin" : ""} />}
                         className="bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
                     >
@@ -194,7 +200,6 @@ export default function TransactionManagementPage() {
 
                 {/* LIST TRANSACTIONS */}
                 <div className="mt-2">
-                    {/* ✅ SỬA LỖI Ở ĐÂY: Dùng 'loading' thay vì 'isLoading' */}
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-dashed border-gray-200">
                             <Loader2 className="animate-spin text-blue-500 mb-3" size={42} />
