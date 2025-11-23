@@ -1,10 +1,24 @@
 import React from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Card from "@/components/common/Card/Card";
 import Button from "@/components/common/Button/Button";
 import Badge from "@/components/common/Badge/Badge";
 import { Bed, Maximize, Wifi, User, XCircle, CheckCircle } from "lucide-react";
 
 const RoomRow = ({ room, onInfoClick }) => {
+    const navigate = useNavigate();
+    const { hotelId } = useParams();
+
+    const handleBookNow = () => {
+        navigate(`/booking/${hotelId}`, { 
+            state: { 
+                selectedRoomId: room.id,
+                roomName: room.name,
+                price: room.price
+            } 
+        });
+    };
+
     return (
         <Card className="p-4 !shadow-md hover:shadow-lg transition-shadow duration-200">
             <div className="grid grid-cols-1 lg:grid-cols-10 gap-4">
@@ -63,7 +77,7 @@ const RoomRow = ({ room, onInfoClick }) => {
                     </div>
                 </div>
 
-                {/* 4. Giá */}
+                {/* 4. Giá & Nút Đặt */}
                 <div className="col-span-7 lg:col-span-3 flex flex-col items-end justify-between text-right h-full border-t lg:border-t-0 lg:border-l border-gray-200 pt-4 lg:pt-0 lg:pl-4">
                     <div>
                         <div>
@@ -77,7 +91,13 @@ const RoomRow = ({ room, onInfoClick }) => {
                         </p>
                         <span className="text-xs text-gray-500">đã gồm thuế & phí / đêm</span>
                     </div>
-                    <Button size="md" className="w-full mt-2">Đặt</Button>
+                    <Button 
+                        size="md" 
+                        className="w-full mt-2 bg-[rgb(40,169,224)] hover:bg-blue-600 text-white"
+                        onClick={handleBookNow}
+                    >
+                        Đặt ngay
+                    </Button>
                 </div>
             </div>
         </Card>

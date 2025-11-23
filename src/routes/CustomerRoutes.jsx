@@ -1,6 +1,5 @@
 console.warn("LOG BẮT BUỘC: File CustomerRoutes.jsx (bản mới nhất) ĐÃ CHẠY!");
 import React from "react";
-// --- Chuẩn hóa alias ---
 import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
 import CustomerDashboardLayout from "@/layouts/CustomerLayout/CustomerDashboardLayout";
 import HomePage from "@/pages/Customer/Home/HomePage";
@@ -19,17 +18,16 @@ import LanguageSettings from "@/pages/Customer/Profile/LanguageSettings";
 import PartnerLandingPage from "@/pages/Partner/PartnerLandingPage";
 import BecomeOwnerPage from "@/pages/Customer/Profile/BecomeOwnerPage";
 import ExploreMapPage from "@/pages/Customer/Explore/ExploreMapPage";
-
-// ✅ Cập nhật đường dẫn import cho TransactionHistory
 import TransactionHistory from "@/pages/Customer/Profile/TransactionHistory/TransactionHistory";
 
-// --- Chuẩn hóa alias ---
+// ✅ IMPORT MỚI: BOOKING & PAYMENT
+import BookingPage from "@/pages/Customer/Booking/BookingPage";
+import PaymentPage from "@/pages/Customer/Booking/PaymentPage";
+
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import PartnerRoute from "@/routes/PartnerRoute";
 
 const customerRoutes = [
-  // ... (Tất cả các route khác của bạn / /about /hotels /customer/profile ...)
-  // ... (Giữ nguyên các route này)
   {
     path: "/",
     element: (
@@ -78,6 +76,30 @@ const customerRoutes = [
       </CustomerLayout>
     ),
   },
+  
+  // ✅ THÊM MỚI: TRANG ĐẶT PHÒNG
+  {
+    path: "/booking/:propertyId",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerLayout>
+           <BookingPage />
+        </CustomerLayout>
+      </ProtectedRoute>
+    ),
+  },
+  // ✅ THÊM MỚI: TRANG THANH TOÁN
+  {
+    path: "/booking/payment/:bookingId",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerLayout>
+           <PaymentPage />
+        </CustomerLayout>
+      </ProtectedRoute>
+    ),
+  },
+
   {
     path: "/partner-with-us",
     element: (
@@ -87,15 +109,15 @@ const customerRoutes = [
     ),
   },
   {
-  path: "/customer/profile",
-  element: (
-    <CustomerLayout>
-      <ProtectedRoute roles={["CUSTOMER"]}>
-        <ProfilePage />
-      </ProtectedRoute>
-    </CustomerLayout>
-  ),
-},
+    path: "/customer/profile",
+    element: (
+      <CustomerLayout>
+        <ProtectedRoute roles={["CUSTOMER"]}>
+          <ProfilePage />
+        </ProtectedRoute>
+      </CustomerLayout>
+    ),
+  },
   {
     path: "/customer/profile/settings",
     element: (
@@ -121,7 +143,6 @@ const customerRoutes = [
     element: <ExploreMapPage />,
     title: "Khám phá trên bản đồ"
   },
-
   {
     path: "/customer/profile/notifications",
     element: (
@@ -142,7 +163,6 @@ const customerRoutes = [
       </ProtectedRoute>
     ),
   },
-  
   {
     path: "/customer/my-bookings",
     element: (
@@ -163,29 +183,24 @@ const customerRoutes = [
       </ProtectedRoute>
     ),
   },
-  
-  
-
-    // ✅ ROUTE LỊCH SỬ GIAO DỊCH (giữ nguyên)
-    {
-        path: "/customer/transactions",
-        element: (
-            <ProtectedRoute roles={["CUSTOMER"]}>
-                <CustomerDashboardLayout>
-                    <TransactionHistory />
-                </CustomerDashboardLayout>
-            </ProtectedRoute>
-        ),
-    },
-
-    {
-        path: "/partner/register",
-        element: (
-            <PartnerRoute>
-                <BecomeOwnerPage />
-            </PartnerRoute>
-        ),
-    },
+  {
+    path: "/customer/transactions",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerDashboardLayout>
+          <TransactionHistory />
+        </CustomerDashboardLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/partner/register",
+    element: (
+      <PartnerRoute>
+        <BecomeOwnerPage />
+      </PartnerRoute>
+    ),
+  },
 ];
 
 export default customerRoutes;
