@@ -1,7 +1,8 @@
+// File: src/pages/Owner/Bookings/components/bookings/OccupiedRoomsTable.jsx
 import React from "react";
 import { Home, Calendar, LogOut, RefreshCw } from "lucide-react";
 
-// IMPORT TỪ FOLDER COMMON (Đi ra 1 cấp -> vào common)
+// IMPORT TỪ FOLDER COMMON
 import UserAvatar from "../common/UserAvatar";
 import StatusBadge from "../common/StatusBadge";
 import Button from "../common/Button";
@@ -10,6 +11,8 @@ const OccupiedRoomsTable = ({ data, onCheckOut, onViewDetail, loading }) => {
   const formatCurrency = (amount) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
   
   const parseRoomName = (fullName) => {
+    // Xử lý trường hợp fullName bị null hoặc undefined
+    if (!fullName) return { name: "Unknown", number: "" };
     const parts = fullName.split("(");
     return { name: parts[0].trim(), number: parts[1] ? parts[1].replace(")", "") : "" };
   };
@@ -54,12 +57,30 @@ const OccupiedRoomsTable = ({ data, onCheckOut, onViewDetail, loading }) => {
             const isOverdue = checkOutDate < today;
             const isToday = checkOutDate.getTime() === today.getTime();
             
+            // --- 1. SỬA LOGIC STATUS ---
             let statusType = 'active';
             let statusText = 'Đang ở';
-            if (isOverdue) { statusType = 'overdue'; statusText = 'Quá hạn'; }
-            else if (isToday) { statusType = 'today'; statusText = 'Trả hôm nay'; }
+
+            // Ưu tiên check trạng thái gốc từ Backend trước
+            if (room.originalStatus === 'COMPLETED') {
+                statusType = 'gray'; // Hoặc 'success' tùy badge của bạn
+                statusText = 'Đã trả phòng';
+            } else if (room.originalStatus === 'CANCELLED') {
+                statusType = 'gray';
+                statusText = 'Đã hủy';
+            } else if (room.originalStatus === 'PENDING_PAYMENT') {
+                statusType = 'warning';
+                statusText = 'Chờ thanh toán';
+            } else {
+                // Nếu đang hoạt động (CONFIRMED) thì mới tính theo ngày
+                if (isOverdue) { statusType = 'overdue'; statusText = 'Quá hạn'; }
+                else if (isToday) { statusType = 'today'; statusText = 'Trả hôm nay'; }
+            }
 
             const { name, number } = parseRoomName(room.roomName);
+            
+            // Kiểm tra xem có được phép trả phòng không (Chỉ cho phép khi chưa Completed/Cancelled)
+            const canCheckOut = room.originalStatus !== 'COMPLETED' && room.originalStatus !== 'CANCELLED';
 
             return (
               <tr key={room.id} className="hover:bg-blue-50/30 transition-colors group">
@@ -77,7 +98,7 @@ const OccupiedRoomsTable = ({ data, onCheckOut, onViewDetail, loading }) => {
                     <UserAvatar name={room.customerName} />
                     <div>
                       <p className="text-sm font-medium text-slate-700">{room.customerName}</p>
-                      <p className="text-xs text-slate-400">Khách lẻ</p>
+                      <p className="text-xs text-slate-400">{room.phone || 'Không có SĐT'}</p>
                     </div>
                   </div>
                 </td>
@@ -89,8 +110,8 @@ const OccupiedRoomsTable = ({ data, onCheckOut, onViewDetail, loading }) => {
                       <span>In: {new Date(room.checkIn).toLocaleDateString('vi-VN')}</span>
                     </div>
                     <div className="flex items-center text-xs text-slate-600">
-                      <LogOut size={12} className={`mr-2 ${isOverdue ? 'text-rose-500' : 'text-slate-400'}`} />
-                      <span className={isOverdue ? 'text-rose-600 font-bold' : ''}>
+                      <LogOut size={12} className={`mr-2 ${canCheckOut && isOverdue ? 'text-rose-500' : 'text-slate-400'}`} />
+                      <span className={canCheckOut && isOverdue ? 'text-rose-600 font-bold' : ''}>
                         Out: {new Date(room.checkOut).toLocaleDateString('vi-VN')}
                       </span>
                     </div>
@@ -101,10 +122,11 @@ const OccupiedRoomsTable = ({ data, onCheckOut, onViewDetail, loading }) => {
                   <span className="text-sm font-bold text-slate-700 block">
                     {formatCurrency(room.totalPrice)}
                   </span>
-                  <span className="text-xs text-slate-400">Chưa thanh toán</span>
+                  <span className="text-xs text-slate-400">{room.paymentMethod}</span>
                 </td>
 
                 <td className="px-6 py-4 text-center">
+                  {/* StatusBadge cần hỗ trợ type 'gray' hoặc 'success', nếu không nó sẽ fallback về mặc định */}
                   <StatusBadge type={statusType} text={statusText} />
                 </td>
 
@@ -113,9 +135,14 @@ const OccupiedRoomsTable = ({ data, onCheckOut, onViewDetail, loading }) => {
                     <Button size="sm" variant="soft" onClick={() => onViewDetail(room)}>
                       Chi tiết
                     </Button>
-                    <Button size="sm" variant="dangerSoft" onClick={() => onCheckOut(room.id)}>
-                      Trả phòng
-                    </Button>
+                    
+                    {/* --- 2. SỬA LOGIC HIỂN THỊ NÚT --- */}
+                    {/* Chỉ hiện nút Trả phòng khi trạng thái hợp lệ */}
+                    {canCheckOut && (
+                        <Button size="sm" variant="dangerSoft" onClick={() => onCheckOut(room.id)}>
+                        Trả phòng
+                        </Button>
+                    )}
                   </div>
                 </td>
               </tr>

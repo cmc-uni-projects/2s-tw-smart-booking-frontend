@@ -61,7 +61,28 @@ const bookingService = {
     } catch (error) {
       throw error.response?.data || error.message;
     }
-  }
+  },
+  getBookingsByProperty: async (propertyId) => {
+    try {
+      const response = await api.get(`/bookings/property/${propertyId}`);
+      return response.data; // Trả về mảng BookingResponseDTO
+    } catch (error) {
+      console.error("Error fetching property bookings:", error);
+      throw error;
+    }
+  },
+
+  // 2. API Check-out (Trả phòng)
+  checkOutBooking: async (bookingId) => {
+    try {
+      const response = await api.put(`/bookings/checkout/${bookingId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error checking out:", error);
+      throw error;
+    }
+  },
 };
+
 
 export default bookingService;
