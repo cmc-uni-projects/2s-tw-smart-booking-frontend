@@ -50,6 +50,14 @@ const bookingService = {
       throw error.response?.data || error.message;
     }
   },
+  checkInBooking: async (bookingId) => {
+    try {
+      const response = await api.put(`/bookings/${bookingId}/check-in`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 
   // ==========================================
   // 5. LẤY DANH SÁCH BOOKING THEO KHÁCH SẠN (Dành cho Chủ nhà/Admin)
@@ -73,13 +81,13 @@ const bookingService = {
   },
 
   // 2. API Check-out (Trả phòng)
-  checkOutBooking: async (bookingId) => {
+checkOutBooking: async (bookingId) => {
     try {
+      // Gọi đúng đường dẫn đã định nghĩa ở Controller (/checkout/{id})
       const response = await api.put(`/bookings/checkout/${bookingId}`);
       return response.data;
     } catch (error) {
-      console.error("Error checking out:", error);
-      throw error;
+      throw error.response?.data || error.message;
     }
   },
 };

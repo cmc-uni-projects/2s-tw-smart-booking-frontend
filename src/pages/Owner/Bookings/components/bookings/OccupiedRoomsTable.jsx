@@ -1,153 +1,119 @@
-// File: src/pages/Owner/Bookings/components/bookings/OccupiedRoomsTable.jsx
 import React from "react";
-import { Home, Calendar, LogOut, RefreshCw } from "lucide-react";
+import { LogIn, LogOut, Eye } from "lucide-react";
 
-// IMPORT TỪ FOLDER COMMON
-import UserAvatar from "../common/UserAvatar";
-import StatusBadge from "../common/StatusBadge";
-import Button from "../common/Button";
-
-const OccupiedRoomsTable = ({ data, onCheckOut, onViewDetail, loading }) => {
-  const formatCurrency = (amount) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
+const OccupiedRoomsTable = ({ data, loading, onCheckIn, onCheckOut, onViewDetail }) => {
   
-  const parseRoomName = (fullName) => {
-    // Xử lý trường hợp fullName bị null hoặc undefined
-    if (!fullName) return { name: "Unknown", number: "" };
-    const parts = fullName.split("(");
-    return { name: parts[0].trim(), number: parts[1] ? parts[1].replace(")", "") : "" };
+  const formatDate = (date) => {
+      if (!date) return "---";
+      return new Date(date).toLocaleDateString('vi-VN');
   };
 
-  const normalizeDate = (d) => { const date = new Date(d); date.setHours(0,0,0,0); return date; };
-
   if (loading) {
-    return (
-      <div className="p-12 text-center flex flex-col items-center justify-center text-slate-400">
-        <RefreshCw className="animate-spin mb-2 text-[#28A9E0]" size={24} />
-        <span>Đang tải dữ liệu phòng...</span>
-      </div>
-    );
+      return <div className="p-12 text-center text-slate-500">Đang tải dữ liệu...</div>;
+  }
+  
+  if (!data || data.length === 0) {
+      return <div className="p-12 text-center text-slate-500 italic">Không có dữ liệu phù hợp.</div>;
   }
 
-  if (data.length === 0) {
-    return (
-      <div className="p-12 text-center border-t border-slate-100 text-slate-500 italic">
-        Không tìm thấy phòng nào phù hợp với bộ lọc.
-      </div>
-    );
-  }
+  // Helper để hiển thị trạng thái tiếng Việt đẹp hơn
+  const renderStatusLabel = (status) => {
+      switch (status) {
+          case 'PENDING_PAYMENT': return 'Chờ thanh toán';
+          case 'CONFIRMED': return 'Sắp đến';
+          case 'CHECKED_IN': return 'Đang lưu trú';
+          case 'COMPLETED': return 'Hoàn thành';
+          case 'CANCELLED': return 'Đã hủy';
+          default: return status;
+      }
+  };
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr className="bg-blue-50 border-b border-blue-100 text-xs uppercase tracking-wider text-slate-800 font-bold">
+      <table className="w-full text-left text-sm">
+        <thead className="bg-slate-50 text-slate-500 uppercase text-xs font-semibold border-b border-slate-200">
+          <tr>
+            <th className="px-6 py-4">Mã Đơn</th>
             <th className="px-6 py-4">Phòng</th>
-            <th className="px-6 py-4">Khách hàng</th>
-            <th className="px-6 py-4">Thời gian lưu trú</th>
-            <th className="px-6 py-4 text-right">Tổng tiền</th>
-            <th className="px-6 py-4 text-center">Trạng thái</th>
-            <th className="px-6 py-4 text-center">Thao tác</th>
+            <th className="px-6 py-4">Khách Hàng</th>
+            <th className="px-6 py-4">Lịch Trình</th>
+            <th className="px-6 py-4 text-center">Trạng Thái</th>
+            <th className="px-6 py-4 text-right">Thao Tác</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 bg-white">
-          {data.map((room) => {
-            const today = normalizeDate(new Date());
-            const checkOutDate = normalizeDate(room.checkOut);
-            
-            const isOverdue = checkOutDate < today;
-            const isToday = checkOutDate.getTime() === today.getTime();
-            
-            // --- 1. SỬA LOGIC STATUS ---
-            let statusType = 'active';
-            let statusText = 'Đang ở';
-
-            // Ưu tiên check trạng thái gốc từ Backend trước
-            if (room.originalStatus === 'COMPLETED') {
-                statusType = 'gray'; // Hoặc 'success' tùy badge của bạn
-                statusText = 'Đã trả phòng';
-            } else if (room.originalStatus === 'CANCELLED') {
-                statusType = 'gray';
-                statusText = 'Đã hủy';
-            } else if (room.originalStatus === 'PENDING_PAYMENT') {
-                statusType = 'warning';
-                statusText = 'Chờ thanh toán';
-            } else {
-                // Nếu đang hoạt động (CONFIRMED) thì mới tính theo ngày
-                if (isOverdue) { statusType = 'overdue'; statusText = 'Quá hạn'; }
-                else if (isToday) { statusType = 'today'; statusText = 'Trả hôm nay'; }
-            }
-
-            const { name, number } = parseRoomName(room.roomName);
-            
-            // Kiểm tra xem có được phép trả phòng không (Chỉ cho phép khi chưa Completed/Cancelled)
-            const canCheckOut = room.originalStatus !== 'COMPLETED' && room.originalStatus !== 'CANCELLED';
-
-            return (
-              <tr key={room.id} className="hover:bg-blue-50/30 transition-colors group">
-                <td className="px-6 py-4">
-                  <div className="flex flex-col">
-                    <span className="font-bold text-slate-800 text-sm group-hover:text-[#28A9E0] transition-colors">{name}</span>
-                    <span className="text-xs font-medium text-slate-500 mt-1 flex items-center gap-1">
-                      <Home size={10} /> {number}
-                    </span>
-                  </div>
-                </td>
-
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <UserAvatar name={room.customerName} />
-                    <div>
-                      <p className="text-sm font-medium text-slate-700">{room.customerName}</p>
-                      <p className="text-xs text-slate-400">{room.phone || 'Không có SĐT'}</p>
-                    </div>
-                  </div>
-                </td>
-
-                <td className="px-6 py-4">
-                  <div className="flex flex-col gap-1.5">
-                    <div className="flex items-center text-xs text-slate-600">
-                      <Calendar size={12} className="mr-2 text-slate-400" />
-                      <span>In: {new Date(room.checkIn).toLocaleDateString('vi-VN')}</span>
-                    </div>
-                    <div className="flex items-center text-xs text-slate-600">
-                      <LogOut size={12} className={`mr-2 ${canCheckOut && isOverdue ? 'text-rose-500' : 'text-slate-400'}`} />
-                      <span className={canCheckOut && isOverdue ? 'text-rose-600 font-bold' : ''}>
-                        Out: {new Date(room.checkOut).toLocaleDateString('vi-VN')}
-                      </span>
-                    </div>
-                  </div>
-                </td>
-
-                <td className="px-6 py-4 text-right">
-                  <span className="text-sm font-bold text-slate-700 block">
-                    {formatCurrency(room.totalPrice)}
-                  </span>
-                  <span className="text-xs text-slate-400">{room.paymentMethod}</span>
-                </td>
-
-                <td className="px-6 py-4 text-center">
-                  {/* StatusBadge cần hỗ trợ type 'gray' hoặc 'success', nếu không nó sẽ fallback về mặc định */}
-                  <StatusBadge type={statusType} text={statusText} />
-                </td>
-
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center justify-center gap-4">
-                    <Button size="sm" variant="soft" onClick={() => onViewDetail(room)}>
-                      Chi tiết
-                    </Button>
+        <tbody className="divide-y divide-slate-100">
+          {data.map((item) => (
+            <tr key={item.bookingId} className="hover:bg-slate-50 transition-colors">
+              <td className="px-6 py-4 font-bold text-blue-600">
+                  {item.bookingCode || `BK-${item.bookingId}`}
+              </td>
+              <td className="px-6 py-4">
+                <p className="font-medium text-slate-800">{item.roomName}</p>
+                {/* Nếu có số phòng thì hiện, không thì ẩn */}
+                {item.roomNumber && <p className="text-xs text-slate-500">P. {item.roomNumber}</p>}
+              </td>
+              <td className="px-6 py-4">
+                <p className="font-medium text-slate-800">{item.customerName}</p>
+                <p className="text-xs text-slate-500">{item.phone || "---"}</p>
+              </td>
+              <td className="px-6 py-4 text-slate-600">
+                <div className="flex items-center gap-1 text-xs">
+                    <span className="font-medium">{formatDate(item.checkIn)}</span> 
+                    <span>➝</span> 
+                    <span className="font-medium">{formatDate(item.checkOut)}</span>
+                </div>
+                <div className="text-xs text-slate-400 mt-1">
+                    {item.guestCount}
+                </div>
+              </td>
+              <td className="px-6 py-4 text-center">
+                <span className={`px-2 py-1 rounded text-xs font-bold border ${
+                    item.status === 'CONFIRMED' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                    item.status === 'CHECKED_IN' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                    item.status === 'PENDING_PAYMENT' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                    item.status === 'CANCELLED' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                    'bg-slate-100 text-slate-600 border-slate-200'
+                }`}>
+                    {renderStatusLabel(item.status)}
+                </span>
+              </td>
+              <td className="px-6 py-4 text-right">
+                <div className="flex justify-end gap-2">
                     
-                    {/* --- 2. SỬA LOGIC HIỂN THỊ NÚT --- */}
-                    {/* Chỉ hiện nút Trả phòng khi trạng thái hợp lệ */}
-                    {canCheckOut && (
-                        <Button size="sm" variant="dangerSoft" onClick={() => onCheckOut(room.id)}>
-                        Trả phòng
-                        </Button>
+                    {/* 🟢 Nút Check-in (Chỉ hiện khi khách sắp đến - CONFIRMED) */}
+                    {item.status === 'CONFIRMED' && (
+                        <button 
+                            onClick={() => onCheckIn(item.bookingId)}
+                            className="p-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors"
+                            title="Check In (Khách nhận phòng)"
+                        >
+                            <LogIn size={16} />
+                        </button>
                     )}
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
+
+                    {/* 🔴 Nút Check-out (Chỉ hiện khi khách đang ở - CHECKED_IN) */}
+                    {item.status === 'CHECKED_IN' && (
+                        <button 
+                            onClick={() => onCheckOut(item.bookingId)}
+                            className="p-2 bg-emerald-100 text-emerald-600 rounded hover:bg-emerald-200 transition-colors"
+                            title="Check Out (Khách trả phòng)"
+                        >
+                            <LogOut size={16} />
+                        </button>
+                    )}
+
+                    {/* ⚪ Nút Xem Chi Tiết (Luôn hiện) */}
+                    <button 
+                        onClick={() => onViewDetail(item)}
+                        className="p-2 bg-slate-100 text-slate-600 rounded hover:bg-slate-200 transition-colors border border-slate-200"
+                        title="Xem chi tiết"
+                    >
+                        <Eye size={16} />
+                    </button>
+                </div>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
