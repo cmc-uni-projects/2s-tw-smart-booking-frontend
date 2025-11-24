@@ -5,10 +5,12 @@ import AdminLayout from "../layouts/AdminLayout/AdminLayout";
 import AdminDashboard from "../pages/Admin/Dashboard/AdminDashboard";
 import PendingApprovalsPage from "../pages/Admin/Hotels/PendingApprovalsPage";
 import HotelSubmissionsPage from "../pages/Admin/Hotels/HotelSubmissionsPage";
-// import UserListPage from "../pages/Admin/Users/UserListPage";
 
-// 👇 (Mới) Import Component Quản lý Khuyến mãi
+// 👇 (Mới từ nhánh của bạn) Import Component Quản lý Khuyến mãi
 import PromotionManager from "../pages/Admin/Promotions/PromotionManager";
+
+// 👇 (Mới từ nhánh develop) Import Component Quản lý Giao dịch
+import TransactionManagementPage from "@/pages/Admin/Transactions/TransactionManagementPage";
 
 // ✅ Chuyển đổi const AdminRoutes = () => { ... } thành một mảng:
 const adminRoutes = [
@@ -42,6 +44,15 @@ const adminRoutes = [
             </AdminLayout>
         ),
     },
+    // 👇 (Mới) Route cho trang Quản lý Giao dịch
+    {
+        path: "/admin/transactions",
+        element: (
+            <AdminLayout>
+                <TransactionManagementPage />
+            </AdminLayout>
+        ),
+    },
     // 👇 (Mới) Route cho trang Quản lý Khuyến mãi
     {
         path: "/admin/promotions",
@@ -53,18 +64,6 @@ const adminRoutes = [
             </AdminLayout>
         ),
     },
-    // {
-    //   path: "/admin/users",
-    //   element: (
-    //     <AdminLayout>
-    //       <ProtectedRoute requiredRole="ADMIN">
-    //         <UserListPage />
-    //       </ProtectedRoute>
-    //     </AdminLayout>
-    //   ),
-    // },
-    // Không cần Route "*" ở đây vì index.jsx đã xử lý 404
 ];
 
 export default adminRoutes; // ✅ Export mảng
-

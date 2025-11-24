@@ -139,6 +139,20 @@ const getPropertyDetail = async (id) => {
     throw error.response?.data || error.message;
   }
 };
+// ============================
+// 🗺️ TÌM KHÁCH SẠN QUANH ĐÂY (MAP EXPLORE) -> [MỚI THÊM]
+// ============================
+const findNearbyProperties = async (lat, lng, radius = 10) => {
+  try {
+    const response = await api.get(`/properties/nearby`, {
+      params: { lat, lng, radius }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching nearby properties:", error);
+    return [];
+  }
+};
 
 // ==========================================================
 // 📦 EXPORT
@@ -153,7 +167,8 @@ const propertyService = {
   deletePropertyImage,  
   setCoverImage,
   getOwnerActiveProperties,
-  submitPropertyApplication,     
+  submitPropertyApplication,
+  findNearbyProperties,     
 };
 
 export default propertyService;

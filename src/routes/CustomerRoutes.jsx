@@ -9,7 +9,15 @@ import HelpPage from "@/pages/Customer/About/HelpPage";
 import Contact from "@/pages/Customer/About/Contact";
 import HotelSearchPage from "@/pages/Customer/HotelSearch/HotelSearchPage";
 import HotelDetailPage from "@/pages/Customer/HotelDetail/HotelDetailPage";
-import BookingHistory from "@/pages/Customer/Booking/BookingHistory";
+import Refunds from "@/pages/Customer/Profile/Refunds";
+
+// ✅ IMPORT MỚI: CÁC TRANG BOOKING & PAYMENT
+import BookingPage from "@/pages/Customer/Booking/BookingPage";
+import PaymentPage from "@/pages/Customer/Booking/PaymentPage";
+
+// ✅ CẬP NHẬT: Dùng MyBookings (đã tích hợp API) thay vì BookingHistory cũ
+import MyBookings from "@/pages/Customer/Profile/MyBookings"; 
+
 import MyInboxPage from "@/pages/Customer/About/MyInboxPage";
 import ProfilePage from "@/pages/Customer/Profile/ProfilePage";
 import SettingsPage from "@/pages/Customer/Profile/SettingsPage";
@@ -18,8 +26,7 @@ import NotificationSettings from "@/pages/Customer/Profile/NotificationSettings"
 import LanguageSettings from "@/pages/Customer/Profile/LanguageSettings";
 import PartnerLandingPage from "@/pages/Partner/PartnerLandingPage";
 import BecomeOwnerPage from "@/pages/Customer/Profile/BecomeOwnerPage";
-
-// ✅ Cập nhật đường dẫn import cho TransactionHistory
+import ExploreMapPage from "@/pages/Customer/Explore/ExploreMapPage";
 import TransactionHistory from "@/pages/Customer/Profile/TransactionHistory/TransactionHistory";
 
 // --- Chuẩn hóa alias ---
@@ -27,8 +34,6 @@ import ProtectedRoute from "@/routes/ProtectedRoute";
 import PartnerRoute from "@/routes/PartnerRoute";
 
 const customerRoutes = [
-  // ... (Tất cả các route khác của bạn / /about /hotels /customer/profile ...)
-  // ... (Giữ nguyên các route này)
   {
     path: "/",
     element: (
@@ -77,6 +82,31 @@ const customerRoutes = [
       </CustomerLayout>
     ),
   },
+
+  // ✅ ROUTE ĐẶT PHÒNG (Yêu cầu đăng nhập)
+  {
+    path: "/booking/:propertyId",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerLayout>
+           <BookingPage />
+        </CustomerLayout>
+      </ProtectedRoute>
+    ),
+  },
+
+  // ✅ ROUTE THANH TOÁN (Yêu cầu đăng nhập)
+  {
+    path: "/booking/payment/:bookingId",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerLayout>
+           <PaymentPage />
+        </CustomerLayout>
+      </ProtectedRoute>
+    ),
+  },
+
   {
     path: "/partner-with-us",
     element: (
@@ -86,15 +116,15 @@ const customerRoutes = [
     ),
   },
   {
-  path: "/customer/profile",
-  element: (
-    <CustomerLayout>
-      <ProtectedRoute roles={["CUSTOMER"]}>
-        <ProfilePage />
-      </ProtectedRoute>
-    </CustomerLayout>
-  ),
-},
+    path: "/customer/profile",
+    element: (
+      <CustomerLayout>
+        <ProtectedRoute roles={["CUSTOMER"]}>
+          <ProfilePage />
+        </ProtectedRoute>
+      </CustomerLayout>
+    ),
+  },
   {
     path: "/customer/profile/settings",
     element: (
@@ -116,6 +146,11 @@ const customerRoutes = [
     ),
   },
   {
+    path: "explore",
+    element: <ExploreMapPage />,
+    title: "Khám phá trên bản đồ"
+  },
+  {
     path: "/customer/profile/notifications",
     element: (
       <ProtectedRoute roles={["CUSTOMER"]}>
@@ -135,16 +170,19 @@ const customerRoutes = [
       </ProtectedRoute>
     ),
   },
+  
+  // ✅ CẬP NHẬT: Dùng MyBookings Component
   {
     path: "/customer/my-bookings",
     element: (
       <ProtectedRoute roles={["CUSTOMER"]}>
         <CustomerDashboardLayout>
-          <BookingHistory />
+          <MyBookings />
         </CustomerDashboardLayout>
       </ProtectedRoute>
     ),
   },
+
   {
     path: "/customer/my-inbox",
     element: (
@@ -156,27 +194,36 @@ const customerRoutes = [
     ),
   },
   
+  {
+    path: "/customer/transactions",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerDashboardLayout>
+            <TransactionHistory />
+        </CustomerDashboardLayout>
+      </ProtectedRoute>
+    ),
+  },
 
-    // ✅ ROUTE LỊCH SỬ GIAO DỊCH (giữ nguyên)
-    {
-        path: "/customer/transactions",
+  {
+    path: "/partner/register",
+    element: (
+      <PartnerRoute>
+        <BecomeOwnerPage />
+      </PartnerRoute>
+    ),
+  },
+{
+        path: "/customer/refunds",
         element: (
             <ProtectedRoute roles={["CUSTOMER"]}>
                 <CustomerDashboardLayout>
-                    <TransactionHistory />
+                    <Refunds />
                 </CustomerDashboardLayout>
             </ProtectedRoute>
         ),
     },
 
-    {
-        path: "/partner/register",
-        element: (
-            <PartnerRoute>
-                <BecomeOwnerPage />
-            </PartnerRoute>
-        ),
-    },
 ];
 
 export default customerRoutes;

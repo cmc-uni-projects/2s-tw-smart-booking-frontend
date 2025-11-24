@@ -137,6 +137,7 @@ const Footer = () => {
                   className={`w-10 h-10 rounded-full bg-white/10 flex items-center justify-center transition-all duration-300 ${item.color} hover:scale-110 hover:shadow-lg text-white`}
                 >
                   {item.icon}
+                  
                 </a>
               ))}
             </div>

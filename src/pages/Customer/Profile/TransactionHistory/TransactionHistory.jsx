@@ -1,114 +1,68 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AccountMenu from "../AccountMenu";
 import { useAuth } from "@/context/AuthContext";
+import paymentService from "@/services/payment.service"; // ✅ Import service
+import { format } from "date-fns";
 
-// Import các component con từ thư mục components
 import TransactionCard from "./components/TransactionCard";
 import TransactionDetailModal from "./components/TransactionDetailModal";
-import TransactionTabs from "./components/TransactionTabs"; // ✅ Import component mới
-
-// Dữ liệu Mock
-const MOCK_TRANSACTIONS = [
-    {
-        id: "TRX-241101",
-        date: "2025-11-18T08:30:00",
-        description: "Thanh toán đặt phòng: The Ocean Resort (Deluxe King)",
-        amount: -2500000,
-        method: "Ví MoMo",
-        status: "SUCCESS"
-    },
-    {
-        id: "TRX-241102",
-        date: "2025-11-15T14:20:00",
-        description: "Hoàn tiền hủy phòng: Hanoi Grand Hotel",
-        amount: 1200000,
-        method: "Cổng VNPay",
-        status: "SUCCESS"
-    },
-    {
-        id: "TRX-241103",
-        date: "2025-11-10T10:00:00",
-        description: "Thanh toán giữ chỗ: Dalat Dream",
-        amount: -500000,
-        method: "Ví ZaloPay",
-        status: "PENDING"
-    },
-    {
-        id: "TRX-241104",
-        date: "2025-11-09T18:45:00",
-        description: "Thanh toán thất bại: Vinpearl Resort Nha Trang",
-        amount: -3200000,
-        method: "Ví MoMo",
-        status: "FAILED"
-    },
-    {
-        id: "TRX-241105",
-        date: "2025-11-08T09:15:00",
-        description: "Thanh toán lỗi hệ thống: Sapa Jade Hill",
-        amount: -1800000,
-        method: "Cổng VNPay",
-        status: "FAILED"
-    },
-    {
-        id: "TRX-241106",
-        date: "2025-11-07T16:30:00",
-        description: "Hoàn tiền: Hủy chuyến do bão (Mường Thanh Luxury)",
-        amount: 2100000,
-        method: "Ví ZaloPay",
-        status: "SUCCESS"
-    },
-    {
-        id: "TRX-241107",
-        date: "2025-11-05T11:20:00",
-        description: "Hoàn tiền cọc: Pullman Saigon Centre",
-        amount: 500000,
-        method: "Ví MoMo",
-        status: "SUCCESS"
-    },
-    {
-        id: "TRX-241108",
-        date: "2025-11-01T08:00:00",
-        description: "Hoàn tiền dịch vụ: Đưa đón sân bay (Đà Nẵng)",
-        amount: 300000,
-        method: "Cổng VNPay",
-        status: "SUCCESS"
-    },
-    {
-        id: "TRX-241109",
-        date: "2025-11-20T09:30:00",
-        description: "Thanh toán giữ chỗ: Flamingo Đại Lải Resort",
-        amount: -2000000,
-        method: "Ví ZaloPay",
-        status: "PENDING"
-    },
-    {
-        id: "TRX-241110",
-        date: "2025-11-21T15:00:00",
-        description: "Hoàn tiền cọc: Sun World Ba Na Hills",
-        amount: 800000,
-        method: "Ví MoMo",
-        status: "REFUNDED"
-    }
-];
+import TransactionTabs from "./components/TransactionTabs";
+import Spinner from "@/components/common/Loading/Spinner"; // ✅ Import Spinner nếu có
 
 export default function TransactionHistory() {
     const navigate = useNavigate();
     const { currentUser } = useAuth();
 
-    const mockUserData = currentUser || {
-        fullName: "Khách hàng Demo",
-        email: "demo@travelmate.vn",
-        profilePhotoUrl: "https://i.pravatar.cc/150?img=12"
-    };
-
-    const [transactions] = useState(MOCK_TRANSACTIONS);
+    const [transactions, setTransactions] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [selectedTransaction, setSelectedTransaction] = useState(null);
-
-    // State quản lý Tab đang active
     const [activeTab, setActiveTab] = useState("ALL");
 
-    // ✅ Logic lọc dữ liệu theo STATUS (trạng thái)
+    // ✅ 1. Fetch Data từ API
+    useEffect(() => {
+        const fetchHistory = async () => {
+            if (!currentUser) return;
+            setLoading(true);
+            try {
+                const data = await paymentService.getHistoryByUser(currentUser.userId); // Lưu ý: dùng userId hay id tùy AuthContext
+                
+                // Map dữ liệu Backend sang format Frontend cần
+                const mappedData = data.map(item => ({
+                    id: `TRX-${item.paymentId}`,
+                    bookingId: item.bookingId,
+                    date: item.paymentDate,
+                    description: `Thanh toán đặt phòng: ${item.propertyName}`,
+                    amount: -item.amount, // Tiền ra là số âm
+                    refunded: item.refundedAmount, // Tiền hoàn (nếu có)
+                    method: item.paymentMethod || "Online Payment",
+                    status: mapStatus(item.paymentStatus),
+                    rawStatus: item.paymentStatus // Giữ status gốc để check logic khác nếu cần
+                }));
+
+                setTransactions(mappedData);
+            } catch (error) {
+                console.error("Failed to load transactions:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchHistory();
+    }, [currentUser]);
+
+    // ✅ Helper map status từ Backend (Enum) sang Frontend
+    const mapStatus = (backendStatus) => {
+        switch (backendStatus) {
+            case 'APPROVED': return 'SUCCESS';
+            case 'PENDING': return 'PENDING';
+            case 'REJECTED': return 'FAILED';
+            case 'REFUNDED': return 'REFUNDED';
+            default: return 'PENDING';
+        }
+    };
+
+    // ✅ Logic lọc hiển thị
     const filteredTransactions = transactions.filter(item => {
         if (activeTab === "ALL") return true;
         return item.status === activeTab;
@@ -121,8 +75,7 @@ export default function TransactionHistory() {
                     <AccountMenu
                         activeSection="transactions"
                         onSelect={(path) => navigate(`/customer/${path}`)}
-                        userData={mockUserData}
-                        isUploadingAvatar={false}
+                        userData={currentUser}
                     />
                 </div>
 
@@ -134,32 +87,35 @@ export default function TransactionHistory() {
                         </div>
                     </div>
 
-                    {/* ✅ Sử dụng Component Tabs mới */}
                     <TransactionTabs
                         activeTab={activeTab}
                         onTabChange={setActiveTab}
                     />
 
-                    {/* Danh sách Card */}
-                    <div className="flex flex-col gap-4">
-                        {filteredTransactions.length > 0 ? (
-                            filteredTransactions.map((item) => (
-                                <TransactionCard
-                                    key={item.id}
-                                    transaction={item}
-                                    onClick={() => setSelectedTransaction(item)}
-                                />
-                            ))
-                        ) : (
-                            <div className="py-10 text-center bg-white rounded-xl border border-dashed border-gray-300">
-                                <p className="text-gray-500">Không có giao dịch nào cho trạng thái này.</p>
-                            </div>
-                        )}
-                    </div>
+                    {/* Danh sách Giao dịch */}
+                    {loading ? (
+                        <div className="flex justify-center py-10"><Spinner /></div>
+                    ) : (
+                        <div className="flex flex-col gap-4">
+                            {filteredTransactions.length > 0 ? (
+                                filteredTransactions.map((item) => (
+                                    <TransactionCard
+                                        key={item.id}
+                                        transaction={item}
+                                        onClick={() => setSelectedTransaction(item)}
+                                    />
+                                ))
+                            ) : (
+                                <div className="py-10 text-center bg-white rounded-xl border border-dashed border-gray-300">
+                                    <p className="text-gray-500">Không có giao dịch nào.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Modal Chi Tiết */}
+            {/* Modal */}
             <TransactionDetailModal
                 open={!!selectedTransaction}
                 onClose={() => setSelectedTransaction(null)}

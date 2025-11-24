@@ -7,6 +7,7 @@ import AddPropertyPage from "@/pages/Owner/Properties/AddPropertyPage";
 import RoomManagementPage from "@/pages/Owner/Rooms/RoomManagementPage";
 import RoomListPage from "@/pages/Owner/Rooms/RoomListPage";
 import PlaceholderPage from "@/pages/Owner/PlaceholderPage";
+import OwnerBookingsPage from "@/pages/Owner/Bookings/OwnerBookingsPage";
 
 const ownerRoutes = [
   {
@@ -47,7 +48,7 @@ const ownerRoutes = [
     element: (
       <OwnerLayout>
         <ProtectedRoute requiredRole="OWNER">
-          {/* ✅ SỬA: Trang danh sách Property để chọn quản lý phòng */}
+          {/* Trang danh sách Property để chọn quản lý phòng */}
           <RoomListPage /> 
         </ProtectedRoute>
       </OwnerLayout>
@@ -58,24 +59,26 @@ const ownerRoutes = [
     element: (
       <OwnerLayout>
         <ProtectedRoute requiredRole="OWNER">
-          {/* ✅ SỬA: Trang quản lý chi tiết phòng của 1 Property */}
+          {/* Trang quản lý chi tiết phòng của 1 Property */}
           <RoomManagementPage /> 
         </ProtectedRoute>
       </OwnerLayout>
     ),
   },
 
-  // --- CÁC TRANG KHÁC ---
+  // --- 🌟 TRANG QUẢN LÝ BOOKINGS (ĐÃ CỐ ĐỊNH) 🌟 ---
   {
     path: "/owner/bookings",
     element: (
       <OwnerLayout>
         <ProtectedRoute requiredRole="OWNER">
-          <PlaceholderPage title="Quản lý Bookings" />
+          <OwnerBookingsPage />
         </ProtectedRoute>
       </OwnerLayout>
     ),
   },
+  
+  // --- CÁC TRANG KHÁC (GIỮ NGUYÊN PLACEHOLDER) ---
   {
     path: "/owner/tasks",
     element: (

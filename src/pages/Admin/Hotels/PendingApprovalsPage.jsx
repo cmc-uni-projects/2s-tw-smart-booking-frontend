@@ -1,40 +1,47 @@
 import React, { useState, useEffect, useMemo } from "react";
-import Card from "@/components/common/Card/Card";
-import CardHeader from "@/components/common/Card/CardHeader";
-import { Users, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
-import adminService from "@/services/admin.service";
-import Toast from "@/components/common/Notification/Toast";
-import EmptyState from "@/components/common/EmptyState/EmptyState";
 import { AnimatePresence, motion } from "framer-motion";
-import Button from "@/components/common/Button/Button";
-
-// Filters
-import SubmissionSearchBar from "./components/SubmissionSearchBar";
-import SubmissionStatusFilter from "./components/SubmissionStatusFilter";
+import { Users, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
 
 // Components
+import Card from "@/components/common/Card/Card";
+import CardHeader from "@/components/common/Card/CardHeader";
+import Button from "@/components/common/Button/Button";
+import Toast from "@/components/common/Notification/Toast";
+import EmptyState from "@/components/common/EmptyState/EmptyState";
+import LoadingOverlay from "@/components/common/Loading/LoadingOverlay"; // ✅ Loading
+
+import SubmissionSearchBar from "./components/SubmissionSearchBar";
+import SubmissionStatusFilter from "./components/SubmissionStatusFilter";
 import ApprovalCard from "./components/ApprovalCard";
+
+// Modals
 import ViewApplicationModal from "./components/ViewApplicationModal";
 import ApproveOwnerModal from "./components/ApproveOwnerModal";
 import RejectOwnerModal from "./components/RejectOwnerModal";
 
+import adminService from "@/services/admin.service";
+
 const PendingApprovalsPage = () => {
-  // --- State ---
   const [applications, setApplications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isActionLoading, setIsActionLoading] = useState(false); // ✅ Action Loading
   const [selectedApp, setSelectedApp] = useState(null);
   const [toastData, setToastData] = useState(null);
 
-  // Filter State
   const [filterStatus, setFilterStatus] = useState("PENDING");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Modals
+  // Modal visibility
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isRejectOpen, setIsRejectOpen] = useState(false);
 
-  // --- Fetch Data ---
+  const showToast = (message, type = "info") => {
+    setToastData({ message, type });
+    setTimeout(() => setToastData(null), 3000);
+  };
+
+  // Fetch Data
   const fetchApplications = async () => {
     try {
       setIsLoading(true);
@@ -46,7 +53,6 @@ const PendingApprovalsPage = () => {
           adminService.getOwnerApplications("APPROVED"),
           adminService.getOwnerApplications("REJECTED")
         ]);
-
         if (pending.status === "fulfilled") data = [...data, ...(pending.value.data || [])];
         if (approved.status === "fulfilled") data = [...data, ...(approved.value.data || [])];
         if (rejected.status === "fulfilled") data = [...data, ...(rejected.value.data || [])];
@@ -55,33 +61,25 @@ const PendingApprovalsPage = () => {
         data = res.data || [];
       }
 
-      // ✅ CẬP NHẬT MAPPING DỮ LIỆU (QUAN TRỌNG)
+      // Mapping
       const mappedData = data.map((app) => ({
         ...app,
-        id: app.id, // Backend trả về "id"
-        
-        // Map các trường thông tin người dùng mới
+        id: app.id, 
         fullName: app.applicantFullName || "Chưa rõ",
         email: app.applicantEmail,
         phoneNumber: app.applicantPhoneNumber || "Chưa cập nhật",
         avatar: app.applicantAvatar, 
-        
-        // Hiển thị số GPKD
         businessName: app.businessLicenseNumber ? `GPKD: ${app.businessLicenseNumber}` : "Cá nhân",
-        
         status: app.status,
-        submittedDate: app.createdAt
-          ? new Date(app.createdAt).toLocaleDateString("vi-VN")
-          : "N/A",
+        submittedDate: app.createdAt ? new Date(app.createdAt).toLocaleDateString("vi-VN") : "N/A",
       }));
 
-      // Sort mới nhất
       mappedData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setApplications(mappedData);
 
     } catch (error) {
       console.error(error);
-      showToast("Không thể tải danh sách đơn đăng ký.", "error");
+      showToast("Lỗi tải dữ liệu.", "error");
     } finally {
       setIsLoading(false);
     }
@@ -91,7 +89,7 @@ const PendingApprovalsPage = () => {
     fetchApplications();
   }, [filterStatus]);
 
-  // --- Filtering ---
+  // Filter
   const filteredList = useMemo(() => {
     if (!searchTerm) return applications;
     const q = searchTerm.toLowerCase();
@@ -103,11 +101,10 @@ const PendingApprovalsPage = () => {
     );
   }, [applications, searchTerm]);
 
-  // --- Helpers ---
-  const showToast = (message, type = "info") => {
-    setToastData({ message, type });
-    setTimeout(() => setToastData(null), 3000);
-  };
+  // Handlers
+  const handleViewDetails = (app) => { setSelectedApp(app); setIsViewOpen(true); };
+  const handleApprove = (app) => { setSelectedApp(app); setIsApproveOpen(true); };
+  const handleReject = (app) => { setSelectedApp(app); setIsRejectOpen(true); };
 
   const closeModals = () => {
     setIsViewOpen(false);
@@ -116,76 +113,54 @@ const PendingApprovalsPage = () => {
     setTimeout(() => setSelectedApp(null), 200);
   };
 
-  // --- Handlers ---
-  const handleViewDetails = (app) => { setSelectedApp(app); setIsViewOpen(true); };
-  const handleApprove = (app) => { setSelectedApp(app); setIsApproveOpen(true); };
-  const handleReject = (app) => { setSelectedApp(app); setIsRejectOpen(true); };
-
+  // Actions (Với Loading Overlay)
   const onConfirmApprove = async () => {
     if (!selectedApp) return;
+    setIsActionLoading(true);
     try {
       await adminService.reviewOwnerApplication(selectedApp.id, { status: "APPROVED" });
       showToast(`Đã duyệt chủ sở hữu ${selectedApp.fullName}`, "success");
-      fetchApplications();
+      await fetchApplications();
       closeModals();
     } catch (error) {
       showToast(error.message || "Lỗi khi duyệt", "error");
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
   const onConfirmReject = async (reason) => {
     if (!selectedApp) return;
+    setIsActionLoading(true);
     try {
       await adminService.reviewOwnerApplication(selectedApp.id, { status: "REJECTED", reason });
       showToast(`Đã từ chối đơn của ${selectedApp.fullName}`, "success");
-      fetchApplications();
+      await fetchApplications();
       closeModals();
     } catch (error) {
       showToast(error.message || "Lỗi khi từ chối", "error");
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
   return (
     <>
-      {toastData && (
-        <div className="fixed top-24 right-6 z-[9999]">
-          <Toast message={toastData.message} type={toastData.type} />
-        </div>
-      )}
+      {toastData && <div className="fixed top-24 right-6 z-[9999]"><Toast message={toastData.message} type={toastData.type} /></div>}
+      
+      {isActionLoading && <LoadingOverlay message="Đang xử lý hồ sơ..." />}
 
       <Card className="overflow-hidden min-h-screen bg-gray-50/50 border-none shadow-none">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <CardHeader
-            title="Phê duyệt Đối tác (Owner)"
-            subtitle="Xác minh thông tin và cấp quyền cho chủ sở hữu mới"
-            icon={<Users className="text-blue-600" />}
-            className="p-0"
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchApplications}
-            leftIcon={<RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />}
-            className="bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
-          >
-            Làm mới
-          </Button>
+          <CardHeader title="Phê duyệt Đối tác" subtitle="Xác minh hồ sơ đăng ký chủ sở hữu" icon={<Users className="text-blue-600" />} className="p-0" />
+          <Button variant="outline" size="sm" onClick={fetchApplications} leftIcon={<RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />}>Làm mới</Button>
         </div>
 
         <div className="flex flex-col gap-4 bg-white p-5 rounded-2xl shadow-sm border border-gray-200 mb-6">
-          <div className="w-full overflow-x-auto pb-2 md:pb-0">
-            <SubmissionStatusFilter
-              currentStatus={filterStatus}
-              onStatusChange={setFilterStatus}
-            />
-          </div>
+          <SubmissionStatusFilter currentStatus={filterStatus} onStatusChange={setFilterStatus} />
           <div className="h-px bg-gray-100 w-full"></div>
           <div className="w-full md:w-1/2">
-            <SubmissionSearchBar 
-                onSearch={setSearchTerm} 
-                initialValue={searchTerm} 
-                placeholder="Tìm theo tên, email hoặc số điện thoại..."
-            />
+            <SubmissionSearchBar onSearch={setSearchTerm} initialValue={searchTerm} placeholder="Tìm theo tên, email, số điện thoại..." />
           </div>
         </div>
 
@@ -193,39 +168,23 @@ const PendingApprovalsPage = () => {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-dashed border-gray-200">
               <Loader2 className="animate-spin text-blue-500 mb-3" size={42} />
-              <p className="text-gray-500 text-sm font-medium">Đang tải danh sách...</p>
+              <p className="text-gray-500 text-sm">Đang tải dữ liệu...</p>
             </div>
           ) : (
-            <motion.div layout className="flex flex-col gap-3">
+            <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               <AnimatePresence mode="popLayout">
                 {filteredList.length > 0 ? (
                   filteredList.map((app) => (
-                    <ApprovalCard
-                      key={app.id}
-                      application={app}
-                      onViewDetails={handleViewDetails}
-                      onApprove={handleApprove}
-                      onReject={handleReject}
-                    />
+                    <motion.div key={app.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }}>
+                        <ApprovalCard application={app} onViewDetails={() => handleViewDetails(app)} />
+                    </motion.div>
                   ))
                 ) : (
-                  <motion.div
-                    layout
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm"
-                  >
-                    <EmptyState
-                      title="Không tìm thấy đơn đăng ký"
-                      description={
-                        searchTerm || filterStatus !== "ALL"
-                          ? "Không có kết quả nào khớp với bộ lọc."
-                          : "Hiện tại không có yêu cầu nào."
-                      }
-                      icon={<ShieldCheck className="text-gray-300 w-16 h-16 mb-4" />}
-                    />
-                  </motion.div>
+                  <div className="col-span-full">
+                    <motion.div initial={{opacity:0}} animate={{opacity:1}} className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
+                        <EmptyState title="Không tìm thấy đơn đăng ký" description="Danh sách trống hoặc không khớp bộ lọc." icon={<ShieldCheck className="text-gray-300 w-16 h-16 mb-4" />} />
+                    </motion.div>
+                  </div>
                 )}
               </AnimatePresence>
             </motion.div>
@@ -236,22 +195,14 @@ const PendingApprovalsPage = () => {
       {selectedApp && (
         <>
           <ViewApplicationModal
-            open={isViewOpen}
+            isOpen={isViewOpen}
             onClose={closeModals}
             application={selectedApp}
+            onApprove={handleApprove}
+            onReject={handleReject}
           />
-          <ApproveOwnerModal
-            open={isApproveOpen}
-            onClose={closeModals}
-            application={selectedApp}
-            onConfirm={onConfirmApprove}
-          />
-          <RejectOwnerModal
-            open={isRejectOpen}
-            onClose={closeModals}
-            application={selectedApp}
-            onConfirm={onConfirmReject}
-          />
+          <ApproveOwnerModal open={isApproveOpen} onClose={closeModals} application={selectedApp} onConfirm={onConfirmApprove} />
+          <RejectOwnerModal open={isRejectOpen} onClose={closeModals} application={selectedApp} onConfirm={onConfirmReject} />
         </>
       )}
     </>
