@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import './BookingForm.css';
 import { Contact, Users, CheckSquare, FileText, Ban } from 'lucide-react';
 
+// Component nhập số điện thoại (Nội bộ)
 const PhoneInput = ({ value, onChange }) => (
     <div className="phone-input-wrapper">
         <select className="country-code" defaultValue="+84">
@@ -21,11 +22,11 @@ const PhoneInput = ({ value, onChange }) => (
     </div>
 );
 
-const BookingForm = ({ onChange, initialData }) => {
-    const { currentUser } = useAuth();
+const BookingForm = ({ onChange, initialData, initialContact }) => {
+    const { user } = useAuth();
 
-    // ✅ State Contact: Lấy từ initialData
-    const [contact, setContact] = useState(initialData?.contact || {
+    // State Contact
+    const [contact, setContact] = useState(initialData?.contact || initialContact || {
         fullName: '',
         phone: '',
         email: '',
@@ -37,11 +38,10 @@ const BookingForm = ({ onChange, initialData }) => {
         email: '',
     });
 
-    // ✅ State GuestName: Lấy từ initialData
+    // State GuestName
     const [guestName, setGuestName] = useState(initialData?.guestName || '');
 
-    // ✅ SỬA QUAN TRỌNG: Kiểm tra thông minh để tick checkbox
-    // Nếu có dữ liệu cũ và Tên khách == Tên liên hệ -> Tick vào checkbox
+    // Checkbox "Đặt cho mình"
     const [isBookingForSelf, setIsBookingForSelf] = useState(() => {
         if (initialData?.contact?.fullName && initialData?.guestName) {
             return initialData.contact.fullName === initialData.guestName;
@@ -49,33 +49,32 @@ const BookingForm = ({ onChange, initialData }) => {
         return false;
     });
 
-    // ✅ State SpecialRequests: Lấy từ initialData
+    // State SpecialRequests
     const [specialRequests, setSpecialRequests] = useState(initialData?.specialRequests || {
         nonSmoking: false,
         connectingRoom: false,
         highFloor: false,
     });
 
+    // Cập nhật dữ liệu lên cha mỗi khi form thay đổi
     useEffect(() => {
-        const allDetails = {
-            contact,
-            guestName,
-            specialRequests,
-        };
         if (onChange) {
-            onChange(allDetails);
+            onChange({
+                contact,
+                guestName,
+                specialRequests,
+            });
         }
     }, [contact, guestName, specialRequests, onChange]);
 
-    // Xử lý khi click "Tôi đặt cho chính mình"
+    // Auto-fill tên khách khi chọn "Đặt cho mình"
     useEffect(() => {
         if (isBookingForSelf) {
             setGuestName(contact.fullName);
-        } 
-        // ⚠️ Đã xóa đoạn else { setGuestName('') } để tránh lỗi xóa tên khi load lại trang
+        }
     }, [isBookingForSelf, contact.fullName]);
 
-    // --- CÁC HÀM VALIDATE (GIỮ NGUYÊN) ---
+    // --- VALIDATION ---
     const validateFullName = (name) => {
         if (!name.trim()) return "Họ tên không được để trống.";
         const regex = /^[A-Za-zÀ-ỹ\s]+$/;
@@ -113,7 +112,6 @@ const BookingForm = ({ onChange, initialData }) => {
 
     return (
         <div className="booking-form-container">
-
             {/* PHẦN 1: LIÊN HỆ */}
             <div className="form-section">
                 <div className="form-header">
@@ -145,7 +143,6 @@ const BookingForm = ({ onChange, initialData }) => {
                             onChange={handleContactChange}
                         />
                         {errors.phone && <small style={{ color: "red" }}>{errors.phone}</small>}
-                        <small>VD: +84 901234567</small>
                     </div>
 
                     <div className="form-group">
@@ -160,7 +157,6 @@ const BookingForm = ({ onChange, initialData }) => {
                             required
                         />
                         {errors.email && <small style={{ color: "red" }}>{errors.email}</small>}
-                        <small>Ví dụ: email@example.com</small>
                     </div>
                 </div>
 
@@ -194,7 +190,6 @@ const BookingForm = ({ onChange, initialData }) => {
                         readOnly={isBookingForSelf}
                         required
                     />
-                    <small>Người dùng Việt Nam: Họ + Tên đệm + Tên.</small>
                 </div>
             </div>
 
@@ -204,45 +199,20 @@ const BookingForm = ({ onChange, initialData }) => {
                     <CheckSquare size={20} className="form-header-icon" />
                     <h2>Yêu cầu đặc biệt</h2>
                 </div>
-                <p className="form-description" style={{ paddingLeft: 0, margin: '0 0 1.5rem 0' }}>
-                    Bạn cần thêm giường phụ hoặc có yêu cầu đặc biệt?
-                </p>
-
                 <div className="special-requests-grid">
                     <div className="checkbox-group-vertical">
-                        <input
-                            type="checkbox"
-                            id="nonSmoking"
-                            name="nonSmoking"
-                            checked={specialRequests.nonSmoking}
-                            onChange={handleRequestChange}
-                        />
+                        <input type="checkbox" id="nonSmoking" name="nonSmoking" checked={specialRequests.nonSmoking} onChange={handleRequestChange} />
                         <label htmlFor="nonSmoking">Phòng không hút thuốc</label>
                     </div>
-
                     <div className="checkbox-group-vertical">
-                        <input
-                            type="checkbox"
-                            id="connectingRoom"
-                            name="connectingRoom"
-                            checked={specialRequests.connectingRoom}
-                            onChange={handleRequestChange}
-                        />
+                        <input type="checkbox" id="connectingRoom" name="connectingRoom" checked={specialRequests.connectingRoom} onChange={handleRequestChange} />
                         <label htmlFor="connectingRoom">Phòng liên thông</label>
                     </div>
-
                     <div className="checkbox-group-vertical">
-                        <input
-                            type="checkbox"
-                            id="highFloor"
-                            name="highFloor"
-                            checked={specialRequests.highFloor}
-                            onChange={handleRequestChange}
-                        />
+                        <input type="checkbox" id="highFloor" name="highFloor" checked={specialRequests.highFloor} onChange={handleRequestChange} />
                         <label htmlFor="highFloor">Tầng lầu</label>
                     </div>
                 </div>
-                <a href="#" className="read-more-link">Đọc tất cả</a>
             </div>
 
             {/* PHẦN 4: CHÍNH SÁCH */}
@@ -250,7 +220,6 @@ const BookingForm = ({ onChange, initialData }) => {
                 <div className="form-header">
                     <FileText size={20} className="form-header-icon" />
                     <h2>Chính sách Chỗ ở</h2>
-                    <a href="#" className="read-more-link ml-auto">Đọc tất cả</a>
                 </div>
                 <div className="policy-item">
                     <Ban size={18} className="policy-icon no-smoking" />
@@ -260,7 +229,6 @@ const BookingForm = ({ onChange, initialData }) => {
                     </div>
                 </div>
             </div>
-
         </div>
     );
 };

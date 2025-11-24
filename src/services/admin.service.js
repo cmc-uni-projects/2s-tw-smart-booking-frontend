@@ -1,8 +1,9 @@
 import api from "./axios.config.js";
 
+// Dữ liệu giả lập để test giao diện (Khi nào có API Backend thật thì xóa đi)
 const adminService = {
   // ============================
-  // 🧑‍💼 LẤY CÁC ĐƠN ĐĂNG KÝ OWNER (Giữ nguyên)
+  // 🧑‍💼 LẤY CÁC ĐƠN ĐĂNG KÝ OWNER
   // ============================
   getOwnerApplications: async (status) => {
     try {
@@ -17,7 +18,7 @@ const adminService = {
   },
 
   // ============================
-  // 📝 DUYỆT ĐƠN ĐĂNG KÝ OWNER (Giữ nguyên)
+  // 📝 DUYỆT ĐƠN ĐĂNG KÝ OWNER
   // ============================
   reviewOwnerApplication: async (applicationId, reviewData) => {
     try {
@@ -33,16 +34,13 @@ const adminService = {
   },
 
   // ============================
-  // 🏨 LẤY DANH SÁCH CƠ SỞ THEO TRẠNG THÁI (🔴 ĐÃ SỬA)
+  // 🏨 LẤY DANH SÁCH CƠ SỞ THEO TRẠNG THÁI
   // ============================
   getPropertiesByStatus: async (status) => {
     try {
-      // ✅ GỌI API ĐỘNG: /api/v1/admin/properties/status?status=PENDING
       const response = await api.get(`/admin/properties/status`, {
         params: { status }, 
       });
-      
-      // ✅ Backend trả về List trực tiếp, nên chỉ cần response.data
       return response.data; 
     } catch (error) {
       console.error("Error fetching properties:", error);
@@ -51,7 +49,7 @@ const adminService = {
   },
 
   // ============================
-  // 🏤 DUYỆT CƠ SỞ (APPROVE / REJECTED) (🟢 GIỮ NGUYÊN VÌ ĐÃ ĐÚNG URL)
+  // 🏤 DUYỆT CƠ SỞ (APPROVE / REJECTED)
   // ============================
   reviewProperty: async (propertyId, reviewData) => {
     try {
@@ -63,6 +61,33 @@ const adminService = {
     } catch (error) {
       console.error(`Error reviewing property ${propertyId}:`, error);
       throw new Error(error.response?.data?.message || "Lỗi khi duyệt cơ sở");
+    }
+  },
+
+  // ============================================================
+  // 💰 [MỚI] QUẢN LÝ GIAO DỊCH & HOÀN TIỀN
+  // ============================================================
+  
+getAllTransactions: async () => {
+    try {
+      const response = await api.get("/payment/all");
+      // ✅ SỬA: Nếu backend trả về ApiResponse { data: [...] } thì phải lấy .data
+      // Kiểm tra an toàn: nếu response.data là mảng thì dùng luôn, nếu là object có field data thì lấy field đó
+      const result = response.data;
+      return Array.isArray(result) ? result : (result.data || []); 
+    } catch (error) {
+      console.error("Lỗi lấy danh sách giao dịch:", error);
+      throw new Error(error.response?.data?.message || "Không thể tải dữ liệu giao dịch");
+    }
+  },
+
+  // 2. Xác nhận hoàn tiền
+  approveRefund: async (bookingId) => {
+    try {
+      const response = await api.post(`/payment/refund/${bookingId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
     }
   },
 };
