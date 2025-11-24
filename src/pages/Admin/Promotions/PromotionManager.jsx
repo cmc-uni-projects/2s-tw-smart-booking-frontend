@@ -9,8 +9,43 @@ import {
     Plus, Edit, Trash2, Tag, Search,
     Copy, CheckCircle2, AlertCircle, Ticket,
     ChevronLeft, ChevronRight, MoreVertical, PauseCircle, PlayCircle, XCircle,
-    AlertTriangle, Clock, RotateCw
+    AlertTriangle, Clock, RotateCw, Image as ImageIcon
 } from "lucide-react";
+
+// --- CONFIG ---
+const BE_BASE_URL = "http://localhost:8080"; // Đảm bảo đúng port Backend
+const UPLOAD_DIR = "/uploads/";
+
+// Helper ghép URL
+const getFullImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith("http")) return path;
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    return `${BE_BASE_URL}${UPLOAD_DIR}${cleanPath}`;
+};
+
+// --- COMPONENT: Banner Image (Xử lý ảnh lỗi thông minh) ---
+const BannerImage = ({ url }) => {
+    const [error, setError] = useState(false);
+
+    // Nếu không có URL hoặc đã xảy ra lỗi tải ảnh -> Hiển thị Icon thay thế
+    if (!url || error) {
+        return (
+            <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300">
+                <ImageIcon size={18} />
+            </div>
+        );
+    }
+
+    return (
+        <img
+            src={getFullImageUrl(url)}
+            alt="Banner"
+            className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+            onError={() => setError(true)} // Khi lỗi xảy ra, set state error = true
+        />
+    );
+};
 
 // --- HELPER TOAST ---
 const showToast = (type, message) => {
@@ -38,7 +73,7 @@ const parseDate = (dateInput) => {
     return new Date(dateInput);
 };
 
-// --- STATUS MODAL ---
+// --- MODALS ---
 const StatusConfirmModal = ({ isOpen, onClose, onConfirm, promo }) => {
     if (!isOpen || !promo) return null;
     const willPause = promo.isActive;
@@ -67,7 +102,6 @@ const StatusConfirmModal = ({ isOpen, onClose, onConfirm, promo }) => {
     );
 };
 
-// --- DELETE MODAL ---
 const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, promoCode }) => {
     if (!isOpen) return null;
     return (
@@ -87,7 +121,6 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, promoCode }) => {
     );
 };
 
-// --- ACTION MENU ---
 const ActionMenu = ({ promo, onEdit, onDelete, onRequestToggle }) => {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef(null);
@@ -122,7 +155,6 @@ const ActionMenu = ({ promo, onEdit, onDelete, onRequestToggle }) => {
     );
 };
 
-// --- STAT CARD ---
 const StatCard = ({ title, value, icon: Icon, colorClass, bgClass }) => (
     <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between transition-transform hover:scale-105">
         <div><p className="text-gray-500 text-sm font-medium">{title}</p><h4 className="text-2xl font-bold text-gray-800 mt-1">{value}</h4></div>
@@ -151,6 +183,7 @@ const PromotionManager = () => {
             const rawData = response.data || [];
             const mappedData = rawData.map(item => ({
                 id: item.promotionId,
+                promotionId: item.promotionId,
                 code: item.code,
                 name: item.description,
                 type: item.discountType === "PERCENTAGE" ? "PERCENT" : "FIXED",
@@ -162,6 +195,7 @@ const PromotionManager = () => {
                 startDate: item.startDate,
                 endDate: item.endDate,
                 isActive: item.status === "ACTIVE",
+                bannerUrl: item.bannerUrl
             }));
             mappedData.sort((a, b) => b.id - a.id);
             setPromotions(mappedData);
@@ -175,7 +209,6 @@ const PromotionManager = () => {
 
     useEffect(() => { fetchPromotions(); }, []);
 
-    // --- HÀM RELOAD MỚI ---
     const handleReload = async () => {
         await fetchPromotions();
         showToast("success", "Dữ liệu đã được làm mới!");
@@ -184,7 +217,6 @@ const PromotionManager = () => {
     const getPromoStatus = (promo) => {
         const now = new Date();
         const endDate = parseDate(promo.endDate);
-
         if (endDate < now) return "EXPIRED";
         if (!promo.isActive) return "PAUSED";
         return "ACTIVE";
@@ -247,6 +279,7 @@ const PromotionManager = () => {
 
     const columns = [
         { key: "codeDisplay", label: "Mã Code" },
+        { key: "bannerDisplay", label: "Banner" },
         { key: "name", label: "Tên chương trình" },
         { key: "details", label: "Chi tiết giảm" },
         { key: "usageProgress", label: "Lượt sử dụng" },
@@ -260,23 +293,15 @@ const PromotionManager = () => {
 
     const handleConfirmToggleStatus = async () => {
         if (statusConfirm.promo) {
-            const dataToSend = {
-                ...statusConfirm.promo,
-                isActive: !statusConfirm.promo.isActive
-            };
-
-            if (!dataToSend.startDate) {
-                dataToSend.startDate = dataToSend.endDate;
-            }
-
+            const dataToSend = { ...statusConfirm.promo, isActive: !statusConfirm.promo.isActive };
+            if (!dataToSend.startDate) dataToSend.startDate = dataToSend.endDate;
             try {
                 await promotionService.updatePromotion(dataToSend.id, dataToSend);
                 await fetchPromotions();
                 showToast("success", "Cập nhật trạng thái thành công!");
             } catch (error) {
                 console.error("Lỗi update:", error);
-                const errMsg = error.response?.data?.message || error.message || "Lỗi cập nhật trạng thái";
-                showToast("error", errMsg);
+                showToast("error", error.response?.data?.message || error.message || "Lỗi cập nhật trạng thái");
             }
             setStatusConfirm({ isOpen: false, promo: null });
         }
@@ -292,42 +317,16 @@ const PromotionManager = () => {
                 showToast("success", "Đã xóa mã khuyến mãi thành công!");
             } catch (error) {
                 console.error(error);
-                const errMsg = error.response?.data?.message || "Lỗi khi xóa mã khuyến mãi";
-                showToast("error", errMsg);
+                showToast("error", error.response?.data?.message || "Lỗi khi xóa mã khuyến mãi");
             }
             setDeleteConfirm({ isOpen: false, promo: null });
-        }
-    };
-
-    const handleSave = async (data) => {
-        try {
-            if (editingPromo) {
-                await promotionService.updatePromotion(editingPromo.id, data);
-                showToast("success", "Cập nhật khuyến mãi thành công!");
-            } else {
-                await promotionService.createPromotion(data);
-                setCurrentPage(1);
-                showToast("success", "Tạo mã khuyến mãi thành công!");
-            }
-            await fetchPromotions();
-            setIsModalOpen(false);
-        } catch (error) {
-            console.error(error);
-            const errMsg = error.response?.data?.message || "Có lỗi xảy ra";
-            showToast("error", errMsg);
         }
     };
 
     const formatDateTimeDisplay = (dateInput) => {
         if (!dateInput) return "";
         const date = parseDate(dateInput);
-        return date.toLocaleString('vi-VN', {
-            hour: '2-digit',
-            minute: '2-digit',
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
+        return date.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
     };
 
     const getDaysRemaining = (dateInput) => {
@@ -346,15 +345,19 @@ const PromotionManager = () => {
 
             return {
                 ...item,
-
                 codeDisplay: (
                     <div className="flex items-center gap-2 group cursor-pointer" onClick={() => handleCopy(item.code)} title="Click để copy">
                         <span className={`font-mono font-bold px-2 py-1 rounded border transition-colors ${status === 'ACTIVE' ? 'text-[rgb(40,169,224)] bg-blue-50 border-blue-100 group-hover:bg-blue-100' : (status === 'PAUSED' ? 'text-orange-600 bg-orange-50 border-orange-100 group-hover:bg-orange-100' : 'text-gray-500 bg-gray-100 border-gray-200')}`}>{item.code}</span>
                         <Copy size={14} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"/>
                     </div>
                 ),
+                // ✅ SỬ DỤNG BannerImage component mới để hiển thị an toàn
+                bannerDisplay: (
+                    <div className="w-16 h-10 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 flex items-center justify-center shadow-sm group relative">
+                        <BannerImage url={item.bannerUrl} />
+                    </div>
+                ),
                 details: item.type === 'PERCENT' ? `${item.value}% (Tối đa ${Number(item.maxDiscount).toLocaleString()}đ)` : `${Number(item.value).toLocaleString()}đ`,
-
                 usageProgress: (
                     <div className="w-32">
                         <div className="flex justify-between text-xs mb-1 font-medium">
@@ -366,7 +369,6 @@ const PromotionManager = () => {
                         </div>
                     </div>
                 ),
-
                 endDateDisplay: (
                     <div className="flex flex-col">
                         <span className="text-gray-600 whitespace-nowrap font-medium text-sm">{formatDateTimeDisplay(item.endDate)}</span>
@@ -387,12 +389,7 @@ const PromotionManager = () => {
                 ),
                 actions: (
                     <div className="flex justify-center">
-                        <ActionMenu
-                            promo={item}
-                            onEdit={(p) => { setEditingPromo(p); setIsModalOpen(true); }}
-                            onDelete={handleRequestDelete}
-                            onRequestToggle={handleRequestToggleStatus}
-                        />
+                        <ActionMenu promo={item} onEdit={(p) => { setEditingPromo(p); setIsModalOpen(true); }} onDelete={handleRequestDelete} onRequestToggle={handleRequestToggleStatus} />
                     </div>
                 )
             };
@@ -407,15 +404,7 @@ const PromotionManager = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div><h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2"><Tag className="text-[rgb(40,169,224)]" /> Quản lý Khuyến mãi</h1><p className="text-gray-500 mt-1 text-sm">Tạo và quản lý các mã giảm giá, voucher cho khách hàng.</p></div>
                 <div className="flex gap-3">
-                    {/* Nút Reload */}
-                    <button
-                        onClick={handleReload}
-                        disabled={isLoading}
-                        className="p-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 hover:text-[rgb(40,169,224)] hover:border-[rgb(40,169,224)] transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
-                        title="Làm mới dữ liệu"
-                    >
-                        <RotateCw size={20} className={`transition-transform ${isLoading ? 'animate-spin' : 'group-hover:rotate-180'}`} />
-                    </button>
+                    <button onClick={handleReload} disabled={isLoading} className="p-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 hover:text-[rgb(40,169,224)] hover:border-[rgb(40,169,224)] transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group" title="Làm mới dữ liệu"><RotateCw size={20} className={`transition-transform ${isLoading ? 'animate-spin' : 'group-hover:rotate-180'}`} /></button>
                     <Button onClick={() => { setEditingPromo(null); setIsModalOpen(true); }} leftIcon={<Plus size={18} />}>Thêm mã mới</Button>
                 </div>
             </div>
@@ -453,7 +442,7 @@ const PromotionManager = () => {
                     !isLoading && (<div className="flex flex-col items-center justify-center py-20 text-center"><div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-4"><Search size={40} className="text-gray-300" /></div><h3 className="text-lg font-semibold text-gray-800">Không tìm thấy kết quả</h3><button onClick={() => { setSearchTerm(""); setFilterStatus("ALL"); setFilterType("ALL"); }} className="mt-4 text-blue-600 font-medium hover:underline">Xóa bộ lọc & tìm lại</button></div>)
                 )}
             </div>
-            <PromotionFormModal open={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleSave} initialData={editingPromo} />
+            <PromotionFormModal open={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={fetchPromotions} initialData={editingPromo} />
             <StatusConfirmModal isOpen={statusConfirm.isOpen} onClose={() => setStatusConfirm({ isOpen: false, promo: null })} onConfirm={handleConfirmToggleStatus} promo={statusConfirm.promo} />
             <DeleteConfirmModal isOpen={deleteConfirm.isOpen} onClose={() => setDeleteConfirm({ isOpen: false, promo: null })} onConfirm={handleConfirmDelete} promoCode={deleteConfirm.promo?.code} />
         </div>
@@ -461,4 +450,3 @@ const PromotionManager = () => {
 };
 
 export default PromotionManager;
-

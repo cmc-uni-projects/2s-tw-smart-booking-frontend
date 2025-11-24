@@ -1,10 +1,27 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
     X, Tag, Percent, DollarSign,
-    Layers, Hash, CheckCircle2, AlertCircle, Clock, Calendar
+    Layers, Hash, CheckCircle2, AlertCircle, Clock, Calendar, Upload, Image as ImageIcon
 } from "lucide-react";
+import promotionService from "../../../../services/promotion.service";
+import toast from "react-hot-toast";
+import Toast from "@/components/common/Notification/Toast";
 
-// --- 1. CustomInput (Giữ nguyên logic click icon & ẩn icon mặc định) ---
+// --- CONFIG: URL hiển thị ảnh từ Backend ---
+const BE_BASE_URL = "http://localhost:8080";
+const UPLOAD_DIR = "/uploads/";
+
+// Helper hiển thị Toast đồng bộ giao diện
+const showToast = (type, message) => {
+    toast.custom((t) => (
+        <Toast type={type} message={message} onClose={() => toast.dismiss(t.id)} />
+    ), {
+        duration: 3000,
+        position: 'bottom-center'
+    });
+};
+
+// --- 1. CustomInput (Đã mở rộng code để dễ đọc) ---
 const CustomInput = ({ label, name, value, onChange, type = "text", placeholder, icon: Icon, error, disabled, className, ...props }) => {
     const inputRef = useRef(null);
 
@@ -57,21 +74,32 @@ const CustomInput = ({ label, name, value, onChange, type = "text", placeholder,
     );
 };
 
-// --- 2. CustomSelect (Giữ nguyên) ---
+// --- 2. CustomSelect (Đã mở rộng code) ---
 const CustomSelect = ({ label, name, value, onChange, options, icon: Icon }) => (
     <div className="space-y-1.5">
         <label className="text-sm font-semibold text-gray-700 ml-1">{label}</label>
         <div className="relative group">
-            {Icon && <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors"><Icon size={18} /></div>}
-            <select name={name} value={value} onChange={onChange} className={`w-full ${Icon ? 'pl-10' : 'px-4'} pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none appearance-none cursor-pointer transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white`}>
+            {Icon && (
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                    <Icon size={18} />
+                </div>
+            )}
+            <select
+                name={name}
+                value={value}
+                onChange={onChange}
+                className={`w-full ${Icon ? 'pl-10' : 'px-4'} pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none appearance-none cursor-pointer transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white`}
+            >
                 {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
             </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"><svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m1 1 4 4 4-4"/></svg></div>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m1 1 4 4 4-4"/></svg>
+            </div>
         </div>
     </div>
 );
 
-// --- 3. TimePicker (Giữ nguyên logic nhập tay thông minh) ---
+// --- 3. TimePicker (Đã mở rộng code logic nhập giờ) ---
 const TimePicker = ({ value, onChange, error }) => {
     const [hour, setHour] = useState("00");
     const [minute, setMinute] = useState("00");
@@ -144,12 +172,26 @@ const TimePicker = ({ value, onChange, error }) => {
 };
 
 // --- 4. Main Component ---
-const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
+const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
     const [formData, setFormData] = useState({
         code: "", name: "", type: "PERCENT", value: "", quantity: "", minOrder: "", maxDiscount: "",
         startDate: "", endDate: "", isActive: true,
     });
     const [errors, setErrors] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+
+    // State cho Upload Banner
+    const [bannerFile, setBannerFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
+
+    // Helper ghép URL ảnh đầy đủ từ Backend
+    const getFullImageUrl = (path) => {
+        if (!path) return null;
+        if (path.startsWith("http")) return path;
+        // Loại bỏ dấu / ở đầu path nếu có để tránh double slash
+        const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+        return `${BE_BASE_URL}${UPLOAD_DIR}${cleanPath}`;
+    };
 
     const normalizeDateTime = (dateInput) => {
         if (!dateInput) return "";
@@ -175,6 +217,7 @@ const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
     useEffect(() => {
         if (open) {
             setErrors({});
+            setBannerFile(null);
             if (initialData) {
                 const { target, ...rest } = initialData;
                 setFormData({
@@ -183,11 +226,43 @@ const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
                     endDate: normalizeDateTime(rest.endDate),
                     isActive: rest.isActive !== undefined ? rest.isActive : true
                 });
+                // ✅ Set Preview URL chuẩn từ Backend
+                setPreviewUrl(getFullImageUrl(rest.bannerUrl));
             } else {
                 setFormData({ code: "", name: "", type: "PERCENT", value: "", quantity: 100, minOrder: 0, maxDiscount: 0, startDate: "", endDate: "", isActive: true });
+                setPreviewUrl(null);
             }
         }
     }, [open, initialData]);
+
+    // Cleanup URL preview khi unmount hoặc modal đóng
+    useEffect(() => {
+        return () => {
+            if (previewUrl && previewUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) { // Check size 5MB
+                showToast("error", "Ảnh quá lớn (Max 5MB)");
+                return;
+            }
+            setBannerFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
+
+    // ✅ Xử lý khi ảnh lỗi (404) -> Ẩn ảnh đi để không hiện icon vỡ
+    const handleImageError = () => {
+        if (previewUrl) {
+            // console.warn("Không tải được ảnh:", previewUrl); // Có thể log để debug
+            setPreviewUrl(null);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -249,10 +324,37 @@ const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (validateForm()) {
-            onSubmit(formData);
-            onClose();
+            setIsLoading(true);
+            try {
+                let promotionId;
+
+                // BƯỚC 1: Lưu thông tin chữ
+                if (initialData) {
+                    // Update
+                    promotionId = initialData.promotionId;
+                    await promotionService.updatePromotion(promotionId, formData);
+                } else {
+                    // Create
+                    const res = await promotionService.createPromotion(formData);
+                    promotionId = res.data?.data?.promotionId || res.data?.promotionId;
+                }
+
+                // BƯỚC 2: Upload ảnh (Nếu có file mới)
+                if (bannerFile && promotionId) {
+                    await promotionService.uploadBanner(promotionId, bannerFile);
+                }
+
+                showToast("success", initialData ? "Cập nhật thành công!" : "Tạo khuyến mãi thành công!");
+                if (onSuccess) onSuccess();
+                onClose();
+            } catch (error) {
+                console.error(error);
+                showToast("error", error.response?.data?.message || "Có lỗi xảy ra!");
+            } finally {
+                setIsLoading(false);
+            }
         }
     };
 
@@ -269,6 +371,40 @@ const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
 
                 {/* Body */}
                 <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
+
+                    {/* ✅ SECTION: Banner Upload (Đã tích hợp logic fix lỗi ảnh) */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-700 ml-1">Banner Khuyến Mãi</label>
+                        <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50/50 transition-colors relative overflow-hidden group">
+                            {previewUrl ? (
+                                <img
+                                    src={previewUrl}
+                                    alt="Banner"
+                                    className="w-full h-full object-contain z-10"
+                                    onError={handleImageError} // Bắt lỗi 404 để ẩn ảnh đi
+                                />
+                            ) : (
+                                <div className="flex flex-col items-center text-gray-400">
+                                    <ImageIcon size={40} className="mb-2 opacity-50" />
+                                    <span className="text-sm font-medium">Nhấn để tải ảnh lên</span>
+                                    <span className="text-xs opacity-70">(JPG, PNG - Max 5MB)</span>
+                                </div>
+                            )}
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                            />
+                            {/* Hover effect for replace */}
+                            {previewUrl && (
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none">
+                                    <p className="text-white font-semibold flex items-center gap-2"><Upload size={18}/> Thay đổi ảnh</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                         <div className="sm:col-span-1"><CustomInput label="Mã Code" name="code" value={formData.code} onChange={handleChange} placeholder="VD: SALE50" icon={Tag} error={errors.code} /></div>
                         <div className="sm:col-span-2"><CustomInput label="Tên chương trình" name="name" value={formData.name} onChange={handleChange} placeholder="VD: Siêu sale tháng 11" icon={CheckCircle2} error={errors.name} /></div>
@@ -314,9 +450,22 @@ const PromotionFormModal = ({ open, onClose, onSubmit, initialData }) => {
                     </div>
                 </div>
 
-                {/* Footer: Đã xóa nút Hủy bỏ */}
+                {/* Footer */}
                 <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
-                    <button onClick={handleSubmit} className="px-6 py-2.5 rounded-xl bg-[rgb(40,169,224)] text-white font-semibold shadow-lg shadow-blue-200 hover:bg-[rgb(26,140,189)] hover:shadow-none transition-all transform active:scale-95">{initialData ? "Lưu thay đổi" : "Thêm"}</button>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={isLoading}
+                        className={`px-6 py-2.5 rounded-xl bg-[rgb(40,169,224)] text-white font-semibold shadow-lg shadow-blue-200 hover:bg-[rgb(26,140,189)] hover:shadow-none transition-all transform active:scale-95 flex items-center gap-2 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    >
+                        {isLoading ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                Đang xử lý...
+                            </>
+                        ) : (
+                            initialData ? "Lưu thay đổi" : "Thêm"
+                        )}
+                    </button>
                 </div>
             </div>
         </div>
