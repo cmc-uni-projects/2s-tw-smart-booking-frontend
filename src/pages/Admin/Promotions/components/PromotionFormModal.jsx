@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import Toast from "@/components/common/Notification/Toast";
 
 // --- CONFIG: URL hiển thị ảnh từ Backend ---
-const BE_BASE_URL = "http://localhost:8080";
+const BE_BASE_URL = "http://127.0.0.1:8386";
 const UPLOAD_DIR = "/uploads/";
 
 // Helper hiển thị Toast đồng bộ giao diện

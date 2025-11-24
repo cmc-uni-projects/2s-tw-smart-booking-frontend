@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 // --- CONFIG ---
-const BE_BASE_URL = "http://localhost:8080"; // Đảm bảo đúng port Backend
+const BE_BASE_URL = "http://localhost:8386";
 const UPLOAD_DIR = "/uploads/";
 
 // Helper ghép URL
