@@ -1,0 +1,67 @@
+import api from "./axios.config";
+
+const bookingService = {
+  // ==========================================
+  // 1. TẠO BOOKING MỚI
+  // ==========================================
+  // Payload: { userId, propertyId, roomId, checkInDate, checkOutDate, guestCount }
+  createBooking: async (bookingData) => {
+    try {
+      const response = await api.post("/bookings/create", bookingData);
+      return response.data;
+    } catch (error) {
+      // Ném lỗi ra để component (BookingPage) bắt được và alert
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // ==========================================
+  // 2. LẤY CHI TIẾT BOOKING
+  // ==========================================
+  getBookingById: async (bookingId) => {
+    try {
+      const response = await api.get(`/bookings/${bookingId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // ==========================================
+  // 3. LẤY LỊCH SỬ ĐẶT PHÒNG CỦA USER
+  // ==========================================
+  getBookingsByUserId: async (userId) => {
+    try {
+      const response = await api.get(`/bookings/user/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // ==========================================
+  // 4. HỦY ĐẶT PHÒNG
+  // ==========================================
+  cancelBooking: async (bookingId) => {
+    try {
+      const response = await api.put(`/bookings/cancel/${bookingId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // ==========================================
+  // 5. LẤY DANH SÁCH BOOKING THEO KHÁCH SẠN (Dành cho Chủ nhà/Admin)
+  // ==========================================
+  getBookingsByPropertyId: async (propertyId) => {
+    try {
+      const response = await api.get(`/bookings/property/${propertyId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  }
+};
+
+export default bookingService;

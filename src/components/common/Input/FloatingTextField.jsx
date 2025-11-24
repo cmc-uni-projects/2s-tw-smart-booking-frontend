@@ -1,6 +1,7 @@
+// src/components/common/Input/FloatingTextField.jsx
 import React from "react";
 
-export default function FloatingTextField({
+export default React.forwardRef(function FloatingTextField({
   label,
   type = "text",
   icon,
@@ -8,7 +9,7 @@ export default function FloatingTextField({
   disabled = false,
   className = "",
   ...props
-}) {
+}, ref) { // <--- 1. Thêm tham số ref
   const hasError = !!error;
 
   return (
@@ -25,6 +26,7 @@ export default function FloatingTextField({
 
         {/* Input Field */}
         <input
+          ref={ref} // <--- 2. Áp dụng ref cho phần tử <input>
           id={label}
           type={type}
           disabled={disabled}
@@ -75,4 +77,4 @@ export default function FloatingTextField({
       </div>
     </div>
   );
-}
+});
