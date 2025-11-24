@@ -43,7 +43,7 @@ const MOCK_DATA = [
         phone: "0912345678",
         email: "tranb@yahoo.com",
         checkIn: "2025-11-20",
-        checkOut: "2025-11-23",
+        checkOut: "2025-11-24",
         totalPrice: 4200000,
         guestCount: "2 người",
         paymentMethod: "Ví MoMo",
@@ -383,6 +383,8 @@ const [isCheckOutModalOpen, setIsCheckOutModalOpen] = useState(false);
 };
 
 export default OwnerBookingsPage;
+
+
 
 
 
