@@ -7,7 +7,7 @@ const getStatusBadge = (status) => {
         case "SUCCESS": return <Badge color="success">Thành công</Badge>;
         case "PENDING": return <Badge color="warning">Đang xử lý</Badge>;
         case "FAILED": return <Badge color="danger">Thất bại</Badge>;
-        // ✅ Thêm dòng này để chuyển "REFUNDED" thành tiếng Việt
+
         case "REFUNDED": return <Badge color="primary">Đã hoàn tiền</Badge>;
         // Trường hợp mặc định sẽ hiển thị nguyên văn text (ví dụ "REFUNDED") nếu không khớp các case trên
         default: return <Badge color="gray">{status}</Badge>;
