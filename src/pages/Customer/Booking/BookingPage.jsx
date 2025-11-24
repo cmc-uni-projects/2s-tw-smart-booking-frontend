@@ -4,20 +4,28 @@ import { format, addDays, differenceInCalendarDays } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { DateRange } from 'react-date-range';
 
+// CSS cho lịch
 import 'react-date-range/dist/styles.css'; 
 import 'react-date-range/dist/theme/default.css';
 
+// UI Components
 import Card from '@/components/common/Card/Card';
 import Button from '@/components/common/Button/Button';
 import Divider from '@/components/common/Divider/Divider'; 
 import Spinner from "@/components/common/Loading/Spinner";
+// ✅ Import LoadingOverlay
+import LoadingOverlay from "@/components/common/Loading/LoadingOverlay"; 
 import { ArrowLeft, MapPin, Calendar, BedDouble, Users, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react'; 
 
+// Local Components
 import BookingForm from './BookingForm';
+
+// Services & Context
 import propertyService from "@/services/property.service";
 import bookingService from "@/services/booking.service";
 import { useAuth } from "@/context/AuthContext";
 
+// --- HELPERS ---
 const BASE_URL = "http://localhost:8386"; 
 
 const getFullImageUrl = (path) => {
@@ -78,7 +86,7 @@ const BookingDateSelector = ({ dateRange, onChange }) => {
     );
 };
 
-// --- COMPONENT 2: TÓM TẮT ---
+// --- COMPONENT 2: TÓM TẮT ĐƠN HÀNG ---
 const BookingSummary = ({ hotel, room, dateRange, onSubmit, disabled, submitting }) => {
   if (!hotel || !room) return null;
 
@@ -147,9 +155,10 @@ const BookingSummary = ({ hotel, room, dateRange, onSubmit, disabled, submitting
         className="mt-6 bg-[rgb(40,169,224)] hover:bg-blue-600 text-white shadow-md" 
         onClick={onSubmit}
         disabled={disabled || submitting} 
-        leftIcon={submitting ? <Spinner size="sm" color="white" /> : <CheckCircle2 size={18} />}
+        // ✅ ĐÃ XÓA LOADING SPINNER Ở ĐÂY
+        leftIcon={<CheckCircle2 size={18} />}
       >
-        {submitting ? "Đang xử lý..." : "Thanh toán ngay"}
+        Thanh toán ngay
       </Button>
     </Card>
   );
@@ -160,13 +169,10 @@ export default function BookingPage() {
   const { propertyId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  
-  // ✅ SỬA LỖI: Dùng currentUser thay vì user
   const { currentUser } = useAuth(); 
 
   const { selectedRoomId, guestDetails: initialGuestDetails } = location.state || {};
 
-  // States
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [hotel, setHotel] = useState(null);
@@ -186,7 +192,6 @@ export default function BookingPage() {
       setLoading(true);
       try {
         const data = await propertyService.getPropertyDetail(propertyId);
-        
         setHotel({
             id: data.propertyId,
             name: data.propertyName,
@@ -215,16 +220,14 @@ export default function BookingPage() {
              });
         }
       } catch (error) {
-        console.error("Error fetching booking details:", error);
+        console.error("Error:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [propertyId, selectedRoomId]);
 
-  // 2. Validate
   const contact = guestDetails?.contact || {};
   const guestName = guestDetails?.guestName || "";
   const isFormValid = 
@@ -235,18 +238,16 @@ export default function BookingPage() {
 
   // 3. Submit
   const handleFinalSubmit = async () => {
-    // ✅ SỬA LỖI: Kiểm tra currentUser thay vì user
     if (!currentUser) {
         alert("Vui lòng đăng nhập để tiếp tục đặt phòng!");
-        // Chuyển hướng qua login và nhớ trang hiện tại để quay lại
         navigate("/login", { state: { from: location.pathname + location.search } });
         return;
     }
 
-    setSubmitting(true);
+    setSubmitting(true); // ✅ Bật Loading Overlay
     try {
         const payload = {
-            userId: currentUser.userId, // ✅ SỬA LỖI: Dùng currentUser.id
+            userId: currentUser.userId, 
             propertyId: parseInt(propertyId),
             roomId: room.id,
             checkInDate: format(dateRange.startDate, "yyyy-MM-dd"),
@@ -266,7 +267,7 @@ export default function BookingPage() {
         console.error("Booking Error:", error);
         alert("Đặt phòng thất bại: " + (error.message || "Lỗi hệ thống"));
     } finally {
-        setSubmitting(false);
+        setSubmitting(false); // ✅ Tắt Loading Overlay
     }
   };
 
@@ -282,6 +283,10 @@ export default function BookingPage() {
 
   return (
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-8 bg-gray-50 min-h-screen">
+        
+        {/* ✅ LOADING OVERLAY TOÀN MÀN HÌNH */}
+        {submitting && <LoadingOverlay message="Đang xử lý đơn đặt phòng..." />}
+
         <Button
           variant="ghost"
           onClick={() => navigate(`/hotels/${hotel.id}`)}
@@ -294,15 +299,11 @@ export default function BookingPage() {
         <h1 className="text-3xl font-bold mb-8 text-gray-900">Xác nhận & Đặt phòng</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
           <div className="lg:col-span-2 space-y-6">
-            
             <BookingDateSelector 
                 dateRange={dateRange} 
                 onChange={setDateRange} 
             />
-
-            {/* ✅ SỬA LỖI: Truyền currentUser vào initialContact để tự điền form */}
             <BookingForm 
                 onChange={setGuestDetails} 
                 initialData={initialGuestDetails}
@@ -328,5 +329,3 @@ export default function BookingPage() {
       </main>
   );
 }
-
-//BookingPage
