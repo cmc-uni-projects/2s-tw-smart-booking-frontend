@@ -65,7 +65,7 @@ const OwnerSidebar = () => {
           ${collapsed ? "justify-center" : "justify-between"}`}
       >
         {!collapsed && (
-          <Link to="/owner" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <img
               src="/assets/logo/logo_travelmate_xoafont.png"
               alt="TravelMate"
@@ -191,3 +191,5 @@ const OwnerSidebar = () => {
 };
 
 export default OwnerSidebar;
+
+
