@@ -57,6 +57,7 @@ export default function BookingPage() {
                 setHotel({
                     id: data.propertyId,
                     name: data.propertyName,
+                    type: data.propertyType, // ✅ Lưu loại hình để check logic submit
                     location: `${data.address}, ${data.city}`,
                     image: getFullImageUrl(data.coverImage)
                 });
@@ -104,15 +105,18 @@ export default function BookingPage() {
 
         setSubmitting(true);
         try {
+            // ✅ CHECK LOGIC: Nếu là Villa/Homestay -> Không gửi roomId (gửi null)
+            const isWholeUnit = ["VILLA", "HOMESTAY"].includes(hotel.type);
+
             const payload = {
                 userId: currentUser.userId, 
                 propertyId: parseInt(propertyId),
-                roomId: room.id,
+                roomId: isWholeUnit ? null : room.id, // ✅ Xử lý roomId tại đây
                 checkInDate: format(dateRange.startDate, "yyyy-MM-dd"),
                 checkOutDate: format(dateRange.endDate, "yyyy-MM-dd"),
                 guestCount: room.guests,
                 
-                // ✅ Gửi thông tin contact mới + cờ SelfBooking
+                // Gửi thông tin contact & cờ SelfBooking
                 bookingForSelf: contactData.isSelfBooking,
                 contactName: contactData.fullName,
                 contactPhone: contactData.phone,
@@ -170,12 +174,12 @@ export default function BookingPage() {
                         onChange={setDateRange} 
                     />
                     
-                    {/* ✅ Form Liên hệ (Mới) */}
+                    {/* Form Liên hệ (Component tách riêng) */}
                     <ContactInfoForm 
                         user={currentUser}
                         onChange={setContactData}
                         initialData={{
-                            // Nếu muốn pre-fill khi load lại trang
+                            // Nếu muốn pre-fill
                         }}
                     />
                 </div>
