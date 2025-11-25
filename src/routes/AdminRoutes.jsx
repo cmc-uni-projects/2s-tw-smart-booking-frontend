@@ -5,50 +5,63 @@ import AdminLayout from "../layouts/AdminLayout/AdminLayout";
 import AdminDashboard from "../pages/Admin/Dashboard/AdminDashboard";
 import PendingApprovalsPage from "../pages/Admin/Hotels/PendingApprovalsPage";
 import HotelSubmissionsPage from "../pages/Admin/Hotels/HotelSubmissionsPage";
+
+// 👇 (Mới từ nhánh của bạn) Import Component Quản lý Khuyến mãi
+import PromotionManager from "../pages/Admin/Promotions/PromotionManager";
+
+// 👇 (Mới từ nhánh develop) Import Component Quản lý Giao dịch
 import TransactionManagementPage from "@/pages/Admin/Transactions/TransactionManagementPage";
-import RefundManagementPage from "../pages/Admin/Transactions/RefundManagementPage"; // Trang mới
+
 // ✅ Chuyển đổi const AdminRoutes = () => { ... } thành một mảng:
 const adminRoutes = [
-  {
-    path: "/admin",
-    element: (
-      <AdminLayout>
-        <ProtectedRoute requiredRole="ADMIN">
-          <AdminDashboard />
-        </ProtectedRoute>
-      </AdminLayout>
-    ),
-  },
-  {
-    path: "/admin/approvals",
-    element: (
-      <AdminLayout>
-        <ProtectedRoute requiredRole="ADMIN">
-          <PendingApprovalsPage />
-        </ProtectedRoute>
-      </AdminLayout>
-    ),
-  },
-  {
-    path: "/admin/hotels/submissions",
-    element: (
-      <AdminLayout>
-        <ProtectedRoute requiredRole="ADMIN">
-          <HotelSubmissionsPage />
-        </ProtectedRoute>
-      </AdminLayout>
-    ),
-  },
-  {
-    path: "/admin/transactions",
-    element: (
-      <AdminLayout>
-        <ProtectedRoute requiredRole="ADMIN">
-          <TransactionManagementPage /> {/* Trang xem lịch sử giao dịch */}
-        </ProtectedRoute>
-      </AdminLayout>
-    ),
-  },
+    {
+        path: "/admin",
+        element: (
+            <AdminLayout>
+                <ProtectedRoute requiredRole="ADMIN">
+                    <AdminDashboard />
+                </ProtectedRoute>
+            </AdminLayout>
+        ),
+    },
+    {
+        path: "/admin/approvals",
+        element: (
+            <AdminLayout>
+                <ProtectedRoute requiredRole="ADMIN">
+                    <PendingApprovalsPage />
+                </ProtectedRoute>
+            </AdminLayout>
+        ),
+    },
+    {
+        path: "/admin/hotels/submissions",
+        element: (
+            <AdminLayout>
+                <ProtectedRoute requiredRole="ADMIN">
+                    <HotelSubmissionsPage />
+                </ProtectedRoute>
+            </AdminLayout>
+        ),
+    },
+    {
+        path: "/admin/transactions",
+        element: (
+            <AdminLayout>
+                <TransactionManagementPage />
+            </AdminLayout>
+        ),
+    },
+    {
+        path: "/admin/promotions",
+        element: (
+            <AdminLayout>
+                <ProtectedRoute requiredRole="ADMIN">
+                    <PromotionManager />
+                </ProtectedRoute>
+            </AdminLayout>
+        ),
+    },
   {
     path: "/admin/refunds",
     element: (
