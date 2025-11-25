@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import FilterSidebar from "./FilterSidebar";
 import SearchResultsList from "./SearchResultsList";
 import propertyService from "@/services/property.service";
-import SearchBox from "@/components/search/SearchBox"; // Import component tái sử dụng
+import SearchBox from "@/components/search/SearchBox"; 
 
 const HotelSearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -11,7 +11,7 @@ const HotelSearchPage = () => {
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Lấy params từ URL để truyền vào SearchBox làm giá trị mặc định
+  // Lấy params để hiển thị lại lên SearchBox
   const initialSearchValues = {
     destination: searchParams.get("keyword") || "",
     guests: parseInt(searchParams.get("guests")) || 2,
@@ -19,8 +19,6 @@ const HotelSearchPage = () => {
     checkOut: searchParams.get("checkOut"),
   };
 
-  // Hàm xử lý khi người dùng bấm "Tìm kiếm" trong SearchBox
-  // SearchBox sẽ trả về object params mới, ta chỉ cần update URL
   const handleSearch = (newParams) => {
       setSearchParams(newParams);
   };
@@ -29,14 +27,16 @@ const HotelSearchPage = () => {
     const fetchHotels = async () => {
       setLoading(true);
       try {
-        // Scroll lên đầu
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        // Lấy lại data từ URL params (đảm bảo luôn đồng bộ với URL)
+        // 1. Lấy đủ thông tin từ URL
         const keyword = searchParams.get("keyword") || "";
         const guests = searchParams.get("guests") || 1;
+        const checkIn = searchParams.get("checkIn");   // ✅ Lấy ngày check-in
+        const checkOut = searchParams.get("checkOut"); // ✅ Lấy ngày check-out
         
-        const data = await propertyService.searchProperties(keyword, guests);
+        // 2. Truyền vào service
+        const data = await propertyService.searchProperties(keyword, guests, checkIn, checkOut);
         setHotels(data);
       } catch (error) {
         console.error("Failed to search hotels:", error);
@@ -47,33 +47,27 @@ const HotelSearchPage = () => {
     };
 
     fetchHotels();
-  }, [searchParams]);
+  }, [searchParams]); // useEffect sẽ chạy lại khi URL thay đổi
 
   return (
       <div className="min-h-screen bg-gray-50 pb-12">
         
-        {/* === 1. STICKY HEADER VỚI SEARCH BOX ĐỒNG BỘ === */}
+        {/* Header Search Box */}
         <div className="bg-white border-b border-gray-200 sticky top-[64px] z-30 shadow-sm py-4">
           <div className="max-w-7xl mx-auto px-4 md:px-6">
-             {/* Tái sử dụng SearchBox:
-                - Truyền initialValues để nó hiện đúng thông tin đang tìm
-                - Truyền onSearch để update URL thay vì navigate
-                - Thêm className để custom lại shadow/border cho hợp ngữ cảnh header
-             */}
              <SearchBox 
                 initialValues={initialSearchValues}
                 onSearch={handleSearch}
-                className="shadow-none border-0 p-0 !gap-2" // Override style để gọn hơn trên header
+                className="shadow-none border-0 p-0 !gap-2" 
              />
           </div>
         </div>
 
-        {/* === 2. NỘI DUNG CHÍNH === */}
+        {/* Main Content */}
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            
             <div className="hidden lg:block lg:col-span-1">
-              <div className="sticky top-48"> {/* Top cao hơn chút do header search dày hơn */}
+              <div className="sticky top-48"> 
                 <FilterSidebar />
               </div>
             </div>
@@ -85,7 +79,6 @@ const HotelSearchPage = () => {
                 searchInfo={{ total: hotels.length, location: initialSearchValues.destination }} 
               />
             </div>
-
           </div>
         </div>
       </div>

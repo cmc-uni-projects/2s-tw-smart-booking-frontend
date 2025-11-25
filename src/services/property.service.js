@@ -29,13 +29,15 @@ const getOwnerActiveProperties = async () => {
 // ============================
 // 🔍 TÌM KIẾM PROPERTIES
 // ============================
-const searchProperties = async (keyword, guests) => {
+const searchProperties = async (keyword, guests, checkIn, checkOut) => {
   try {
-    // ✅ SỬA: Gửi đúng params mà Backend yêu cầu
+    // ✅ SỬA: Gửi thêm checkIn và checkOut
     const response = await api.get(`/properties/search`, {
       params: { 
-        keyword: keyword || "", // Nếu null thì gửi chuỗi rỗng
-        guests: guests || 1     // Mặc định là 1 khách
+        keyword: keyword || "", 
+        guests: guests || 1,
+        checkIn: checkIn || null,   // Thêm dòng này
+        checkOut: checkOut || null  // Thêm dòng này
       },
     });
     return response.data;
@@ -131,9 +133,14 @@ const setCoverImage = async (propertyId, imageId) => {
 };
 
 //Lấy chi tiết thông tin cơ sở
-const getPropertyDetail = async (id) => {
+const getPropertyDetail = async (id, checkIn, checkOut) => {
   try {
-    const response = await api.get(`/properties/${id}`);
+    const response = await api.get(`/properties/${id}`, {
+      params: {
+        checkIn: checkIn || null,
+        checkOut: checkOut || null
+      }
+    });
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;
