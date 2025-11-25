@@ -5,6 +5,7 @@ import AdminLayout from "../layouts/AdminLayout/AdminLayout";
 import AdminDashboard from "../pages/Admin/Dashboard/AdminDashboard";
 import PendingApprovalsPage from "../pages/Admin/Hotels/PendingApprovalsPage";
 import HotelSubmissionsPage from "../pages/Admin/Hotels/HotelSubmissionsPage";
+import RefundManagementPage from "../pages/Admin/Transactions/RefundManagementPage"; 
 
 // 👇 (Mới từ nhánh của bạn) Import Component Quản lý Khuyến mãi
 import PromotionManager from "../pages/Admin/Promotions/PromotionManager";
