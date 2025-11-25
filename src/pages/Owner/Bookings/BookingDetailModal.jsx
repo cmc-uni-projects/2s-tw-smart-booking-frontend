@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import {
     X, Phone, Mail, CreditCard, FileText, CheckCircle2, 
-    MapPin, Users, LogOut, Calendar, Clock
+    MapPin, Users, LogOut, Calendar, Clock, User, AlertCircle
 } from "lucide-react";
 import Button from "./components/common/Button";
 
@@ -18,6 +18,26 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCheckOut }) => {
         return new Date(dateStr).toLocaleDateString('vi-VN', { 
             day: '2-digit', month: '2-digit', year: 'numeric' 
         });
+    };
+
+    // Helper dịch trạng thái thanh toán sang Tiếng Việt
+    const getPaymentStatusLabel = (status) => {
+        switch (status) {
+            case 'APPROVED':
+            case 'PAID':
+                return 'Đã thanh toán';
+            case 'PENDING':
+            case 'PENDING_PAYMENT':
+                return 'Chờ thanh toán';
+            case 'REFUNDED':
+                return 'Đã hoàn tiền';
+            case 'REFUND_REQUESTED':
+                return 'Chờ hoàn tiền';
+            case 'REJECTED':
+                return 'Thất bại';
+            default:
+                return status || 'Chưa xác định';
+        }
     };
 
     // --- 2. TÍNH TOÁN SỐ ĐÊM & ĐƠN GIÁ ---
@@ -42,6 +62,9 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCheckOut }) => {
             onClose();
         }
     };
+
+    // Logic màu sắc badge thanh toán
+    const isPaid = booking.paymentStatus === 'APPROVED' || booking.paymentStatus === 'PAID';
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm transition-opacity animate-fade-in">
@@ -71,23 +94,37 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCheckOut }) => {
                             <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2 border-b pb-2">
                                 <Users size={18} className="text-[#28A9E0]" /> Thông tin khách hàng
                             </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                {/* Họ tên */}
                                 <div>
-                                    <label className="text-xs text-slate-500 font-semibold uppercase block mb-1">Họ và tên</label>
-                                    <p className="font-medium text-slate-900 text-lg">{booking.customerName}</p>
-                                </div>
-                                <div>
-                                    <label className="text-xs text-slate-500 font-semibold uppercase block mb-1">Số điện thoại</label>
-                                    <div className="flex items-center gap-2 text-slate-700">
-                                        <Phone size={16} className="text-slate-400"/>
-                                        <span className="font-medium font-mono">{booking.phone || "---"}</span>
+                                    <label className="text-xs text-slate-500 font-bold uppercase block mb-1.5">Họ và tên</label>
+                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                                        <div className="bg-white p-1.5 rounded shadow-sm text-blue-500">
+                                            <User size={16} />
+                                        </div>
+                                        <p className="text-sm font-bold text-slate-800">{booking.customerName}</p>
                                     </div>
                                 </div>
+
+                                {/* Số điện thoại */}
+                                <div>
+                                    <label className="text-xs text-slate-500 font-bold uppercase block mb-1.5">Số điện thoại</label>
+                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                                        <div className="bg-white p-1.5 rounded shadow-sm text-emerald-500">
+                                            <Phone size={16} />
+                                        </div>
+                                        <p className="text-sm font-bold text-slate-800">{booking.phone || "---"}</p>
+                                    </div>
+                                </div>
+
+                                {/* Email */}
                                 <div className="sm:col-span-2">
-                                    <label className="text-xs text-slate-500 font-semibold uppercase block mb-1">Email</label>
-                                    <div className="flex items-center gap-2 text-slate-700">
-                                        <Mail size={16} className="text-slate-400"/>
-                                        <span className="font-medium">{booking.email || "---"}</span>
+                                    <label className="text-xs text-slate-500 font-bold uppercase block mb-1.5">Email</label>
+                                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                                        <div className="bg-white p-1.5 rounded shadow-sm text-purple-500">
+                                            <Mail size={16} />
+                                        </div>
+                                        <p className="text-sm font-bold text-slate-800 truncate">{booking.email || "---"}</p>
                                     </div>
                                 </div>
                             </div>
@@ -108,11 +145,12 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCheckOut }) => {
                                 <div className="flex justify-between items-center">
                                     <span className="text-slate-600 text-sm">Trạng thái</span>
                                     <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 border ${
-                                        booking.status === 'Đã thanh toán' || booking.paymentStatus === 'Đã thanh toán' 
+                                        isPaid 
                                         ? 'bg-emerald-100 text-emerald-700 border-emerald-200' 
                                         : 'bg-amber-100 text-amber-700 border-amber-200'
                                     }`}>
-                                        <CheckCircle2 size={12} /> {booking.paymentStatus || booking.status}
+                                        {isPaid ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />} 
+                                        {getPaymentStatusLabel(booking.paymentStatus)}
                                     </span>
                                 </div>
                             </div>
