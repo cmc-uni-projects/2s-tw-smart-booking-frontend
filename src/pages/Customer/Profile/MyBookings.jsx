@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, MapPin, Loader2, FileText, Search } from "lucide-react";
+import { CalendarDays, MapPin, Loader2, FileText, Search, Building2, CheckCircle2, AlertCircle, Clock, XCircle } from "lucide-react"; // Thêm icon
 
 // Components UI
-import Card from "@/components/common/Card/Card";
 import Button from "@/components/common/Button/Button";
 import Toast from "@/components/common/Notification/Toast";
 import ToastPortal from "@/components/common/Notification/ToastPortal";
@@ -14,7 +13,7 @@ import AccountMenu from "./AccountMenu";
 // Modals
 import BookingDetailModal from "./BookingDetailModal";
 import CancelBookingModal from "./CancelBookingModal";
-import RequestRefundModal from "./RequestRefundModal"; // ✅ Modal Yêu cầu hoàn tiền
+import RequestRefundModal from "./RequestRefundModal"; 
 
 // Services & Context
 import bookingService from "@/services/booking.service";
@@ -22,11 +21,11 @@ import paymentService from "@/services/payment.service";
 import { useAuth } from "@/context/AuthContext";
 
 // Helpers
-const BASE_URL = "http://localhost:8386"; 
-const getFullImageUrl = (path) => {
+const API_BASE_URL = "http://localhost:8386";   
+const getImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/300x200?text=No+Image";
     if (path.startsWith("http")) return path;
-    return `${BASE_URL}/uploads/${path}`;
+    return `${API_BASE_URL}/${path}`;
 };
 
 const TABS = [
@@ -35,6 +34,108 @@ const TABS = [
     { id: "all", name: "Tất cả" },
 ];
 
+// --- COMPONENT CARD (GIAO DIỆN) ---
+const BookingCard = ({ booking, onClick }) => {
+    const formatCurrency = (val) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(val);
+    
+    // Badge Status với Icon
+    const renderStatusBadge = (status) => {
+        const config = {
+            CONFIRMED: { style: "bg-blue-100 text-blue-700 border-blue-200", label: "Đã xác nhận", icon: CheckCircle2 },
+            PENDING_PAYMENT: { style: "bg-amber-100 text-amber-700 border-amber-200", label: "Chờ thanh toán", icon: AlertCircle },
+            COMPLETED: { style: "bg-slate-100 text-slate-700 border-slate-200", label: "Hoàn thành", icon: CheckCircle2 },
+            CANCELLED: { style: "bg-rose-100 text-rose-700 border-rose-200", label: "Đã hủy", icon: XCircle },
+            CHECKED_IN: { style: "bg-emerald-100 text-emerald-700 border-emerald-200", label: "Đang lưu trú", icon: Building2 }
+        };
+
+        const current = config[status] || { style: "bg-gray-100 text-gray-600", label: status, icon: AlertCircle };
+        const Icon = current.icon;
+
+        return (
+            <span className={`px-2.5 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${current.style}`}>
+                <Icon size={14} strokeWidth={2.5} />
+                {current.label}
+            </span>
+        );
+    };
+
+    return (
+        <div 
+            onClick={onClick}
+            className={`group bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg hover:border-blue-300 transition-all duration-300 cursor-pointer flex flex-col md:flex-row ${booking.status === 'CANCELLED' ? 'opacity-80 grayscale-[0.2]' : ''}`}
+        >
+            {/* Image Section */}
+            <div className="w-full md:w-56 h-48 md:h-auto shrink-0 relative bg-slate-100">
+                <img 
+                    src={getImageUrl(booking.propertyImage)} 
+                    alt={booking.propertyName}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => e.target.src = "https://via.placeholder.com/300x200?text=Hotel"}
+                />
+                <div className="absolute top-3 left-3 md:hidden">
+                    {renderStatusBadge(booking.status)}
+                </div>
+            </div>
+
+            {/* Content Section */}
+            <div className="flex-1 p-5 flex flex-col justify-between">
+                <div>
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-1">
+                                {booking.propertyName}
+                            </h3>
+                            <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
+                                <MapPin size={14} /> {booking.propertyAddress}
+                            </p>
+                        </div>
+                        <div className="hidden md:block">
+                            {renderStatusBadge(booking.status)}
+                        </div>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-2 gap-4 text-sm text-slate-600">
+                        <div className="flex items-center gap-2 bg-slate-50 p-2 rounded">
+                            <CalendarDays size={16} className="text-blue-500" />
+                            <div>
+                                <p className="text-xs text-slate-400">Nhận phòng</p>
+                                <p className="font-medium">{new Date(booking.checkInDate).toLocaleDateString('vi-VN')}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 bg-slate-50 p-2 rounded">
+                            <FileText size={16} className="text-blue-500" />
+                            <div>
+                                <p className="text-xs text-slate-400">Loại phòng</p>
+                                <p className="font-medium truncate">{booking.roomName}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-end justify-between">
+                    <div>
+                        {booking.paymentStatus === 'REFUND_REQUESTED' && (
+                            <span className="text-xs text-orange-600 font-bold flex items-center gap-1 mb-1">
+                                <Loader2 size={10} className="animate-spin"/> Đang chờ hoàn tiền
+                            </span>
+                        )}
+                        {booking.paymentStatus === 'REFUNDED' && (
+                            <span className="text-xs text-green-600 font-bold mb-1 block">✔ Đã hoàn tiền</span>
+                        )}
+                        <p className="text-xs text-slate-400">Tổng thanh toán</p>
+                        <p className="text-xl font-bold text-blue-600">{formatCurrency(booking.totalPrice)}</p>
+                    </div>
+                    
+                    <Button size="sm" variant="outline" className="group-hover:bg-blue-50 group-hover:border-blue-200">
+                        Xem chi tiết
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- MAIN PAGE ---
 export default function MyBookings() {
     const navigate = useNavigate();
     const { currentUser } = useAuth(); 
@@ -56,39 +157,15 @@ export default function MyBookings() {
         setTimeout(() => setToast({ show: false, msg: "", type: "info" }), 3000);
     };
 
-    // --- 1. FETCH DATA ---
+    // --- FETCH DATA ---
     const fetchBookings = async () => {
         if (!currentUser) return;
         setLoading(true);
         try {
             const data = await bookingService.getBookingsByUserId(currentUser.userId);
-            
-            const mappedData = data.map(b => ({
-                bookingId: b.bookingId,
-                code: `BK-${b.bookingId}`,
-                hotelName: b.propertyName,
-                location: b.propertyAddress,
-                imageUrl: getFullImageUrl(b.propertyImage),
-                roomName: b.roomName,
-                checkInDate: b.checkInDate,
-                checkOutDate: b.checkOutDate,
-                totalPrice: b.totalPrice,
-                
-                // Các trạng thái quan trọng
-                status: b.status, // CONFIRMED, CANCELLED...
-                paymentStatus: b.paymentStatus, // APPROVED, REFUND_REQUESTED, REFUNDED...
-                
-                guestCount: b.guestCount,
-                penaltyAmount: b.penaltyAmount,
-                refundAmount: b.refundAmount
-            }));
-
-            // Sắp xếp mới nhất lên đầu
-            mappedData.sort((a, b) => new Date(b.checkInDate) - new Date(a.checkInDate));
-            setBookings(mappedData);
+            setBookings(data.reverse()); 
         } catch (err) {
             console.error("Fetch error:", err);
-            showToast("Lỗi tải lịch sử đặt phòng.", "error");
         } finally {
             setLoading(false);
         }
@@ -98,13 +175,13 @@ export default function MyBookings() {
         fetchBookings();
     }, [currentUser]);
 
-    // --- 2. FILTER LOGIC ---
+    // --- FILTER LOGIC ---
     const filteredBookings = useMemo(() => {
         if (activeTab === "upcoming") {
             return bookings.filter(b => 
                 b.status === "CONFIRMED" || 
                 b.status === "PENDING_PAYMENT" || 
-                b.status === "PENDING"
+                b.status === "CHECKED_IN"
             );
         }
         if (activeTab === "cancelled") {
@@ -113,15 +190,12 @@ export default function MyBookings() {
         return bookings; 
     }, [bookings, activeTab]);
 
-    // --- 3. HANDLERS ---
-
-    // Mở Modal Chi tiết
+    // --- HANDLERS ---
     const handleViewDetails = (booking) => {
         setSelectedBooking(booking);
         setIsDetailModalOpen(true);
     };
 
-    // Mở Modal Hủy (Từ chi tiết hoặc nút hủy)
     const handleStartCancel = (booking) => {
         const targetBooking = booking || selectedBooking;
         setSelectedBooking(targetBooking);
@@ -129,14 +203,12 @@ export default function MyBookings() {
         setTimeout(() => setIsCancelModalOpen(true), 200);
     };
 
-    // Xác nhận Hủy
-    const handleConfirmCancel = async (booking, reason, otherText) => {
+    const handleConfirmCancel = async (booking, reason) => {
         try {
             await bookingService.cancelBooking(booking.bookingId);
             showToast("Hủy đặt phòng thành công!", "success");
             fetchBookings(); 
         } catch (err) {
-            console.error("Cancel error:", err);
             showToast(err.message || "Lỗi khi hủy đơn.", "error");
         } finally {
             setIsCancelModalOpen(false);
@@ -144,16 +216,15 @@ export default function MyBookings() {
         }
     };
 
-    // Mở Modal Yêu cầu Hoàn tiền
     const handleOpenRefundModal = (booking) => {
         setSelectedBooking(booking);
         setIsRefundModalOpen(true);
+        setIsDetailModalOpen(false); // Đóng modal chi tiết nếu đang mở
     };
 
-    // Xác nhận Yêu cầu Hoàn tiền
-    const handleConfirmRefundRequest = async (booking, reason) => {
+    const handleConfirmRefundRequest = async (bookingId, refundData) => {
         try {
-            await paymentService.requestRefund(booking.bookingId, reason);
+            await paymentService.requestRefund(bookingId, refundData);
             showToast("Đã gửi yêu cầu hoàn tiền thành công!", "success");
             fetchBookings(); 
         } catch (err) {
@@ -164,28 +235,11 @@ export default function MyBookings() {
         }
     };
 
-    // Render Badge trạng thái Booking
-    const renderStatusBadge = (status) => {
-        switch (status) {
-            case "CONFIRMED":
-                return <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200">Đã xác nhận</span>;
-            case "PENDING_PAYMENT":
-            case "PENDING":
-                return <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700 border border-yellow-200">Chờ thanh toán</span>;
-            case "CANCELLED":
-                return <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">Đã hủy</span>;
-            case "COMPLETED":
-                return <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">Hoàn thành</span>;
-            default:
-                return <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-700">{status}</span>;
-        }
-    };
-
     return (
-        <div className="max-w-7xl mx-auto p-6">
+        <div className="max-w-7xl mx-auto p-6 animate-fade-in">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 
-                {/* CỘT TRÁI: MENU */}
+                {/* MENU SIDEBAR */}
                 <div className="lg:col-span-3">
                     <AccountMenu
                         activeSection="my-bookings" 
@@ -194,10 +248,9 @@ export default function MyBookings() {
                     />
                 </div>
 
-                {/* CỘT PHẢI: NỘI DUNG */}
+                {/* MAIN CONTENT */}
                 <div className="lg:col-span-9 space-y-6">
                     
-                    {/* Header */}
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
                             <h2 className="text-2xl font-bold text-gray-800">Đặt chỗ của tôi</h2>
@@ -205,140 +258,34 @@ export default function MyBookings() {
                         </div>
                     </div>
 
-                    {/* Tabs */}
                     <div className="border-b border-gray-200">
                         <TabsComponent tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
                     </div>
 
-                    {/* Loading & Empty State */}
                     {loading ? (
-                        <div className="py-20 flex justify-center"><Loader2 className="animate-spin w-8 h-8 text-blue-600" /></div>
+                        <div className="py-20 flex justify-center">
+                            <Loader2 className="animate-spin w-10 h-10 text-blue-600" />
+                        </div>
                     ) : filteredBookings.length === 0 ? (
                         <div className="py-10">
                             <EmptyState
                                 title="Chưa có đơn đặt phòng nào"
-                                description="Bạn chưa có chuyến đi nào trong mục này. Hãy khám phá ngay!"
+                                description="Bạn chưa có chuyến đi nào trong mục này."
                             />
                             <div className="text-center mt-6">
-                                <Button size="lg" onClick={() => navigate("/hotels")} leftIcon={<Search size={18} />}>
+                                <Button size="lg" onClick={() => navigate("/hotels")}>
                                     Tìm khách sạn ngay
                                 </Button>
                             </div>
                         </div>
                     ) : (
-                        /* LIST BOOKINGS */
                         <div className="space-y-4">
                             {filteredBookings.map((b) => (
-                                <Card
-                                    key={b.bookingId}
-                                    className={`p-0 overflow-hidden border hover:shadow-md transition-all duration-300 group ${
-                                        b.status === "CANCELLED" ? "opacity-90 grayscale-[0.3]" : ""
-                                    }`}
-                                >
-                                    <div className="flex flex-col md:flex-row">
-                                        {/* Ảnh Thumbnail */}
-                                        <div className="w-full md:w-1/3 h-48 md:h-auto relative overflow-hidden">
-                                            <img
-                                                src={b.imageUrl}
-                                                alt={b.hotelName}
-                                                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-                                                onError={(e) => e.target.src = "https://via.placeholder.com/300x200?text=No+Image"}
-                                            />
-                                            <div className="absolute top-3 left-3">
-                                                {renderStatusBadge(b.status)}
-                                            </div>
-                                        </div>
-
-                                        {/* Nội dung chi tiết */}
-                                        <div className="flex-1 p-5 flex flex-col justify-between">
-                                            <div>
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <h3 className="text-lg font-bold text-gray-800 line-clamp-1 group-hover:text-blue-600 transition-colors">
-                                                        {b.hotelName}
-                                                    </h3>
-                                                    <span className="text-xs font-mono text-gray-400 bg-gray-50 px-2 py-1 rounded">
-                                                        #{b.bookingId}
-                                                    </span>
-                                                </div>
-
-                                                <div className="space-y-2 text-sm text-gray-600">
-                                                    <div className="flex items-center gap-2">
-                                                        <MapPin size={14} className="text-gray-400"/>
-                                                        <span className="truncate">{b.location || "Việt Nam"}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <CalendarDays size={14} className="text-gray-400"/>
-                                                        <span>
-                                                            {new Date(b.checkInDate).toLocaleDateString("vi-VN")} → {new Date(b.checkOutDate).toLocaleDateString("vi-VN")}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <FileText size={14} className="text-gray-400"/>
-                                                        <span>{b.roomName}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Footer Card: Giá & Nút bấm */}
-                                            <div className="flex flex-col md:flex-row md:justify-between md:items-end mt-4 pt-4 border-t border-gray-100 gap-3">
-                                                <div>
-                                                    <span className="text-xs text-gray-500 block">Tổng thanh toán</span>
-                                                    <span className="text-lg font-bold text-blue-600">
-                                                        {new Intl.NumberFormat('vi-VN').format(b.totalPrice)}₫
-                                                    </span>
-                                                    
-                                                    {/* Trạng thái Hoàn tiền */}
-                                                    {b.paymentStatus === "REFUND_REQUESTED" && (
-                                                        <span className="block text-xs text-orange-600 font-semibold mt-1 flex items-center gap-1">
-                                                            <Loader2 size={10} className="animate-spin"/> Đang chờ hoàn tiền
-                                                        </span>
-                                                    )}
-                                                    {b.paymentStatus === "REFUNDED" && (
-                                                        <span className="block text-xs text-green-600 font-semibold mt-1">
-                                                            ✔ Đã hoàn tiền
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                
-                                                <div className="flex gap-2 w-full md:w-auto">
-                                                    
-                                                    {/* Nút Thanh toán (Nếu đơn chưa thanh toán) */}
-                                                    {b.status === "PENDING_PAYMENT" && (
-                                                        <Button 
-                                                            size="sm" 
-                                                            className="bg-green-600 hover:bg-green-700 text-white flex-1 md:flex-none"
-                                                            onClick={() => navigate(`/booking/payment/${b.bookingId}`)}
-                                                        >
-                                                            Thanh toán ngay
-                                                        </Button>
-                                                    )}
-
-                                                    {/* ✅ NÚT YÊU CẦU HOÀN TIỀN */}
-                                                    {b.status === "CANCELLED" && 
-                                                     b.refundAmount > 0 && 
-                                                     b.paymentStatus === "APPROVED" && (
-                                                        <Button 
-                                                            size="sm" 
-                                                            className="bg-orange-500 hover:bg-orange-600 text-white flex-1 md:flex-none"
-                                                            onClick={() => handleOpenRefundModal(b)}
-                                                        >
-                                                            Yêu cầu hoàn tiền
-                                                        </Button>
-                                                    )}
-                                                    
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="flex-1 md:flex-none"
-                                                        onClick={() => handleViewDetails(b)}
-                                                    >
-                                                        Xem chi tiết
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Card>
+                                <BookingCard 
+                                    key={b.bookingId} 
+                                    booking={b} 
+                                    onClick={() => handleViewDetails(b)} 
+                                />
                             ))}
                         </div>
                     )}
@@ -354,27 +301,25 @@ export default function MyBookings() {
                 )}
             </ToastPortal>
 
-            {/* Modal Chi tiết Booking */}
             <BookingDetailModal
                 isOpen={isDetailModalOpen}
                 onClose={() => setIsDetailModalOpen(false)}
                 booking={selectedBooking}
-                onCancelClick={() => handleStartCancel()} 
+                onCancelClick={() => handleStartCancel(selectedBooking)} // Gọi hàm mở modal hủy riêng
+                onRefundClick={() => handleOpenRefundModal(selectedBooking)}
             />
 
-            {/* Modal Xác nhận Hủy */}
             <CancelBookingModal
                 open={isCancelModalOpen}
                 onClose={() => setIsCancelModalOpen(false)}
-                onConfirm={handleConfirmCancel}
+                onConfirm={(reason) => handleConfirmCancel(selectedBooking, reason)}
                 booking={selectedBooking}
             />
 
-            {/* ✅ Modal Yêu cầu Hoàn tiền */}
             <RequestRefundModal
                 isOpen={isRefundModalOpen}
                 onClose={() => setIsRefundModalOpen(false)}
-                onConfirm={handleConfirmRefundRequest}
+                onConfirm={(data) => handleConfirmRefundRequest(selectedBooking.bookingId, data)}
                 booking={selectedBooking}
             />
         </div>

@@ -44,7 +44,6 @@ const adminRoutes = [
             </AdminLayout>
         ),
     },
-    // 👇 (Mới) Route cho trang Quản lý Giao dịch
     {
         path: "/admin/transactions",
         element: (
@@ -53,7 +52,6 @@ const adminRoutes = [
             </AdminLayout>
         ),
     },
-    // 👇 (Mới) Route cho trang Quản lý Khuyến mãi
     {
         path: "/admin/promotions",
         element: (
@@ -64,6 +62,16 @@ const adminRoutes = [
             </AdminLayout>
         ),
     },
+  {
+    path: "/admin/refunds",
+    element: (
+      <AdminLayout>
+        <ProtectedRoute requiredRole="ADMIN">
+          <RefundManagementPage /> {/* Trang xử lý hoàn tiền */}
+        </ProtectedRoute>
+      </AdminLayout>
+    ),
+  },
 ];
 
 export default adminRoutes; // ✅ Export mảng

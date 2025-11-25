@@ -1,167 +1,88 @@
-import React, { useState } from 'react';
-import { CheckCircle, Copy, AlertTriangle, Landmark, User, Hash, FileText } from 'lucide-react';
-import Modal from '@/components/common/Modal/Modal';
-import Button from '@/components/common/Button/Button';
-import ConfirmModal from '@/components/common/Modal/ConfirmModal'; // ✅ Import ConfirmModal
+import React, { useState } from "react";
+import { X, CheckCircle, XCircle, AlertTriangle, Send } from "lucide-react";
+import Button from "@/components/common/Button/Button";
 
-export default function AdminRefundModal({ isOpen, onClose, onConfirm, transaction }) {
-    const [showToast, setShowToast] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [isConfirmOpen, setIsConfirmOpen] = useState(false); // ✅ State cho Modal xác nhận
+const AdminRefundModal = ({ isOpen, onClose, onConfirm, type }) => {
+  if (!isOpen) return null;
 
-    if (!transaction) return null;
+  const [note, setNote] = useState("");
+  const isApprove = type === "APPROVE";
 
-    const refundInfo = transaction.refundRequest || {};
+  const handleSubmit = () => {
+    onConfirm(note);
+    setNote("");
+  };
 
-    // Logic tính toán
-    const originalAmount = transaction.amount || 0;
-    const refundAmount = transaction.refundedAmount || 0;
-    const penaltyAmount = originalAmount - refundAmount;
-    const penaltyPercent = originalAmount > 0 ? Math.round((penaltyAmount / originalAmount) * 100) : 0;
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
+        
+        {/* Header */}
+        <div className={`p-4 border-b flex justify-between items-center ${
+          isApprove ? "bg-emerald-50 border-emerald-100" : "bg-rose-50 border-rose-100"
+        }`}>
+          <h3 className={`text-lg font-bold flex items-center gap-2 ${
+            isApprove ? "text-emerald-700" : "text-rose-700"
+          }`}>
+            {isApprove ? <CheckCircle size={20}/> : <XCircle size={20}/>}
+            {isApprove ? "Xác nhận Duyệt" : "Xác nhận Từ chối"}
+          </h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+            <X size={20} />
+          </button>
+        </div>
 
-    const formatMoney = (val) => new Intl.NumberFormat('vi-VN').format(val);
+        {/* Body */}
+        <div className="p-6 space-y-4">
+          {isApprove ? (
+            <div className="bg-emerald-50 p-3 rounded-lg text-emerald-800 text-sm flex gap-2">
+              <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+              <p>
+                Trạng thái sẽ chuyển thành <strong>ĐÃ HOÀN TIỀN</strong>.
+                Hãy đảm bảo bạn đã chuyển khoản thành công tới STK khách hàng cung cấp.
+              </p>
+            </div>
+          ) : (
+            <div className="bg-rose-50 p-3 rounded-lg text-rose-800 text-sm flex gap-2">
+              <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+              <p>
+                Yêu cầu sẽ bị hủy bỏ và trạng thái đơn hàng quay về <strong>ĐÃ THANH TOÁN</strong>.
+              </p>
+            </div>
+          )}
 
-    const handleCopy = (text) => {
-        if (!text) return;
-        navigator.clipboard.writeText(text);
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 2000);
-    };
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Ghi chú giao dịch <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+              rows="3"
+              placeholder={isApprove ? "Nhập mã giao dịch ngân hàng (Ref No)..." : "Nhập lý do từ chối..."}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            ></textarea>
+          </div>
+        </div>
 
-    // 1. Mở Modal Xác nhận thay vì alert
-    const handlePreConfirm = () => {
-        setIsConfirmOpen(true);
-    };
+        {/* Footer - ĐÃ CHỈNH SỬA: Bỏ nút Hủy, style nút chính */}
+        <div className="p-4 border-t bg-slate-50 flex justify-end gap-3">
+          <Button 
+            className={`flex items-center gap-2 text-white !border-none shadow-md ${
+                isApprove 
+                ? "bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300" 
+                : "bg-red-600 hover:bg-red-700 disabled:bg-red-300"
+            }`}
+            onClick={handleSubmit}
+            disabled={!note.trim()} 
+          >
+            {isApprove ? <Send size={18} /> : <XCircle size={18} />}
+            {isApprove ? "Đã chuyển tiền" : "Từ chối hoàn"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-    // 2. Thực hiện logic Hoàn tiền thật sự (Sau khi bấm Đồng ý ở ConfirmModal)
-    const handleExecuteRefund = async () => {
-        setIsProcessing(true);
-        await onConfirm(transaction.bookingId);
-        setIsProcessing(false);
-        setIsConfirmOpen(false);
-        onClose();
-    };
-
-    return (
-        <>
-            {/* --- MODAL CHÍNH: THÔNG TIN CHUYỂN KHOẢN --- */}
-            <Modal
-                open={isOpen}
-                onClose={onClose}
-                title="Thông tin hoàn tiền"
-                maxWidth="max-w-md"
-            >
-                <div className="space-y-5">
-                    
-                    {/* 1. SỐ TIỀN */}
-                    <div className="text-center bg-[rgb(40,169,224)]/5 rounded-xl p-4 border border-[rgb(40,169,224)]/20">
-                        <p className="text-xs font-bold text-[rgb(40,169,224)] uppercase tracking-widest mb-1">
-                            Số tiền cần chuyển khoản
-                        </p>
-                        <p className="text-3xl font-bold text-[rgb(40,169,224)] mb-2">
-                            {formatMoney(refundAmount)}₫
-                        </p>
-
-                        {penaltyAmount > 0 ? (
-                            <div className="inline-flex items-center gap-2 text-xs bg-white px-3 py-1 rounded-full border border-[rgb(40,169,224)]/20 shadow-sm">
-                                <span className="text-red-500 font-semibold">
-                                    -{penaltyPercent}% Phí ({formatMoney(penaltyAmount)})
-                                </span>
-                                <span className="text-gray-300">|</span>
-                                <span className="text-gray-500">
-                                    Gốc: {formatMoney(originalAmount)}
-                                </span>
-                            </div>
-                        ) : (
-                            <div className="text-xs text-[rgb(40,169,224)] font-semibold bg-white px-2 py-1 rounded-full border border-[rgb(40,169,224)]/20 inline-block">
-                                Hoàn tiền 100%
-                            </div>
-                        )}
-                    </div>
-
-                    {/* 2. Cảnh báo */}
-                    <div className="bg-gray-50 text-gray-600 p-3 rounded-lg border border-gray-200 text-xs flex gap-2 items-start">
-                        <AlertTriangle className="shrink-0 w-4 h-4 mt-0.5 text-orange-500" />
-                        <p>
-                            Vui lòng chuyển khoản thủ công vào STK dưới đây, sau đó ấn <b>"Đã thanh toán"</b> để hoàn tất.
-                        </p>
-                    </div>
-
-                    {/* 3. Thông tin người nhận */}
-                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                        <div className="bg-gray-50 px-3 py-2 border-b border-gray-200 font-bold text-gray-700 text-xs uppercase">
-                            Thông tin người nhận
-                        </div>
-                        
-                        <div className="p-3 space-y-3 text-sm">
-                            <div className="flex justify-between items-center border-b border-dashed border-gray-100 pb-2">
-                                <span className="text-gray-500 flex items-center gap-1.5 text-xs"><Landmark size={14}/> Ngân hàng</span>
-                                <span className="font-bold text-gray-900">{refundInfo.bankName || "---"}</span>
-                            </div>
-
-                            <div className="flex justify-between items-center border-b border-dashed border-gray-100 pb-2">
-                                <span className="text-gray-500 flex items-center gap-1.5 text-xs"><Hash size={14}/> Số tài khoản</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="font-mono font-bold text-[rgb(40,169,224)] text-base select-all">
-                                        {refundInfo.accountNumber || "---"}
-                                    </span>
-                                    {refundInfo.accountNumber && (
-                                        <button onClick={() => handleCopy(refundInfo.accountNumber)} className="text-gray-400 hover:text-[rgb(40,169,224)]" title="Sao chép">
-                                            <Copy size={14} />
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex justify-between items-center">
-                                <span className="text-gray-500 flex items-center gap-1.5 text-xs"><User size={14}/> Chủ tài khoản</span>
-                                <span className="font-bold text-gray-900 uppercase">{refundInfo.accountHolder || "---"}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Footer Buttons */}
-                    <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
-                        <Button variant="outline" size="sm" onClick={onClose} disabled={isProcessing}>
-                            Hủy
-                        </Button>
-                        <Button 
-                            size="sm"
-                            className="bg-[rgb(40,169,224)] hover:bg-blue-500 text-white shadow-md border-none"
-                            onClick={handlePreConfirm} // ✅ Mở Modal Confirm thay vì alert
-                            disabled={isProcessing}
-                        >
-                            <CheckCircle size={16} className="mr-1.5"/>
-                            {isProcessing ? "Đang xử lý..." : "Đã thanh toán"}
-                        </Button>
-                    </div>
-
-                    {/* Toast */}
-                    {showToast && (
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/80 text-white px-3 py-1.5 rounded text-xs font-medium animate-fade-in shadow-lg z-50">
-                            Đã sao chép!
-                        </div>
-                    )}
-                </div>
-            </Modal>
-
-            {/* --- MODAL PHỤ: XÁC NHẬN HÀNH ĐỘNG --- */}
-            <ConfirmModal
-                open={isConfirmOpen}
-                onClose={() => setIsConfirmOpen(false)}
-                onConfirm={handleExecuteRefund}
-                type="warning"
-                title="Xác nhận hoàn tiền"
-                message={
-                    <span>
-                        Bạn xác nhận đã chuyển khoản thành công cho khách hàng <b className="text-gray-900">{transaction.userName}</b>?
-                        <br/>
-                        Hành động này sẽ cập nhật trạng thái đơn hàng thành <b>Đã hoàn tiền</b> và không thể hoàn tác.
-                    </span>
-                }
-                confirmText="Đúng, tôi đã chuyển"
-                cancelText="Kiểm tra lại"
-            />
-        </>
-    );
-}
+export default AdminRefundModal;

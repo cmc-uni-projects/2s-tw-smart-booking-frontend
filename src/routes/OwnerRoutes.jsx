@@ -90,6 +90,16 @@ const ownerRoutes = [
     ),
   },
   {
+    path: "/owner/bookings/:propertyId", //
+    element: (
+      <OwnerLayout>
+        <ProtectedRoute requiredRole="OWNER">
+          <OwnerBookingsPage />
+        </ProtectedRoute>
+      </OwnerLayout>
+    ),
+  },
+  {
     path: "/owner/reviews",
     element: (
       <OwnerLayout>

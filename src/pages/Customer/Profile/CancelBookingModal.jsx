@@ -4,10 +4,10 @@ import Button from "@/components/common/Button/Button";
 import TextArea from "@/components/common/Input/TextArea";
 import { XCircle } from "lucide-react";
 import CancelReasonSelect from "./CancelReasonSelect.jsx";
+import LoadingOverlay from "@/components/common/Loading/LoadingOverlay";
 
-// ✅ SỬA Ở ĐÂY: Xóa lựa chọn đầu tiên
+// --- Dữ liệu lý do giữ nguyên ---
 const CANCELLATION_REASONS = [
-    // { label: "Chọn một trong số các lý do sau", value: "" }, <-- ĐÃ XÓA
     { label: "Đặt phòng không được xác nhận kịp thời", value: "NO_CONFIRMATION" },
     { label: "Không thật sự tin tưởng vào uy tín của dịch vụ", value: "NO_TRUST" },
     { label: "Lo lắng về sự an toàn cho vị trí khách sạn", value: "SAFETY_CONCERNS" },
@@ -23,7 +23,6 @@ const CANCELLATION_REASONS = [
     { label: "Khác", value: "OTHER" },
 ];
 
-// --- Component cho Bước 1: Xác nhận (ảnh image_93d7a4.png) ---
 const Step1_Confirm = ({ onKeep, onContinue }) => (
     <div className="flex flex-col items-center text-center p-4">
         <XCircle size={64} className="text-red-500 mb-4" />
@@ -32,26 +31,16 @@ const Step1_Confirm = ({ onKeep, onContinue }) => (
             Ưu đãi và giá của chúng tôi thay đổi liên tục nên ưu đãi này có thể sẽ không còn nữa nếu quý khách hủy ngay bây giờ.
         </p>
         <div className="flex flex-col gap-3 w-full max-w-xs">
-            <Button
-                onClick={onKeep}
-                variant="primary"
-                fullWidth
-            >
+            <Button onClick={onKeep} variant="primary" fullWidth>
                 Giữ đặt phòng này
             </Button>
-            <Button
-                onClick={onContinue}
-                variant="ghost"
-                fullWidth
-                className="!text-red-600 hover:!bg-red-50"
-            >
+            <Button onClick={onContinue} variant="ghost" fullWidth className="!text-red-600 hover:!bg-red-50">
                 Hủy đặt phòng này
             </Button>
         </div>
     </div>
 );
 
-// --- Component cho Bước 2: Nhập lý do (ảnh image_93e2a7.png) ---
 const Step2_Reason = ({ onClose, onConfirmSubmit, booking }) => {
     const [reasonLabel, setReasonLabel] = useState("");
     const [otherText, setOtherText] = useState("");
@@ -67,10 +56,7 @@ const Step2_Reason = ({ onClose, onConfirmSubmit, booking }) => {
         : (booking?.cancellationPolicy || "Vui lòng kiểm tra chi tiết chính sách hủy.");
 
     const handleSubmit = () => {
-        // Lấy "value" (ví dụ: "OTHER") từ "label" (ví dụ: "Khác")
         const selectedOption = CANCELLATION_REASONS.find(r => r.label === reasonLabel);
-
-        // Nếu reasonLabel là "" (chưa chọn), selectedOption sẽ là undefined
         const reasonValue = selectedOption ? selectedOption.value : "";
 
         if (!reasonValue) {
@@ -82,6 +68,9 @@ const Step2_Reason = ({ onClose, onConfirmSubmit, booking }) => {
             return;
         }
         setError("");
+        
+        // Gộp reasonValue và otherText nếu cần, hoặc chỉ gửi reasonValue
+        // Ở đây ta gửi cả hai, hàm xử lý cha sẽ quyết định dùng cái nào
         onConfirmSubmit(reasonValue, otherText);
     };
 
@@ -146,41 +135,60 @@ const Step2_Reason = ({ onClose, onConfirmSubmit, booking }) => {
     );
 };
 
-// --- Component Modal Cha ---
 export default function CancelBookingModal({ open, onClose, booking, onConfirm }) {
-    const [step, setStep] = useState(1); // 1 = Confirm, 2 = Reason
+    const [step, setStep] = useState(1);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (open) {
             setStep(1);
+            setIsLoading(false);
         }
     }, [open]);
 
-    const handleConfirmCancel = (reasonValue, otherText) => {
-        onConfirm(booking, reasonValue, otherText);
+    const handleConfirmCancel = async (reasonValue, otherText) => {
+        setIsLoading(true);
+        try {
+            // ✅ SỬA LOGIC: Gọi onConfirm với tham số phù hợp
+            // MyBookings đang dùng: onConfirm={(reason) => ...}
+            // Nên ta truyền reasonValue (hoặc kết hợp với otherText) vào.
+            // Component cha (MyBookings) đã giữ 'selectedBooking' nên không cần truyền lại booking object từ đây.
+            await onConfirm(reasonValue, otherText); 
+        } catch (error) {
+            console.error("Lỗi khi hủy:", error);
+        } finally {
+            // ✅ SỬA LỖI LOADING: Luôn tắt loading khi kết thúc (dù thành công hay thất bại)
+            setIsLoading(false);
+        }
     };
 
     const title = "Hủy đặt phòng";
 
     return (
-        <Modal
-            open={open}
-            onClose={onClose}
-            title={title}
-            maxWidth={step === 1 ? "max-w-md" : "max-w-lg"}
-        >
-            {step === 1 ? (
-                <Step1_Confirm
-                    onKeep={onClose}
-                    onContinue={() => setStep(2)}
-                />
-            ) : (
-                <Step2_Reason
-                    onClose={onClose}
-                    onConfirmSubmit={handleConfirmCancel}
-                    booking={booking}
-                />
+        <>
+            <Modal
+                open={open}
+                onClose={isLoading ? undefined : onClose}
+                title={title}
+                maxWidth={step === 1 ? "max-w-md" : "max-w-lg"}
+            >
+                {step === 1 ? (
+                    <Step1_Confirm
+                        onKeep={onClose}
+                        onContinue={() => setStep(2)}
+                    />
+                ) : (
+                    <Step2_Reason
+                        onClose={onClose}
+                        onConfirmSubmit={handleConfirmCancel}
+                        booking={booking}
+                    />
+                )}
+            </Modal>
+
+            {isLoading && (
+                <LoadingOverlay message="Đang xử lý yêu cầu hủy phòng..." />
             )}
-        </Modal>
+        </>
     );
 }

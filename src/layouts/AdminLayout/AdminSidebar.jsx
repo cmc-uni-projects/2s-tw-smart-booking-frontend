@@ -9,11 +9,13 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  CheckSquare,
-  List,
-  ChevronDown,
-  TicketPercent, // ✅ Giữ lại icon TicketPercent từ nhánh của bạn
-  CreditCard,    // ✅ Giữ lại icon CreditCard từ nhánh develop
+  CheckSquare, 
+  List, 
+  ChevronDown, 
+  CreditCard, 
+  // ✅ 1. Import thêm icon mới
+  DollarSign, 
+  RotateCcw
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -45,12 +47,24 @@ const AdminSidebar = () => {
         },
       ]
     },
-
-    // ✅ MENU: QUẢN LÝ GIAO DỊCH (Từ develop)
-    {
-      name: "Quản lý Giao dịch",
-      icon: <CreditCard size={20} />,
-      path: "/admin/transactions"
+    
+    // ✅ 2. MENU MỚI: QUẢN LÝ DÒNG TIỀN (Đã chia làm 2)
+    { 
+      name: "Quản lý dòng tiền", 
+      icon: <DollarSign size={20} />, 
+      key: "finance", // Key để toggle menu
+      children: [
+        { 
+          name: "Quản lý thanh toán", 
+          path: "/admin/transactions", 
+          icon: <CreditCard size={16} /> 
+        },
+        { 
+          name: "Quản lý hoàn tiền",
+          path: "/admin/refunds",
+          icon: <RotateCcw size={16} /> 
+        },
+      ]
     },
 
     // ❌ ĐÃ XÓA "QUẢN LÝ BOOKINGS"
@@ -86,40 +100,27 @@ const AdminSidebar = () => {
             className={`flex items-center p-4 border-b border-gray-200 h-16 
           ${collapsed ? "justify-center" : "justify-between"}`}
         >
-          {!collapsed && (
-              <Link to="/" className="flex items-center gap-2">
-                <img
-                    src="/assets/logo/logo_travelmate_xoafont.png"
-                    alt="TravelMate"
-                    style={{ width: "135px", height: "43px" }}
-                    className="object-contain"
-                />
-              </Link>
-          )}
-          <button
-              onClick={() => setCollapsed(!collapsed)}
-              className="p-1 rounded-full text-gray-500 hover:bg-gray-100"
-          >
-            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-          </button>
-        </div>
+          {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </button>
+      </div>
 
-        {/* Menu */}
-        <nav className="flex-1 p-3 space-y-2 overflow-y-auto custom-scrollbar">
-          {menuItems.map((item) => {
-
-            // Menu có con
-            if (item.children) {
-              const isSubMenuOpen = openSubMenu === item.key;
-              const isParentActive = item.children.some(child =>
-                  location.pathname === child.path || location.pathname.startsWith(child.path)
-              );
-
-              return (
-                  <div key={item.key}>
-                    <button
-                        onClick={() => handleSubMenuToggle(item.key)}
-                        className={`flex items-center justify-between gap-3 py-2.5 px-4 rounded-lg transition-all w-full
+      {/* Menu */}
+      <nav className="flex-1 p-3 space-y-2 overflow-y-auto custom-scrollbar">
+        {menuItems.map((item) => {
+          
+          // Menu có con
+          if (item.children) {
+            const isSubMenuOpen = openSubMenu === item.key;
+            // Logic active: Nếu đang ở route con thì menu cha cũng active
+            const isParentActive = item.children.some(child => 
+                location.pathname === child.path || location.pathname.startsWith(child.path)
+            );
+            
+            return (
+              <div key={item.key}>
+                <button
+                  onClick={() => handleSubMenuToggle(item.key)}
+                  className={`flex items-center justify-between gap-3 py-2.5 px-4 rounded-lg transition-all w-full
                     ${isParentActive ? "bg-[rgb(40,169,224)] text-white shadow-sm" : "text-gray-600 hover:bg-gray-100"}
                     ${collapsed ? "justify-center" : ""}`}
                     >
