@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { User, Phone, Mail, MessageSquare, CheckCircle2 } from 'lucide-react';
+import { User, Phone, Mail, MessageSquare, CheckCircle2, Loader2 } from 'lucide-react';
 import MissingProfileModal from './MissingProfileModal';
+import {userService} from '@/services/user.service'; // Import service để lấy data mới nhất
 
 const ContactInfoForm = ({ user, onChange, initialData }) => {
     // State form data
@@ -15,6 +16,7 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
     const [isSelfBooking, setIsSelfBooking] = useState(false);
     const [missingFields, setMissingFields] = useState([]);
     const [showMissingModal, setShowMissingModal] = useState(false);
+    const [isChecking, setIsChecking] = useState(false); // State loading khi check thông tin
 
     // Cập nhật data lên cha mỗi khi form thay đổi
     useEffect(() => {
@@ -22,31 +24,69 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
     }, [formData, isSelfBooking]);
 
     // Xử lý khi tích chọn "Đặt cho mình"
-    const handleSelfBookingToggle = (e) => {
+    const handleSelfBookingToggle = async (e) => {
         const checked = e.target.checked;
         
         if (checked) {
-            // 1. Kiểm tra thông tin user
-            const missing = [];
-            if (!user?.fullName) missing.push("Họ và tên");
-            if (!user?.phoneNumber) missing.push("Số điện thoại");
-            if (!user?.email) missing.push("Email");
+            setIsChecking(true);
+            try {
+                // 1. Lấy thông tin MỚI NHẤT từ Server (thay vì tin tưởng props user cũ)
+                let currentUserData = user;
+                
+                if (user?.userId) {
+                    try {
+                        // Gọi API lấy profile mới nhất
+                        // Giả định userService có hàm getUserProfile hoặc getMe
+                        // Nếu API trả về object bọc data, cần lấy .data, nếu không thì lấy trực tiếp
+                        const res = await userService.getUserProfile(user.userId); 
+                        // Xử lý fallback nếu response có dạng { data: ... } hoặc trả về trực tiếp
+                        currentUserData = res.data || res || user;
+                        console.log("Fresh User Data Loaded:", currentUserData);
+                    } catch (err) {
+                        console.warn("Không thể lấy thông tin mới nhất, dùng thông tin hiện tại:", err);
+                    }
+                }
 
-            if (missing.length > 0) {
-                // Thiếu -> Hiện modal & Reset checkbox
-                setMissingFields(missing);
-                setShowMissingModal(true);
-                return;
+                // 2. Validate dựa trên dữ liệu MỚI NHẤT
+                const missing = [];
+                
+                // Kiểm tra tên
+                if (!currentUserData?.fullName || currentUserData.fullName.trim() === "") {
+                    missing.push("Họ và tên");
+                }
+                
+                // Kiểm tra số điện thoại (Ưu tiên 'phoneNumber', fallback 'phone')
+                const userPhone = currentUserData?.phoneNumber || currentUserData?.phone;
+                if (!userPhone || String(userPhone).trim() === "") {
+                    missing.push("Số điện thoại");
+                }
+                
+                // Kiểm tra email
+                if (!currentUserData?.email || currentUserData.email.trim() === "") {
+                    missing.push("Email");
+                }
+
+                if (missing.length > 0) {
+                    // Thiếu -> Hiện modal & Reset checkbox
+                    console.warn("Missing fields:", missing);
+                    setMissingFields(missing);
+                    setShowMissingModal(true);
+                    setIsSelfBooking(false); // Đảm bảo checkbox tắt
+                    return;
+                }
+
+                // 3. Đủ thông tin -> Auto fill
+                setFormData(prev => ({
+                    ...prev,
+                    fullName: currentUserData.fullName,
+                    phone: userPhone,
+                    email: currentUserData.email
+                }));
+                setIsSelfBooking(true);
+
+            } finally {
+                setIsChecking(false);
             }
-
-            // Đủ -> Auto fill & Disable input
-            setFormData(prev => ({
-                ...prev,
-                fullName: user.fullName,
-                phone: user.phoneNumber,
-                email: user.email
-            }));
-            setIsSelfBooking(true);
         } else {
             // Bỏ chọn -> Clear form (giữ lại note) & Enable input
             setFormData(prev => ({
@@ -73,20 +113,28 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
                 
                 {/* CHECKBOX ĐẶT CHO MÌNH */}
                 {user && (
-                    <label className="flex items-center gap-2 cursor-pointer select-none group">
+                    <label className={`flex items-center gap-2 select-none group ${isChecking ? 'cursor-wait opacity-70' : 'cursor-pointer'}`}>
                         <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
                             isSelfBooking ? "bg-blue-600 border-blue-600" : "bg-white border-slate-300 group-hover:border-blue-400"
                         }`}>
-                            {isSelfBooking && <CheckCircle2 size={14} className="text-white" />}
+                            {isChecking ? (
+                                <Loader2 size={12} className="text-blue-600 animate-spin" />
+                            ) : (
+                                isSelfBooking && <CheckCircle2 size={14} className="text-white" />
+                            )}
                         </div>
+                        
+                        {/* Input Checkbox */}
                         <input 
                             type="checkbox" 
                             className="hidden" 
                             checked={isSelfBooking} 
                             onChange={handleSelfBookingToggle}
+                            disabled={isChecking}
                         />
+                        
                         <span className={`text-sm font-medium ${isSelfBooking ? "text-blue-700" : "text-slate-600"}`}>
-                            Tôi đặt cho chính mình
+                            {isChecking ? "Đang kiểm tra..." : "Tôi đặt cho chính mình"}
                         </span>
                     </label>
                 )}
@@ -104,7 +152,7 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
                             <input
                                 type="text"
                                 name="fullName"
-                                disabled={isSelfBooking}
+                                disabled={isSelfBooking || isChecking}
                                 value={formData.fullName}
                                 onChange={handleChange}
                                 className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm outline-none transition-all ${
@@ -127,7 +175,7 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
                             <input
                                 type="text"
                                 name="phone"
-                                disabled={isSelfBooking}
+                                disabled={isSelfBooking || isChecking}
                                 value={formData.phone}
                                 onChange={handleChange}
                                 className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm outline-none transition-all ${
@@ -150,7 +198,7 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
                             <input
                                 type="email"
                                 name="email"
-                                disabled={isSelfBooking}
+                                disabled={isSelfBooking || isChecking}
                                 value={formData.email}
                                 onChange={handleChange}
                                 className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm outline-none transition-all ${

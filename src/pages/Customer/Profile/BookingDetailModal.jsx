@@ -1,12 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { 
   X, Calendar, MapPin, User, CreditCard, 
   CheckCircle, AlertCircle, BedDouble, Receipt, 
   Phone, Mail, UserCircle, Clock, ShieldAlert
 } from "lucide-react";
 import Button from "../../../components/common/Button/Button";
-import bookingService from "../../../services/booking.service";
-import paymentService from "../../../services/payment.service"; 
 
 // --- HELPER XỬ LÝ ẢNH ---
 const API_BASE_URL = "http://localhost:8386"; // Sửa port backend nếu cần
@@ -18,8 +16,6 @@ const getImageUrl = (path) => {
 
 const BookingDetailModal = ({ isOpen, onClose, booking, onCancelClick, onRefundClick }) => {
   if (!isOpen || !booking) return null;
-
-  const [isProcessing, setIsProcessing] = useState(false);
 
   // Helpers
   const formatCurrency = (val) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(val);
@@ -77,27 +73,8 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCancelClick, onRefundC
     );
   };
 
-  // Actions
-  const handleCancel = async () => {
-    if (!window.confirm("Bạn có chắc chắn muốn hủy đơn này?")) return;
-    try {
-      setIsProcessing(true);
-      await bookingService.cancelBooking(booking.bookingId);
-      alert("Đã hủy đặt phòng thành công!");
-      onClose();
-    } catch (error) {
-      alert(error.message || "Lỗi khi hủy phòng");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   const handlePayment = () => {
     alert("Vui lòng thanh toán qua ứng dụng hoặc tại quầy!");
-  };
-
-  const handleRefundRequest = () => {
-    onRefundClick();
   };
 
   return (
@@ -275,14 +252,13 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCancelClick, onRefundC
 
         {/* --- 3. FOOTER ACTIONS --- */}
         <div className="p-5 border-t bg-white flex justify-end gap-3 shrink-0">
-          {/* Logic hiển thị nút */}
+          {/* ✅ Sửa nút Hủy: Màu đỏ + Gọi onCancelClick */}
           {(booking.status === 'PENDING_PAYMENT' || booking.status === 'CONFIRMED') && (
             <Button 
-              variant="dangerSoft" 
-              onClick={handleCancel}
-              disabled={isProcessing}
+              className="bg-rose-600 hover:bg-rose-700 text-white shadow-rose-100 border-none"
+              onClick={onCancelClick}
             >
-              {isProcessing ? 'Đang xử lý...' : 'Hủy phòng'}
+              Hủy phòng
             </Button>
           )}
 
@@ -292,11 +268,10 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCancelClick, onRefundC
             </Button>
           )}
 
-          {/* Nút Yêu cầu Hoàn tiền (Chỉ hiện khi Đã Hủy + Đã Thanh toán) */}
           {booking.status === 'CANCELLED' && 
            booking.refundAmount > 0 && 
            (booking.paymentStatus === 'APPROVED' || booking.paymentStatus === 'PAID') && (
-            <Button variant="secondary" onClick={handleRefundRequest}>
+            <Button variant="secondary" onClick={onRefundClick}>
               Yêu cầu hoàn tiền
             </Button>
           )}

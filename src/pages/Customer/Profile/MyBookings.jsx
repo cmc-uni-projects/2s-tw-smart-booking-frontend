@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, MapPin, Loader2, FileText, Search, Building2 } from "lucide-react";
+import { CalendarDays, MapPin, Loader2, FileText, Search, Building2, CheckCircle2, AlertCircle, Clock, XCircle } from "lucide-react"; // Thêm icon
 
 // Components UI
 import Button from "@/components/common/Button/Button";
@@ -21,7 +21,7 @@ import paymentService from "@/services/payment.service";
 import { useAuth } from "@/context/AuthContext";
 
 // Helpers
-const API_BASE_URL = "http://localhost:8386"; // Cập nhật port backend của bạn
+const API_BASE_URL = "http://localhost:8386";   
 const getImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/300x200?text=No+Image";
     if (path.startsWith("http")) return path;
@@ -38,25 +38,23 @@ const TABS = [
 const BookingCard = ({ booking, onClick }) => {
     const formatCurrency = (val) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(val);
     
-    // Badge Status
+    // Badge Status với Icon
     const renderStatusBadge = (status) => {
-        const styles = {
-            CONFIRMED: "bg-blue-100 text-blue-700 border-blue-200",
-            PENDING_PAYMENT: "bg-amber-100 text-amber-700 border-amber-200",
-            COMPLETED: "bg-slate-100 text-slate-700 border-slate-200",
-            CANCELLED: "bg-rose-100 text-rose-700 border-rose-200",
-            CHECKED_IN: "bg-emerald-100 text-emerald-700 border-emerald-200"
+        const config = {
+            CONFIRMED: { style: "bg-blue-100 text-blue-700 border-blue-200", label: "Đã xác nhận", icon: CheckCircle2 },
+            PENDING_PAYMENT: { style: "bg-amber-100 text-amber-700 border-amber-200", label: "Chờ thanh toán", icon: AlertCircle },
+            COMPLETED: { style: "bg-slate-100 text-slate-700 border-slate-200", label: "Hoàn thành", icon: CheckCircle2 },
+            CANCELLED: { style: "bg-rose-100 text-rose-700 border-rose-200", label: "Đã hủy", icon: XCircle },
+            CHECKED_IN: { style: "bg-emerald-100 text-emerald-700 border-emerald-200", label: "Đang lưu trú", icon: Building2 }
         };
-        const labels = {
-            CONFIRMED: "Đã xác nhận",
-            PENDING_PAYMENT: "Chờ thanh toán",
-            COMPLETED: "Hoàn thành",
-            CANCELLED: "Đã hủy",
-            CHECKED_IN: "Đang lưu trú"
-        };
+
+        const current = config[status] || { style: "bg-gray-100 text-gray-600", label: status, icon: AlertCircle };
+        const Icon = current.icon;
+
         return (
-            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${styles[status] || "bg-gray-100"}`}>
-                {labels[status] || status}
+            <span className={`px-2.5 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${current.style}`}>
+                <Icon size={14} strokeWidth={2.5} />
+                {current.label}
             </span>
         );
     };
@@ -165,12 +163,9 @@ export default function MyBookings() {
         setLoading(true);
         try {
             const data = await bookingService.getBookingsByUserId(currentUser.userId);
-            // Backend trả về list DTO, không cần map lại nếu DTO đã chuẩn
-            // Nhưng để an toàn ta cứ dùng data trực tiếp nếu key giống nhau
             setBookings(data.reverse()); 
         } catch (err) {
             console.error("Fetch error:", err);
-            // showToast("Lỗi tải lịch sử đặt phòng.", "error");
         } finally {
             setLoading(false);
         }
@@ -229,7 +224,6 @@ export default function MyBookings() {
 
     const handleConfirmRefundRequest = async (bookingId, refundData) => {
         try {
-            // refundData là object { reason, bankName, ... } từ form modal
             await paymentService.requestRefund(bookingId, refundData);
             showToast("Đã gửi yêu cầu hoàn tiền thành công!", "success");
             fetchBookings(); 
@@ -311,7 +305,7 @@ export default function MyBookings() {
                 isOpen={isDetailModalOpen}
                 onClose={() => setIsDetailModalOpen(false)}
                 booking={selectedBooking}
-                onCancelClick={() => handleStartCancel(selectedBooking)}
+                onCancelClick={() => handleStartCancel(selectedBooking)} // Gọi hàm mở modal hủy riêng
                 onRefundClick={() => handleOpenRefundModal(selectedBooking)}
             />
 
