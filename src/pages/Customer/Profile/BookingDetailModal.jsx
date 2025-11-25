@@ -2,12 +2,13 @@ import React from "react";
 import { 
   X, Calendar, MapPin, User, CreditCard, 
   CheckCircle, AlertCircle, BedDouble, Receipt, 
-  Phone, Mail, UserCircle, Clock, ShieldAlert
+  Phone, Mail, UserCircle, Clock, ShieldAlert,
+  RefreshCcw // Thêm icon hoàn tiền
 } from "lucide-react";
-import Button from "../../../components/common/Button/Button";
+import Button from "@/components/common/Button/Button"; // Đảm bảo đường dẫn import đúng
 
 // --- HELPER XỬ LÝ ẢNH ---
-const API_BASE_URL = "http://localhost:8386"; // Sửa port backend nếu cần
+const API_BASE_URL = "http://localhost:8386"; 
 const getImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/800x400?text=No+Image";
     if (path.startsWith("http")) return path;
@@ -17,14 +18,22 @@ const getImageUrl = (path) => {
 const BookingDetailModal = ({ isOpen, onClose, booking, onCancelClick, onRefundClick }) => {
   if (!isOpen || !booking) return null;
 
-  // Helpers
+  // --- LOGIC TÍNH TOÁN MỚI ---
   const formatCurrency = (val) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(val);
+  
   const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
     return new Date(dateStr).toLocaleDateString("vi-VN", { 
       weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit' 
     });
   };
+
+  // Xác định trạng thái
+  const isCancelled = booking.status === 'CANCELLED';
+  // Lấy phí phạt (ưu tiên penaltyAmount, nếu không có thì lấy cancellationFee hoặc 0)
+  const penaltyAmount = booking.penaltyAmount || booking.cancellationFee || 0;
+  // Tính tổng thực nhận về
+  const totalReceived = (booking.totalPrice || 0) - penaltyAmount;
 
   // Badge Booking Status
   const renderStatusBadge = () => {
@@ -155,14 +164,13 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCancelClick, onRefundC
             </div>
           </div>
 
-          {/* Block 2: Thông tin Khách hàng (Cập nhật thêm SĐT) */}
+          {/* Block 2: Thông tin Khách hàng */}
           {booking.user && (
             <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
               <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 border-b pb-2">
                 <UserCircle size={18} className="text-[#28A9E0]" /> Thông tin liên hệ
               </h3>
               <div className="grid md:grid-cols-2 gap-4">
-                {/* Họ tên */}
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
                     <User size={20} />
@@ -173,7 +181,6 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCancelClick, onRefundC
                   </div>
                 </div>
 
-                {/* Email */}
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
                     <Mail size={20} />
@@ -186,7 +193,6 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCancelClick, onRefundC
                   </div>
                 </div>
 
-                {/* ✅ SỐ ĐIỆN THOẠI (MỚI) */}
                 <div className="flex items-center gap-3 md:col-span-2">
                   <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
                     <Phone size={20} />
@@ -202,7 +208,7 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCancelClick, onRefundC
             </div>
           )}
 
-          {/* Block 3: Thanh toán & Hoàn tiền */}
+          {/* Block 3: Thanh toán & Hoàn tiền (LOGIC MỚI) */}
           <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
             <div className="flex justify-between items-center mb-4 border-b pb-2">
               <h3 className="font-bold text-slate-800 flex items-center gap-2">
@@ -212,30 +218,30 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCancelClick, onRefundC
             </div>
 
             <div className="space-y-2">
+              {/* Dòng 1: Giá gốc */}
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Giá trị đơn hàng</span>
                 <span className="font-medium text-slate-700">{formatCurrency(booking.totalPrice)}</span>
               </div>
               
-              {/* Phí phạt */}
-              {booking.status === 'CANCELLED' && booking.penaltyAmount > 0 && (
+              {/* Dòng 2: Phí phạt (Chỉ hiện khi đã hủy) */}
+              {isCancelled && penaltyAmount > 0 && (
                 <div className="flex justify-between text-sm text-rose-600 bg-rose-50 p-2 rounded">
                   <span>Phí phạt hủy</span>
-                  <span>- {formatCurrency(booking.penaltyAmount)}</span>
+                  <span>- {formatCurrency(penaltyAmount)}</span>
                 </div>
               )}
 
-              {/* Tiền hoàn */}
-              {booking.status === 'CANCELLED' && booking.refundAmount > 0 && (
-                <div className="flex justify-between text-sm text-emerald-600 bg-emerald-50 p-2 rounded font-bold">
-                  <span>Số tiền hoàn lại</span>
-                  <span>+ {formatCurrency(booking.refundAmount)}</span>
-                </div>
-              )}
-
+              {/* Dòng 3: Tổng kết */}
               <div className="flex justify-between items-center pt-2 mt-2 border-t border-slate-100">
-                <span className="font-bold text-slate-800">Tổng thanh toán</span>
-                <span className="text-xl font-bold text-[#28A9E0]">{formatCurrency(booking.totalPrice)}</span>
+                <span className="font-bold text-slate-800">
+                    {/* Đổi chữ dựa theo trạng thái */}
+                    {isCancelled ? "Tổng nhận được" : "Tổng thanh toán"}
+                </span>
+                <span className={`text-xl font-bold ${isCancelled ? "text-emerald-600" : "text-[#28A9E0]"}`}>
+                    {/* Hiển thị giá trị đã trừ phí nếu hủy */}
+                    {formatCurrency(isCancelled ? totalReceived : booking.totalPrice)}
+                </span>
               </div>
             </div>
           </div>
@@ -252,8 +258,9 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCancelClick, onRefundC
 
         {/* --- 3. FOOTER ACTIONS --- */}
         <div className="p-5 border-t bg-white flex justify-end gap-3 shrink-0">
-          {/* ✅ Sửa nút Hủy: Màu đỏ + Gọi onCancelClick */}
-          {(booking.status === 'PENDING_PAYMENT' || booking.status === 'CONFIRMED') && (
+          
+          {/* Nút Hủy Phòng (Chỉ hiện khi chưa hủy) */}
+          {!isCancelled && (booking.status === 'PENDING_PAYMENT' || booking.status === 'CONFIRMED') && (
             <Button 
               className="bg-rose-600 hover:bg-rose-700 text-white shadow-rose-100 border-none"
               onClick={onCancelClick}
@@ -262,16 +269,22 @@ const BookingDetailModal = ({ isOpen, onClose, booking, onCancelClick, onRefundC
             </Button>
           )}
 
+          {/* Nút Thanh toán (Chỉ hiện khi chờ thanh toán) */}
           {booking.status === 'PENDING_PAYMENT' && (
             <Button variant="primary" onClick={handlePayment}>
               Thanh toán ngay
             </Button>
           )}
 
-          {booking.status === 'CANCELLED' && 
-           booking.refundAmount > 0 && 
-           (booking.paymentStatus === 'APPROVED' || booking.paymentStatus === 'PAID') && (
-            <Button variant="secondary" onClick={onRefundClick}>
+          {/* Nút Yêu Cầu Hoàn Tiền (Chỉ hiện khi Đã hủy + Đã thanh toán + Chưa hoàn) */}
+          {isCancelled && 
+           (booking.paymentStatus === 'APPROVED' || booking.paymentStatus === 'PAID') && 
+           booking.paymentStatus !== 'REFUNDED' && (
+            <Button 
+                onClick={onRefundClick}
+                className="bg-orange-500 hover:bg-orange-600 text-white border-none flex items-center gap-2"
+            >
+              <RefreshCcw size={18} />
               Yêu cầu hoàn tiền
             </Button>
           )}

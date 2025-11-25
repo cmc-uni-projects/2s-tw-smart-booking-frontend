@@ -1,16 +1,16 @@
 import React from "react";
 import { 
   X, FileText, CreditCard, User, Calendar, 
-  CheckCircle, XCircle, AlertTriangle, Copy 
+  CheckCircle, XCircle, AlertTriangle, Copy,
+  Check, Ban // Thêm icon cho nút bấm
 } from "lucide-react";
-import Button from "../../../../components/common/Button/Button";
+import Button from "@/components/common/Button/Button";
 
 const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }) => {
   if (!isOpen || !refund) return null;
 
   const { refundInfo, bookingId, amount } = refund;
 
-  // Helper copy số tài khoản
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
     alert("Đã sao chép: " + text);
@@ -40,7 +40,7 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
         {/* Body */}
         <div className="p-6 overflow-y-auto space-y-6 custom-scrollbar">
           
-          {/* 1. Cảnh báo trạng thái */}
+          {/* Cảnh báo trạng thái */}
           {refundInfo.status === 'PENDING' ? (
             <div className="bg-orange-50 border border-orange-100 p-4 rounded-lg flex gap-3">
               <AlertTriangle className="text-orange-600 shrink-0" size={20} />
@@ -69,25 +69,20 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
             </div>
           )}
 
-          {/* 2. Grid Thông tin */}
+          {/* Grid Thông tin */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* Cột Trái: Thông tin Refund */}
             <div className="space-y-4">
               <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider border-b pb-2">Thông tin yêu cầu</h4>
-              
               <div>
                 <p className="text-xs text-slate-500">Số tiền cần hoàn</p>
                 <p className="text-xl font-bold text-blue-600">{formatMoney(refundInfo.amount || amount)}</p>
               </div>
-
               <div>
                 <p className="text-xs text-slate-500">Lý do khách hủy/yêu cầu</p>
                 <div className="bg-slate-50 p-3 rounded border border-slate-100 text-sm text-slate-700 italic">
                   "{refundInfo.reason}"
                 </div>
               </div>
-
               <div>
                 <p className="text-xs text-slate-500">Ngày gửi yêu cầu</p>
                 <p className="text-sm font-medium text-slate-700 flex items-center gap-2">
@@ -96,10 +91,8 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
               </div>
             </div>
 
-            {/* Cột Phải: Thông tin Ngân hàng (Quan trọng để Admin chuyển tiền) */}
             <div className="space-y-4">
               <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider border-b pb-2">Tài khoản nhận tiền</h4>
-              
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="bg-white p-2 rounded shadow-sm text-blue-600">
@@ -110,7 +103,6 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
                     <p className="font-bold text-slate-800">{refundInfo.bankName || "Không có dữ liệu"}</p>
                   </div>
                 </div>
-
                 <div className="flex items-start gap-3">
                   <div className="bg-white p-2 rounded shadow-sm text-purple-600">
                     <User size={20} />
@@ -120,7 +112,6 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
                     <p className="font-bold text-slate-800 uppercase">{refundInfo.accountHolder || "---"}</p>
                   </div>
                 </div>
-
                 <div className="flex items-start gap-3">
                   <div className="bg-white p-2 rounded shadow-sm text-emerald-600">
                     <FileText size={20} />
@@ -137,7 +128,6 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
             </div>
           </div>
 
-          {/* Admin Note (Nếu đã xử lý) */}
           {refundInfo.adminNote && (
             <div className="mt-4">
               <p className="text-xs text-slate-500 mb-1">Ghi chú của Admin</p>
@@ -149,24 +139,28 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
 
         </div>
 
-        {/* Footer Actions */}
-        <div className="p-5 border-t bg-slate-50 flex justify-end gap-3">
-          <Button variant="outline" onClick={onClose}>
-            Đóng
-          </Button>
-          
-          {/* Chỉ hiện nút duyệt nếu trạng thái là PENDING */}
-          {refundInfo.status === 'PENDING' && (
-            <>
-              <Button variant="danger" onClick={onReject}>
-                Từ chối hoàn tiền
-              </Button>
-              <Button variant="success" onClick={onApprove}>
-                Xác nhận hoàn tiền
-              </Button>
-            </>
-          )}
-        </div>
+        {/* Footer Actions - ĐÃ CHỈNH SỬA */}
+        {refundInfo.status === 'PENDING' && (
+          <div className="p-5 border-t bg-slate-50 flex justify-end gap-3">
+            {/* 1. Nút Từ chối (Đỏ + Icon) */}
+            <Button 
+                className="bg-red-600 hover:bg-red-700 text-white shadow-red-100 flex items-center gap-2 !border-none" 
+                onClick={onReject}
+            >
+              <Ban size={18} />
+              Từ chối hoàn tiền
+            </Button>
+            
+            {/* 2. Nút Duyệt (Xanh + Icon) */}
+            <Button 
+                className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100 flex items-center gap-2 !border-none"
+                onClick={onApprove}
+            >
+              <Check size={18} />
+              Xác nhận hoàn tiền
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

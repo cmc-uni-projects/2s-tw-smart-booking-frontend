@@ -12,7 +12,10 @@ import {
   CheckSquare, 
   List, 
   ChevronDown, 
-  CreditCard, // ✅ Thêm icon CreditCard
+  CreditCard, 
+  // ✅ 1. Import thêm icon mới
+  DollarSign, 
+  RotateCcw
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -45,11 +48,23 @@ const AdminSidebar = () => {
       ]
     },
     
-    // ✅ MENU MỚI: QUẢN LÝ GIAO DỊCH
+    // ✅ 2. MENU MỚI: QUẢN LÝ DÒNG TIỀN (Đã chia làm 2)
     { 
-      name: "Quản lý Giao dịch", 
-      icon: <CreditCard size={20} />, 
-      path: "/admin/transactions" 
+      name: "Quản lý dòng tiền", 
+      icon: <DollarSign size={20} />, 
+      key: "finance", // Key để toggle menu
+      children: [
+        { 
+          name: "Quản lý thanh toán", 
+          path: "/admin/transactions", 
+          icon: <CreditCard size={16} /> 
+        },
+        { 
+          name: "Quản lý hoàn tiền",
+          path: "/admin/refunds",
+          icon: <RotateCcw size={16} /> 
+        },
+      ]
     },
 
     // ❌ ĐÃ XÓA "QUẢN LÝ BOOKINGS"
@@ -103,6 +118,7 @@ const AdminSidebar = () => {
           // Menu có con
           if (item.children) {
             const isSubMenuOpen = openSubMenu === item.key;
+            // Logic active: Nếu đang ở route con thì menu cha cũng active
             const isParentActive = item.children.some(child => 
                 location.pathname === child.path || location.pathname.startsWith(child.path)
             );

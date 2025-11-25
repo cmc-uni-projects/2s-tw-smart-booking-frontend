@@ -1,5 +1,8 @@
 import React from 'react';
-import { User, Building, Calendar, Mail, Phone, ArrowRight, AlertCircle, CheckCircle, RotateCcw, XCircle } from 'lucide-react';
+import { 
+    User, Building, Calendar, Mail, Phone, ArrowRight, 
+    CheckCircle2, AlertTriangle, CornerUpLeft, XCircle, Ban, Clock 
+} from 'lucide-react';
 import Button from '@/components/common/Button/Button';
 import Badge from '@/components/common/Badge/Badge';
 
@@ -8,38 +11,44 @@ const StatusBadge = ({ status }) => {
     switch (status) {
         case 'APPROVED': 
             return (
-                <Badge className="bg-green-100 text-green-700 border border-green-200 flex items-center gap-1.5 px-2.5 py-1">
-                    <CheckCircle size={12} strokeWidth={2.5} /> 
-                    <span className="font-semibold">Thành công</span>
+                <Badge className="bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 px-3 py-1 rounded-full">
+                    <CheckCircle2 size={14} strokeWidth={2.5} /> 
+                    <span className="font-bold text-xs">Thành công</span>
                 </Badge>
             );
         case 'REFUND_REQUESTED': 
             return (
-                <Badge className="bg-red-100 text-red-700 border border-red-200 animate-pulse flex items-center gap-1.5 px-2.5 py-1">
-                    <AlertCircle size={12} strokeWidth={2.5} /> 
-                    <span className="font-bold">Yêu cầu hoàn tiền</span>
+                <Badge className="bg-orange-100 text-orange-700 border border-orange-200 flex items-center gap-1.5 px-3 py-1 rounded-full">
+                    <AlertTriangle size={14} strokeWidth={2.5} /> 
+                    <span className="font-bold text-xs">Yêu cầu hoàn tiền</span>
                 </Badge>
-                
             );
         case 'REFUNDED': 
             return (
-                <Badge className="bg-[rgb(40,169,224)]/10 text-[rgb(40,169,224)] border border-[rgb(40,169,224)]/20 flex items-center gap-1.5 px-2.5 py-1">
-                    <RotateCcw size={12} strokeWidth={2.5} /> 
-                    <span className="font-semibold">Đã hoàn tiền</span>
+                <Badge className="bg-purple-100 text-purple-700 border border-purple-200 flex items-center gap-1.5 px-3 py-1 rounded-full">
+                    <CornerUpLeft size={14} strokeWidth={2.5} /> 
+                    <span className="font-bold text-xs">Đã hoàn tiền</span>
                 </Badge>
             );
         case 'FAILED': 
+            return (
+                <Badge className="bg-rose-100 text-rose-700 border border-rose-200 flex items-center gap-1.5 px-3 py-1 rounded-full">
+                    <XCircle size={14} strokeWidth={2.5} /> 
+                    <span className="font-bold text-xs">Thất bại</span>
+                </Badge>
+            );
         case 'REJECTED':
             return (
-                <Badge className="bg-red-50 text-red-600 border border-red-100 flex items-center gap-1.5 px-2.5 py-1">
-                    <XCircle size={12} strokeWidth={2.5} /> 
-                    <span>Thất bại</span>
+                <Badge className="bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1.5 px-3 py-1 rounded-full">
+                    <Ban size={14} strokeWidth={2.5} /> 
+                    <span className="font-bold text-xs">Đã từ chối</span>
                 </Badge>
             );
         default: 
             return (
-                <Badge className="bg-gray-100 text-gray-500 border border-gray-200 px-2.5 py-1">
-                    {status || 'Chưa rõ'}
+                <Badge className="bg-gray-100 text-gray-500 border border-gray-200 flex items-center gap-1.5 px-3 py-1 rounded-full">
+                    <Clock size={14} strokeWidth={2} />
+                    <span className="font-medium text-xs">{status || 'Chờ xử lý'}</span>
                 </Badge>
             );
     }
@@ -47,7 +56,7 @@ const StatusBadge = ({ status }) => {
 
 // --- 2. COMPONENT ROW CHÍNH ---
 const TransactionRow = ({ transaction, onViewDetail }) => {
-    // Destructure dữ liệu từ API (Dạng phẳng)
+    // Destructure dữ liệu từ API
     const {
         paymentId, bookingId, userName, userEmail, userPhone,
         propertyName, amount, refundedAmount,
@@ -65,7 +74,7 @@ const TransactionRow = ({ transaction, onViewDetail }) => {
     };
 
     return (
-        <div className="group bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md hover:border-[rgb(40,169,224)]/50 transition-all duration-200 flex flex-col md:flex-row items-start md:items-center gap-4">
+        <div className="group bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 flex flex-col md:flex-row items-start md:items-center gap-4">
             
             {/* Cột 1: ID & Ngày */}
             <div className="w-full md:w-[15%] shrink-0 flex md:flex-col justify-between md:justify-center gap-1">
@@ -117,13 +126,12 @@ const TransactionRow = ({ transaction, onViewDetail }) => {
                 <div className="text-right">
                     <span className="block text-lg font-bold text-blue-600">{formatMoney(amount)}₫</span>
                     {refundedAmount > 0 && (
-                        <span className="block text-xs text-[rgb(40,169,224)] font-medium bg-[rgb(40,169,224)]/10 px-1.5 py-0.5 rounded mt-0.5">
+                        <span className="block text-xs text-purple-600 font-medium bg-purple-50 px-1.5 py-0.5 rounded mt-0.5">
                             - {formatMoney(refundedAmount)}₫ (Hoàn)
                         </span>
                     )}
                 </div>
                 <div className="mt-0 md:mt-1">
-                    {/* ✅ Sử dụng StatusBadge nội bộ */}
                     <StatusBadge status={paymentStatus} />
                 </div>
             </div>
@@ -133,14 +141,16 @@ const TransactionRow = ({ transaction, onViewDetail }) => {
                 <Button 
                     variant="outline" 
                     size="sm" 
-                    className={`w-full md:w-auto border-gray-200 hover:border-[rgb(40,169,224)] hover:text-[rgb(40,169,224)] ${
-                        paymentStatus === 'REFUND_REQUESTED' ? 'border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-300' : ''
+                    className={`w-full md:w-auto border-gray-200 transition-colors ${
+                        paymentStatus === 'REFUND_REQUESTED' 
+                            ? 'border-orange-200 bg-orange-50 text-orange-600 hover:bg-orange-100 hover:border-orange-300' 
+                            : 'hover:border-blue-400 hover:text-blue-600'
                     }`}
                     onClick={() => onViewDetail(transaction)}
                 >
                     {paymentStatus === 'REFUND_REQUESTED' ? (
                         <span className="flex items-center font-bold">
-                            <AlertCircle size={14} className="mr-1.5" /> Xử lý
+                            <AlertTriangle size={14} className="mr-1.5" /> Xử lý
                         </span>
                     ) : (
                         <span className="flex items-center">

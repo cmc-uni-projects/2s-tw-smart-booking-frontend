@@ -1,23 +1,26 @@
+// src/pages/Admin/Transactions/RefundManagementPage.jsx
 import React, { useState, useEffect } from "react";
 import { 
-  RotateCcw, Search, Eye, Loader2 
+  RotateCcw, Search, Loader2 
 } from "lucide-react";
 import paymentService from "../../../services/payment.service";
-import AdminRefundModal from "./components/AdminRefundModal"; // Modal nhập Note (nhỏ)
-import AdminRefundDetailModal from "./components/AdminRefundDetailModal"; // Modal chi tiết (lớn)
+import AdminRefundModal from "./components/AdminRefundModal"; 
+import AdminRefundDetailModal from "./components/AdminRefundDetailModal";
 import Toast from "../../../components/common/Notification/Toast";
 import ToastPortal from "../../../components/common/Notification/ToastPortal";
+
+// ✅ Import Component con mới
+import RefundRow from "./components/RefundRow"; 
 
 const RefundManagementPage = () => {
   const [refunds, setRefunds] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState("PENDING"); // PENDING, APPROVED, REJECTED
+  const [filterStatus, setFilterStatus] = useState("PENDING"); 
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Modal State
-  const [selectedRefund, setSelectedRefund] = useState(null); // Lưu object refund đang xem
-  const [isDetailOpen, setIsDetailOpen] = useState(false);    // Trạng thái mở modal chi tiết
-  const [confirmType, setConfirmType] = useState(null);       // APPROVE/REJECT để mở modal nhập note
+  const [selectedRefund, setSelectedRefund] = useState(null); 
+  const [isDetailOpen, setIsDetailOpen] = useState(false);    
+  const [confirmType, setConfirmType] = useState(null);       
   
   const [toast, setToast] = useState({ show: false, message: "", type: "info" });
 
@@ -31,12 +34,10 @@ const RefundManagementPage = () => {
       const res = await paymentService.getAllTransactions();
       const data = res.data || res;
       
-      // Lọc ra các giao dịch có thông tin hoàn tiền
       const refundList = Array.isArray(data) 
         ? data.filter(t => t.refundInfo !== null)
         : [];
       
-      // Sắp xếp mới nhất lên đầu (dựa vào requestDate)
       refundList.sort((a, b) => new Date(b.refundInfo.requestDate) - new Date(a.refundInfo.requestDate));
         
       setRefunds(refundList);
@@ -47,7 +48,6 @@ const RefundManagementPage = () => {
     }
   };
 
-  // Filter Logic
   const filteredData = refunds.filter(r => {
     const matchStatus = filterStatus === 'ALL' || r.refundInfo?.status === filterStatus;
     const matchSearch = r.bookingId.toString().includes(searchTerm) || 
@@ -55,53 +55,30 @@ const RefundManagementPage = () => {
     return matchStatus && matchSearch;
   });
 
-  // --- HANDLERS ---
-
-  // 1. Mở Modal Chi tiết
   const handleViewDetail = (refund) => {
     setSelectedRefund(refund);
     setIsDetailOpen(true);
   };
 
-  // 2. Từ Modal Chi tiết -> Bấm nút Duyệt/Từ chối -> Mở Modal Xác nhận (Nhập Note)
   const handleTriggerConfirm = (type) => {
-    setConfirmType(type); // 'APPROVE' hoặc 'REJECT'
-    // Không đóng Detail Modal vội, để Modal Confirm đè lên hoặc đóng Detail tùy ý bạn.
-    // Ở đây tôi sẽ giữ Detail Modal ở dưới để context rõ ràng.
+    setConfirmType(type); 
   };
 
-  // 3. Thực hiện API Call sau khi nhập Note xong
   const handleProcessRefund = async (note) => {
     if (!selectedRefund) return;
-    
-    // Giả sử refundInfo chưa có ID, dùng paymentId hoặc bookingId tạm (Backend nên trả về ID của Request)
-    // Tốt nhất là: selectedRefund.refundInfo.id
-    // Fallback: Dùng paymentId nếu Backend map chưa chuẩn
     const refundRequestId = selectedRefund.refundInfo.id || selectedRefund.paymentId; 
 
     try {
-      await paymentService.processRefundRequest(
-        refundRequestId, 
-        confirmType === 'APPROVE', 
-        note
-      );
-      
+      await paymentService.processRefundRequest(refundRequestId, confirmType === 'APPROVE', note);
       setToast({ show: true, message: "Xử lý thành công!", type: "success" });
-      
-      // Đóng tất cả modal
       setConfirmType(null);
       setIsDetailOpen(false);
       setSelectedRefund(null);
-      
-      fetchData(); // Reload data
+      fetchData(); 
     } catch (error) {
       setToast({ show: true, message: error.message || "Có lỗi xảy ra", type: "error" });
     }
   };
-
-  // Format
-  const formatMoney = (amount) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-  const formatDate = (date) => date ? new Date(date).toLocaleDateString('vi-VN') : 'N/A';
 
   return (
     <div className="p-6 space-y-6 animate-fade-in">
@@ -130,18 +107,18 @@ const RefundManagementPage = () => {
         </div>
         <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
           {[
-            { id: "PENDING", label: "Chờ xử lý", color: "bg-orange-100 text-orange-700" },
-            { id: "APPROVED", label: "Đã hoàn tiền", color: "bg-emerald-100 text-emerald-700" },
-            { id: "REJECTED", label: "Từ chối", color: "bg-rose-100 text-rose-700" },
-            { id: "ALL", label: "Tất cả", color: "bg-slate-100 text-slate-600" }
+            { id: "PENDING", label: "Chờ xử lý", color: "bg-orange-100 text-orange-700 border-orange-200" },
+            { id: "APPROVED", label: "Đã hoàn tiền", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+            { id: "REJECTED", label: "Từ chối", color: "bg-slate-100 text-slate-600 border-slate-200" },
+            { id: "ALL", label: "Tất cả", color: "bg-white text-slate-600 border-slate-200 hover:bg-slate-50" }
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setFilterStatus(tab.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap border ${
                 filterStatus === tab.id
                   ? tab.color + " shadow-sm ring-1 ring-inset ring-black/5"
-                  : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-200"
+                  : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
               }`}
             >
               {tab.label}
@@ -171,41 +148,12 @@ const RefundManagementPage = () => {
                 <tr><td colSpan="6" className="p-8 text-center text-slate-500 italic">Không tìm thấy yêu cầu nào.</td></tr>
               ) : (
                 filteredData.map((item) => (
-                  <tr key={item.paymentId} className="hover:bg-slate-50 transition-colors group">
-                    <td className="px-6 py-4 font-bold text-blue-600">
-                      BK-{item.bookingId}
-                    </td>
-                    <td className="px-6 py-4 text-slate-600">
-                      {formatDate(item.refundInfo?.requestDate)}
-                    </td>
-                    <td className="px-6 py-4 font-bold text-slate-800">
-                      {formatMoney(item.refundInfo?.amount || 0)}
-                    </td>
-                    <td className="px-6 py-4 text-slate-600 font-medium uppercase text-xs">
-                      {item.refundInfo?.accountHolder || "---"}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      {item.refundInfo?.status === 'PENDING' && (
-                        <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-bold">Chờ xử lý</span>
-                      )}
-                      {item.refundInfo?.status === 'APPROVED' && (
-                        <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-bold">Đã duyệt</span>
-                      )}
-                      {item.refundInfo?.status === 'REJECTED' && (
-                        <span className="px-2 py-1 bg-rose-100 text-rose-700 rounded text-xs font-bold">Từ chối</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      {/* NÚT XEM CHI TIẾT (Thay cho nút duyệt trực tiếp) */}
-                      <button 
-                        onClick={() => handleViewDetail(item)}
-                        className="p-2 bg-white border border-slate-200 text-slate-500 rounded-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm" 
-                        title="Xem chi tiết"
-                      >
-                        <Eye size={18} />
-                      </button>
-                    </td>
-                  </tr>
+                  // ✅ SỬ DỤNG COMPONENT CON Ở ĐÂY
+                  <RefundRow 
+                    key={item.paymentId} 
+                    item={item} 
+                    onViewDetail={handleViewDetail} 
+                  />
                 ))
               )}
             </tbody>
@@ -213,9 +161,6 @@ const RefundManagementPage = () => {
         </div>
       </div>
 
-      {/* --- MODALS --- */}
-      
-      {/* 1. Modal Chi tiết (Lớn) */}
       <AdminRefundDetailModal 
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
@@ -224,7 +169,6 @@ const RefundManagementPage = () => {
         onReject={() => handleTriggerConfirm('REJECT')}
       />
 
-      {/* 2. Modal Xác nhận nhập Note (Nhỏ) */}
       <AdminRefundModal 
         isOpen={!!confirmType} 
         onClose={() => setConfirmType(null)}

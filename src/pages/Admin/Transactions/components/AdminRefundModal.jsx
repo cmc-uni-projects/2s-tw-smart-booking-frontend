@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
+import { X, CheckCircle, XCircle, AlertTriangle, Send } from "lucide-react";
 import Button from "@/components/common/Button/Button";
 
 const AdminRefundModal = ({ isOpen, onClose, onConfirm, type }) => {
@@ -46,7 +46,7 @@ const AdminRefundModal = ({ isOpen, onClose, onConfirm, type }) => {
             <div className="bg-rose-50 p-3 rounded-lg text-rose-800 text-sm flex gap-2">
               <AlertTriangle size={16} className="shrink-0 mt-0.5" />
               <p>
-                Yêu cầu sẽ bị hủy bỏ và trạng thái đơn hàng quay về <strong>ĐÃ THANH TOÁN</strong> (Admin giữ tiền).
+                Yêu cầu sẽ bị hủy bỏ và trạng thái đơn hàng quay về <strong>ĐÃ THANH TOÁN</strong>.
               </p>
             </div>
           )}
@@ -65,14 +65,18 @@ const AdminRefundModal = ({ isOpen, onClose, onConfirm, type }) => {
           </div>
         </div>
 
-        {/* Footer */}
+        {/* Footer - ĐÃ CHỈNH SỬA: Bỏ nút Hủy, style nút chính */}
         <div className="p-4 border-t bg-slate-50 flex justify-end gap-3">
-          <Button variant="outline" onClick={onClose}>Hủy bỏ</Button>
           <Button 
-            variant={isApprove ? "success" : "danger"} 
+            className={`flex items-center gap-2 text-white !border-none shadow-md ${
+                isApprove 
+                ? "bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300" 
+                : "bg-red-600 hover:bg-red-700 disabled:bg-red-300"
+            }`}
             onClick={handleSubmit}
-            disabled={!note.trim()} // Bắt buộc nhập
+            disabled={!note.trim()} 
           >
+            {isApprove ? <Send size={18} /> : <XCircle size={18} />}
             {isApprove ? "Đã chuyển tiền" : "Từ chối hoàn"}
           </Button>
         </div>
