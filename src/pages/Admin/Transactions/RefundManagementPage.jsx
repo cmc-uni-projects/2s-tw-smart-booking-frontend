@@ -1,4 +1,3 @@
-// src/pages/Admin/Transactions/RefundManagementPage.jsx
 import React, { useState, useEffect } from "react";
 import { 
   RotateCcw, Search, Loader2 
@@ -9,7 +8,7 @@ import AdminRefundDetailModal from "./components/AdminRefundDetailModal";
 import Toast from "../../../components/common/Notification/Toast";
 import ToastPortal from "../../../components/common/Notification/ToastPortal";
 
-// ✅ Import Component con mới
+// Component con hiển thị từng dòng (Đảm bảo bạn đã tạo file này)
 import RefundRow from "./components/RefundRow"; 
 
 const RefundManagementPage = () => {
@@ -38,14 +37,25 @@ const RefundManagementPage = () => {
         ? data.filter(t => t.refundInfo !== null)
         : [];
       
+      // Sắp xếp: Mới nhất lên đầu
       refundList.sort((a, b) => new Date(b.refundInfo.requestDate) - new Date(a.refundInfo.requestDate));
         
       setRefunds(refundList);
     } catch (error) {
       console.error("Lỗi tải dữ liệu:", error);
+      showToast("Lỗi tải dữ liệu: " + error.message, "error");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Hàm helper hiển thị Toast
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    // Tự động tắt sau 3 giây
+    setTimeout(() => {
+      setToast({ show: false, message: "", type: "info" });
+    }, 3000);
   };
 
   const filteredData = refunds.filter(r => {
@@ -70,18 +80,20 @@ const RefundManagementPage = () => {
 
     try {
       await paymentService.processRefundRequest(refundRequestId, confirmType === 'APPROVE', note);
-      setToast({ show: true, message: "Xử lý thành công!", type: "success" });
+      
+      showToast("Xử lý yêu cầu thành công!", "success"); // ✅ Dùng hàm helper
+      
       setConfirmType(null);
       setIsDetailOpen(false);
       setSelectedRefund(null);
       fetchData(); 
     } catch (error) {
-      setToast({ show: true, message: error.message || "Có lỗi xảy ra", type: "error" });
+      showToast(error.message || "Có lỗi xảy ra", "error"); // ✅ Dùng hàm helper
     }
   };
 
   return (
-    <div className="p-6 space-y-6 animate-fade-in">
+    <div className="p-6 space-y-6 animate-fade-in relative">
       
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -105,7 +117,7 @@ const RefundManagementPage = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
+        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 custom-scrollbar">
           {[
             { id: "PENDING", label: "Chờ xử lý", color: "bg-orange-100 text-orange-700 border-orange-200" },
             { id: "APPROVED", label: "Đã hoàn tiền", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
@@ -148,7 +160,6 @@ const RefundManagementPage = () => {
                 <tr><td colSpan="6" className="p-8 text-center text-slate-500 italic">Không tìm thấy yêu cầu nào.</td></tr>
               ) : (
                 filteredData.map((item) => (
-                  // ✅ SỬ DỤNG COMPONENT CON Ở ĐÂY
                   <RefundRow 
                     key={item.paymentId} 
                     item={item} 
@@ -176,8 +187,17 @@ const RefundManagementPage = () => {
         type={confirmType}
       />
 
+      {/* ✅ FIX TOAST: Thêm vị trí cố định để Toast luôn nổi lên trên */}
       <ToastPortal>
-        {toast.show && <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />}
+        {toast.show && (
+            <div className="fixed bottom-5 right-5 z-[9999] animate-slideInRight">
+                <Toast 
+                    message={toast.message} 
+                    type={toast.type} 
+                    onClose={() => setToast({ ...toast, show: false })} 
+                />
+            </div>
+        )}
       </ToastPortal>
     </div>
   );

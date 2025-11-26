@@ -250,7 +250,17 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
                <h4 className="text-blue-600 font-semibold mb-3 flex items-center gap-2"><Package size={20}/> Tiện nghi phòng</h4>
                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                    {ROOM_AMENITIES.map(item => (
-                       <AmenityOption key={item.id} id={item.id} label={item.label} icon={item.icon} register={register} />
+                       <AmenityOption 
+                           key={item.id} 
+                           // ✅ FIX: Tạo ID duy nhất để không trùng với các element khác trên trang
+                           id={`modal_room_${item.id}`} 
+                           // ✅ FIX: Truyền tên field chính xác cho React Hook Form
+                           name={`amenities.${item.id}`}
+                           
+                           label={item.label} 
+                           icon={item.icon} 
+                           register={register} 
+                       />
                    ))}
                </div>
            </section>
