@@ -81,6 +81,16 @@ const roomService = {
           throw error.response?.data || error.message;
       }
   },
+getRoomDetail: async (roomId) => {
+    try {
+      const response = await api.get(`/rooms/${roomId}`);
+      // API trả về { success: true, data: { ...room } }
+      // Nên cần return response.data.data
+      return response.data?.data || response.data; 
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };
 
 export default roomService;

@@ -1,11 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Modal from "@/components/common/Modal/Modal";
 import Button from "@/components/common/Button/Button";
-import { Tv, Wind, Droplet, Coffee, Wifi, Bath, Bed, Ban, Maximize, CheckCircle } from "lucide-react";
-// ✅ 1. Import ImageViewerModal
+import { 
+    Tv, Wind, Droplet, Coffee, Wifi, Bath, Bed, Ban, 
+    Maximize, CheckCircle, Loader2, Users, Star, ChevronRight 
+} from "lucide-react";
 import ImageViewerModal from "@/pages/Admin/Hotels/components/ImageViewerModal";
+import roomService from "@/services/room.service";
 
-// ... (Giữ nguyên phần khai báo ICONS và các component con AmenityItem, ServiceItem) ...
+// --- HELPER & CONFIG ---
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
+const getFullImageUrl = (url) => {
+  if (!url) return "https://via.placeholder.com/800x600?text=No+Image";
+  if (url.startsWith("http")) return url;
+  let path = url.startsWith("/") ? url : `/${url}`;
+  if (!path.startsWith("/uploads")) path = `/uploads${path}`;
+  return `${API_BASE_URL}${path}`;
+};
+
 const ROOM_AMENITIES_ICONS = {
     tv: { label: "TV màn hình phẳng", icon: <Tv size={16} /> },
     ac: { label: "Điều hòa", icon: <Wind size={16} /> },
@@ -18,101 +30,242 @@ const ROOM_AMENITIES_ICONS = {
 };
 
 const AmenityItem = ({ icon, text }) => (
-    <li className="flex items-center gap-2 text-sm text-gray-700">
-        <span className="text-gray-500">{icon}</span>
-        <span>{text}</span>
+    <li className="flex items-center gap-3 text-sm text-gray-700 py-1">
+        <span className="text-gray-500 bg-gray-50 p-1.5 rounded-md">{icon}</span>
+        <span className="font-medium">{text}</span>
     </li>
 );
 
 const ServiceItem = ({ text }) => (
-    <li className="flex items-center gap-2 text-sm text-gray-700">
-        <CheckCircle size={14} className="text-green-600" />
+    <li className="flex items-center gap-2 text-sm text-gray-600">
+        <CheckCircle size={14} className="text-green-500 shrink-0" />
         <span>{text}</span>
     </li>
 );
 
-const RoomDetailModal = ({ room, open, onClose }) => {
-    // ✅ 2. Thêm State quản lý việc xem ảnh
+const RoomDetailModal = ({ room: initialRoom, open, onClose }) => {
     const [isViewerOpen, setViewerOpen] = useState(false);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    
+    const [roomDetail, setRoomDetail] = useState(null);
+    const [loading, setLoading] = useState(false);
 
-    if (!room) return null;
+    // Fetch Data
+    useEffect(() => {
+        if (open && initialRoom?.id) {
+            const fetchRoomDetail = async () => {
+                setLoading(true);
+                try {
+                    // Gọi API lấy chi tiết phòng
+                    const data = await roomService.getRoomDetail(initialRoom.id);
+                    setRoomDetail(data);
+                } catch (error) {
+                    console.error("Failed to fetch room detail:", error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchRoomDetail();
+        } else {
+            setRoomDetail(null);
+        }
+    }, [open, initialRoom]);
 
-    const availableAmenities = Object.keys(room.amenities || {})
-        .filter(key => room.amenities[key] && ROOM_AMENITIES_ICONS[key])
-        .map(key => ROOM_AMENITIES_ICONS[key]);
+    if (!open) return null;
 
-    const roomImages = room.images || [];
+    // Loading State
+    if (loading) {
+        return (
+            <Modal open={open} onClose={onClose} title="Đang tải thông tin..." maxWidth="max-w-5xl">
+                <div className="flex flex-col justify-center items-center h-80">
+                    <Loader2 className="animate-spin text-[rgb(40,169,224)] mb-3" size={40} />
+                    <p className="text-gray-400 text-sm">Vui lòng đợi trong giây lát...</p>
+                </div>
+            </Modal>
+        );
+    }
 
-    // ✅ 3. Hàm mở viewer
+    if (!roomDetail) return null;
+
+    // Data Processing
+    const availableAmenities = (roomDetail.amenities || [])
+        .map(key => {
+            const normalizedKey = key.toLowerCase();
+            return ROOM_AMENITIES_ICONS[normalizedKey] || { label: key, icon: <CheckCircle size={16} /> };
+        });
+
+    const roomImages = (roomDetail.images || []).map(getFullImageUrl);
+    const displayImages = roomImages.slice(0, 4); // Chỉ lấy 4 ảnh để hiển thị lưới
+    const remainingCount = roomImages.length - 4;
+
     const handleImageClick = (index) => {
         setSelectedImageIndex(index);
         setViewerOpen(true);
     };
 
-    // Chuẩn bị dữ liệu cho ImageViewer
     const viewerImages = roomImages.map((img, idx) => ({
         url: img,
-        caption: `${room.name} - Ảnh ${idx + 1}`
+        caption: `${roomDetail.roomName} - Ảnh ${idx + 1}`
     }));
+
+    const formatPrice = (price) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 
     return (
         <>
-            <Modal open={open} onClose={onClose} title="Chi tiết phòng" maxWidth="max-w-5xl">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Gallery Grid nhỏ */}
-                    <div className="grid grid-cols-2 grid-rows-2 gap-2 h-[300px] md:h-[400px]">
-                        {roomImages.slice(0, 4).map((img, idx) => (
+            <Modal open={open} onClose={onClose} title="Chi tiết phòng nghỉ" maxWidth="max-w-5xl">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-4">
+                    
+                    {/* --- CỘT TRÁI (7/12): HÌNH ẢNH --- */}
+                    <div className="lg:col-span-7 space-y-3">
+                        {/* Main Image */}
+                        {roomImages.length > 0 ? (
                             <div 
-                                key={idx} 
-                                className="col-span-1 row-span-1 rounded-lg overflow-hidden cursor-pointer group relative"
-                                onClick={() => handleImageClick(idx)} // ✅ Sự kiện click
+                                className="relative w-full aspect-video rounded-xl overflow-hidden cursor-pointer group shadow-sm border border-gray-100"
+                                onClick={() => handleImageClick(0)}
                             >
                                 <img 
-                                    src={img} 
-                                    alt={`Room view ${idx}`} 
-                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                    src={roomImages[0]} 
+                                    alt="Main Room" 
+                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                                 />
-                                {/* Overlay hiệu ứng hover */}
                                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <Maximize className="text-white w-8 h-8 drop-shadow-md" />
+                                    <span className="bg-white/90 text-gray-800 px-4 py-2 rounded-full text-sm font-bold shadow-lg">Xem ảnh</span>
                                 </div>
                             </div>
-                        ))}
+                        ) : (
+                            <div className="w-full aspect-video bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 italic">
+                                Không có hình ảnh
+                            </div>
+                        )}
+
+                        {/* Thumbnails Grid (3 ảnh dưới) */}
+                        {roomImages.length > 1 && (
+                            <div className="grid grid-cols-3 gap-3">
+                                {roomImages.slice(1, 4).map((img, idx) => (
+                                    <div 
+                                        key={idx} 
+                                        className="relative aspect-[4/3] rounded-lg overflow-hidden cursor-pointer group border border-gray-100"
+                                        onClick={() => handleImageClick(idx + 1)}
+                                    >
+                                        <img 
+                                            src={img} 
+                                            alt={`Thumb ${idx}`} 
+                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
+                                        />
+                                        
+                                        {/* Overlay cho ảnh cuối cùng nếu còn nhiều ảnh */}
+                                        {idx === 2 && remainingCount > 0 && (
+                                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-bold text-lg backdrop-blur-[1px] group-hover:bg-black/70 transition-colors">
+                                                +{remainingCount}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
-                    {/* Thông tin chi tiết (Giữ nguyên) */}
-                    <div className="flex flex-col justify-between">
-                        <div>
-                            <h3 className="text-xl font-bold text-gray-800 mb-3">{room.name}</h3>
-                            <p className="text-sm text-gray-600 leading-relaxed border-b pb-4 mb-4">{room.description}</p>
-                            
-                            <ul className="grid grid-cols-2 gap-y-2 gap-x-4 mb-4">
-                                <AmenityItem icon={<Maximize size={16} />} text={`${room.size} m²`} />
-                                <AmenityItem icon={<Wifi size={16} />} text="Wi-Fi miễn phí" />
-                                <AmenityItem icon={<Bed size={16} />} text={room.beds} />
-                                {availableAmenities.map(item => (
-                                    <AmenityItem key={item.label} icon={item.icon} text={item.label} />
-                                ))}
-                            </ul>
+                    {/* --- CỘT PHẢI (5/12): THÔNG TIN & GIÁ --- */}
+                    <div className="lg:col-span-5 flex flex-col h-full">
+                        <div className="flex-1">
+                            {/* Header */}
+                            <div>
+                                <div className="flex items-start justify-between gap-2">
+                                    <h2 className="text-2xl font-bold text-gray-900 leading-snug mb-2">
+                                        {roomDetail.roomName}
+                                    </h2>
+                                </div>
+                                <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100 italic leading-relaxed mb-6">
+                                    {roomDetail.description || "Mô tả đang cập nhật..."}
+                                </p>
+                            </div>
 
-                            <h4 className="font-semibold text-gray-800 mb-2">Dịch vụ và Tiện ích</h4>
-                            <ul className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
-                                <ServiceItem text="Dọn dẹp hàng ngày" />
-                                <ServiceItem text="Đồ vệ sinh cá nhân" />
-                                <ServiceItem text="Máy sấy tóc" />
-                                <ServiceItem text="Dép đi trong phòng" />
-                            </ul>
+                            {/* Thông số chính */}
+                            <div className="mb-6">
+                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 border-b border-gray-100 pb-2">
+                                    Tổng quan
+                                </h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-blue-50 p-3 rounded-lg text-blue-800 flex flex-col items-center justify-center text-center">
+                                        <Maximize size={20} className="mb-1"/>
+                                        <span className="text-xs font-medium text-blue-600 uppercase">Diện tích</span>
+                                        <span className="font-bold">{roomDetail.area || "?"} m²</span>
+                                    </div>
+                                    <div className="bg-orange-50 p-3 rounded-lg text-orange-800 flex flex-col items-center justify-center text-center">
+                                        <Users size={20} className="mb-1"/>
+                                        <span className="text-xs font-medium text-orange-600 uppercase">Sức chứa</span>
+                                        <span className="font-bold">{roomDetail.capacity} người</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* Tiện nghi */}
+                            <div className="mb-6">
+                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 border-b border-gray-100 pb-2">
+                                    Tiện nghi phòng
+                                </h4>
+                                <ul className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
+                                    {availableAmenities.map((item, idx) => (
+                                        <AmenityItem key={idx} icon={item.icon} text={item.label} />
+                                    ))}
+                                    {availableAmenities.length === 0 && <li className="text-gray-400 text-sm italic">Đang cập nhật...</li>}
+                                </ul>
+                            </div>
+
+                            {/* Dịch vụ */}
+                            <div>
+                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 border-b border-gray-100 pb-2">
+                                    Dịch vụ miễn phí
+                                </h4>
+                                <ul className="grid grid-cols-2 gap-2">
+                                    <ServiceItem text="Dọn phòng hàng ngày" />
+                                    <ServiceItem text="Nước suối, trà, cafe" />
+                                    <ServiceItem text="Đồ vệ sinh cá nhân" />
+                                    <ServiceItem text="Wifi tốc độ cao" />
+                                </ul>
+                            </div>
                         </div>
-                        
-                        <Button size="lg" className="w-full mt-6" onClick={onClose}>
-                            Đóng
-                        </Button>
+
+                        {/* Footer: Giá & Nút (Sticky Bottom trên Mobile nếu cần, ở đây để thường) */}
+                        <div className="mt-8 pt-6 border-t border-gray-200">
+                            <div className="flex items-end justify-between mb-4">
+                                <div>
+                                    <p className="text-xs text-gray-500 mb-1">Giá mỗi đêm từ</p>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm text-gray-400 line-through decoration-red-400">
+                                            {formatPrice(roomDetail.pricePerNight * 1.2)}
+                                        </span>
+                                        <span className="bg-red-100 text-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded">-20%</span>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-3xl font-extrabold text-[rgb(40,169,224)]">
+                                        {formatPrice(roomDetail.pricePerNight)}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div className="flex gap-3">
+                                <Button 
+                                    variant="ghost" 
+                                    className="flex-1 border-gray-300 text-gray-600 hover:bg-gray-100"
+                                    onClick={onClose}
+                                >
+                                    Đóng
+                                </Button>
+                                {/* Nút này có thể dẫn đến trang booking hoặc scroll tới form đặt phòng */}
+                                <Button 
+                                    className="flex-[2] py-3 text-base shadow-lg shadow-blue-200 hover:shadow-blue-300 transition-all"
+                                    onClick={onClose} // Hoặc logic đặt phòng
+                                >
+                                    Chọn phòng này
+                                </Button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </Modal>
 
-            {/* ✅ 4. Render ImageViewerModal (Nằm ngoài Modal chính để tránh z-index issues nếu có) */}
             {isViewerOpen && (
                 <ImageViewerModal
                     open={isViewerOpen}
