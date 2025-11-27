@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { 
   Info, MapPin, Sparkles, Image, ClipboardList, 
-  Home, Banknote, Users, FileText
+  Home, Banknote, Users, ShieldCheck // Thêm icon ShieldCheck
 } from "lucide-react";
 import ReviewImagePreview from "./components/ReviewImagePreview";
 
@@ -49,8 +49,9 @@ const ImageGrid = ({ fileList }) => {
 
 export default function Step5_Review({ watch, register, errors }) {
   const data = watch();
+  const policies = data.policies || {}; // Lấy dữ liệu policies
   
-  // 1. Logic kiểm tra loại hình để hiển thị thêm thông tin
+  // 1. Logic kiểm tra loại hình
   const isWholeUnit = ["VILLA", "HOMESTAY"].includes(data.propertyType);
   const unitData = data.unitData || {};
 
@@ -154,6 +155,30 @@ export default function Step5_Review({ watch, register, errors }) {
         {/* COLUMN 2 */}
         <div className="space-y-6">
           
+          {/* ✅ BLOCK MỚI: CHÍNH SÁCH & QUY ĐỊNH */}
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <ReviewHeader icon={<ShieldCheck size={18} />} title="Chính sách & Quy định" />
+            <div className="p-5 space-y-1">
+               {/* Thời gian */}
+               <ReviewItem label="Nhận phòng" value={`Từ ${policies.checkInTime || '14:00'} đến ${policies.checkInTo || '23:00'}`} />
+               <ReviewItem label="Trả phòng" value={`Từ ${policies.checkOutFrom || '06:00'} đến ${policies.checkOutTime || '12:00'}`} />
+               
+               {/* Hủy phòng */}
+               <ReviewItem 
+                  label="Hủy miễn phí" 
+                  value={policies.allowFreeCancellation 
+                          ? `Có (trước ${policies.freeCancellationDays} ngày)` 
+                          : "Không cho phép"} 
+                  highlight={policies.allowFreeCancellation}
+               />
+
+               {/* Quy định khác */}
+               <ReviewItem label="Hút thuốc" value={policies.smokingAllowed ? "Cho phép" : "Cấm hút thuốc"} />
+               <ReviewItem label="Thú cưng" value={policies.petsAllowed ? "Cho phép" : "Không cho phép"} />
+               <ReviewItem label="Trẻ em" value={policies.childrenAllowed ? "Phù hợp" : "Không phù hợp"} />
+            </div>
+          </div>
+
           {/* BLOCK 3: TIỆN NGHI */}
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <ReviewHeader icon={<Sparkles size={18} />} title="Tiện nghi & Dịch vụ" />
@@ -162,7 +187,6 @@ export default function Step5_Review({ watch, register, errors }) {
                 <div className="flex flex-wrap gap-2">
                   {amenities.map((amenity) => (
                     <span key={amenity} className="px-3 py-1.5 bg-gray-50 text-gray-700 text-xs font-semibold rounded-lg border border-gray-200">
-                      {/* Nếu bạn có hàm translate tên amenity thì dùng ở đây */}
                       {amenity} 
                     </span>
                   ))}
