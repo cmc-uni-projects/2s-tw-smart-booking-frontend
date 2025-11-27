@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import Modal from "@/components/common/Modal/Modal";
-import ConfirmModal from "@/components/common/Modal/ConfirmModal"; // ✅ Import ConfirmModal
+import ConfirmModal from "@/components/common/Modal/ConfirmModal"; 
 import Button from "@/components/common/Button/Button";
 import LoadingOverlay from "@/components/common/Loading/LoadingOverlay";
 import FloatingTextField from "@/components/common/Input/FloatingTextField";
@@ -13,23 +13,30 @@ import ImageUploadGrid from "@/components/common/Input/ImageUploadGrid";
 import propertyService from "@/services/property.service";
 import api from "@/services/axios.config"; 
 
+// ✅ IMPORT COMPONENT CHÍNH SÁCH
+import PropertyPoliciesForm from "./PropertyPoliciesForm";
+
 import {
   Wifi, ParkingCircle, Droplet, Waves, Sparkles, Ban, Plane, PawPrint,
   Dumbbell, Wind, ConciergeBell, Cigarette, Image as ImageIcon, MapPin,
   ClipboardList, Package, XCircle, Star, RefreshCw, Trash2
 } from "lucide-react";
 
-// ... (Validation & Constants giữ nguyên) ...
+// --- Constants & Validation ---
 const fileListValidation = (min = 0) => yup.mixed();
+
 const editSchema = yup.object({
     province: yup.string().required("Vui lòng nhập tỉnh/thành"),
     city: yup.string().required("Vui lòng nhập thành phố/quận"),
     address: yup.string().required("Vui lòng nhập địa chỉ chi tiết"),
+    // amenities là object nullable
     amenities: yup.object().nullable(),
     propertyName: yup.string().required("Tên cơ sở là bắt buộc"),
     description: yup.string().min(50, "Mô tả phải có ít nhất 50 ký tự").required("Mô tả là bắt buộc"),
     area: yup.number().min(1, "Diện tích phải > 0").required("Bắt buộc").typeError("Phải là số"),
+    // policies không bắt buộc validate chặt ở đây vì form con đã handle hoặc optional
 });
+
 const AMENITIES_LIST = [
     { id: "pool", label: "Hồ bơi", icon: <Waves size={20} /> },
     { id: "parking", label: "Bãi đỗ xe", icon: <ParkingCircle size={20} /> },
@@ -44,7 +51,9 @@ const AMENITIES_LIST = [
     { id: "reception_24h", label: "Lễ tân [24 giờ]", icon: <ConciergeBell size={20} /> },
     { id: "ac", label: "Điều hòa không khí", icon: <Wind size={20} /> },
 ];
+
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
+
 const getFullImageUrl = (url) => {
   if (!url) return "/assets/images/placeholder.png";
   if (url.startsWith("http")) return url;
@@ -53,13 +62,21 @@ const getFullImageUrl = (url) => {
   return `${API_BASE_URL}${path}`;
 };
 
-// ✅ Nhận prop showToast
+// Helper format giờ (HH:mm:ss -> HH:mm)
+const formatTimeForInput = (timeStr) => {
+    if (!timeStr) return "";
+    return timeStr.length > 5 ? timeStr.substring(0, 5) : timeStr;
+};
+
 export default function EditPropertyModal({ open, onClose, property, onSuccess, showToast }) {
   const [isLoading, setIsLoading] = useState(false);
   const [currentImages, setCurrentImages] = useState([]); 
   const [uploadedFiles, setUploadedFiles] = useState([]); 
+  
+  // State kiểm tra property đã có policy chưa
+  const [hasExistingPolicy, setHasExistingPolicy] = useState(false);
 
-  // ✅ State cho ConfirmModal
+  // State cho ConfirmModal
   const [confirmData, setConfirmData] = useState({
       open: false,
       title: "",
@@ -70,26 +87,53 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
     resolver: yupResolver(editSchema),
     mode: "onChange",
+    defaultValues: {
+        policies: {} // Default value cho policy
+    }
   });
 
-  // 1. Fetch Data (Giữ nguyên)
+  // 1. Fetch Data
   useEffect(() => {
     const fetchData = async () => {
       if (open && property?.propertyId) {
         try {
           setIsLoading(true);
-          const detailRes = await api.get(`/property-details/${property.propertyId}`);
-          const data = detailRes.data;
           
-          const imagesRes = await propertyService.getPropertyImages(property.propertyId);
-          setCurrentImages(imagesRes || []);
+          // Gọi API song song
+          const [detailRes, imagesRes, policyRes] = await Promise.all([
+              api.get(`/property-details/${property.propertyId}`),
+              propertyService.getPropertyImages(property.propertyId),
+              propertyService.getPropertyPolicies(property.propertyId)
+          ]);
 
+          const data = detailRes.data;
+          setCurrentImages(imagesRes || []);
+          setHasExistingPolicy(!!policyRes); // Nếu policyRes trả về data -> đã có policy
+
+          // Map Amenities
           const amenitiesMap = {};
           data.amenities.forEach(a => {
              const key = AMENITIES_LIST.find(item => item.label === a.amenityName || item.id === a.amenityName.toLowerCase())?.id;
              if(key) amenitiesMap[key] = true;
           });
 
+          // Map & Format Policies
+          let formattedPolicies = {};
+          if (policyRes) {
+              formattedPolicies = {
+                  ...policyRes,
+                  // Cắt giây (HH:mm) để hiển thị đúng trên input time
+                  checkInTime: formatTimeForInput(policyRes.checkInTime),
+                  checkOutTime: formatTimeForInput(policyRes.checkOutTime),
+                  // Backup cho các trường cũ nếu backend còn trả về
+                  checkInFrom: formatTimeForInput(policyRes.checkInFrom),
+                  checkInTo: formatTimeForInput(policyRes.checkInTo),
+                  checkOutFrom: formatTimeForInput(policyRes.checkOutFrom),
+                  checkOutTo: formatTimeForInput(policyRes.checkOutTo),
+              };
+          }
+
+          // Reset form
           reset({
             propertyName: data.property.propertyName,
             description: data.property.description,
@@ -98,10 +142,13 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
             city: data.property.city,
             address: data.property.address,
             amenities: amenitiesMap,
+            policies: formattedPolicies 
           });
+          
           setUploadedFiles([]); 
         } catch (error) {
           console.error("Failed to load data", error);
+          if (showToast) showToast("Lỗi tải dữ liệu", "error");
         } finally {
           setIsLoading(false);
         }
@@ -121,9 +168,9 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
               isCover: img.propertyImageId === imageId
           }));
           setCurrentImages(updated);
-          if (showToast) showToast("Đã đặt ảnh bìa thành công", "success"); // ✅ Toast
+          if (showToast) showToast("Đã đặt ảnh bìa thành công", "success"); 
       } catch (error) {
-          if (showToast) showToast("Đặt ảnh bìa thất bại", "error"); // ✅ Toast
+          if (showToast) showToast("Đặt ảnh bìa thất bại", "error");
       } finally {
           setIsLoading(false);
       }
@@ -143,22 +190,25 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
   const processDeleteImage = async (imageId) => {
       try {
           setIsLoading(true);
-          setConfirmData({ ...confirmData, open: false }); // Đóng modal confirm
+          setConfirmData({ ...confirmData, open: false }); 
           
           await propertyService.deletePropertyImage(property.propertyId, imageId);
           setCurrentImages(prev => prev.filter(img => img.propertyImageId !== imageId));
           
-          if (showToast) showToast("Đã xóa ảnh", "success"); // ✅ Toast
+          if (showToast) showToast("Đã xóa ảnh", "success");
       } catch (e) {
-          if (showToast) showToast("Xóa ảnh thất bại", "error"); // ✅ Toast
+          if (showToast) showToast("Xóa ảnh thất bại", "error");
       } finally {
           setIsLoading(false);
       }
   };
 
+  // 5. Submit Form (Lưu tất cả)
   const handleFinalSubmit = async (data) => {
     try {
       setIsLoading(true);
+      
+      // 5.1. Update Basic Info
       const updateData = {
           propertyName: data.propertyName,
           description: data.description,
@@ -169,6 +219,7 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
       };
       await propertyService.updateProperty(property.propertyId, updateData);
 
+      // 5.2. Update Images (Upload mới)
       if (uploadedFiles && uploadedFiles.length > 0) {
           const formData = new FormData();
           Array.from(uploadedFiles).forEach((file) => {
@@ -177,10 +228,19 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
           await propertyService.uploadPropertyImages(property.propertyId, formData);
       }
 
+      // 5.3. Update/Add Policies
+      if (data.policies) {
+          if (hasExistingPolicy) {
+              await propertyService.updatePropertyPolicies(property.propertyId, data.policies);
+          } else {
+              await propertyService.addPropertyPolicies(property.propertyId, data.policies);
+          }
+      }
+
       if (onSuccess) onSuccess();
-      // Toast success đã được gọi ở PropertyListPage thông qua handleEditSuccess
       onClose();
     } catch (error) {
+      console.error(error);
       if (showToast) showToast(error.message || "Cập nhật thất bại", "error");
     } finally {
       setIsLoading(false);
@@ -193,23 +253,23 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
     <>
       {isLoading && <LoadingOverlay message="Đang xử lý..." />}
       
-      {/* ✅ Confirm Modal cho xóa ảnh */}
+      {/* Confirm Modal cho xóa ảnh */}
       <ConfirmModal
           open={confirmData.open}
           onClose={() => setConfirmData({ ...confirmData, open: false })}
           onConfirm={confirmData.onConfirm}
           title={confirmData.title}
-          description={confirmData.message} // ConfirmModal của bạn dùng prop 'description' hoặc 'content'
+          description={confirmData.message}
           confirmText="Xóa ảnh"
           cancelText="Hủy"
           isDanger={true}
       />
 
-      <Modal open={open} onClose={onClose} title={`Chỉnh sửa: ${property.propertyName}`} maxWidth="max-w-4xl">
+      <Modal open={open} onClose={onClose} title={`Chỉnh sửa: ${property.propertyName}`} maxWidth="max-w-5xl">
         <form onSubmit={handleSubmit(handleFinalSubmit)}>
-          <div className="max-h-[70vh] overflow-y-auto p-1 pr-4 space-y-8">
+          <div className="max-h-[75vh] overflow-y-auto p-1 pr-4 space-y-8 custom-scrollbar">
             
-            {/* ... (SECTION 1, 2, 3 GIỮ NGUYÊN) ... */}
+            {/* SECTION 1: INFO */}
             <section>
               <h3 className="text-lg font-semibold text-[rgb(40,169,224)] flex items-center gap-2 mb-4">
                 <ClipboardList size={20} /> Thông tin cơ bản
@@ -238,6 +298,7 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
               </div>
             </section>
 
+            {/* SECTION 2: LOCATION */}
             <section>
               <h3 className="text-lg font-semibold text-[rgb(40,169,224)] flex items-center gap-2 mb-4">
                 <MapPin size={20} /> Vị trí
@@ -266,6 +327,7 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
               </div>
             </section>
 
+            {/* SECTION 3: AMENITIES */}
             <section>
               <h3 className="text-lg font-semibold text-[rgb(40,169,224)] flex items-center gap-2 mb-4">
                 <Package size={20} /> Tiện nghi
@@ -283,7 +345,17 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
               </div>
             </section>
 
-            {/* SECTION 4: IMAGES */}
+            {/* ✅ SECTION 4: CHÍNH SÁCH (MỚI THÊM) */}
+            <section>
+                {/* Không cần truyền initialData nữa vì đã reset từ cha */}
+                <PropertyPoliciesForm 
+                    register={register} 
+                    watch={watch} 
+                    setValue={setValue} 
+                />
+            </section>
+
+            {/* SECTION 5: IMAGES */}
             <section>
               <div className="flex justify-between items-center mb-4">
                  <h3 className="text-lg font-semibold text-[rgb(40,169,224)] flex items-center gap-2">
@@ -334,7 +406,6 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
                                     </Button>
                                 )}
                                 
-                                {/* ✅ Nút Xóa gọi handleRequestDelete thay vì xóa trực tiếp */}
                                 <Button
                                     type="button"
                                     size="sm"
@@ -374,7 +445,7 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
               Hủy
             </Button>
             <Button type="submit">
-              Lưu thay đổi
+              Lưu tất cả thay đổi
             </Button>
           </div>
         </form>

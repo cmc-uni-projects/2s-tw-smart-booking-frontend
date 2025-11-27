@@ -169,6 +169,28 @@ const addPropertyPolicies = async (propertyId, policyData) => {
     throw error.response?.data || error.message;
   }
 };
+const getPropertyPolicies = async (propertyId) => {
+  try {
+    const response = await api.get(`/properties/${propertyId}/policies`);
+    return response.data;
+  } catch (error) {
+    // Nếu chưa có policy (404), trả về null thay vì throw lỗi để UI không bị crash
+    if (error.response && error.response.status === 404) {
+      return null;
+    }
+    throw error;
+  }
+};
+const updatePropertyPolicies = async (propertyId, policyData) => {
+  try {
+    // PUT /api/v1/properties/{propertyId}/policies
+    const response = await api.put(`/properties/${propertyId}/policies`, policyData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
 
 // ==========================================================
 // 📦 EXPORT
@@ -185,7 +207,9 @@ const propertyService = {
   getOwnerActiveProperties,
   submitPropertyApplication,
   findNearbyProperties,
-  addPropertyPolicies,     
+  addPropertyPolicies,
+  getPropertyPolicies,  
+  updatePropertyPolicies,   
 };
 
 export default propertyService;
