@@ -160,6 +160,15 @@ const findNearbyProperties = async (lat, lng, radius = 10) => {
     return [];
   }
 };
+//Thêm chính sách cho property
+const addPropertyPolicies = async (propertyId, policyData) => {
+  try {
+    const response = await api.post(`/properties/${propertyId}/policies`, policyData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
 
 // ==========================================================
 // 📦 EXPORT
@@ -175,7 +184,8 @@ const propertyService = {
   setCoverImage,
   getOwnerActiveProperties,
   submitPropertyApplication,
-  findNearbyProperties,     
+  findNearbyProperties,
+  addPropertyPolicies,     
 };
 
 export default propertyService;
