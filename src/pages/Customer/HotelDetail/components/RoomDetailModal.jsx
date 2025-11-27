@@ -3,7 +3,7 @@ import Modal from "@/components/common/Modal/Modal";
 import Button from "@/components/common/Button/Button";
 import { 
     Tv, Wind, Droplet, Coffee, Wifi, Bath, Bed, Ban, 
-    Maximize, CheckCircle, Loader2, Users, Star, ChevronRight 
+    CheckCircle, Loader2, Users, Star, ChevronRight 
 } from "lucide-react";
 import ImageViewerModal from "@/pages/Admin/Hotels/components/ImageViewerModal";
 import roomService from "@/services/room.service";
@@ -185,16 +185,17 @@ const RoomDetailModal = ({ room: initialRoom, open, onClose }) => {
                                 <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 border-b border-gray-100 pb-2">
                                     Tổng quan
                                 </h4>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-blue-50 p-3 rounded-lg text-blue-800 flex flex-col items-center justify-center text-center">
-                                        <Maximize size={20} className="mb-1"/>
-                                        <span className="text-xs font-medium text-blue-600 uppercase">Diện tích</span>
-                                        <span className="font-bold">{roomDetail.area || "?"} m²</span>
+                                <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 flex items-center gap-4">
+                                    <div className="bg-white p-3 rounded-full shadow-sm shrink-0">
+                                        <Users size={24} className="text-orange-500" />
                                     </div>
-                                    <div className="bg-orange-50 p-3 rounded-lg text-orange-800 flex flex-col items-center justify-center text-center">
-                                        <Users size={20} className="mb-1"/>
-                                        <span className="text-xs font-medium text-orange-600 uppercase">Sức chứa</span>
-                                        <span className="font-bold">{roomDetail.capacity} người</span>
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-semibold text-orange-600 uppercase tracking-wide">
+                                            Sức chứa tiêu chuẩn
+                                        </span>
+                                        <span className="text-lg font-bold text-gray-900">
+                                            {roomDetail.capacity} người lớn
+                                        </span>
                                     </div>
                                 </div>
                             </div>
