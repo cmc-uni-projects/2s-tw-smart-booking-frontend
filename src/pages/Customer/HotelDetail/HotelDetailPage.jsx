@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
+import { format, addDays, isValid } from 'date-fns';
 import { 
     MapPin, Star, Wifi, Waves, ParkingCircle, Utensils, 
-    Droplet, Users, Wind, Check, Car, Coffee, Tv, Music 
+    Droplet, Users, Wind, Check, Coffee, Tv 
 } from "lucide-react";
 
 // Components Common
@@ -22,20 +23,16 @@ import ModernBreadcrumb from "@/components/common/Breadcrumb/ModernBreadcrumb";
 // Service
 import propertyService from "@/services/property.service";
 
-// --- HELPERS ---
-const BASE_URL = "http://localhost:8386"; // Cần khớp với backend port
+const BASE_URL = "http://localhost:8386"; 
 
-// Hàm ghép link ảnh đầy đủ
 const getFullImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/800x600?text=No+Image";
     if (path.startsWith("http")) return path;
     return `${BASE_URL}/uploads/${path}`;
 };
 
-// Hàm map tên tiện ích sang Icon
 const getAmenityIcon = (amenityName) => {
     const name = amenityName?.toLowerCase() || "";
-    
     if (name.includes("wifi") || name.includes("internet")) return <Wifi size={18} />;
     if (name.includes("pool") || name.includes("bơi")) return <Waves size={18} />;
     if (name.includes("parking") || name.includes("đỗ xe")) return <ParkingCircle size={18} />;
@@ -45,11 +42,9 @@ const getAmenityIcon = (amenityName) => {
     if (name.includes("ac") || name.includes("điều hòa") || name.includes("máy lạnh")) return <Wind size={18} />;
     if (name.includes("tv") || name.includes("truyền hình")) return <Tv size={18} />;
     if (name.includes("bar") || name.includes("cafe")) return <Coffee size={18} />;
-    
-    return <Check size={18} />; // Icon mặc định
+    return <Check size={18} />; 
 };
 
-// Định nghĩa Tabs
 const TABS = [
     { id: "rooms", name: "Phòng" },
     { id: "reviews", name: "Đánh Giá Của Khách" },
@@ -59,27 +54,53 @@ const TABS = [
 
 export default function HotelDetailPage() {
     const { hotelId } = useParams();
+    const [searchParams] = useSearchParams();
+    
     const [hotel, setHotel] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     
+    // State ngày tháng
+    const [dateRange, setDateRange] = useState({
+        startDate: new Date(),
+        endDate: addDays(new Date(), 1)
+    });
+
+    // ✅ BUG FIX: Đồng bộ dateRange khi URL SearchParams thay đổi
+    // Nếu không có đoạn này, khi user đổi ngày tìm kiếm ở trang Search và click vào hotel,
+    // state cũ (ngày cũ) vẫn được giữ nguyên -> API gọi ngày cũ -> Phòng vẫn bị ẩn.
+    useEffect(() => {
+        const checkInParam = searchParams.get("checkIn");
+        const checkOutParam = searchParams.get("checkOut");
+
+        if (checkInParam && checkOutParam) {
+            const start = new Date(checkInParam);
+            const end = new Date(checkOutParam);
+            // Kiểm tra valid date để tránh lỗi
+            if (isValid(start) && isValid(end)) {
+                setDateRange({ startDate: start, endDate: end });
+            }
+        }
+    }, [searchParams]); 
+
     // State cho Gallery Modal
     const [isViewerOpen, setViewerOpen] = useState(false);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-
-    // State cho Room Modal
     const [selectedRoomDetail, setSelectedRoomDetail] = useState(null);
-
-    // State cho Tab
     const [activeTab, setActiveTab] = useState("rooms");
 
+    // Gọi API lấy chi tiết
     useEffect(() => {
         const fetchHotelDetail = async () => {
+            if (!hotelId) return;
             setLoading(true);
             try {
-                const data = await propertyService.getPropertyDetail(hotelId);
+                const checkInStr = format(dateRange.startDate, "yyyy-MM-dd");
+                const checkOutStr = format(dateRange.endDate, "yyyy-MM-dd");
+
+                // Gọi API (Backend sẽ lọc phòng dựa trên checkIn/checkOut)
+                const data = await propertyService.getPropertyDetail(hotelId, checkInStr, checkOutStr);
                 
-                // --- MAPPING DATA TỪ API SANG UI ---
                 const mappedHotel = {
                     id: data.propertyId,
                     name: data.propertyName,
@@ -87,33 +108,25 @@ export default function HotelDetailPage() {
                     rating: data.rating,
                     reviewsCount: data.reviewCount,
                     location: `${data.address}, ${data.city}`,
-                    
-                    // Xử lý ảnh
                     images: (data.images && data.images.length > 0) 
                         ? data.images.map(getFullImageUrl)
-                        : [getFullImageUrl(data.coverImage)], // Fallback về cover nếu không có list ảnh
-
-                    // Xử lý tiện ích
+                        : [getFullImageUrl(data.coverImage)],
                     amenities: data.amenities ? data.amenities.map(a => ({
                         name: a.amenityName,
                         icon: getAmenityIcon(a.amenityName)
                     })) : [],
-
-                    // Xử lý phòng
                     rooms: data.rooms ? data.rooms.map(r => ({
                         id: r.roomId,
                         name: r.roomName,
                         price: r.pricePerNight,
                         guests: r.capacity,
-                        size: 30, // Hardcode tạm nếu backend chưa có field diện tích phòng
-                        beds: "Tiêu chuẩn", // Hardcode tạm
+                        size: r.area || 30,
+                        beds: "Tiêu chuẩn",
                         description: r.description,
-                        // Map ảnh phòng
                         images: (r.images && r.images.length > 0) 
                             ? r.images.map(img => getFullImageUrl(img))
                             : ["https://via.placeholder.com/400x300?text=Room+Image"], 
-                        // Map tiện ích phòng (nếu backend trả về list string tên tiện ích)
-                        amenities: {} 
+                        amenities: r.amenities ? r.amenities.reduce((acc, curr) => ({...acc, [curr]: true}), {}) : {}
                     })) : []
                 };
 
@@ -126,18 +139,14 @@ export default function HotelDetailPage() {
             }
         };
 
-        if (hotelId) {
-            fetchHotelDetail();
-        }
-    }, [hotelId]);
+        fetchHotelDetail();
+    }, [hotelId, dateRange]); // Chạy lại khi ID hoặc dateRange thay đổi
 
-    // Handlers Gallery
     const openImageViewer = (index) => {
         setSelectedImageIndex(index);
         setViewerOpen(true);
     };
 
-    // Handlers Room Modal
     const handleOpenRoomDetail = (room) => setSelectedRoomDetail(room);
     const handleCloseRoomDetail = () => setSelectedRoomDetail(null);
 
@@ -157,7 +166,6 @@ export default function HotelDetailPage() {
         { label: hotel.name },
     ];
 
-    // Chuẩn hóa ảnh cho ImageViewer Modal
     const imagesForModal = hotel.images.map((imgUrl, index) => ({
         url: imgUrl,
         caption: `${hotel.name} - Ảnh ${index + 1}`
@@ -165,11 +173,8 @@ export default function HotelDetailPage() {
 
     return (
         <main className="max-w-7xl mx-auto px-4 md:px-6 py-8">
-            
-            {/* 1. Breadcrumb */}
             <ModernBreadcrumb items={breadcrumbItems} />
 
-            {/* 2. Header Info */}
             <div className="mt-4">
                 <h1 className="text-3xl font-bold text-gray-900">{hotel.name}</h1>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-gray-600">
@@ -183,13 +188,9 @@ export default function HotelDetailPage() {
                 </div>
             </div>
 
-            {/* 3. Gallery */}
             <HotelGallery images={hotel.images} onOpenViewer={openImageViewer} />
 
-            {/* 4. Main Content */}
             <div className="mt-8 space-y-8">
-                
-                {/* Card Mô tả ngắn */}
                 <Card className="p-6">
                     <h3 className="text-xl font-bold text-gray-800 mb-3">Tổng quan</h3>
                     <p className="text-gray-600 leading-relaxed whitespace-pre-line">
@@ -197,9 +198,7 @@ export default function HotelDetailPage() {
                     </p>
                 </Card>
 
-                {/* 5. Tabs System */}
                 <div>
-                    {/* Sticky Tab Header */}
                     <div className="sticky top-16 z-30 bg-white shadow-sm border-b border-gray-100">
                         <div className="px-4 md:px-0">
                             <TabsComponent 
@@ -210,13 +209,15 @@ export default function HotelDetailPage() {
                         </div>
                     </div>
 
-                    {/* Tab Content */}
                     <Card className="p-0 overflow-hidden !rounded-t-none border-t-0">
                         <div className="animate-fadeIn min-h-[300px]">
                             {activeTab === 'rooms' && (
                                 <RoomListSection 
                                     rooms={hotel.rooms} 
-                                    onRoomInfoClick={handleOpenRoomDetail} 
+                                    onRoomInfoClick={handleOpenRoomDetail}
+                                    // Truyền dateRange để RoomListSection hiển thị đúng ngày đang chọn
+                                    dateRange={dateRange}
+                                    onChangeDate={setDateRange}
                                 />
                             )}
                             {activeTab === 'reviews' && <ReviewsSection />}
@@ -232,16 +233,12 @@ export default function HotelDetailPage() {
                 </div>
             </div>
 
-            {/* --- MODALS --- */}
-            
-            {/* Room Detail Modal */}
             <RoomDetailModal
                 room={selectedRoomDetail}
                 open={!!selectedRoomDetail}
                 onClose={handleCloseRoomDetail}
             />
 
-            {/* Image Viewer Modal */}
             <ImageViewerModal
                 open={isViewerOpen}
                 onClose={() => setViewerOpen(false)}

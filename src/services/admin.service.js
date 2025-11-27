@@ -47,6 +47,19 @@ const adminService = {
       throw new Error(error.response?.data?.message || "Lỗi khi tải danh sách cơ sở");
     }
   },
+  reviewProperty: async (propertyId, reviewData) => {
+    try {
+      // reviewData thường gồm: { status: "APPROVED" | "REJECTED", reason: "..." }
+      const response = await api.post(
+        `/admin/properties/${propertyId}/review`, 
+        reviewData
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error reviewing property:", error);
+      throw new Error(error.response?.data?.message || "Lỗi khi duyệt cơ sở lưu trú");
+    }
+  },
 };
 
 export default adminService;

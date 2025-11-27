@@ -1,12 +1,17 @@
 // src/layouts/CustomerLayout/ChatBot/ChatInput.jsx
-import React from "react";
-// (Không cần import icon)
+import React, { useState } from "react";
+import { Send } from "lucide-react";
 
-const ChatInput = ({ value, onChange, onSubmit }) => {
+const ChatInput = ({ onSend, disabled }) => {
+  const [text, setText] = useState("");
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (value.trim()) {
-      onSubmit();
+    if (text.trim() && !disabled) {
+      // Gửi nội dung text ra ngoài cho ChatPanel xử lý
+      onSend(text); 
+      // Xóa ô nhập liệu
+      setText(""); 
     }
   };
 
@@ -18,19 +23,25 @@ const ChatInput = ({ value, onChange, onSubmit }) => {
       <input
         type="text"
         placeholder="Nhập tin nhắn..."
-        value={value}
-        onChange={onChange}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        disabled={disabled}
         className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm
                    focus:ring-2 focus:ring-[rgb(40,169,224,0.5)] focus:border-[rgb(40,169,224)] 
-                   transition-all outline-none"
+                   transition-all outline-none disabled:bg-gray-100"
       />
-      {/* ✅ SỬA LỖI: Thay thế icon bằng Button dạng Text */}
+      
       <button
         type="submit"
-        aria-label="Gửi tin nhắn"
-        className="flex-shrink-0 px-4 py-2 rounded-full bg-[rgb(40,169,224)] text-white text-sm font-semibold hover:bg-[#1b98d6] transition-colors"
+        disabled={!text.trim() || disabled}
+        className={`flex-shrink-0 p-2 rounded-full transition-colors flex items-center justify-center
+          ${!text.trim() || disabled 
+            ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+            : "bg-[rgb(40,169,224)] text-white hover:bg-[#1b98d6]"
+          }
+        `}
       >
-        Gửi
+        <Send size={18} />
       </button>
     </form>
   );

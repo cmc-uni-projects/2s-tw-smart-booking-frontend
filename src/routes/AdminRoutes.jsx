@@ -1,4 +1,3 @@
-import React from "react";
 // ❌ Không cần import { Routes, Route, Navigate } ở đây
 import ProtectedRoute from "./ProtectedRoute";
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";

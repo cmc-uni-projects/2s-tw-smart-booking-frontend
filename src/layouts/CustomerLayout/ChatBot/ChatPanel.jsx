@@ -1,5 +1,5 @@
 // src/layouts/CustomerLayout/ChatBot/ChatPanel.jsx
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import ChatHeader from "./ChatHeader";
 import ChatInput from "./ChatInput";
@@ -20,8 +20,18 @@ const panelVariants = {
   },
 };
 
-// ✅ (Yêu cầu 2) Xóa prop 'onClose'
-const ChatPanel = () => {
+const ChatPanel = ({ onClose, messages, isLoading, onSendMessage }) => {
+  const messagesEndRef = useRef(null);
+
+  // Tự động cuộn xuống khi messages thay đổi
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
   return (
     <motion.div
       variants={panelVariants}
@@ -29,22 +39,35 @@ const ChatPanel = () => {
       animate="visible"
       exit="hidden"
       style={{ transformOrigin: "bottom right" }}
-      className="fixed bottom-24 right-6 bg-white w-80 max-w-[90vw] h-[450px] max-h-[80vh] 
-                 rounded-2xl shadow-2xl overflow-hidden z-50 
+      // ✅ CẬP NHẬT KÍCH THƯỚC TẠI ĐÂY:
+      // - w-[450px]: Tăng chiều rộng (cũ là w-80)
+      // - h-[600px]: Tăng chiều cao (cũ là h-[450px])
+      // - max-h-[80vh]: Đảm bảo không tràn màn hình trên thiết bị thấp
+      className="fixed bottom-24 right-6 bg-white w-[450px] max-w-[90vw] h-[600px] max-h-[80vh] 
+                 rounded-2xl shadow-2xl overflow-hidden z-[9999] 
                  flex flex-col border border-gray-200/50"
     >
-      {/* ✅ (Yêu cầu 2) Xóa prop 'onClose' */}
-      <ChatHeader />
+      <ChatHeader onClose={onClose} />
 
-      {/* Body (Phần tin nhắn) */}
-      <div className="flex-1 p-4 overflow-y-auto text-sm space-y-3">
-        <ChatMessage
-          sender="bot"
-          message="Xin chào 👋 Tôi có thể giúp bạn tìm khách sạn hoặc gợi ý điểm đến!"
-        />
+      {/* Danh sách tin nhắn */}
+      <div className="flex-1 p-4 overflow-y-auto text-sm space-y-3 bg-gray-50 custom-scrollbar">
+        {messages.map((msg) => (
+          <ChatMessage key={msg.id} message={msg} />
+        ))}
+
+        {/* Loading Indicator */}
+        {isLoading && (
+          <div className="flex justify-start animate-pulse">
+            <div className="bg-gray-200 text-gray-500 rounded-2xl rounded-tl-none px-4 py-2 text-xs">
+              Đang soạn tin...
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
       </div>
 
-      <ChatInput />
+      {/* Input gửi tin */}
+      <ChatInput onSend={onSendMessage} disabled={isLoading} />
     </motion.div>
   );
 };

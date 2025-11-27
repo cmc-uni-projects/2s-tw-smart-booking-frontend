@@ -1,4 +1,3 @@
-// src/layouts/CustomerLayout/ChatBot/ChatFab.jsx
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X } from "lucide-react";
@@ -7,7 +6,8 @@ const ChatFab = ({ open, onClick }) => {
   return (
     <motion.button
       onClick={onClick}
-      className={`fixed bottom-6 right-6 rounded-full p-4 shadow-lg z-50 transition-colors duration-300
+      // ✅ CẬP NHẬT: z-[9999] để đảm bảo nút luôn nằm trên các layer khác (footer, modal...)
+      className={`fixed bottom-6 right-6 rounded-full p-4 shadow-lg z-[9999] transition-colors duration-300
         ${open ? "bg-red-500 text-white hover:bg-red-600" : "bg-[rgb(40,169,224)] text-white hover:bg-[#1b98d6]"
       }`}
       aria-label={open ? "Đóng chat" : "Mở chat"}
