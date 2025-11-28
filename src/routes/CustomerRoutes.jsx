@@ -22,12 +22,12 @@ import MyInboxPage from "@/pages/Customer/About/MyInboxPage";
 import ProfilePage from "@/pages/Customer/Profile/ProfilePage";
 import SettingsPage from "@/pages/Customer/Profile/SettingsPage";
 import ChangePassword from "@/pages/Customer/Profile/ChangePassword";
-import NotificationSettings from "@/pages/Customer/Profile/NotificationSettings";
 import LanguageSettings from "@/pages/Customer/Profile/LanguageSettings";
 import PartnerLandingPage from "@/pages/Partner/PartnerLandingPage";
 import BecomeOwnerPage from "@/pages/Customer/Profile/BecomeOwnerPage";
 import ExploreMapPage from "@/pages/Customer/Explore/ExploreMapPage";
 import TransactionHistory from "@/pages/Customer/Profile/TransactionHistory/TransactionHistory";
+import MembershipPage from "@/pages/Customer/Profile/MembershipPage"; 
 
 // --- Chuẩn hóa alias ---
 import ProtectedRoute from "@/routes/ProtectedRoute";
@@ -151,11 +151,11 @@ const customerRoutes = [
     title: "Khám phá trên bản đồ"
   },
   {
-    path: "/customer/profile/notifications",
+    path: "/customer/settings",
     element: (
       <ProtectedRoute roles={["CUSTOMER"]}>
         <CustomerDashboardLayout>
-          <NotificationSettings />
+          <SettingsPage />
         </CustomerDashboardLayout>
       </ProtectedRoute>
     ),
@@ -173,7 +173,7 @@ const customerRoutes = [
   
   // ✅ CẬP NHẬT: Dùng MyBookings Component
   {
-    path: "/customer/my-bookings",
+    path: "/customer/bookings",
     element: (
       <ProtectedRoute roles={["CUSTOMER"]}>
         <CustomerDashboardLayout>
@@ -224,6 +224,18 @@ const customerRoutes = [
         ),
     },
 
+  {
+    path: "/customer/membership",
+    element: (
+      <ProtectedRoute roles={["CUSTOMER"]}>
+        <CustomerDashboardLayout>
+          <MembershipPage />
+        </CustomerDashboardLayout>
+      </ProtectedRoute>
+    ),
+  },
+
 ];
+
 
 export default customerRoutes;
