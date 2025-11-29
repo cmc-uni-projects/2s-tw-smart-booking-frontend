@@ -16,7 +16,7 @@ import BookingPage from "@/pages/Customer/Booking/BookingPage";
 import PaymentPage from "@/pages/Customer/Booking/PaymentPage";
 
 // ✅ CẬP NHẬT: Dùng MyBookings (đã tích hợp API) thay vì BookingHistory cũ
-import MyBookings from "@/pages/Customer/Profile/MyBookings"; 
+import MyBookings from "@/pages/Customer/Profile/MyBookings";
 
 import MyInboxPage from "@/pages/Customer/About/MyInboxPage";
 import ProfilePage from "@/pages/Customer/Profile/ProfilePage";
@@ -27,193 +27,215 @@ import PartnerLandingPage from "@/pages/Partner/PartnerLandingPage";
 import BecomeOwnerPage from "@/pages/Customer/Profile/BecomeOwnerPage";
 import ExploreMapPage from "@/pages/Customer/Explore/ExploreMapPage";
 import TransactionHistory from "@/pages/Customer/Profile/TransactionHistory/TransactionHistory";
-import MembershipPage from "@/pages/Customer/Profile/MembershipPage"; 
+import MembershipPage from "@/pages/Customer/Profile/MembershipPage";
+
+// ✅ IMPORT MỚI: PROMOTION PAGES (TÍNH NĂNG KHUYẾN MÃI)
+import PromotionPage from "@/pages/Customer/Promotion/PromotionPage";
+import PromotionDetailPage from "@/pages/Customer/Promotion/components/PromotionDetailModal.jsx";
 
 // --- Chuẩn hóa alias ---
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import PartnerRoute from "@/routes/PartnerRoute";
 
 const customerRoutes = [
-  {
-    path: "/",
-    element: (
-      <CustomerLayout>
-        <HomePage />
-      </CustomerLayout>
-    ),
-  },
-  {
-    path: "/about",
-    element: (
-      <CustomerLayout>
-        <About />
-      </CustomerLayout>
-    ),
-  },
-  {
-    path: "/help",
-    element: (
-      <CustomerLayout>
-        <HelpPage />
-      </CustomerLayout>
-    ),
-  },
-  {
-    path: "/contact",
-    element: (
-      <CustomerLayout>
-        <Contact />
-      </CustomerLayout>
-    ),
-  },
-  {
-    path: "/hotels",
-    element: (
-      <CustomerLayout>
-        <HotelSearchPage />
-      </CustomerLayout>
-    ),
-  },
-  {
-    path: "/hotels/:hotelId",
-    element: (
-      <CustomerLayout>
-        <HotelDetailPage />
-      </CustomerLayout>
-    ),
-  },
+    {
+        path: "/",
+        element: (
+            <CustomerLayout>
+                <HomePage />
+            </CustomerLayout>
+        ),
+    },
+    {
+        path: "/about",
+        element: (
+            <CustomerLayout>
+                <About />
+            </CustomerLayout>
+        ),
+    },
+    {
+        path: "/help",
+        element: (
+            <CustomerLayout>
+                <HelpPage />
+            </CustomerLayout>
+        ),
+    },
+    {
+        path: "/contact",
+        element: (
+            <CustomerLayout>
+                <Contact />
+            </CustomerLayout>
+        ),
+    },
+    {
+        path: "/hotels",
+        element: (
+            <CustomerLayout>
+                <HotelSearchPage />
+            </CustomerLayout>
+        ),
+    },
+    {
+        path: "/hotels/:hotelId",
+        element: (
+            <CustomerLayout>
+                <HotelDetailPage />
+            </CustomerLayout>
+        ),
+    },
 
-  // ✅ ROUTE ĐẶT PHÒNG (Yêu cầu đăng nhập)
-  {
-    path: "/booking/:propertyId",
-    element: (
-      <ProtectedRoute roles={["CUSTOMER"]}>
-        <CustomerLayout>
-           <BookingPage />
-        </CustomerLayout>
-      </ProtectedRoute>
-    ),
-  },
+    // ✅ ROUTE KHUYẾN MÃI (PROMOTIONS)
+    {
+        path: "/promotions",
+        element: (
+            <CustomerLayout>
+                <PromotionPage />
+            </CustomerLayout>
+        ),
+    },
+    {
+        path: "/promotions/:id",
+        element: (
+            <CustomerLayout>
+                <PromotionDetailPage />
+            </CustomerLayout>
+        ),
+    },
 
-  // ✅ ROUTE THANH TOÁN (Yêu cầu đăng nhập)
-  {
-    path: "/booking/payment/:bookingId",
-    element: (
-      <ProtectedRoute roles={["CUSTOMER"]}>
-        <CustomerLayout>
-           <PaymentPage />
-        </CustomerLayout>
-      </ProtectedRoute>
-    ),
-  },
+    // ✅ ROUTE ĐẶT PHÒNG (Yêu cầu đăng nhập)
+    {
+        path: "/booking/:propertyId",
+        element: (
+            <ProtectedRoute roles={["CUSTOMER"]}>
+                <CustomerLayout>
+                    <BookingPage />
+                </CustomerLayout>
+            </ProtectedRoute>
+        ),
+    },
 
-  {
-    path: "/partner-with-us",
-    element: (
-      <CustomerLayout>
-        <PartnerLandingPage />
-      </CustomerLayout>
-    ),
-  },
-  {
-    path: "/customer/profile",
-    element: (
-      <CustomerLayout>
-        <ProtectedRoute roles={["CUSTOMER"]}>
-          <ProfilePage />
-        </ProtectedRoute>
-      </CustomerLayout>
-    ),
-  },
-  {
-    path: "/customer/profile/settings",
-    element: (
-      <ProtectedRoute roles={["CUSTOMER"]}>
-        <CustomerDashboardLayout>
-          <SettingsPage />
-        </CustomerDashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/customer/profile/change-password",
-    element: (
-      <ProtectedRoute roles={["CUSTOMER"]}>
-        <CustomerDashboardLayout>
-          <ChangePassword />
-        </CustomerDashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "explore",
-    element: <ExploreMapPage />,
-    title: "Khám phá trên bản đồ"
-  },
-  {
-    path: "/customer/settings",
-    element: (
-      <ProtectedRoute roles={["CUSTOMER"]}>
-        <CustomerDashboardLayout>
-          <SettingsPage />
-        </CustomerDashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/customer/profile/language",
-    element: (
-      <ProtectedRoute roles={["CUSTOMER"]}>
-        <CustomerDashboardLayout>
-          <LanguageSettings />
-        </CustomerDashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
-  
-  // ✅ CẬP NHẬT: Dùng MyBookings Component
-  {
-    path: "/customer/bookings",
-    element: (
-      <ProtectedRoute roles={["CUSTOMER"]}>
-        <CustomerDashboardLayout>
-          <MyBookings />
-        </CustomerDashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
+    // ✅ ROUTE THANH TOÁN (Yêu cầu đăng nhập)
+    {
+        path: "/booking/payment/:bookingId",
+        element: (
+            <ProtectedRoute roles={["CUSTOMER"]}>
+                <CustomerLayout>
+                    <PaymentPage />
+                </CustomerLayout>
+            </ProtectedRoute>
+        ),
+    },
 
-  {
-    path: "/customer/my-inbox",
-    element: (
-      <ProtectedRoute roles={["CUSTOMER"]}>
-        <CustomerDashboardLayout>
-          <MyInboxPage />
-        </CustomerDashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
-  
-  {
-    path: "/customer/transactions",
-    element: (
-      <ProtectedRoute roles={["CUSTOMER"]}>
-        <CustomerDashboardLayout>
-            <TransactionHistory />
-        </CustomerDashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
+    {
+        path: "/partner-with-us",
+        element: (
+            <CustomerLayout>
+                <PartnerLandingPage />
+            </CustomerLayout>
+        ),
+    },
+    {
+        path: "/customer/profile",
+        element: (
+            <CustomerLayout>
+                <ProtectedRoute roles={["CUSTOMER"]}>
+                    <ProfilePage />
+                </ProtectedRoute>
+            </CustomerLayout>
+        ),
+    },
+    {
+        path: "/customer/profile/settings",
+        element: (
+            <ProtectedRoute roles={["CUSTOMER"]}>
+                <CustomerDashboardLayout>
+                    <SettingsPage />
+                </CustomerDashboardLayout>
+            </ProtectedRoute>
+        ),
+    },
+    {
+        path: "/customer/profile/change-password",
+        element: (
+            <ProtectedRoute roles={["CUSTOMER"]}>
+                <CustomerDashboardLayout>
+                    <ChangePassword />
+                </CustomerDashboardLayout>
+            </ProtectedRoute>
+        ),
+    },
+    {
+        path: "explore",
+        element: <ExploreMapPage />,
+        title: "Khám phá trên bản đồ"
+    },
+    {
+        path: "/customer/settings",
+        element: (
+            <ProtectedRoute roles={["CUSTOMER"]}>
+                <CustomerDashboardLayout>
+                    <SettingsPage />
+                </CustomerDashboardLayout>
+            </ProtectedRoute>
+        ),
+    },
+    {
+        path: "/customer/profile/language",
+        element: (
+            <ProtectedRoute roles={["CUSTOMER"]}>
+                <CustomerDashboardLayout>
+                    <LanguageSettings />
+                </CustomerDashboardLayout>
+            </ProtectedRoute>
+        ),
+    },
 
-  {
-    path: "/partner/register",
-    element: (
-      <PartnerRoute>
-        <BecomeOwnerPage />
-      </PartnerRoute>
-    ),
-  },
-{
+    // ✅ CẬP NHẬT: Dùng MyBookings Component
+    {
+        path: "/customer/bookings",
+        element: (
+            <ProtectedRoute roles={["CUSTOMER"]}>
+                <CustomerDashboardLayout>
+                    <MyBookings />
+                </CustomerDashboardLayout>
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "/customer/my-inbox",
+        element: (
+            <ProtectedRoute roles={["CUSTOMER"]}>
+                <CustomerDashboardLayout>
+                    <MyInboxPage />
+                </CustomerDashboardLayout>
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "/customer/transactions",
+        element: (
+            <ProtectedRoute roles={["CUSTOMER"]}>
+                <CustomerDashboardLayout>
+                    <TransactionHistory />
+                </CustomerDashboardLayout>
+            </ProtectedRoute>
+        ),
+    },
+
+    {
+        path: "/partner/register",
+        element: (
+            <PartnerRoute>
+                <BecomeOwnerPage />
+            </PartnerRoute>
+        ),
+    },
+    {
         path: "/customer/refunds",
         element: (
             <ProtectedRoute roles={["CUSTOMER"]}>
@@ -224,18 +246,17 @@ const customerRoutes = [
         ),
     },
 
-  {
-    path: "/customer/membership",
-    element: (
-      <ProtectedRoute roles={["CUSTOMER"]}>
-        <CustomerDashboardLayout>
-          <MembershipPage />
-        </CustomerDashboardLayout>
-      </ProtectedRoute>
-    ),
-  },
+    {
+        path: "/customer/membership",
+        element: (
+            <ProtectedRoute roles={["CUSTOMER"]}>
+                <CustomerDashboardLayout>
+                    <MembershipPage />
+                </CustomerDashboardLayout>
+            </ProtectedRoute>
+        ),
+    },
 
 ];
-
 
 export default customerRoutes;
