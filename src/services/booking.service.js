@@ -91,6 +91,34 @@ checkOutBooking: async (bookingId) => {
       throw error.response?.data || error.message;
     }
   },
+
+  getRoomAvailability: async (roomId) => {
+    try {
+        // Gọi API backend (Bạn cần đảm bảo BE có endpoint này, hoặc dùng mock tạm thời)
+        // const response = await api.get(`/bookings/room/${roomId}/availability`);
+        // return response.data; 
+
+        // 🔥 MOCK DATA (Dùng tạm để test logic FE)
+        // Giả lập phòng này bị đặt từ ngày 6/12 -> 8/12 và 15/12 -> 17/12
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                const today = new Date();
+                const booked1_start = new Date(today); booked1_start.setDate(today.getDate() + 2);
+                const booked1_end = new Date(today); booked1_end.setDate(today.getDate() + 4);
+                
+                resolve({
+                    success: true,
+                    data: [
+                        { start: booked1_start.toISOString(), end: booked1_end.toISOString() }
+                    ]
+                });
+            }, 500);
+        });
+    } catch (error) {
+        console.error("Error fetching availability:", error);
+        return { data: [] };
+    }
+  },  
 };
 
 

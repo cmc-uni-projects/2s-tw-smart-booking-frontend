@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom"; // Thêm useNavigate
 import { format, addDays } from 'date-fns';
 import { 
     MapPin, Star, Wifi, Waves, ParkingCircle, Utensils, 
@@ -8,10 +8,7 @@ import {
 
 // Components Common
 import Spinner from "@/components/common/Loading/Spinner";
-import Card from "@/components/common/Card/Card";
-import Badge from "@/components/common/Badge/Badge";
 import ImageViewerModal from "@/pages/Admin/Hotels/components/ImageViewerModal";
-import ModernBreadcrumb from "@/components/common/Breadcrumb/ModernBreadcrumb";
 
 // Sub-components
 import HotelHeader from "./components/HotelHeader";
@@ -21,18 +18,22 @@ import HotelPolicies from "./components/HotelPolicies";
 import HotelSidebar from "./components/HotelSidebar";
 import RoomListSection from "./components/RoomListSection";
 import RoomDetailModal from "./components/RoomDetailModal";
-import { ReviewsSection } from "./components/HotelInfoTabs"; // Chỉ giữ lại ReviewsSection
+import { ReviewsSection } from "./components/HotelInfoTabs"; 
+import BookingDateModal from "./components/BookingDateModal"; // ✅ Import Modal Chọn Ngày
 
 // Service
 import propertyService from "@/services/property.service";
+import bookingService from "@/services/booking.service"; // ✅ Import booking service
 
 // --- HELPERS & CONSTANTS ---
-const BASE_URL = "http://localhost:8386"; 
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
 
 const getFullImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/800x600?text=No+Image";
     if (path.startsWith("http")) return path;
-    return `${BASE_URL}/uploads/${path}`;
+    let cleanPath = path.startsWith('/') ? path : `/${path}`;
+    if (!cleanPath.startsWith('/uploads')) cleanPath = `/uploads${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
 };
 
 const getAmenityIcon = (amenityName) => {
@@ -51,6 +52,7 @@ const getAmenityIcon = (amenityName) => {
 
 export default function HotelDetailPage() {
     const { hotelId } = useParams();
+    const navigate = useNavigate(); // ✅ Hook điều hướng
     const [searchParams] = useSearchParams();
     
     const [hotel, setHotel] = useState(null);
@@ -67,6 +69,11 @@ export default function HotelDetailPage() {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [selectedRoomDetail, setSelectedRoomDetail] = useState(null);
     const [activeSection, setActiveSection] = useState("overview");
+
+    // ✅ State cho Booking Modal
+    const [isDateModalOpen, setIsDateModalOpen] = useState(false);
+    const [selectedRoomForBooking, setSelectedRoomForBooking] = useState(null);
+    const [occupiedDates, setOccupiedDates] = useState([]); // Ngày đã kín
 
     // Fetch Data
     useEffect(() => {
@@ -89,8 +96,8 @@ export default function HotelDetailPage() {
                     rating: hotelData.rating,
                     reviewsCount: hotelData.reviewCount,
                     location: `${hotelData.address}, ${hotelData.city}`,
-                    latitude: hotelData.latitude,   // Thêm dòng này
-                    longitude: hotelData.longitude, // Thêm dòng này
+                    latitude: hotelData.latitude, 
+                    longitude: hotelData.longitude, 
                     images: (hotelData.images && hotelData.images.length > 0) 
                         ? hotelData.images.map(getFullImageUrl)
                         : [getFullImageUrl(hotelData.coverImage)],
@@ -124,7 +131,7 @@ export default function HotelDetailPage() {
         };
 
         fetchAllData();
-    }, [hotelId, dateRange]);
+    }, [hotelId, dateRange]); // Lưu ý: logic fetch lại khi dateRange thay đổi có thể cần tối ưu sau
 
     // Handlers
     const openImageViewer = (index) => {
@@ -136,16 +143,51 @@ export default function HotelDetailPage() {
         setSelectedRoomDetail(null);
     };
 
+    // ✅ Hàm xử lý khi ấn "Đặt phòng ngay" (Từ RoomRow)
+    const handleBookNowClick = async (room) => {
+        setSelectedRoomForBooking(room);
+        
+        // 1. Gọi API lấy lịch bận (Giả lập hoặc thật)
+        try {
+            const res = await bookingService.getRoomAvailability(room.id);
+            if (res && res.data) {
+                setOccupiedDates(res.data);
+            } else {
+                setOccupiedDates([]);
+            }
+        } catch (error) {
+            console.error("Lỗi lấy lịch bận:", error);
+            setOccupiedDates([]); // Fallback: không chặn ngày nào
+        }
+
+        // 2. Mở Modal
+        setIsDateModalOpen(true);
+    };
+
+    // ✅ Hàm xử lý khi user xác nhận ngày trong Modal
+    const handleDateConfirm = (dateRange) => {
+        setIsDateModalOpen(false);
+        
+        // Chuyển hướng sang trang Booking Form (Điền thông tin khách)
+        // Lưu ý: Route này phải khớp với App.jsx của bạn (ví dụ: /booking)
+        navigate("/booking", { 
+            state: {
+                propertyId: hotelId,
+                room: selectedRoomForBooking,
+                checkInDate: dateRange[0],
+                checkOutDate: dateRange[1]
+            }
+        });
+    };
+
     // Scroll Spy
     useEffect(() => {
         const handleScroll = () => {
-            // Danh sách các ID section cần theo dõi
             const sections = ["overview", "rooms", "policies", "reviews"];
             for (const section of sections) {
                 const element = document.getElementById(section);
                 if (element) {
                     const rect = element.getBoundingClientRect();
-                    // Nếu phần tử nằm trong khoảng nhìn thấy (offset top 300px)
                     if (rect.top >= 0 && rect.top <= 300) {
                         setActiveSection(section);
                         break;
@@ -169,42 +211,33 @@ export default function HotelDetailPage() {
     return (
         <div className="bg-gray-100 min-h-screen pb-20">
             
-            {/* 1. Header & Gallery */}
             <HotelHeader hotel={hotel} onOpenGallery={openImageViewer} />
 
-            {/* 2. Sticky Nav */}
             <HotelStickyNav activeSection={activeSection} />
 
-            {/* 3. Main Content */}
             <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     
                     {/* CỘT TRÁI (Nội dung chính) */}
                     <div className="lg:col-span-8 space-y-8">
                         
-                        {/* A. Tổng quan & Tiện nghi (Gộp chung trong HotelOverview) */}
                         <HotelOverview description={hotel.description} amenities={hotel.amenities} />
 
-                        {/* B. Danh sách Phòng */}
                         <section id="rooms" className="scroll-mt-32">
                              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                                 Phòng trống
                                 <span className="text-xs font-normal text-white bg-red-500 px-2 py-1 rounded-full animate-pulse">Hot!</span>
                             </h3>
+                            {/* ✅ Truyền hàm handleBookNowClick xuống */}
                             <RoomListSection 
                                 rooms={hotel.rooms} 
                                 onRoomInfoClick={setSelectedRoomDetail} 
-                                dateRange={dateRange}
-                                onChangeDate={setDateRange}
+                                onBookNow={handleBookNowClick} // Prop mới
                             />
                         </section>
 
-                        {/* ✅ ĐÃ XÓA PHẦN AMENITIES BỊ TRÙNG LẶP Ở ĐÂY */}
-
-                        {/* C. Chính sách */}
                         <HotelPolicies policies={policies} />
 
-                        {/* D. Đánh giá */}
                         <section id="reviews" className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 scroll-mt-32">
                              <ReviewsSection />
                         </section>
@@ -212,13 +245,15 @@ export default function HotelDetailPage() {
                     </div>
 
                     {/* CỘT PHẢI (Sidebar) */}
-                    <HotelSidebar 
-                        location={hotel.location} 
-                        rating={hotel.rating} 
-                        minPrice={hotel.rooms[0]?.price} 
-                        lat={hotel.latitude} // Truyền lat
-                        lng={hotel.longitude} // Truyền lng
-                    />
+                    <div className="lg:col-span-4">
+                        <HotelSidebar 
+                            location={hotel.location} 
+                            rating={hotel.rating} 
+                            minPrice={hotel.rooms[0]?.price} 
+                            lat={hotel.latitude} 
+                            lng={hotel.longitude} 
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -235,6 +270,17 @@ export default function HotelDetailPage() {
                 images={imagesForModal}
                 startIndex={selectedImageIndex}
             />
+
+            {/* ✅ MODAL CHỌN NGÀY BOOKING */}
+            {selectedRoomForBooking && (
+                <BookingDateModal
+                    open={isDateModalOpen}
+                    onClose={() => setIsDateModalOpen(false)}
+                    onConfirm={handleDateConfirm}
+                    occupiedDates={occupiedDates}
+                    roomPrice={selectedRoomForBooking.price}
+                />
+            )}
         </div>
     );
 }

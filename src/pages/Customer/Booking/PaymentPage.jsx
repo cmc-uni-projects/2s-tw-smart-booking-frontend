@@ -1,23 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate, useParams, Link } from 'react-router-dom'; 
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom'; 
 import { format, differenceInCalendarDays } from 'date-fns';
 
 // UI Components
 import Card from '@/components/common/Card/Card';
 import Button from '@/components/common/Button/Button';
 import Divider from '@/components/common/Divider/Divider';
-import Spinner from "@/components/common/Loading/Spinner";
-import LoadingOverlay from "@/components/common/Loading/LoadingOverlay"; 
-import Modal from "@/components/common/Modal/Modal"; 
+import Spinner from '@/components/common/Loading/Spinner';
+import LoadingOverlay from '@/components/common/Loading/LoadingOverlay'; 
+import Modal from '@/components/common/Modal/Modal'; 
 
 import { 
     MapPin, BedDouble, Users, Receipt, 
-    User, Phone, Mail, Tag, ArrowLeft, CheckCircle2, AlertTriangle
+    User, Phone, Mail, Tag, ArrowLeft, CheckCircle2, Clock, AlertTriangle
 } from 'lucide-react';
 
 // Local Components
 import PaymentForm from './PaymentForm';
-import QRCodeModal from './QRCodeModal';     
+import QRCodeModal from './QRCodeModal';
+import PaymentTimeoutModal from './components/PaymentTimeoutModal';
 
 // Services
 import bookingService from "@/services/booking.service";
@@ -26,11 +27,13 @@ import paymentService from "@/services/payment.service";
 import './PaymentPage.css';
 
 // --- HELPERS ---
-const BASE_URL = "http://localhost:8386"; 
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
 const getFullImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/300x200?text=No+Image";
     if (path.startsWith("http")) return path;
-    return `${BASE_URL}/uploads/${path}`;
+    let cleanPath = path.startsWith('/') ? path : `/${path}`;
+    if (!cleanPath.startsWith('/uploads')) cleanPath = `/uploads${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
 };
 
 // --- PAYMENT SUMMARY COMPONENT ---
@@ -38,8 +41,9 @@ const PaymentSummary = ({ booking }) => {
     if (!booking) return null;
     const { propertyName, propertyImage, propertyAddress, roomName, checkInDate, checkOutDate, guestCount, user } = booking;
     
-    const startDate = new Date(checkInDate);
-    const endDate = new Date(checkOutDate);
+    // Xử lý an toàn cho ngày tháng
+    const startDate = checkInDate ? new Date(checkInDate) : new Date();
+    const endDate = checkOutDate ? new Date(checkOutDate) : new Date();
     const nights = Math.max(1, differenceInCalendarDays(endDate, startDate));
 
     return (
@@ -74,9 +78,9 @@ const PaymentSummary = ({ booking }) => {
                     <h5 className="font-bold text-gray-900 mb-3 text-sm flex items-center gap-2"><User size={16} className="text-blue-600"/> Thông tin liên hệ</h5>
                     <div className="space-y-2 text-sm pl-1 border-l-2 border-gray-100 ml-2">
                         <div className="pl-3">
-                            <p className="font-semibold text-gray-800">{user?.fullName || "Khách vãng lai"}</p>
-                            <div className="flex items-center gap-2 mt-1"><Mail size={12} className="text-gray-400"/> <span className="text-gray-500 text-xs">{user?.email}</span></div>
-                            <div className="flex items-center gap-2 mt-1"><Phone size={12} className="text-gray-400"/> <span className="text-gray-500 text-xs">{user?.phoneNumber}</span></div>
+                            <p className="font-semibold text-gray-800">{booking.customerName || user?.fullName || "Khách vãng lai"}</p>
+                            <div className="flex items-center gap-2 mt-1"><Mail size={12} className="text-gray-400"/> <span className="text-gray-500 text-xs">{booking.customerEmail || user?.email}</span></div>
+                            <div className="flex items-center gap-2 mt-1"><Phone size={12} className="text-gray-400"/> <span className="text-gray-500 text-xs">{booking.customerPhone || user?.phoneNumber}</span></div>
                         </div>
                     </div>
                 </div>
@@ -86,14 +90,14 @@ const PaymentSummary = ({ booking }) => {
 };
 
 // --- TOTAL PRICE COMPONENT ---
-const TotalPriceSection = ({ totalPrice, onSubmit, loading }) => {
+const TotalPriceSection = ({ totalPrice, onSubmit, loading, disabled }) => {
     return (
         <Card className="p-6 border border-gray-200 shadow-md bg-white">
             <div className="flex justify-between items-end mb-4">
                 <div><p className="text-sm text-gray-500 font-medium mb-1">Tổng thanh toán</p><div className="flex items-center gap-1 text-green-600 text-xs bg-green-50 w-fit px-2 py-1 rounded-md"><CheckCircle2 size={12}/> Đã bao gồm thuế phí</div></div>
                 <h3 className="text-3xl font-extrabold text-[rgb(40,169,224)] tracking-tight">{new Intl.NumberFormat('vi-VN').format(totalPrice)}₫</h3>
             </div>
-            <Button size="lg" fullWidth onClick={onSubmit} className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg py-4 text-lg font-bold" disabled={loading}>Thanh toán ngay</Button>
+            <Button size="lg" fullWidth onClick={onSubmit} className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-lg py-4 text-lg font-bold" disabled={loading || disabled}>Thanh toán ngay</Button>
         </Card>
     );
 };
@@ -104,9 +108,10 @@ const TotalPriceSection = ({ totalPrice, onSubmit, loading }) => {
 export default function PaymentPage() {
     const { bookingId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
 
     // States
-    const [booking, setBooking] = useState(null);
+    const [booking, setBooking] = useState(location.state?.booking || null);
     const [loading, setLoading] = useState(true);
     const [isConfirming, setIsConfirming] = useState(false); 
     
@@ -115,12 +120,42 @@ export default function PaymentPage() {
     const [isSuccessOpen, setIsSuccessOpen] = useState(false); // Success Modal
     const [paymentMethod, setPaymentMethod] = useState('qr_code');
 
+    // Timeout State
+    const [timeLeft, setTimeLeft] = useState(5 * 60); // 5 phút
+    const [isTimeoutOpen, setIsTimeoutOpen] = useState(false);
+    const timerRef = useRef(null);
+
+    // 1. Fetch Booking và tính toán thời gian
     useEffect(() => {
         const fetchBooking = async () => {
-            if (!bookingId) return;
             try {
-                const data = await bookingService.getBookingById(bookingId);
-                setBooking(data);
+                let currentBooking = booking;
+
+                // Nếu chưa có data (do F5 hoặc truy cập trực tiếp), gọi API
+                if (!currentBooking) {
+                    if (!bookingId) return;
+                    const res = await bookingService.getBookingById(bookingId);
+                    
+                    // ✅ FIX LỖI: bookingService.getBookingById trả về data trực tiếp, không cần .data
+                    currentBooking = res; 
+                    setBooking(currentBooking);
+                }
+
+                // Logic tính thời gian còn lại
+                if (currentBooking) {
+                    // Nếu backend chưa trả về createdAt, tạm thời dùng thời gian hiện tại để không bị lỗi NaN
+                    // (Bạn cần update Backend để logic này chính xác)
+                    const createdTime = currentBooking.createdAt ? new Date(currentBooking.createdAt).getTime() : new Date().getTime();
+                    const now = new Date().getTime();
+                    const elapsedSeconds = Math.floor((now - createdTime) / 1000);
+                    const remaining = (5 * 60) - elapsedSeconds;
+                    
+                    if (remaining <= 0) {
+                        handleExpired();
+                    } else {
+                        setTimeLeft(remaining);
+                    }
+                }
             } catch (error) {
                 console.error("Error:", error);
                 alert("Lỗi khi tải đơn đặt phòng.");
@@ -132,14 +167,49 @@ export default function PaymentPage() {
         fetchBooking();
     }, [bookingId]);
 
+    // 2. Chạy đồng hồ đếm ngược
+    useEffect(() => {
+        if (isTimeoutOpen) return;
+
+        timerRef.current = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timerRef.current);
+                    handleExpired();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timerRef.current);
+    }, [isTimeoutOpen]);
+
+    // 3. Xử lý khi hết giờ
+    const handleExpired = async () => {
+        setIsTimeoutOpen(true);
+        try {
+            await bookingService.cancelBooking(bookingId);
+        } catch (err) {
+            console.error("Lỗi tự động hủy đơn:", err);
+        }
+    };
+
+    const formatTime = (seconds) => {
+        if (isNaN(seconds) || seconds < 0) return "05:00"; // Fallback nếu chưa có createdAt
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
+
     const handlePaymentSubmit = async () => {
-        // Nếu chọn QR Code -> Mở Modal để quét
+        if (timeLeft <= 0) return;
+
         if (paymentMethod === 'qr_code') {
             setIsModalOpen(true);
             return;
         }
 
-        // Nếu chọn phương thức khác -> Gọi API
         setIsConfirming(true);
         try {
             await paymentService.submitPayment(bookingId, "Thanh toán tiền mặt (Demo)");
@@ -152,27 +222,39 @@ export default function PaymentPage() {
     };
 
     const handleConfirmQR = async () => {
-        setIsConfirming(true); // Bật loading overlay
+        if (timeLeft <= 0) return;
+
+        setIsConfirming(true);
         try {
             await paymentService.submitPayment(bookingId, "Thanh toán qua QR Code");
-            setIsModalOpen(false); // Đóng QR
-            setIsSuccessOpen(true); // Mở Success
+            setIsModalOpen(false);
+            setIsSuccessOpen(true);
         } catch (error) {
             console.error("Lỗi xác nhận:", error);
             alert("Có lỗi xảy ra: " + (error.message || error));
         } finally {
-            setIsConfirming(false); // Tắt loading
+            setIsConfirming(false);
         }
     };
 
+    const handleTimeoutConfirm = () => {
+        navigate("/"); 
+    };
+
     if (loading) return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>;
-    if (!booking) return null;
+    // ✅ Kiểm tra booking tồn tại trước khi render
+    if (!booking) return null; 
 
     return (
             <main className="max-w-7xl mx-auto px-4 md:px-6 py-8 bg-gray-50 min-h-screen">
                 
-                {/* LOADING OVERLAY TOÀN MÀN HÌNH */}
                 {isConfirming && <LoadingOverlay message="Đang xác nhận thanh toán..." />}
+
+                {/* MODAL HẾT GIỜ */}
+                <PaymentTimeoutModal 
+                    open={isTimeoutOpen} 
+                    onConfirm={handleTimeoutConfirm} 
+                />
 
                 <div className="mb-6">
                     <Button variant="ghost" onClick={() => navigate(-1)} leftIcon={<ArrowLeft size={18} />} className="mb-2 pl-0 hover:bg-transparent text-gray-500 hover:text-blue-600">Quay lại</Button>
@@ -181,12 +263,22 @@ export default function PaymentPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-6">
-                        {/* Cảnh báo */}
-                        <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl flex gap-3 shadow-sm">
-                            <div className="bg-orange-100 p-2 rounded-full h-fit"><AlertTriangle className="text-orange-600" size={20} /></div>
-                            <div>
-                                <h4 className="font-bold text-orange-800 text-sm">Giữ phòng trong 30:00 phút</h4>
-                                <p className="text-sm text-orange-700 mt-1">Vui lòng hoàn tất thanh toán để đảm bảo giữ phòng này.</p>
+                        
+                        {/* CẢNH BÁO ĐẾM NGƯỢC */}
+                        <div className={`border rounded-xl p-4 flex items-center justify-between shadow-sm transition-colors ${timeLeft < 60 ? 'bg-red-50 border-red-200' : 'bg-orange-50 border-orange-200'}`}>
+                            <div className="flex items-center gap-3">
+                                <Clock className={`${timeLeft < 60 ? 'text-red-600' : 'text-orange-600'} animate-pulse`} size={24} />
+                                <div>
+                                    <p className={`text-sm font-medium ${timeLeft < 60 ? 'text-red-800' : 'text-orange-800'}`}>
+                                        {timeLeft < 60 ? "Sắp hết thời gian giữ phòng!" : "Thời gian giữ phòng còn lại"}
+                                    </p>
+                                    <p className={`text-2xl font-bold font-mono tracking-wider ${timeLeft < 60 ? 'text-red-600' : 'text-orange-600'}`}>
+                                        {formatTime(timeLeft)}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="hidden sm:block text-xs text-gray-500 max-w-[250px] text-right">
+                                Vui lòng hoàn tất thanh toán trong thời gian này để đảm bảo phòng không bị người khác đặt mất.
                             </div>
                         </div>
 
@@ -197,7 +289,12 @@ export default function PaymentPage() {
                             <div className="flex gap-2"><input type="text" placeholder="Nhập mã giảm giá" className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" /><Button variant="outline">Áp dụng</Button></div>
                         </Card>
                         
-                        <TotalPriceSection totalPrice={booking.totalPrice} onSubmit={handlePaymentSubmit} loading={isConfirming} />
+                        <TotalPriceSection 
+                            totalPrice={booking.totalPrice} 
+                            onSubmit={handlePaymentSubmit} 
+                            loading={isConfirming} 
+                            disabled={timeLeft <= 0} 
+                        />
                     </div>
 
                     <div className="lg:col-span-1">
@@ -214,7 +311,7 @@ export default function PaymentPage() {
                     bookingCode={booking.bookingId}
                 />
 
-                {/* ✅ MODAL THÔNG BÁO THÀNH CÔNG (CÓ NÚT ĐÓNG & ĐI TIẾP) */}
+                {/* SUCCESS MODAL */}
                 <Modal 
                     open={isSuccessOpen} 
                     onClose={() => setIsSuccessOpen(false)} 
