@@ -11,6 +11,7 @@ const PROPERTY_TYPES = [
   { value: "HOMESTAY", label: "Homestay" },
 ];
 
+
 const SubmissionTypeFilter = ({ currentType, onTypeChange }) => {
   return (
     <motion.div
