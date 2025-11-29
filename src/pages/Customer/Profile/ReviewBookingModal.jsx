@@ -13,8 +13,6 @@ import {
 import Button from "@/components/common/Button/Button";
 import RatingStars from "@/pages/Customer/MyBookings/components/RatingStars";
 
-const MIN_COMMENT_LENGTH = 50;
-
 const ReviewBookingModal = ({ isOpen, onClose, booking, onSubmit }) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -63,10 +61,7 @@ const ReviewBookingModal = ({ isOpen, onClose, booking, onSubmit }) => {
 
   const trimmedComment = comment.trim();
   const currentLength = trimmedComment.length;
-  const remaining = Math.max(0, MIN_COMMENT_LENGTH - currentLength);
-  const isValid = rating > 0 && currentLength >= MIN_COMMENT_LENGTH;
-
-  const progress = Math.min(100, (currentLength / MIN_COMMENT_LENGTH) * 100);
+  const isValid = rating > 0 && currentLength > 0;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -77,10 +72,8 @@ const ReviewBookingModal = ({ isOpen, onClose, booking, onSubmit }) => {
       return;
     }
 
-    if (currentLength < MIN_COMMENT_LENGTH) {
-      setError(
-        `Bình luận cần ít nhất ${MIN_COMMENT_LENGTH} ký tự (còn thiếu ${remaining}).`
-      );
+    if (!trimmedComment) {
+      setError("Vui lòng nhập nội dung đánh giá.");
       scrollToComment();
       return;
     }
@@ -232,32 +225,17 @@ const ReviewBookingModal = ({ isOpen, onClose, booking, onSubmit }) => {
             )}
 
             <div className="mt-2 flex items-center justify-between text-xs">
-              <div className="flex flex-col gap-1">
-                <span
-                  className={
-                    currentLength < MIN_COMMENT_LENGTH
-                      ? "text-amber-700"
-                      : "text-emerald-700"
-                  }
-                >
-                  {currentLength < MIN_COMMENT_LENGTH
-                    ? `Cần ít nhất ${MIN_COMMENT_LENGTH} ký tự (còn thiếu ${remaining}).`
-                    : "Đủ độ dài, bạn có thể gửi đánh giá."}
-                </span>
-                {/* progress bar */}
-                <div className="h-1.5 w-40 overflow-hidden rounded-full bg-slate-200">
-                  <div
-                    className={`h-full rounded-full ${
-                      progress >= 100
-                        ? "bg-emerald-500"
-                        : "bg-[rgb(40,169,224)]"
-                    }`}
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-              </div>
+              <span
+                className={
+                  currentLength === 0 ? "text-amber-700" : "text-emerald-700"
+                }
+              >
+                {currentLength === 0
+                  ? "Vui lòng nhập nội dung đánh giá."
+                  : "Bạn đã nhập nội dung, có thể gửi đánh giá."}
+              </span>
               <span className="text-slate-400">
-                {currentLength} / {MIN_COMMENT_LENGTH}
+                {currentLength} ký tự
               </span>
             </div>
           </div>
