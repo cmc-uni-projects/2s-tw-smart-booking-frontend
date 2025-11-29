@@ -168,14 +168,12 @@ export default function HotelDetailPage() {
     const handleDateConfirm = (dateRange) => {
         setIsDateModalOpen(false);
         
-        // Chuyển hướng sang trang Booking Form (Điền thông tin khách)
-        // Lưu ý: Route này phải khớp với App.jsx của bạn (ví dụ: /booking)
-        navigate("/booking", { 
+        // Chuyển hướng sang trang Booking/{hotelId}
+        navigate(`/booking/${hotelId}`, { 
             state: {
-                propertyId: hotelId,
-                room: selectedRoomForBooking,
-                checkInDate: dateRange[0],
-                checkOutDate: dateRange[1]
+                selectedRoomId: selectedRoomForBooking.id, // ⚠️ Quan trọng: Phải dùng key 'selectedRoomId' để khớp với BookingPage
+                checkInDate: dateRange[0],                 // Truyền ngày nhận
+                checkOutDate: dateRange[1]                 // Truyền ngày trả
             }
         });
     };
