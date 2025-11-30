@@ -32,6 +32,7 @@ const PromotionPage = () => {
         const fetchPromotions = async () => {
             try {
                 const response = await promotionService.getAllPromotions();
+                // Kiểm tra cấu trúc dữ liệu trả về để lấy mảng chuẩn
                 const rawData = Array.isArray(response) ? response : (response.data || []);
 
                 const now = new Date();
@@ -43,24 +44,45 @@ const PromotionPage = () => {
                 // Sắp xếp ID giảm dần để cái mới nhất lên đầu
                 activePromotions.sort((a, b) => b.promotionId - a.promotionId);
 
-                const mappedPromotions = activePromotions.map(p => ({
-                    id: p.promotionId,
-                    title: p.description, // Hoặc p.name nếu API có trường name
-                    description: `Giảm ${p.discountType === 'PERCENTAGE' ? p.discountValue + '%' : parseInt(p.discountValue).toLocaleString() + 'đ'} cho đơn từ ${parseInt(p.minOrder || 0).toLocaleString()}đ`,
-                    image: getFullImageUrl(p.bannerUrl),
-                    code: p.code,
-                    endDate: p.endDate,
-                    startDate: p.startDate, // Thêm startDate để hiển thị HSD
-                    maxDiscount: p.maxDiscount,
-                    minOrder: p.minOrder,
-                    discountType: p.discountType,
-                    discountValue: p.discountValue,
-                    used: p.usageCount || 0,
-                    quantity: p.usageLimit || 100,
-                    // Nếu API trả về hạng, hãy map vào đây (ví dụ p.targetRank).
-                    // Nếu không có, badge hạng sẽ tự ẩn.
-                    targetRank: p.targetRank || null
-                }));
+                // --- QUAN TRỌNG: Mapping dữ liệu từ API sang format Frontend ---
+                const mappedPromotions = activePromotions.map(p => {
+                    // 1. Lấy đúng tên trường từ API (minBookingAmount, maxDiscountAmount)
+                    // 2. Ép kiểu Number để xử lý số thập phân (10.00 -> 10)
+                    const cleanDiscountValue = Number(p.discountValue || 0);
+                    const cleanMinOrder = Number(p.minBookingAmount || 0); // Sửa từ p.minOrder thành p.minBookingAmount
+                    const cleanMaxDiscount = Number(p.maxDiscountAmount || 0); // Sửa từ p.maxDiscount thành p.maxDiscountAmount
+
+                    return {
+                        id: p.promotionId,
+                        title: p.description,
+
+                        // Format chuỗi mô tả dùng số liệu đã làm sạch
+                        description: `Giảm ${p.discountType === 'PERCENTAGE' ? cleanDiscountValue + '%' : cleanDiscountValue.toLocaleString('vi-VN') + 'đ'} cho đơn từ ${cleanMinOrder.toLocaleString('vi-VN')}đ`,
+
+                        image: getFullImageUrl(p.bannerUrl),
+                        code: p.code,
+                        endDate: p.endDate,
+                        startDate: p.startDate,
+
+                        // Truyền các giá trị đã mapping xuống component con
+                        // Lưu ý: PromotionCard/Modal có thể dùng minOrder hoặc minBookingAmount,
+                        // ta truyền cả 2 để đảm bảo tương thích.
+                        minOrder: cleanMinOrder,
+                        minBookingAmount: cleanMinOrder,
+
+                        maxDiscount: cleanMaxDiscount,
+                        maxDiscountAmount: cleanMaxDiscount,
+
+                        discountType: p.discountType,
+                        discountValue: cleanDiscountValue,
+
+                        used: p.usageCount || 0,
+                        quantity: p.usageLimit || 100,
+
+                        // Map hạng thành viên
+                        targetRank: p.minMembershipRank || p.targetRank || null
+                    };
+                });
 
                 setPromotions(mappedPromotions);
             } catch (error) {

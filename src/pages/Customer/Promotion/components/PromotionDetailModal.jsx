@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
-// import { useNavigate } from "react-router-dom";
 import Modal from "@/components/common/Modal/Modal";
 import { Copy, CheckCircle, Info, Clock, AlertCircle, Sparkles, Calendar, Crown } from "lucide-react";
 
+// Icon cho Super Deal
 const SUPER_DEAL_IMAGE = "https://cdn-icons-png.flaticon.com/512/5267/5267825.png";
 
 const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
     const [copied, setCopied] = useState(false);
     const [animate, setAnimate] = useState(false);
 
+    // Hiệu ứng mở modal
     useEffect(() => {
         if (isOpen) {
             setAnimate(true);
@@ -18,6 +19,21 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
     }, [isOpen]);
 
     if (!promo) return null;
+
+    // --- XỬ LÝ DỮ LIỆU THÔNG MINH (TRÁNH LỖI 0đ) ---
+    // Hàm làm sạch số: chuyển "10.00" hoặc 10.00 thành 10
+    const cleanNumber = (val) => {
+        if (val === undefined || val === null) return 0;
+        return Number(val);
+    };
+
+    // 1. Ưu tiên lấy đúng tên trường từ API (minBookingAmount), nếu không có thì fallback về minOrder
+    const minBookingAmount = cleanNumber(promo.minBookingAmount ?? promo.minOrder);
+    const maxDiscountAmount = cleanNumber(promo.maxDiscountAmount ?? promo.maxDiscount);
+    const discountVal = cleanNumber(promo.discountValue);
+
+    // 2. Xử lý hạng thành viên (Ưu tiên minMembershipRank)
+    const targetRank = promo.minMembershipRank || promo.targetRank || "BRONZE";
 
     const handleCopyCode = () => {
         navigator.clipboard.writeText(promo.code || "");
@@ -41,7 +57,7 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
         return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     };
 
-    // ✅ CẤU HÌNH GIAO DIỆN LUXURY
+    // CẤU HÌNH GIAO DIỆN THEO HẠNG
     const getRankConfig = (rank) => {
         const r = rank ? rank.toUpperCase() : 'ALL';
         switch (r) {
@@ -101,10 +117,11 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
     };
 
     const daysLeft = getDaysLeft();
-    const isBigSale = (promo.discountType === 'PERCENTAGE' && promo.discountValue >= 20) ||
-        (promo.discountType === 'FIXED' && promo.discountValue >= 500000);
+    // Logic xác định Big Sale: % >= 20 hoặc Tiền >= 500k
+    const isBigSale = (promo.discountType === 'PERCENTAGE' && discountVal >= 20) ||
+        (promo.discountType === 'FIXED' && discountVal >= 500000);
 
-    const rankConfig = getRankConfig(promo.targetRank);
+    const rankConfig = getRankConfig(targetRank);
 
     return (
         <Modal open={isOpen} onClose={onClose} title={null} maxWidth="max-w-2xl">
@@ -126,22 +143,18 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
                     />
                     <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/60 to-transparent opacity-80"></div>
 
-                    {/* ✅ BADGE HỘI VIÊN: CHUYỂN SANG GÓC PHẢI (right-4) */}
+                    {/* BADGE HỘI VIÊN */}
                     <div className={`absolute top-4 right-4 z-20 flex flex-col items-center justify-center
                         min-w-[60px] py-1.5 px-2 rounded-lg
                         border-t border-l border-b border-r
                         shadow-xl backdrop-blur-sm overflow-hidden
                         ${rankConfig.bgClass} ${rankConfig.borderClass} ${rankConfig.textClass} ${rankConfig.shadowClass}`}>
 
-                        {/* Hiệu ứng lấp lánh */}
                         {rankConfig.isLuxury && (
                             <div className={`absolute inset-0 z-0 bg-gradient-to-r ${rankConfig.shimmerColor} animate-shimmer-sweep -translate-x-full`}></div>
                         )}
-
-                        {/* Glow nhẹ */}
                         <div className="absolute -top-6 -right-6 w-12 h-12 bg-white/30 blur-lg rounded-full pointer-events-none"></div>
 
-                        {/* Nội dung */}
                         <div className="relative z-10 flex flex-col items-center gap-0.5">
                             <Crown
                                 size={16}
@@ -150,18 +163,16 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
                                 className="drop-shadow-sm filter mb-0.5"
                                 strokeWidth={2.5}
                             />
-
                             <span className="text-[8px] font-bold uppercase tracking-wider opacity-80 leading-none">
                                 {rankConfig.prefix}
                             </span>
-
                             <span className="text-xs font-black uppercase leading-none tracking-wide drop-shadow-sm mt-0.5">
                                 {rankConfig.name}
                             </span>
                         </div>
                     </div>
 
-                    {/* ✅ SUPER DEAL: CHUYỂN SANG GÓC TRÁI (left-4) */}
+                    {/* SUPER DEAL BADGE */}
                     {isBigSale && (
                         <div className="absolute top-0 left-4 w-20 h-20 z-20 animate-bounce-slow">
                             <img
@@ -183,8 +194,8 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
                 {/* --- 2. NỘI DUNG CHÍNH --- */}
                 <div className="px-8 pb-8 pt-2 space-y-6 relative z-10">
                     <div className="space-y-4 text-center">
+                        {/* TAGS & LABELS */}
                         <div className="flex flex-wrap items-center justify-center gap-3">
-                            {/* Tag Loại Khuyến Mãi */}
                             {isBigSale ? (
                                 <div className="relative overflow-hidden inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-red-500 to-pink-600 text-white text-xs font-bold shadow-md shadow-red-200">
                                     <div className="absolute inset-0 bg-white/30 skew-x-12 animate-[shimmer_2s_infinite] -translate-x-full"></div>
@@ -197,7 +208,6 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
                                 </div>
                             )}
 
-                            {/* Tag Thời Gian */}
                             <div className="text-gray-500 text-sm font-medium flex items-center gap-2 bg-gray-100/80 px-3 py-1.5 rounded-full border border-gray-200">
                                 <Clock size={15} className="text-blue-500" />
                                 <span className="flex items-center gap-1 text-xs sm:text-sm">
@@ -210,6 +220,7 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
                             </div>
                         </div>
 
+                        {/* TITLE */}
                         <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-800 leading-tight">
                             {promo.title || promo.name}
                         </h2>
@@ -272,7 +283,10 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
                                         <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                                         <span>Đơn tối thiểu:</span>
                                     </div>
-                                    <span className="font-bold text-gray-900">{parseInt(promo.minOrder || 0).toLocaleString()}đ</span>
+                                    <span className="font-bold text-gray-900">
+                                        {/* .toLocaleString('vi-VN') sẽ tự động định dạng: 10000 -> 10.000, 10 -> 10 */}
+                                        {minBookingAmount.toLocaleString('vi-VN')}đ
+                                    </span>
                                 </li>
 
                                 {/* Giảm tối đa */}
@@ -282,8 +296,8 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
                                         <span>Giảm tối đa:</span>
                                     </div>
                                     <span className="font-bold text-gray-900 text-right">
-                                        {promo.maxDiscount && Number(promo.maxDiscount) > 0
-                                            ? parseInt(promo.maxDiscount).toLocaleString() + 'đ'
+                                        {maxDiscountAmount > 0
+                                            ? maxDiscountAmount.toLocaleString('vi-VN') + 'đ'
                                             : "Không giới hạn"
                                         }
                                     </span>
