@@ -71,7 +71,7 @@ const BookingDetailModal = ({
       },
       COMPLETED: {
         text: "Hoàn thành",
-        bg: "bg-slate-500",
+        bg: "bg-emerald-500",
         icon: CheckCircle,
       },
       CANCELLED: {
