@@ -105,4 +105,5 @@ checkOutBooking: async (bookingId) => {
 };
 
 
+
 export default bookingService;
