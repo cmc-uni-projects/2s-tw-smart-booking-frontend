@@ -195,7 +195,9 @@ const PromotionManager = () => {
                 startDate: item.startDate,
                 endDate: item.endDate,
                 isActive: item.status === "ACTIVE",
-                bannerUrl: item.bannerUrl
+                bannerUrl: item.bannerUrl,
+                // [MỚI] Map thêm trường này để khi Sửa modal biết được rank cũ
+                minMembershipRank: item.minMembershipRank
             }));
             mappedData.sort((a, b) => b.id - a.id);
             setPromotions(mappedData);
