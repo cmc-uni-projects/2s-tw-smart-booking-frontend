@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
     X, Tag, Percent, DollarSign,
-    Layers, Hash, CheckCircle2, AlertCircle, Clock, Calendar, Upload, Image as ImageIcon
+    Layers, Hash, CheckCircle2, AlertCircle, Clock, Calendar, Upload, Image as ImageIcon,
+    Crown // [MỚI] Import icon vương miện cho Rank
 } from "lucide-react";
 import promotionService from "../../../../services/promotion.service";
 import toast from "react-hot-toast";
@@ -21,7 +23,7 @@ const showToast = (type, message) => {
     });
 };
 
-// --- 1. CustomInput (Đã mở rộng code để dễ đọc) ---
+// --- 1. CustomInput (Giữ nguyên) ---
 const CustomInput = ({ label, name, value, onChange, type = "text", placeholder, icon: Icon, error, disabled, className, ...props }) => {
     const inputRef = useRef(null);
 
@@ -74,7 +76,7 @@ const CustomInput = ({ label, name, value, onChange, type = "text", placeholder,
     );
 };
 
-// --- 2. CustomSelect (Đã mở rộng code) ---
+// --- 2. CustomSelect (Giữ nguyên) ---
 const CustomSelect = ({ label, name, value, onChange, options, icon: Icon }) => (
     <div className="space-y-1.5">
         <label className="text-sm font-semibold text-gray-700 ml-1">{label}</label>
@@ -99,7 +101,7 @@ const CustomSelect = ({ label, name, value, onChange, options, icon: Icon }) => 
     </div>
 );
 
-// --- 3. TimePicker (Đã mở rộng code logic nhập giờ) ---
+// --- 3. TimePicker (Giữ nguyên) ---
 const TimePicker = ({ value, onChange, error }) => {
     const [hour, setHour] = useState("00");
     const [minute, setMinute] = useState("00");
@@ -176,6 +178,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
     const [formData, setFormData] = useState({
         code: "", name: "", type: "PERCENT", value: "", quantity: "", minOrder: "", maxDiscount: "",
         startDate: "", endDate: "", isActive: true,
+        minMembershipRank: "BRONZE" // [MỚI] Mặc định là Đồng
     });
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -188,7 +191,6 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
     const getFullImageUrl = (path) => {
         if (!path) return null;
         if (path.startsWith("http")) return path;
-        // Loại bỏ dấu / ở đầu path nếu có để tránh double slash
         const cleanPath = path.startsWith('/') ? path.slice(1) : path;
         return `${BE_BASE_URL}${UPLOAD_DIR}${cleanPath}`;
     };
@@ -224,12 +226,17 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                     ...rest,
                     startDate: normalizeDateTime(rest.startDate),
                     endDate: normalizeDateTime(rest.endDate),
-                    isActive: rest.isActive !== undefined ? rest.isActive : true
+                    isActive: rest.isActive !== undefined ? rest.isActive : true,
+                    // [MỚI] Lấy rank từ dữ liệu sửa, nếu không có thì mặc định Bronze
+                    minMembershipRank: rest.minMembershipRank || "BRONZE"
                 });
-                // ✅ Set Preview URL chuẩn từ Backend
                 setPreviewUrl(getFullImageUrl(rest.bannerUrl));
             } else {
-                setFormData({ code: "", name: "", type: "PERCENT", value: "", quantity: 100, minOrder: 0, maxDiscount: 0, startDate: "", endDate: "", isActive: true });
+                setFormData({
+                    code: "", name: "", type: "PERCENT", value: "", quantity: 100, minOrder: 0, maxDiscount: 0,
+                    startDate: "", endDate: "", isActive: true,
+                    minMembershipRank: "BRONZE" // [MỚI] Reset về Bronze khi tạo mới
+                });
                 setPreviewUrl(null);
             }
         }
@@ -256,10 +263,8 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
         }
     };
 
-    // ✅ Xử lý khi ảnh lỗi (404) -> Ẩn ảnh đi để không hiện icon vỡ
     const handleImageError = () => {
         if (previewUrl) {
-            // console.warn("Không tải được ảnh:", previewUrl); // Có thể log để debug
             setPreviewUrl(null);
         }
     };
@@ -360,8 +365,8 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
 
     if (!open) return null;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity p-4 animate-fadeIn">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity p-4 animate-fadeIn">
             <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl transform transition-all scale-100 overflow-hidden flex flex-col max-h-[90vh] animate-slideUp">
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-[rgb(40,169,224)] to-[rgb(26,140,189)] text-white">
@@ -372,7 +377,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                 {/* Body */}
                 <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
 
-                    {/* ✅ SECTION: Banner Upload (Đã tích hợp logic fix lỗi ảnh) */}
+                    {/* Banner Upload */}
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700 ml-1">Banner Khuyến Mãi</label>
                         <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50/50 transition-colors relative overflow-hidden group">
@@ -381,7 +386,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                                     src={previewUrl}
                                     alt="Banner"
                                     className="w-full h-full object-contain z-10"
-                                    onError={handleImageError} // Bắt lỗi 404 để ẩn ảnh đi
+                                    onError={handleImageError}
                                 />
                             ) : (
                                 <div className="flex flex-col items-center text-gray-400">
@@ -396,7 +401,6 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                                 onChange={handleImageChange}
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                             />
-                            {/* Hover effect for replace */}
                             {previewUrl && (
                                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none">
                                     <p className="text-white font-semibold flex items-center gap-2"><Upload size={18}/> Thay đổi ảnh</p>
@@ -408,6 +412,24 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                         <div className="sm:col-span-1"><CustomInput label="Mã Code" name="code" value={formData.code} onChange={handleChange} placeholder="VD: SALE50" icon={Tag} error={errors.code} /></div>
                         <div className="sm:col-span-2"><CustomInput label="Tên chương trình" name="name" value={formData.name} onChange={handleChange} placeholder="VD: Siêu sale tháng 11" icon={CheckCircle2} error={errors.name} /></div>
+                    </div>
+
+                    {/* [MỚI] Thêm phần chọn Hạng thành viên với label đã sửa */}
+                    <div className="bg-orange-50/50 border border-orange-100 rounded-xl p-5">
+                        <CustomSelect
+                            label="Đối tượng áp dụng (Hạng thành viên tối thiểu)"
+                            name="minMembershipRank"
+                            value={formData.minMembershipRank}
+                            onChange={handleChange}
+                            icon={Crown}
+                            options={[
+                                { value: "BRONZE", label: "Đồng (Tất cả thành viên)" },
+                                { value: "SILVER", label: "Bạc (Silver - Chi tiêu > 1 triệu đồng)" },
+                                { value: "GOLD", label: "Vàng (Gold - Chi tiêu > 5 triệu đồng)" },
+                                { value: "DIAMOND", label: "Kim Cương (Diamond - Chi tiêu > 10 triệu đồng)" }
+                            ]}
+                        />
+                        <p className="text-xs text-gray-500 mt-2 ml-1 italic">* Khuyến mãi này sẽ áp dụng cho các thành viên có hạng này trở lên.</p>
                     </div>
 
                     <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -468,7 +490,8 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
