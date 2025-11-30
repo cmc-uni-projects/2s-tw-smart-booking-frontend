@@ -13,9 +13,10 @@ import {
   List, 
   ChevronDown, 
   CreditCard, 
-  // ✅ 1. Import thêm icon mới
   DollarSign, 
-  RotateCcw
+  RotateCcw,
+  // ✅ 1. Import Icon mới
+  Ticket 
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -48,11 +49,11 @@ const AdminSidebar = () => {
       ]
     },
     
-    // ✅ 2. MENU MỚI: QUẢN LÝ DÒNG TIỀN (Đã chia làm 2)
+    // 💰 MENU CON: QUẢN LÝ DÒNG TIỀN
     { 
       name: "Quản lý dòng tiền", 
       icon: <DollarSign size={20} />, 
-      key: "finance", // Key để toggle menu
+      key: "finance", 
       children: [
         { 
           name: "Quản lý thanh toán", 
@@ -67,7 +68,12 @@ const AdminSidebar = () => {
       ]
     },
 
-    // ❌ ĐÃ XÓA "QUẢN LÝ BOOKINGS"
+    // ✅ 2. MENU MỚI: QUẢN LÝ KHUYẾN MÃI
+    { 
+      name: "Quản lý Khuyến mãi", 
+      icon: <Ticket size={20} />, 
+      path: "/admin/promotions" 
+    },
 
     { 
       name: "Duyệt Chủ sở hữu", 

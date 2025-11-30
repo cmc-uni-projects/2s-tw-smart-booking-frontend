@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { format, addDays } from 'date-fns';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Headset, Wallet } from 'lucide-react'; // ✅ Thêm icon mới
 
 // Components
 import Button from '@/components/common/Button/Button';
@@ -9,7 +9,6 @@ import Spinner from "@/components/common/Loading/Spinner";
 import LoadingOverlay from "@/components/common/Loading/LoadingOverlay";
 
 // Sub-components
-import BookingDateSelector from './components/BookingDateSelector';
 import BookingSummary from './components/BookingSummary';
 import ContactInfoForm from './components/ContactInfoForm';
 
@@ -18,12 +17,41 @@ import propertyService from "@/services/property.service";
 import bookingService from "@/services/booking.service";
 import { useAuth } from "@/context/AuthContext";
 
-const BASE_URL = "http://localhost:8386"; 
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", ""); 
 const getFullImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/150";
     if (path.startsWith("http")) return path;
-    return `${BASE_URL}/uploads/${path}`;
+    let cleanPath = path.startsWith('/') ? path : `/${path}`;
+    if (!cleanPath.startsWith('/uploads')) cleanPath = `/uploads${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
 };
+
+// ✅ Component con: Khối An Tâm Đặt Phòng
+const TrustBadges = () => (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
+            <div className="bg-white p-2 rounded-full text-blue-600 shadow-sm"><ShieldCheck size={20}/></div>
+            <div>
+                <p className="font-bold text-sm text-gray-800">Thanh toán an toàn</p>
+                <p className="text-xs text-gray-500">Bảo mật chuẩn quốc tế</p>
+            </div>
+        </div>
+        <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-100">
+            <div className="bg-white p-2 rounded-full text-green-600 shadow-sm"><Wallet size={20}/></div>
+            <div>
+                <p className="font-bold text-sm text-gray-800">Không phí ẩn</p>
+                <p className="text-xs text-gray-500">Minh bạch giá cả</p>
+            </div>
+        </div>
+        <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-xl border border-purple-100">
+            <div className="bg-white p-2 rounded-full text-purple-600 shadow-sm"><Headset size={20}/></div>
+            <div>
+                <p className="font-bold text-sm text-gray-800">Hỗ trợ 24/7</p>
+                <p className="text-xs text-gray-500">Luôn sẵn sàng giúp đỡ</p>
+            </div>
+        </div>
+    </div>
+);
 
 export default function BookingPage() {
     const { propertyId } = useParams();
@@ -31,7 +59,8 @@ export default function BookingPage() {
     const navigate = useNavigate();
     const { currentUser } = useAuth(); 
 
-    const { selectedRoomId } = location.state || {};
+    // Lấy dữ liệu từ state
+    const { selectedRoomId, checkInDate, checkOutDate } = location.state || {};
 
     // Data State
     const [hotel, setHotel] = useState(null);
@@ -39,9 +68,9 @@ export default function BookingPage() {
     const [loading, setLoading] = useState(true);
     
     // Form State
-    const [dateRange, setDateRange] = useState({
-        startDate: new Date(),
-        endDate: addDays(new Date(), 1)
+    const [dateRange] = useState({
+        startDate: checkInDate ? new Date(checkInDate) : new Date(),
+        endDate: checkOutDate ? new Date(checkOutDate) : addDays(new Date(), 1)
     });
     
     const [contactData, setContactData] = useState({});
@@ -57,7 +86,7 @@ export default function BookingPage() {
                 setHotel({
                     id: data.propertyId,
                     name: data.propertyName,
-                    type: data.propertyType, // ✅ Lưu loại hình để check logic submit
+                    type: data.propertyType, 
                     location: `${data.address}, ${data.city}`,
                     image: getFullImageUrl(data.coverImage)
                 });
@@ -66,7 +95,7 @@ export default function BookingPage() {
                 if (data.rooms && selectedRoomId) {
                     targetRoom = data.rooms.find(r => r.roomId === selectedRoomId);
                 } else if (data.rooms?.length > 0) {
-                    targetRoom = data.rooms[0]; // Fallback room đầu tiên
+                    targetRoom = data.rooms[0];
                 }
 
                 if (targetRoom) {
@@ -105,18 +134,16 @@ export default function BookingPage() {
 
         setSubmitting(true);
         try {
-            // ✅ CHECK LOGIC: Nếu là Villa/Homestay -> Không gửi roomId (gửi null)
             const isWholeUnit = ["VILLA", "HOMESTAY"].includes(hotel.type);
 
             const payload = {
                 userId: currentUser.userId, 
                 propertyId: parseInt(propertyId),
-                roomId: isWholeUnit ? null : room.id, // ✅ Xử lý roomId tại đây
+                roomId: isWholeUnit ? null : room.id,
                 checkInDate: format(dateRange.startDate, "yyyy-MM-dd"),
                 checkOutDate: format(dateRange.endDate, "yyyy-MM-dd"),
                 guestCount: room.guests,
                 
-                // Gửi thông tin contact & cờ SelfBooking
                 bookingForSelf: contactData.isSelfBooking,
                 contactName: contactData.fullName,
                 contactPhone: contactData.phone,
@@ -125,9 +152,10 @@ export default function BookingPage() {
             };
 
             const response = await bookingService.createBooking(payload);
-            
-            if (response && response.bookingId) {
-                navigate(`/booking/payment/${response.bookingId}`);
+            const newBookingId = response.bookingId || response.data?.bookingId;
+
+            if (newBookingId) {
+                navigate(`/booking/payment/${newBookingId}`);
             } else {
                 throw new Error("Không nhận được Mã đặt phòng.");
             }
@@ -155,7 +183,7 @@ export default function BookingPage() {
 
             <Button
                 variant="ghost"
-                onClick={() => navigate(`/hotels/${hotel.id}`)}
+                onClick={() => navigate(`/hotels/${hotel.id}`)} 
                 leftIcon={<ArrowLeft size={18} />}
                 className="mb-6 text-slate-500 hover:text-blue-600 pl-0 hover:bg-transparent"
             >
@@ -166,22 +194,17 @@ export default function BookingPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
-                {/* CỘT TRÁI: INPUTS */}
+                {/* CỘT TRÁI: FORM & TIỆN ÍCH */}
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Chọn ngày */}
-                    <BookingDateSelector 
-                        dateRange={dateRange} 
-                        onChange={setDateRange} 
-                    />
                     
-                    {/* Form Liên hệ (Component tách riêng) */}
+                    {/* Form Liên hệ */}
                     <ContactInfoForm 
                         user={currentUser}
                         onChange={setContactData}
-                        initialData={{
-                            // Nếu muốn pre-fill
-                        }}
                     />
+
+                    {/* ✅ KHỐI AN TÂM ĐẶT PHÒNG */}
+                    <TrustBadges />
                 </div>
 
                 {/* CỘT PHẢI: SUMMARY */}

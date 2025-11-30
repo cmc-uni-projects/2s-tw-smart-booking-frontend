@@ -12,7 +12,8 @@ const FilterChip = ({ children }) => (
     </Button>
 );
 
-const RoomListSection = ({ rooms, onRoomInfoClick }) => {
+// ✅ Nhận thêm prop onBookNow từ cha
+const RoomListSection = ({ rooms, onRoomInfoClick, onBookNow }) => {
     return (
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
             {/* Filter Bar */}
@@ -36,7 +37,12 @@ const RoomListSection = ({ rooms, onRoomInfoClick }) => {
             {/* List */}
             <div className="divide-y divide-gray-100">
                 {rooms.map((room) => (
-                    <RoomRow key={room.id} room={room} onInfoClick={onRoomInfoClick} />
+                    <RoomRow 
+                        key={room.id} 
+                        room={room} 
+                        onInfoClick={onRoomInfoClick} 
+                        onBookNow={onBookNow} // ✅ Truyền tiếp xuống RoomRow
+                    />
                 ))}
             </div>
         </div>
