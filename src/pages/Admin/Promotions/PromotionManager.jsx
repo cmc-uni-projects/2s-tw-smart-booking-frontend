@@ -400,7 +400,16 @@ const PromotionManager = () => {
 
     return (
         <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
-            <Toaster />
+            {/* Đã sửa: Thêm containerStyle với z-index cực cao */}
+            <Toaster
+                containerStyle={{
+                    zIndex: 100000,
+                    top: 20,
+                    left: 20,
+                    bottom: 20,
+                    right: 20,
+                }}
+            />
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div><h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2"><Tag className="text-[rgb(40,169,224)]" /> Quản lý Khuyến mãi</h1><p className="text-gray-500 mt-1 text-sm">Tạo và quản lý các mã giảm giá, voucher cho khách hàng.</p></div>
                 <div className="flex gap-3">
