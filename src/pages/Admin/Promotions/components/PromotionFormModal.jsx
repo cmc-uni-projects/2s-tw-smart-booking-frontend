@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom"; // [Sửa 1] Import createPortal
 import {
     X, Tag, Percent, DollarSign,
     Layers, Hash, CheckCircle2, AlertCircle, Clock, Calendar, Upload, Image as ImageIcon
@@ -21,7 +22,7 @@ const showToast = (type, message) => {
     });
 };
 
-// --- 1. CustomInput (Đã mở rộng code để dễ đọc) ---
+// --- 1. CustomInput (Giữ nguyên) ---
 const CustomInput = ({ label, name, value, onChange, type = "text", placeholder, icon: Icon, error, disabled, className, ...props }) => {
     const inputRef = useRef(null);
 
@@ -74,7 +75,7 @@ const CustomInput = ({ label, name, value, onChange, type = "text", placeholder,
     );
 };
 
-// --- 2. CustomSelect (Đã mở rộng code) ---
+// --- 2. CustomSelect (Giữ nguyên) ---
 const CustomSelect = ({ label, name, value, onChange, options, icon: Icon }) => (
     <div className="space-y-1.5">
         <label className="text-sm font-semibold text-gray-700 ml-1">{label}</label>
@@ -99,7 +100,7 @@ const CustomSelect = ({ label, name, value, onChange, options, icon: Icon }) => 
     </div>
 );
 
-// --- 3. TimePicker (Đã mở rộng code logic nhập giờ) ---
+// --- 3. TimePicker (Giữ nguyên) ---
 const TimePicker = ({ value, onChange, error }) => {
     const [hour, setHour] = useState("00");
     const [minute, setMinute] = useState("00");
@@ -360,8 +361,10 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
 
     if (!open) return null;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity p-4 animate-fadeIn">
+    // [Sửa 2] Dùng createPortal để đưa Modal ra ngoài document.body
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity p-4 animate-fadeIn">
+            {/* z-[9999] để đảm bảo luôn nằm trên cùng */}
             <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl transform transition-all scale-100 overflow-hidden flex flex-col max-h-[90vh] animate-slideUp">
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-[rgb(40,169,224)] to-[rgb(26,140,189)] text-white">
@@ -468,7 +471,8 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body // [Sửa 3] Gắn vào body
     );
 };
 
