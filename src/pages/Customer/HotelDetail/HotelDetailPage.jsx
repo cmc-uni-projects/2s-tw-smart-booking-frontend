@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom"; // Thêm useNavigate
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { format, addDays } from 'date-fns';
 import { 
-    MapPin, Star, Wifi, Waves, ParkingCircle, Utensils, 
-    Droplet, Users, Wind, Check, Coffee, Tv 
+    MapPin, Wifi, Waves, ParkingCircle, Utensils, 
+    Droplet, Users, Wind, Check, Coffee, Tv, Star
 } from "lucide-react";
 
 // Components Common
 import Spinner from "@/components/common/Loading/Spinner";
 import ImageViewerModal from "@/pages/Admin/Hotels/components/ImageViewerModal";
+import Button from "@/components/common/Button/Button";
 
 // Sub-components
 import HotelHeader from "./components/HotelHeader";
@@ -18,12 +19,17 @@ import HotelPolicies from "./components/HotelPolicies";
 import HotelSidebar from "./components/HotelSidebar";
 import RoomListSection from "./components/RoomListSection";
 import RoomDetailModal from "./components/RoomDetailModal";
-import { ReviewsSection } from "./components/HotelInfoTabs"; 
-import BookingDateModal from "./components/BookingDateModal"; // ✅ Import Modal Chọn Ngày
+import BookingDateModal from "./components/BookingDateModal";
+
+// Import Sidebar Review
+import HotelReviewSidebar from "./components/HotelReviewSidebar"; 
+
+// Import Auth Context
+import { useAuth } from "@/context/AuthContext";
 
 // Service
 import propertyService from "@/services/property.service";
-import bookingService from "@/services/booking.service"; // ✅ Import booking service
+import bookingService from "@/services/booking.service";
 
 // --- HELPERS & CONSTANTS ---
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
@@ -52,9 +58,19 @@ const getAmenityIcon = (amenityName) => {
 
 export default function HotelDetailPage() {
     const { hotelId } = useParams();
-    const navigate = useNavigate(); // ✅ Hook điều hướng
+    const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     
+    // Auth & Permission Check
+    const { currentUser } = useAuth();
+    const isAdmin = currentUser?.role === "ADMIN" || currentUser?.roles?.includes("ADMIN");
+
+    // --- DEBUG LOG ---
+    useEffect(() => {
+        console.log("=== HotelDetailPage Mounted ===");
+        console.log("Hotel ID:", hotelId);
+    }, [hotelId]);
+
     const [hotel, setHotel] = useState(null);
     const [policies, setPolicies] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -66,14 +82,17 @@ export default function HotelDetailPage() {
     });
 
     const [isViewerOpen, setViewerOpen] = useState(false);
+    const [viewerImages, setViewerImages] = useState([]); 
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
     const [selectedRoomDetail, setSelectedRoomDetail] = useState(null);
     const [activeSection, setActiveSection] = useState("overview");
 
-    // ✅ State cho Booking Modal
     const [isDateModalOpen, setIsDateModalOpen] = useState(false);
     const [selectedRoomForBooking, setSelectedRoomForBooking] = useState(null);
-    const [occupiedDates, setOccupiedDates] = useState([]); // Ngày đã kín
+    const [occupiedDates, setOccupiedDates] = useState([]);
+
+    const [isReviewSidebarOpen, setIsReviewSidebarOpen] = useState(false);
 
     // Fetch Data
     useEffect(() => {
@@ -91,6 +110,7 @@ export default function HotelDetailPage() {
                 
                 const mappedHotel = {
                     id: hotelData.propertyId,
+                    ownerId: hotelData.ownerId, // ✅ Đã lấy ownerId ở đây
                     name: hotelData.propertyName,
                     description: hotelData.description,
                     rating: hotelData.rating,
@@ -131,10 +151,31 @@ export default function HotelDetailPage() {
         };
 
         fetchAllData();
-    }, [hotelId, dateRange]); // Lưu ý: logic fetch lại khi dateRange thay đổi có thể cần tối ưu sau
+    }, [hotelId, dateRange]);
 
-    // Handlers
-    const openImageViewer = (index) => {
+    // ✅ 1. THÊM LOGIC CHECK QUYỀN OWNER (Sau khi có data hotel)
+    const isOwner = currentUser && hotel && String(currentUser.userId) === String(hotel.ownerId);
+
+    // --- HANDLERS ---
+
+    const openHotelGallery = (index) => {
+        if (!hotel || !hotel.images) return;
+        const images = hotel.images.map((imgUrl, i) => ({
+            url: imgUrl,
+            caption: `${hotel.name} - Ảnh ${i + 1}`
+        }));
+        setViewerImages(images); 
+        setSelectedImageIndex(index);
+        setViewerOpen(true);
+    };
+
+    const openReviewGallery = (index, rawImages) => {
+        if (!rawImages || rawImages.length === 0) return;
+        const images = rawImages.map((imgUrl, i) => ({
+            url: getFullImageUrl(imgUrl), 
+            caption: `Ảnh đánh giá ${i + 1}`
+        }));
+        setViewerImages(images);
         setSelectedImageIndex(index);
         setViewerOpen(true);
     };
@@ -143,11 +184,8 @@ export default function HotelDetailPage() {
         setSelectedRoomDetail(null);
     };
 
-    // ✅ Hàm xử lý khi ấn "Đặt phòng ngay" (Từ RoomRow)
     const handleBookNowClick = async (room) => {
         setSelectedRoomForBooking(room);
-        
-        // 1. Gọi API lấy lịch bận (Giả lập hoặc thật)
         try {
             const res = await bookingService.getRoomAvailability(room.id);
             if (res && res.data) {
@@ -157,28 +195,22 @@ export default function HotelDetailPage() {
             }
         } catch (error) {
             console.error("Lỗi lấy lịch bận:", error);
-            setOccupiedDates([]); // Fallback: không chặn ngày nào
+            setOccupiedDates([]);
         }
-
-        // 2. Mở Modal
         setIsDateModalOpen(true);
     };
 
-    // ✅ Hàm xử lý khi user xác nhận ngày trong Modal
     const handleDateConfirm = (dateRange) => {
         setIsDateModalOpen(false);
-        
-        // Chuyển hướng sang trang Booking/{hotelId}
         navigate(`/booking/${hotelId}`, { 
             state: {
-                selectedRoomId: selectedRoomForBooking.id, // ⚠️ Quan trọng: Phải dùng key 'selectedRoomId' để khớp với BookingPage
-                checkInDate: dateRange[0],                 // Truyền ngày nhận
-                checkOutDate: dateRange[1]                 // Truyền ngày trả
+                selectedRoomId: selectedRoomForBooking.id,
+                checkInDate: dateRange[0],
+                checkOutDate: dateRange[1]
             }
         });
     };
 
-    // Scroll Spy
     useEffect(() => {
         const handleScroll = () => {
             const sections = ["overview", "rooms", "policies", "reviews"];
@@ -201,24 +233,20 @@ export default function HotelDetailPage() {
     if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
     if (!hotel) return null;
 
-    const imagesForModal = hotel.images.map((imgUrl, index) => ({
-        url: imgUrl,
-        caption: `${hotel.name} - Ảnh ${index + 1}`
-    }));
-
     return (
-        <div className="bg-gray-100 min-h-screen pb-20">
+        <div className="bg-gray-100 min-h-screen pb-20 relative">
             
-            <HotelHeader hotel={hotel} onOpenGallery={openImageViewer} />
+            <HotelHeader hotel={hotel} onOpenGallery={openHotelGallery} />
 
-            <HotelStickyNav activeSection={activeSection} />
+            <HotelStickyNav 
+                activeSection={activeSection} 
+                onReviewClick={() => setIsReviewSidebarOpen(true)}
+            />
 
             <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     
-                    {/* CỘT TRÁI (Nội dung chính) */}
                     <div className="lg:col-span-8 space-y-8">
-                        
                         <HotelOverview description={hotel.description} amenities={hotel.amenities} />
 
                         <section id="rooms" className="scroll-mt-32">
@@ -226,23 +254,35 @@ export default function HotelDetailPage() {
                                 Phòng trống
                                 <span className="text-xs font-normal text-white bg-red-500 px-2 py-1 rounded-full animate-pulse">Hot!</span>
                             </h3>
-                            {/* ✅ Truyền hàm handleBookNowClick xuống */}
                             <RoomListSection 
                                 rooms={hotel.rooms} 
                                 onRoomInfoClick={setSelectedRoomDetail} 
-                                onBookNow={handleBookNowClick} // Prop mới
+                                onBookNow={handleBookNowClick} 
                             />
                         </section>
 
                         <HotelPolicies policies={policies} />
 
                         <section id="reviews" className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 scroll-mt-32">
-                             <ReviewsSection />
+                             <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
+                                <div className="bg-yellow-50 p-4 rounded-full">
+                                    <Star className="w-10 h-10 text-yellow-400 fill-yellow-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-bold text-slate-800">{hotel.rating || 0} / 5</h3>
+                                    <p className="text-slate-500">Dựa trên {hotel.reviewsCount || 0} đánh giá</p>
+                                </div>
+                                <Button 
+                                    onClick={() => setIsReviewSidebarOpen(true)}
+                                    className="bg-slate-900 text-white hover:bg-slate-800 rounded-full px-8 flex items-center gap-2"
+                                >
+                                    Xem tất cả đánh giá
+                                </Button>
+                             </div>
                         </section>
 
                     </div>
 
-                    {/* CỘT PHẢI (Sidebar) */}
                     <div className="lg:col-span-4">
                         <HotelSidebar 
                             location={hotel.location} 
@@ -255,21 +295,15 @@ export default function HotelDetailPage() {
                 </div>
             </div>
 
-            {/* Modals */}
-            <RoomDetailModal
-                room={selectedRoomDetail}
-                open={!!selectedRoomDetail}
-                onClose={handleCloseRoomDetail}
-            />
+            <RoomDetailModal room={selectedRoomDetail} open={!!selectedRoomDetail} onClose={handleCloseRoomDetail} />
 
             <ImageViewerModal
                 open={isViewerOpen}
                 onClose={() => setViewerOpen(false)}
-                images={imagesForModal}
+                images={viewerImages} 
                 startIndex={selectedImageIndex}
             />
 
-            {/* ✅ MODAL CHỌN NGÀY BOOKING */}
             {selectedRoomForBooking && (
                 <BookingDateModal
                     open={isDateModalOpen}
@@ -279,6 +313,16 @@ export default function HotelDetailPage() {
                     roomPrice={selectedRoomForBooking.price}
                 />
             )}
+
+            {/* ✅ 2. TRUYỀN isOwner VÀO SIDEBAR */}
+            <HotelReviewSidebar 
+                isOpen={isReviewSidebarOpen}
+                onClose={() => setIsReviewSidebarOpen(false)}
+                propertyId={hotelId}
+                isAdmin={isAdmin}
+                isOwner={isOwner} // Truyền biến vừa tạo
+                onOpenGallery={openReviewGallery} 
+            />
         </div>
     );
 }
