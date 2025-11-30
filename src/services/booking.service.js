@@ -91,6 +91,17 @@ checkOutBooking: async (bookingId) => {
       throw error.response?.data || error.message;
     }
   },
+
+  getRoomAvailability: async (roomId) => {
+    try {
+        // ✅ BỎ COMMENT DÒNG NÀY ĐỂ GỌI API THẬT
+        const response = await api.get(`/bookings/room/${roomId}/availability`);
+        return response.data; // Backend trả về { success: true, message: "...", data: [...] }
+    } catch (error) {
+        console.error("Error fetching availability:", error);
+        return { data: [] }; // Trả về mảng rỗng nếu lỗi để không chặn nhầm
+    }
+  },  
 };
 
 

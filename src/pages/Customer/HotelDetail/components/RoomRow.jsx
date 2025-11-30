@@ -1,21 +1,9 @@
 import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import Button from "@/components/common/Button/Button";
 import { BedDouble, Maximize, Wifi, Users, ChevronRight, Sparkles, Check } from "lucide-react";
 
-const RoomRow = ({ room, onInfoClick }) => {
-    const navigate = useNavigate();
-    const { hotelId } = useParams();
-
-    const handleBookNow = () => {
-        navigate(`/booking/${hotelId}`, { 
-            state: { 
-                selectedRoomId: room.id,
-                roomName: room.name,
-                price: room.price
-            } 
-        });
-    };
+// ✅ Nhận prop onBookNow thay vì dùng navigate trực tiếp
+const RoomRow = ({ room, onInfoClick, onBookNow }) => {
 
     return (
         <div className="group bg-white hover:bg-blue-50/30 transition-colors duration-200 p-5 lg:p-6">
@@ -56,7 +44,7 @@ const RoomRow = ({ room, onInfoClick }) => {
                                     <Maximize size={12} /> {room.size} m²
                                 </span>
                                 <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-md">
-                                    <BedDouble size={12} /> {room.beds}
+                                    <BedDouble size={12} /> {room.beds || "Giường đôi"}
                                 </span>
                             </div>
 
@@ -117,7 +105,7 @@ const RoomRow = ({ room, onInfoClick }) => {
 
                     <Button 
                         className="w-full bg-[rgb(40,169,224)] hover:bg-[#1b98d6] text-white shadow-md shadow-blue-200 transition-all active:scale-95"
-                        onClick={handleBookNow}
+                        onClick={() => onBookNow(room)} // ✅ Gọi hàm callback mở modal
                     >
                         Đặt phòng ngay
                     </Button>
@@ -131,4 +119,4 @@ const RoomRow = ({ room, onInfoClick }) => {
     );
 };
 
-export default RoomRow;
+export default RoomRow; 

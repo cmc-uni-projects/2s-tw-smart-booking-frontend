@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Hotel, Loader2, RefreshCw } from "lucide-react";
+import { Hotel, Loader2, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 
 // Components
 import Card from "@/components/common/Card/Card";
@@ -8,7 +7,7 @@ import CardHeader from "@/components/common/Card/CardHeader";
 import Button from "@/components/common/Button/Button";
 import Toast from "@/components/common/Notification/Toast";
 import EmptyState from "@/components/common/EmptyState/EmptyState";
-import LoadingOverlay from "@/components/common/Loading/LoadingOverlay"; // ✅ Import LoadingOverlay
+import LoadingOverlay from "@/components/common/Loading/LoadingOverlay";
 
 // Sub-components
 import SubmissionSearchBar from "./components/SubmissionSearchBar";
@@ -31,7 +30,7 @@ const HotelSubmissionsPage = () => {
   // --- State ---
   const [allSubmissions, setAllSubmissions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isActionLoading, setIsActionLoading] = useState(false); // ✅ State cho loading khi duyệt/từ chối
+  const [isActionLoading, setIsActionLoading] = useState(false);
   
   const [selectedHotel, setSelectedHotel] = useState(null);
   const [toastData, setToastData] = useState(null);
@@ -45,6 +44,11 @@ const HotelSubmissionsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("ALL");
   const [filterStatus, setFilterStatus] = useState("PENDING");
+
+  // ✅ STATE PHÂN TRANG
+  const [currentPage, setCurrentPage] = useState(1);
+  const [jumpPage, setJumpPage] = useState("");
+  const ITEMS_PER_PAGE = 8; // 8 thẻ 1 trang
 
   // --- Helpers ---
   const showToast = (message, type = "info") => {
@@ -77,18 +81,16 @@ const HotelSubmissionsPage = () => {
 
       // Mapping data
       const mappedData = data.map((hotel) => {
-        // Parse images string to array
         let images = [];
         try {
             if (Array.isArray(hotel.images)) {
-                images = hotel.images; // Nếu backend trả về list object
+                images = hotel.images;
             } else if (hotel.imageUrlsJson) {
                 const raw = JSON.parse(hotel.imageUrlsJson);
                 images = raw.map(img => ({ imageUrl: `${API_BASE}${img.startsWith("/") ? img : "/" + img}` }));
             }
         } catch (e) { images = []; }
 
-        // Xử lý ảnh hiển thị (Ưu tiên coverImage -> ảnh đầu tiên -> placeholder)
         let displayImage = "/assets/images/placeholder.png";
         if (hotel.coverImage) {
             displayImage = `${API_BASE}${hotel.coverImage.startsWith("/") ? hotel.coverImage : "/" + hotel.coverImage}`;
@@ -98,7 +100,7 @@ const HotelSubmissionsPage = () => {
 
         return {
           ...hotel,
-          id: hotel.propertyId, // Đảm bảo có ID cho key list
+          id: hotel.propertyId,
           hotelName: hotel.propertyName,
           ownerName: hotel.ownerName || hotel.owner?.fullName || "Chưa rõ",
           imageUrl: displayImage,
@@ -123,6 +125,11 @@ const HotelSubmissionsPage = () => {
     fetchSubmissions();
   }, [filterStatus]);
 
+  // Reset trang về 1 khi filter thay đổi
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterType, filterStatus]);
+
   // --- Filter Logic ---
   const filteredSubmissions = useMemo(() => {
     let submissions = [...allSubmissions];
@@ -141,6 +148,60 @@ const HotelSubmissionsPage = () => {
     }
     return submissions;
   }, [allSubmissions, searchTerm, filterType]);
+
+  // --- Logic Phân Trang & Cắt Dữ Liệu ---
+  const totalItems = filteredSubmissions.length;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+  const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalItems);
+
+  const paginatedSubmissions = useMemo(() => {
+      const start = (currentPage - 1) * ITEMS_PER_PAGE;
+      return filteredSubmissions.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredSubmissions, currentPage]);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      document.getElementById('submission-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const handleJumpPage = (e) => {
+    if (e.key === 'Enter') {
+        const page = parseInt(jumpPage);
+        if (!isNaN(page) && page >= 1 && page <= totalPages) {
+            setCurrentPage(page);
+            setJumpPage("");
+            document.getElementById('submission-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+  };
+
+  // Helper render số trang (có dấu ...)
+  const getPaginationGroup = () => {
+      const delta = 1;
+      const range = [];
+      const rangeWithDots = [];
+      let l;
+
+      for (let i = 1; i <= totalPages; i++) {
+          if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+              range.push(i);
+          }
+      }
+
+      range.forEach(i => {
+          if (l) {
+              if (i - l === 2) rangeWithDots.push(l + 1);
+              else if (i - l !== 1) rangeWithDots.push('...');
+          }
+          rangeWithDots.push(i);
+          l = i;
+      });
+
+      return rangeWithDots;
+  };
 
   // --- Handlers ---
   const handleViewDetails = (hotel) => {
@@ -165,54 +226,52 @@ const HotelSubmissionsPage = () => {
     setTimeout(() => setSelectedHotel(null), 200);
   };
 
-  // --- API Actions (Có Loading Overlay) ---
+  // --- API Actions ---
   const onConfirmApprove = async () => {
     if (!selectedHotel) return;
-    setIsActionLoading(true); // Bật loading overlay
+    setIsActionLoading(true);
     try {
       await adminService.reviewProperty(selectedHotel.id, {
         status: "APPROVE",
         reason: null,
       });
       showToast(`Đã phê duyệt "${selectedHotel.hotelName}"`, "success");
-      await fetchSubmissions(); // Tải lại danh sách
+      await fetchSubmissions();
       closeModals();
     } catch (err) {
       showToast(err.message || "Lỗi khi duyệt cơ sở", "error");
     } finally {
-      setIsActionLoading(false); // Tắt loading
+      setIsActionLoading(false);
     }
   };
 
   const onConfirmReject = async (reason) => {
     if (!selectedHotel) return;
-    setIsActionLoading(true); // Bật loading overlay
+    setIsActionLoading(true);
     try {
       await adminService.reviewProperty(selectedHotel.id, {
         status: "REJECTED",
         reason,
       });
       showToast(`Đã từ chối "${selectedHotel.hotelName}"`, "success");
-      await fetchSubmissions(); // Tải lại danh sách
+      await fetchSubmissions();
       closeModals();
     } catch (err) {
       showToast(err.message || "Lỗi khi từ chối cơ sở", "error");
     } finally {
-      setIsActionLoading(false); // Tắt loading
+      setIsActionLoading(false);
     }
   };
 
   // --- Render ---
   return (
     <>
-      {/* Toast */}
       {toastData && (
         <div className="fixed top-24 right-6 z-[9999]">
           <Toast message={toastData.message} type={toastData.type} />
         </div>
       )}
 
-      {/* ✅ Loading Overlay cho thao tác Duyệt/Từ chối */}
       {isActionLoading && <LoadingOverlay message="Đang xử lý yêu cầu..." />}
 
       <Card className="overflow-hidden min-h-screen bg-gray-50/50 border-none shadow-none">
@@ -253,47 +312,113 @@ const HotelSubmissionsPage = () => {
         </div>
 
         {/* Submission Grid */}
-        <div className="mt-2">
+        <div className="mt-2" id="submission-grid">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-dashed border-gray-200">
               <Loader2 className="animate-spin text-blue-500 mb-3" size={42} />
               <p className="text-gray-500 text-sm font-medium">Đang tải dữ liệu...</p>
             </div>
-          ) : (
-            <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              <AnimatePresence mode="popLayout">
-                {filteredSubmissions.length > 0 ? (
-                  filteredSubmissions.map((hotel) => (
-                    <motion.div
-                        key={hotel.id}
-                        layout
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        {/* Sử dụng HotelSubmissionCard đã fix */}
+          ) : filteredSubmissions.length > 0 ? (
+            <>
+                {/* GRID HIỂN THỊ (Không Animation) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                    {paginatedSubmissions.map((hotel) => (
+                    <div key={hotel.id}>
                         <HotelSubmissionCard
-                          hotel={hotel} // ✅ Truyền đúng tên prop 'hotel'
-                          onViewDetails={() => handleViewDetails(hotel)}
+                            hotel={hotel}
+                            onViewDetails={() => handleViewDetails(hotel)}
                         />
-                    </motion.div>
-                  ))
-                ) : (
-                  <div className="col-span-full">
-                     <motion.div
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                        className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm"
-                      >
-                        <EmptyState
-                          title="Không tìm thấy dữ liệu"
-                          description="Danh sách hiện tại đang trống hoặc không khớp với bộ lọc."
-                        />
-                      </motion.div>
-                  </div>
+                    </div>
+                    ))}
+                </div>
+
+                {/* FOOTER PHÂN TRANG */}
+                {totalPages > 1 && (
+                    <div className="mt-8 pt-6 border-t border-gray-200 bg-white rounded-xl p-4 shadow-sm border">
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                            {/* Thông tin số lượng */}
+                            <span className="text-sm text-gray-500">
+                                Hiển thị <span className="font-semibold text-gray-700">{startItem}-{endItem}</span> trong tổng số <span className="font-semibold text-gray-700">{totalItems}</span> đơn
+                            </span>
+
+                            <div className="flex items-center gap-2">
+                                {/* Nút Prev */}
+                                <button 
+                                    onClick={() => handlePageChange(currentPage - 1)} 
+                                    disabled={currentPage === 1} 
+                                    className={`p-2 rounded-lg border flex items-center justify-center transition-all ${
+                                        currentPage === 1 
+                                        ? "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed" 
+                                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-blue-600 hover:border-blue-200"
+                                    }`}
+                                >
+                                    <ChevronLeft size={18} />
+                                </button>
+
+                                {/* Danh sách trang */}
+                                <div className="flex gap-1">
+                                    {getPaginationGroup().map((item, index) => (
+                                        <button 
+                                            key={index} 
+                                            onClick={() => typeof item === 'number' && handlePageChange(item)} 
+                                            disabled={item === '...'} 
+                                            className={`w-8 h-8 rounded-lg text-sm font-medium transition-all flex items-center justify-center 
+                                                ${item === currentPage 
+                                                    ? 'bg-[rgb(40,169,224)] text-white shadow-sm' 
+                                                    : item === '...' 
+                                                        ? 'bg-transparent text-gray-400 cursor-default' 
+                                                        : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            {item}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Nút Next */}
+                                <button 
+                                    onClick={() => handlePageChange(currentPage + 1)} 
+                                    disabled={currentPage === totalPages} 
+                                    className={`p-2 rounded-lg border flex items-center justify-center transition-all ${
+                                        currentPage === totalPages 
+                                        ? "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed" 
+                                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-blue-600 hover:border-blue-200"
+                                    }`}
+                                >
+                                    <ChevronRight size={18} />
+                                </button>
+
+                                {/* Ô nhập "Đi đến" */}
+                                <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200">
+                                    <span className="text-sm text-gray-500 whitespace-nowrap">Đi đến:</span>
+                                    <div className="relative">
+                                        <input 
+                                            type="text" 
+                                            className="w-12 h-8 pl-2 pr-1 rounded-lg border border-gray-200 text-sm text-center focus:outline-none focus:border-[rgb(40,169,224)] focus:ring-1 focus:ring-[rgb(40,169,224)] transition-all" 
+                                            placeholder={currentPage} 
+                                            value={jumpPage} 
+                                            onChange={(e) => { 
+                                                const val = e.target.value; 
+                                                if (val === '' || /^[0-9]+$/.test(val)) setJumpPage(val); 
+                                            }} 
+                                            onKeyDown={handleJumpPage} 
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 )}
-              </AnimatePresence>
-            </motion.div>
+            </>
+          ) : (
+            <div className="col-span-full">
+              <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
+                <EmptyState
+                  title="Không tìm thấy dữ liệu"
+                  description="Danh sách hiện tại đang trống hoặc không khớp với bộ lọc."
+                />
+              </div>
+            </div>
           )}
         </div>
       </Card>
@@ -302,11 +427,11 @@ const HotelSubmissionsPage = () => {
       {selectedHotel && (
         <>
           <ViewHotelSubmissionModal
-            isOpen={isViewOpen} // ✅ Đổi tên prop từ 'open' thành 'isOpen' cho đúng chuẩn chung
+            isOpen={isViewOpen} 
             onClose={closeModals}
-            submission={selectedHotel} // ✅ Đổi prop 'application' thành 'submission' cho khớp
-            onApprove={handleApproveClick} // Mở modal confirm approve
-            onReject={handleRejectClick}   // Mở modal confirm reject
+            submission={selectedHotel} 
+            onApprove={handleApproveClick} 
+            onReject={handleRejectClick} 
           />
 
           <ApproveHotelModal

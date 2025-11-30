@@ -6,11 +6,11 @@ import { motion } from "framer-motion";
 const PROPERTY_TYPES = [
   { value: "ALL", label: "Tất cả loại hình" },
   { value: "HOTEL", label: "Khách sạn" },
-  { value: "APARTMENT", label: "Căn hộ" },
   { value: "RESORT", label: "Resort" },
-  { value: "VILLA", label: "Biệt thự" },
+  { value: "VILLA", label: "Villa" },
   { value: "HOMESTAY", label: "Homestay" },
 ];
+
 
 const SubmissionTypeFilter = ({ currentType, onTypeChange }) => {
   return (
