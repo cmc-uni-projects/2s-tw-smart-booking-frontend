@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useMemo } from "react";
+// 1. Thêm useLocation
+import { useLocation } from "react-router-dom";
 import promotionService from "@/services/promotion.service";
 import PromotionList from "./components/PromotionList";
 import PromotionDetailModal from "./components/PromotionDetailModal";
 import PromotionFilter from "./components/PromotionFilter";
-// Import Banner mới tạo
+// Import Banner
 import AutoScrollBanner from "./components/AutoScrollBanner";
 import { Tag, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -18,6 +20,7 @@ const getFullImageUrl = (path) => {
 };
 
 const PromotionPage = () => {
+    const location = useLocation(); // 2. Hook lấy state từ trang Home
     const [promotions, setPromotions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedPromo, setSelectedPromo] = useState(null);
@@ -34,7 +37,6 @@ const PromotionPage = () => {
         const fetchPromotions = async () => {
             try {
                 const response = await promotionService.getAllPromotions();
-                // Kiểm tra cấu trúc dữ liệu trả về để lấy mảng chuẩn
                 const rawData = Array.isArray(response) ? response : (response.data || []);
 
                 const now = new Date();
@@ -43,10 +45,10 @@ const PromotionPage = () => {
                     return p.status === "ACTIVE" && endDate > now;
                 });
 
-                // Sắp xếp ID giảm dần để cái mới nhất lên đầu
+                // Sắp xếp ID giảm dần
                 activePromotions.sort((a, b) => b.promotionId - a.promotionId);
 
-                // --- QUAN TRỌNG: Mapping dữ liệu từ API sang format Frontend ---
+                // Mapping dữ liệu
                 const mappedPromotions = activePromotions.map(p => {
                     const cleanDiscountValue = Number(p.discountValue || 0);
                     const cleanMinOrder = Number(p.minBookingAmount || 0);
@@ -54,35 +56,39 @@ const PromotionPage = () => {
 
                     return {
                         id: p.promotionId,
-                        title: p.description, // Hoặc p.name nếu API có trường name
-
-                        // Format chuỗi mô tả dùng số liệu đã làm sạch
+                        title: p.description,
                         description: `Giảm ${p.discountType === 'PERCENTAGE' ? cleanDiscountValue + '%' : cleanDiscountValue.toLocaleString('vi-VN') + 'đ'} cho đơn từ ${cleanMinOrder.toLocaleString('vi-VN')}đ`,
-
-                        // Hàm getFullImageUrl đảm bảo Banner nhận đúng đường dẫn ảnh
                         image: getFullImageUrl(p.bannerUrl),
-
                         code: p.code,
                         endDate: p.endDate,
                         startDate: p.startDate,
-
                         minOrder: cleanMinOrder,
                         minBookingAmount: cleanMinOrder,
-
                         maxDiscount: cleanMaxDiscount,
                         maxDiscountAmount: cleanMaxDiscount,
-
                         discountType: p.discountType,
                         discountValue: cleanDiscountValue,
-
                         used: p.usageCount || 0,
                         quantity: p.usageLimit || 100,
-
                         targetRank: p.minMembershipRank || p.targetRank || null
                     };
                 });
 
                 setPromotions(mappedPromotions);
+
+                // 3. --- LOGIC MỚI: TỰ ĐỘNG MỞ MODAL KHI CÓ ID TỪ TRANG HOME ---
+                if (location.state?.targetPromoId) {
+                    const targetId = location.state.targetPromoId;
+                    const foundPromo = mappedPromotions.find(p => p.id === targetId);
+
+                    if (foundPromo) {
+                        setSelectedPromo(foundPromo);
+                        setIsModalOpen(true);
+                        // Xóa state để không mở lại khi F5
+                        window.history.replaceState({}, document.title);
+                    }
+                }
+
             } catch (error) {
                 console.error("Failed to fetch promotions:", error);
             } finally {
@@ -91,7 +97,7 @@ const PromotionPage = () => {
         };
 
         fetchPromotions();
-    }, []);
+    }, [location.state]); // Thêm dependency để chạy lại khi chuyển trang có state
 
     // 2. Logic Filter (Tìm kiếm)
     const filteredPromotions = useMemo(() => {
@@ -105,7 +111,6 @@ const PromotionPage = () => {
         });
     }, [promotions, searchTerm]);
 
-    // Reset về trang 1 khi search thay đổi
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm]);
@@ -118,7 +123,6 @@ const PromotionPage = () => {
         return filteredPromotions.slice(start, start + itemsPerPage);
     }, [filteredPromotions, currentPage]);
 
-    // Helper: Tạo mảng trang (vd: 1 ... 4 5 6 ... 10)
     const getPaginationGroup = () => {
         const delta = 1;
         const range = [];
@@ -150,7 +154,6 @@ const PromotionPage = () => {
         }
     };
 
-    // Hàm xử lý mở modal (sẽ được truyền xuống Banner và List)
     const handleOpenPromo = (promo) => {
         setSelectedPromo(promo);
         setIsModalOpen(true);
@@ -175,16 +178,15 @@ const PromotionPage = () => {
                             Săn ngay hàng ngàn mã giảm giá độc quyền dành cho khách hàng thân thiết.
                         </p>
                     </div>
-                    {/* Background decoration */}
                     <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
                 </div>
 
-                {/* 2. Banner Tự Động Chạy */}
+                {/* 2. Banner Tự Động Chạy (GIỮ NGUYÊN VỊ TRÍ CŨ) */}
                 {!loading && promotions.length > 0 && (
                     <div className="w-full">
                         <AutoScrollBanner
                             promotions={promotions}
-                            onBannerClick={handleOpenPromo} // <--- ĐÃ CẬP NHẬT: Truyền hàm mở modal vào đây
+                            onBannerClick={handleOpenPromo} // Đã thêm hàm click
                         />
                     </div>
                 )}
@@ -192,14 +194,12 @@ const PromotionPage = () => {
                 {/* 3. Phần Content chính (Filter + List) */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 min-h-[500px] flex flex-col">
 
-                    {/* Filter Bar */}
                     <PromotionFilter
                         searchTerm={searchTerm}
                         onSearchChange={setSearchTerm}
                         totalCount={filteredPromotions.length}
                     />
 
-                    {/* Danh sách Khuyến mãi */}
                     <div className="flex-1">
                         <PromotionList
                             promotions={paginatedData}
@@ -218,7 +218,6 @@ const PromotionPage = () => {
                                 </span>
 
                                 <div className="flex items-center gap-2">
-                                    {/* Nút Prev */}
                                     <button
                                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                         disabled={currentPage === 1}
@@ -227,7 +226,6 @@ const PromotionPage = () => {
                                         <ChevronLeft size={18} />
                                     </button>
 
-                                    {/* Số trang */}
                                     <div className="flex gap-1">
                                         {getPaginationGroup().map((item, index) => (
                                             <button
@@ -247,7 +245,6 @@ const PromotionPage = () => {
                                         ))}
                                     </div>
 
-                                    {/* Nút Next */}
                                     <button
                                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                         disabled={currentPage === totalPages}
@@ -256,7 +253,6 @@ const PromotionPage = () => {
                                         <ChevronRight size={18} />
                                     </button>
 
-                                    {/* Go to page input */}
                                     <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200 hidden sm:flex">
                                         <span className="text-sm text-gray-500 whitespace-nowrap">Đi đến:</span>
                                         <div className="relative">
