@@ -40,6 +40,7 @@ const CustomerProfileDropdown = ({ onClose }) => {
     const { currentUser, logout } = useAuth();
     const navigate = useNavigate();
     
+    
     const [userInfo, setUserInfo] = useState(currentUser);
 
     useEffect(() => {
