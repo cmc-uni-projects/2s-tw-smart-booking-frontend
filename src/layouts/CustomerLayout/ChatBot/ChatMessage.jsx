@@ -1,27 +1,85 @@
 // src/layouts/CustomerLayout/ChatBot/ChatMessage.jsx
 import React from "react";
+import { Bot } from "lucide-react";
+
+// Icon bullet đẹp
+const BulletIcon = () => (
+    <span className="inline-block w-2 h-2 bg-gray-500 rounded-full mr-2 mt-[0.4rem] shrink-0"></span>
+);
+
+// Hàm format text nâng cấp
+const formatMessage = (text, isBot) => {
+    if (!text) return null;
+
+    const lines = text.split("\n");
+
+    return (
+        <div className="space-y-1">
+            {lines.map((line, index) => {
+                const trimmed = line.trim();
+
+                // 📌 1) DÒNG LÀ TIÊU ĐỀ (ví dụ: "Miền Bắc:")
+                if (trimmed.endsWith(":") && !trimmed.startsWith("-")) {
+                    return (
+                        <div
+                            key={index}
+                            className="mt-2 mb-1 font-semibold text-gray-900 text-[0.95rem]"
+                        >
+                            {trimmed}
+                        </div>
+                    );
+                }
+
+                // 📌 2) DÒNG BULLET (bắt đầu bằng "- ")
+                if (trimmed.startsWith("- ")) {
+                    return (
+                        <div key={index} className="flex items-start ml-3 text-gray-800">
+                            <BulletIcon />
+                            <span>{trimmed.replace("- ", "")}</span>
+                        </div>
+                    );
+                }
+
+                // 📌 3) DÒNG BÌNH THƯỜNG
+                return (
+                    <p
+                        key={index}
+                        className={`${isBot ? "text-gray-800" : "text-white"}`}
+                    >
+                        {trimmed}
+                    </p>
+                );
+            })}
+        </div>
+    );
+};
 
 const ChatMessage = ({ message }) => {
-  // 1. Destructure lấy 'text' và 'sender' từ object message
-  const { text, sender } = message;
+    const { text, sender } = message;
+    const isBot = sender === "ai" || sender === "bot";
 
-  // 2. Kiểm tra sender là 'ai' (theo code mới của bạn) hoặc 'bot'
-  const isBot = sender === "ai" || sender === "bot";
+    return (
+        <div className={`flex w-full ${isBot ? "justify-start" : "justify-end"} mb-4`}>
 
-  return (
-    <div className={`flex ${isBot ? "justify-start" : "justify-end"}`}>
-      <span
-        className={`p-3 rounded-2xl max-w-[80%] break-words shadow-sm text-sm
-          ${isBot
-            ? "rounded-tl-none bg-gray-100 text-gray-800 border border-gray-200"
-            : "rounded-tr-none bg-[rgb(40,169,224)] text-white"
-          }`}
-      >
-        {/* 3. Chỉ render phần text */}
-        {text}
-      </span>
-    </div>
-  );
+            {/* Avatar bot */}
+            {isBot && (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white mr-2 shadow-sm shrink-0 mt-1">
+                    <Bot size={16} />
+                </div>
+            )}
+
+            {/* Bubble */}
+            <div
+                className={`p-3 rounded-2xl max-w-[75%] break-words shadow-sm text-sm leading-relaxed
+        ${isBot
+                    ? "bg-white text-gray-800 border border-gray-100 rounded-tl-none shadow-md"
+                    : "bg-[#28A9E0] text-white rounded-tr-none shadow-md"
+                }`}
+            >
+                {formatMessage(text, isBot)}
+            </div>
+        </div>
+    );
 };
 
 export default ChatMessage;
