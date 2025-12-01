@@ -1,11 +1,7 @@
-// src/pages/Customer/Promotion/components/AutoScrollBanner.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 
-const AutoScrollBanner = ({ promotions }) => {
-    const navigate = useNavigate();
-
+const AutoScrollBanner = ({ promotions, onBannerClick }) => {
     // 1. Lọc khuyến mãi có ảnh
     const bannerPromotions = promotions?.filter(p => p.image) || [];
 
@@ -18,12 +14,14 @@ const AutoScrollBanner = ({ promotions }) => {
     const TRANSITION_DURATION = 1500;
 
     // --- HÀM XỬ LÝ CLICK ---
+    // Thay đổi logic: Gọi hàm onBannerClick được truyền từ cha (PromotionPage)
+    // thay vì navigate cứng sang trang khác.
     const handleBannerClick = useCallback(() => {
-        // Thay đổi đường dẫn này thành route thực tế của trang "Voucher của tôi" trong dự án của bạn
-        // Ví dụ: '/profile', '/my-vouchers', hoặc '/account/vouchers'
-        // Dựa trên cấu trúc file, thường sẽ là '/profile'
-        navigate('/profile');
-    }, [navigate]);
+        const currentPromo = bannerPromotions[currentIndex];
+        if (currentPromo && onBannerClick) {
+            onBannerClick(currentPromo);
+        }
+    }, [currentIndex, bannerPromotions, onBannerClick]);
 
     // 2. Chuyển slide tiếp theo
     const nextSlide = useCallback(() => {
@@ -59,7 +57,7 @@ const AutoScrollBanner = ({ promotions }) => {
             className="relative w-full h-[500px] md:h-[600px] lg:h-[750px] overflow-hidden rounded-3xl shadow-2xl group my-8 select-none bg-gray-900 cursor-pointer"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
-            onClick={handleBannerClick} // Click vào banner cũng chuyển trang
+            onClick={handleBannerClick} // Click vào banner sẽ mở Modal
         >
             {/* --- LAYER 1: BACKGROUND IMAGES --- */}
             {bannerPromotions.map((promo, index) => {
@@ -104,8 +102,8 @@ const AutoScrollBanner = ({ promotions }) => {
                     <div className="animate-fade-in-up [animation-delay:600ms] opacity-0 translate-y-8 fill-mode-forwards flex flex-col sm:flex-row gap-5 items-start sm:items-center">
                         <button
                             onClick={(e) => {
-                                e.stopPropagation(); // Ngăn sự kiện click lan ra ngoài (dù cả banner đều link 1 nơi nhưng giữ thói quen này tốt hơn)
-                                handleBannerClick();
+                                e.stopPropagation(); // Ngăn sự kiện nổi bọt
+                                handleBannerClick(); // Gọi hàm mở Modal
                             }}
                             className="group/btn relative inline-flex items-center gap-3 px-8 py-4 md:px-10 md:py-5 bg-white text-gray-900 rounded-full font-bold text-lg md:text-xl transition-all hover:bg-blue-600 hover:text-white shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:shadow-[0_0_25px_rgba(59,130,246,0.6)] active:scale-95"
                         >

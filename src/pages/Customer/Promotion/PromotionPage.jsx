@@ -150,6 +150,7 @@ const PromotionPage = () => {
         }
     };
 
+    // Hàm xử lý mở modal (sẽ được truyền xuống Banner và List)
     const handleOpenPromo = (promo) => {
         setSelectedPromo(promo);
         setIsModalOpen(true);
@@ -178,11 +179,13 @@ const PromotionPage = () => {
                     <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
                 </div>
 
-                {/* 2. Banner Tự Động Chạy (Mới thêm) */}
-                {/* Chỉ hiển thị khi đã tải xong và có dữ liệu */}
+                {/* 2. Banner Tự Động Chạy */}
                 {!loading && promotions.length > 0 && (
                     <div className="w-full">
-                        <AutoScrollBanner promotions={promotions} />
+                        <AutoScrollBanner
+                            promotions={promotions}
+                            onBannerClick={handleOpenPromo} // <--- ĐÃ CẬP NHẬT: Truyền hàm mở modal vào đây
+                        />
                     </div>
                 )}
 
