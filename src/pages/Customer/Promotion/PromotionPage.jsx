@@ -3,6 +3,8 @@ import promotionService from "@/services/promotion.service";
 import PromotionList from "./components/PromotionList";
 import PromotionDetailModal from "./components/PromotionDetailModal";
 import PromotionFilter from "./components/PromotionFilter";
+// Import Banner mới tạo
+import AutoScrollBanner from "./components/AutoScrollBanner";
 import { Tag, ChevronLeft, ChevronRight } from "lucide-react";
 
 // Config URL ảnh
@@ -46,27 +48,24 @@ const PromotionPage = () => {
 
                 // --- QUAN TRỌNG: Mapping dữ liệu từ API sang format Frontend ---
                 const mappedPromotions = activePromotions.map(p => {
-                    // 1. Lấy đúng tên trường từ API (minBookingAmount, maxDiscountAmount)
-                    // 2. Ép kiểu Number để xử lý số thập phân (10.00 -> 10)
                     const cleanDiscountValue = Number(p.discountValue || 0);
-                    const cleanMinOrder = Number(p.minBookingAmount || 0); // Sửa từ p.minOrder thành p.minBookingAmount
-                    const cleanMaxDiscount = Number(p.maxDiscountAmount || 0); // Sửa từ p.maxDiscount thành p.maxDiscountAmount
+                    const cleanMinOrder = Number(p.minBookingAmount || 0);
+                    const cleanMaxDiscount = Number(p.maxDiscountAmount || 0);
 
                     return {
                         id: p.promotionId,
-                        title: p.description,
+                        title: p.description, // Hoặc p.name nếu API có trường name
 
                         // Format chuỗi mô tả dùng số liệu đã làm sạch
                         description: `Giảm ${p.discountType === 'PERCENTAGE' ? cleanDiscountValue + '%' : cleanDiscountValue.toLocaleString('vi-VN') + 'đ'} cho đơn từ ${cleanMinOrder.toLocaleString('vi-VN')}đ`,
 
+                        // Hàm getFullImageUrl đảm bảo Banner nhận đúng đường dẫn ảnh
                         image: getFullImageUrl(p.bannerUrl),
+
                         code: p.code,
                         endDate: p.endDate,
                         startDate: p.startDate,
 
-                        // Truyền các giá trị đã mapping xuống component con
-                        // Lưu ý: PromotionCard/Modal có thể dùng minOrder hoặc minBookingAmount,
-                        // ta truyền cả 2 để đảm bảo tương thích.
                         minOrder: cleanMinOrder,
                         minBookingAmount: cleanMinOrder,
 
@@ -79,7 +78,6 @@ const PromotionPage = () => {
                         used: p.usageCount || 0,
                         quantity: p.usageLimit || 100,
 
-                        // Map hạng thành viên
                         targetRank: p.minMembershipRank || p.targetRank || null
                     };
                 });
@@ -166,7 +164,7 @@ const PromotionPage = () => {
         <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6">
             <div className="max-w-7xl mx-auto space-y-8">
 
-                {/* Header */}
+                {/* 1. Header Trang */}
                 <div className="bg-gradient-to-r from-[rgb(40,169,224)] to-[rgb(26,140,189)] rounded-3xl p-8 text-white shadow-lg relative overflow-hidden">
                     <div className="relative z-10">
                         <h1 className="text-3xl font-bold flex items-center gap-3">
@@ -176,20 +174,29 @@ const PromotionPage = () => {
                             Săn ngay hàng ngàn mã giảm giá độc quyền dành cho khách hàng thân thiết.
                         </p>
                     </div>
+                    {/* Background decoration */}
                     <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
                 </div>
 
-                {/* Content */}
+                {/* 2. Banner Tự Động Chạy (Mới thêm) */}
+                {/* Chỉ hiển thị khi đã tải xong và có dữ liệu */}
+                {!loading && promotions.length > 0 && (
+                    <div className="w-full">
+                        <AutoScrollBanner promotions={promotions} />
+                    </div>
+                )}
+
+                {/* 3. Phần Content chính (Filter + List) */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 min-h-[500px] flex flex-col">
 
-                    {/* Filter */}
+                    {/* Filter Bar */}
                     <PromotionFilter
                         searchTerm={searchTerm}
                         onSearchChange={setSearchTerm}
                         totalCount={filteredPromotions.length}
                     />
 
-                    {/* List */}
+                    {/* Danh sách Khuyến mãi */}
                     <div className="flex-1">
                         <PromotionList
                             promotions={paginatedData}
@@ -198,7 +205,7 @@ const PromotionPage = () => {
                         />
                     </div>
 
-                    {/* Pagination */}
+                    {/* Pagination Controls */}
                     {filteredPromotions.length > 0 && !loading && (
                         <div className="mt-8 border-t border-gray-100 pt-6">
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -208,6 +215,7 @@ const PromotionPage = () => {
                                 </span>
 
                                 <div className="flex items-center gap-2">
+                                    {/* Nút Prev */}
                                     <button
                                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                         disabled={currentPage === 1}
@@ -216,6 +224,7 @@ const PromotionPage = () => {
                                         <ChevronLeft size={18} />
                                     </button>
 
+                                    {/* Số trang */}
                                     <div className="flex gap-1">
                                         {getPaginationGroup().map((item, index) => (
                                             <button
@@ -235,6 +244,7 @@ const PromotionPage = () => {
                                         ))}
                                     </div>
 
+                                    {/* Nút Next */}
                                     <button
                                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                         disabled={currentPage === totalPages}
@@ -243,6 +253,7 @@ const PromotionPage = () => {
                                         <ChevronRight size={18} />
                                     </button>
 
+                                    {/* Go to page input */}
                                     <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200 hidden sm:flex">
                                         <span className="text-sm text-gray-500 whitespace-nowrap">Đi đến:</span>
                                         <div className="relative">
@@ -266,6 +277,7 @@ const PromotionPage = () => {
                 </div>
             </div>
 
+            {/* Modal Chi tiết */}
             <PromotionDetailModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
