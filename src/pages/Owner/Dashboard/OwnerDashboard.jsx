@@ -7,7 +7,6 @@ import OccupancyForecastChart from "./components/OccupancyForecastChart";
 import RoomStatusOverview from "./components/RoomStatusOverview"; 
 import RecentReviewsWidget from "./components/RecentReviewsWidget"; 
 import HousekeepingTasks from "./components/HousekeepingTasks"; 
-import UpcomingArrivalsTable from "./components/UpcomingArrivalsTable"; 
 
 const OwnerDashboard = () => {
     return (
@@ -37,9 +36,7 @@ const OwnerDashboard = () => {
                 </div>
             </div>
 
-            <div className="shadow-lg rounded-lg overflow-hidden">
-                <UpcomingArrivalsTable />
-            </div>
+          
 
         </div>
     );

@@ -42,7 +42,7 @@ const HotDestinations = () => {
           Điểm đến nổi bật
         </h2>
         <p className="text-gray-600 mb-10 max-w-2xl mx-auto">
-          Khám phá những thành phố du lịch được yêu thích nhất tại Việt Nam 🌏
+          Khám phá những thành phố du lịch được yêu thích nhất tại Việt Nam 
         </p>
 
         {/* ✅ Grid layout đã được dọn dẹp */}
