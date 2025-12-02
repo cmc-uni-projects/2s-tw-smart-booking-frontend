@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-// 1. Thêm useLocation
+// 1. Thêm useLocation để nhận state từ trang Home chuyển sang
 import { useLocation } from "react-router-dom";
 import promotionService from "@/services/promotion.service";
 import PromotionList from "./components/PromotionList";
@@ -22,7 +22,7 @@ const getFullImageUrl = (path) => {
 };
 
 const PromotionPage = () => {
-    const location = useLocation(); // 2. Hook lấy state từ trang Home
+    const location = useLocation(); // Hook lấy state từ trang Home
     const [promotions, setPromotions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedPromo, setSelectedPromo] = useState(null);
@@ -45,6 +45,7 @@ const PromotionPage = () => {
     }, []);
 
     // Hàm xử lý khi người dùng bấm tim (Lưu/Bỏ lưu)
+    // Hàm này cũng được truyền vào Modal để lưu khi bấm Copy
     const handleToggleSave = (id) => {
         setSavedIds(prev => {
             const newSaved = prev.includes(id)
@@ -261,7 +262,7 @@ const PromotionPage = () => {
                             promotions={paginatedData}
                             loading={loading}
                             onViewDetail={handleOpenPromo}
-                            // Truyền props cho tính năng Save
+                            // Truyền props cho tính năng Save ở danh sách
                             savedIds={savedIds}
                             onToggleSave={handleToggleSave}
                         />
@@ -335,11 +336,14 @@ const PromotionPage = () => {
                 </div>
             </div>
 
-            {/* Modal Chi tiết */}
+            {/* Modal Chi tiết - Đã cập nhật props */}
             <PromotionDetailModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 promo={selectedPromo}
+                // [QUAN TRỌNG] Truyền props để Modal có thể gọi hàm lưu
+                savedIds={savedIds}
+                onToggleSave={handleToggleSave}
             />
         </div>
     );
