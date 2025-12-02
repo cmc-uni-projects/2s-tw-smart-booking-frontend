@@ -1,157 +1,180 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import promotionService from "@/services/promotion.service";
-import { Clock, ArrowRight, Gift, Zap, ChevronRight } from 'lucide-react';
+import { ArrowRight, Gift, Clock, MapPin, Sparkles, ChevronRight, Star } from 'lucide-react';
 
 // --- CONFIGURATION ---
 const AUTO_SWITCH_TIME = 6000;
 const BE_BASE_URL = "http://localhost:8386";
 const UPLOAD_DIR = "/uploads/";
 
-const getFullImageUrl = (path) => {
-    if (!path) return "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=80";
+// Helper: Format tiền tệ đẹp
+const formatCurrency = (val, type) => {
+    if (type === 'PERCENTAGE') return `-${val}%`;
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+};
+
+const getImageUrl = (path) => {
+    if (!path) return "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=80";
     if (path.startsWith("http")) return path;
     const cleanPath = path.startsWith('/') ? path.slice(1) : path;
     return `${BE_BASE_URL}${UPLOAD_DIR}${cleanPath}`;
 };
 
 // ==========================================
-// COMPONENT 1: Tag Badge
+// COMPONENT 1: Countdown Timer (Minimalist)
 // ==========================================
-const CategoryBadge = ({ text }) => (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-100 mb-4 shadow-sm">
-        <Zap size={12} className="fill-blue-600" />
-        {text}
-    </span>
-);
-
-// ==========================================
-// COMPONENT 2: Circular Progress Timer
-// ==========================================
-const CircularCountdown = ({ endDate }) => {
+const CountdownBadge = ({ endDate }) => {
     const [timeLeft, setTimeLeft] = useState(null);
 
     useEffect(() => {
-        const calculateTime = () => {
+        const calc = () => {
             const diff = new Date(endDate) - new Date();
             if (diff > 0) {
                 return {
-                    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-                    hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+                    d: Math.floor(diff / (1000 * 60 * 60 * 24)),
+                    h: Math.floor((diff / (1000 * 60 * 60)) % 24),
+                    m: Math.floor((diff / 1000 / 60) % 60),
                 };
             }
             return null;
         };
-        setTimeLeft(calculateTime());
-        const timer = setInterval(() => setTimeLeft(calculateTime()), 60000);
-        return () => clearInterval(timer);
+        setTimeLeft(calc());
+        const t = setInterval(() => setTimeLeft(calc()), 60000);
+        return () => clearInterval(t);
     }, [endDate]);
 
     if (!timeLeft) return null;
 
-    const TimeCircle = ({ val, label }) => (
-        <div className="flex flex-col items-center">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-white/30 flex items-center justify-center bg-black/20 backdrop-blur-md shadow-inner">
-                <span className="text-xs md:text-sm font-bold text-white font-sans">{val}</span>
-            </div>
-            <span className="text-[10px] text-gray-200 mt-1 uppercase font-bold tracking-wide drop-shadow-md">{label}</span>
-        </div>
-    );
-
     return (
-        <div className="absolute top-4 right-4 flex gap-3 z-20">
-            <TimeCircle val={timeLeft.days} label="Ngày" />
-            <TimeCircle val={timeLeft.hours} label="Giờ" />
+        <div className="flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-lg">
+            <Clock size={14} className="text-yellow-400" />
+            <span className="text-xs font-semibold text-white tracking-wide font-mono">
+                Kết thúc sau: <span className="text-yellow-400">{timeLeft.d}d : {timeLeft.h}h : {timeLeft.m}m</span>
+            </span>
         </div>
     );
 };
 
 // ==========================================
-// COMPONENT 3: Sidebar List Item
+// COMPONENT 2: Sidebar Ticket Item
 // ==========================================
-const SidebarItem = memo(({ promo, isActive, onClick, progress }) => {
+const PromoListItem = memo(({ promo, isActive, onClick }) => {
     return (
         <div
             onClick={onClick}
-            className={`relative p-3 md:p-4 rounded-xl cursor-pointer transition-all duration-300 border-l-4 group overflow-hidden flex items-center gap-3 md:gap-4
+            className={`group relative p-4 cursor-pointer transition-all duration-300 rounded-2xl border flex gap-4 items-center overflow-hidden
                 ${isActive
-                ? 'bg-white border-blue-600 shadow-md z-10'
-                : 'bg-gray-50 border-transparent hover:bg-gray-100 opacity-80 hover:opacity-100'
-            }`}
+                    ? 'bg-white border-blue-500/30 shadow-[0_8px_30px_rgb(0,0,0,0.06)] scale-[1.02]'
+                    : 'bg-white/40 hover:bg-white border-transparent hover:border-blue-100 hover:shadow-md'
+                }`}
         >
+            {/* Active Indicator Bar */}
             {isActive && (
-                <div
-                    className="absolute bottom-0 left-0 h-1 bg-blue-600 transition-all duration-100 ease-linear z-20"
-                    style={{ width: `${progress}%` }}
-                />
+                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-blue-600 to-cyan-500" />
             )}
 
-            <div className="w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden flex-shrink-0 shadow-sm border border-gray-100">
-                <img src={promo.image} alt="" className="w-full h-full object-cover" />
+            {/* Thumbnail */}
+            <div className="relative w-20 h-20 rounded-xl overflow-hidden shadow-sm flex-shrink-0">
+                <img src={promo.image} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
             </div>
 
+            {/* Content */}
             <div className="flex-1 min-w-0 flex flex-col justify-center">
-                <h4 className={`text-sm font-bold leading-tight mb-1 truncate font-sans ${isActive ? 'text-gray-900' : 'text-gray-600'}`}>
+                <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${isActive ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+                        {promo.code || 'HOT DEAL'}
+                    </span>
+                    {isActive && <span className="flex h-2 w-2 rounded-full bg-red-500 animate-pulse" />}
+                </div>
+
+                <h4 className={`text-sm font-bold leading-tight mb-1 truncate transition-colors ${isActive ? 'text-gray-900' : 'text-gray-600'}`}>
                     {promo.title}
                 </h4>
-                <p className="text-xs text-gray-500 font-medium truncate flex items-center gap-1 font-sans">
-                    <Gift size={12} />
-                    Giảm {promo.discountValue}{promo.discountType === 'PERCENTAGE' ? '%' : 'đ'}
-                </p>
+
+                <div className="flex items-center gap-1 text-xs font-medium text-gray-500">
+                    <Gift size={12} className="text-rose-500" />
+                    <span className="text-rose-600 font-bold">Giảm {formatCurrency(promo.discountValue, promo.discountType)}</span>
+                </div>
             </div>
 
-            <ChevronRight
-                size={18}
-                className={`transition-all duration-300 ${isActive ? 'text-blue-600 translate-x-0 opacity-100' : 'translate-x-2 opacity-0 w-0'}`}
-            />
+            {/* Arrow */}
+            <div className={`p-2 rounded-full transition-all ${isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-300 group-hover:text-blue-400'}`}>
+                <ChevronRight size={18} />
+            </div>
+
+            {/* Progress Line for Active Item */}
+            {isActive && (
+                <div className="absolute bottom-0 left-0 h-[2px] bg-blue-500 z-10 animate-progress-line" style={{width: '100%', animationDuration: `${AUTO_SWITCH_TIME}ms`}} />
+            )}
         </div>
     );
 });
 
 // ==========================================
-// COMPONENT 4: Main Stage
+// COMPONENT 3: Main Hero Banner
 // ==========================================
-const MainStage = ({ promo, onAction }) => {
-    if (!promo) return null;
+const HeroBanner = ({ promo, onAction }) => {
+    // Key change to trigger animation reset
+    const [animKey, setAnimKey] = useState(0);
+    useEffect(() => setAnimKey(prev => prev + 1), [promo.id]);
 
     return (
-        <div className="relative h-[380px] md:h-[500px] rounded-3xl overflow-hidden group shadow-xl">
-            <img
-                src={promo.image}
-                alt={promo.title}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-            />
-
-            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent opacity-90" />
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-900/60 to-transparent" />
-
-            <div className="absolute top-6 left-6 z-20">
-                <span className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg shadow-lg flex items-center gap-1.5 animate-pulse">
-                    <Gift size={14} /> NEW ARRIVAL
-                </span>
+        <div className="relative h-full w-full rounded-[2.5rem] overflow-hidden shadow-2xl group cursor-pointer" onClick={() => onAction(promo)}>
+            {/* Background Image with Ken Burns Effect */}
+            <div key={`bg-${animKey}`} className="absolute inset-0 animate-fade-zoom">
+                <img
+                    src={promo.image}
+                    alt={promo.title}
+                    className="w-full h-full object-cover"
+                />
             </div>
 
-            <CircularCountdown endDate={promo.endDate} />
+            {/* Sophisticated Gradient Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/20 to-transparent opacity-90" />
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-transparent to-transparent" />
 
-            <div className="absolute bottom-0 left-0 w-full p-6 md:p-10 z-20">
-                <div className="transform transition-all duration-500 translate-y-4 group-hover:translate-y-0">
-                    <CategoryBadge text="Travel Mate Exclusive" />
+            {/* Top Badges */}
+            <div className="absolute top-6 left-6 flex flex-wrap gap-3 z-20">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-full shadow-lg shadow-rose-900/20">
+                    <Sparkles size={12} fill="currentColor" />
+                    ƯU ĐÃI ĐỘC QUYỀN
+                </div>
+                <CountdownBadge endDate={promo.endDate} />
+            </div>
 
-                    <h2 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-white mb-3 md:mb-4 leading-tight line-clamp-2 drop-shadow-lg font-sans tracking-tight">
+            {/* Content Area */}
+            <div className="absolute bottom-0 left-0 w-full p-8 md:p-12 z-20">
+                <div key={`txt-${animKey}`} className="animate-slide-up space-y-4">
+
+                    {/* Discount Tag */}
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 w-fit">
+                        <Gift size={16} className="text-yellow-400" />
+                        <span className="text-sm font-bold text-white">
+                            Giảm ngay <span className="text-yellow-400 text-lg">{formatCurrency(promo.discountValue, promo.discountType)}</span> khi đặt hôm nay
+                        </span>
+                    </div>
+
+                    {/* Title */}
+                    <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight tracking-tight drop-shadow-sm max-w-3xl">
                         {promo.title}
                     </h2>
 
-                    <p className="text-gray-200 text-sm md:text-lg mb-6 line-clamp-2 max-w-xl font-medium font-sans opacity-90">
+                    {/* Description */}
+                    <p className="text-gray-200 text-base md:text-lg font-light line-clamp-2 max-w-xl opacity-90">
                         {promo.description}
                     </p>
 
-                    <button
-                        onClick={() => onAction(promo)}
-                        className="group/btn inline-flex items-center gap-2 md:gap-3 px-6 py-2.5 md:px-8 md:py-3 bg-white text-blue-900 rounded-full font-bold transition-all hover:bg-blue-600 hover:text-white shadow-lg active:scale-95 font-sans text-sm md:text-base"
-                    >
-                        Khám phá ngay
-                        <ArrowRight size={18} className="transition-transform group-hover/btn:translate-x-1" />
-                    </button>
+                    {/* CTA Button */}
+                    <div className="pt-4">
+                        <button className="group/btn relative inline-flex items-center gap-3 pl-6 pr-2 py-2 bg-white rounded-full transition-all hover:bg-blue-50 hover:scale-105 active:scale-95 shadow-xl">
+                            <span className="text-sm font-bold text-gray-900 uppercase tracking-wider">Khám phá ngay</span>
+                            <div className="w-9 h-9 bg-gray-900 rounded-full flex items-center justify-center text-white transition-transform group-hover/btn:rotate-45">
+                                <ArrowRight size={16} />
+                            </div>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -159,160 +182,122 @@ const MainStage = ({ promo, onAction }) => {
 };
 
 // ==========================================
-// COMPONENT 5: Header Section
-// ==========================================
-const PromoSectionHeader = ({ onSeeAll }) => (
-    <div className="flex items-end justify-between mb-6 md:mb-8 px-2">
-        <div>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 flex items-center gap-2 font-sans tracking-tight">
-                Ưu Đãi <span className="text-blue-600 relative inline-block">
-                    Mới Nhất
-                    <svg className="absolute w-full h-2 bottom-0 left-0 text-blue-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
-                        <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" />
-                    </svg>
-                </span>
-            </h2>
-            <p className="text-gray-500 mt-2 text-sm md:text-base font-sans">Cập nhật liên tục các deal hot vừa ra mắt</p>
-        </div>
-        <button
-            onClick={onSeeAll}
-            className="hidden md:flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-blue-600 transition-colors border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 hover:border-blue-200 font-sans"
-        >
-            Xem tất cả
-            <ArrowRight size={16} />
-        </button>
-    </div>
-);
-
-// ==========================================
-// MAIN COMPONENT: PromotionBanner
+// MAIN COMPONENT
 // ==========================================
 const PromotionBanner = () => {
     const navigate = useNavigate();
     const [promotions, setPromotions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeIndex, setActiveIndex] = useState(0);
-    const [progress, setProgress] = useState(0);
 
     // Fetch API
     useEffect(() => {
-        const fetchData = async () => {
+        const fetch = async () => {
             try {
-                const response = await promotionService.getAllPromotions();
-                const rawData = Array.isArray(response) ? response : (response.data || []);
+                const res = await promotionService.getAllPromotions();
+                const data = Array.isArray(res) ? res : (res.data || []);
                 const now = new Date();
 
-                // 1. Lọc các khuyến mãi đang chạy
-                const activePromotions = rawData.filter(p =>
-                    p.status === "ACTIVE" &&
-                    new Date(p.endDate) > now &&
-                    p.bannerUrl
-                );
-
-                // 2. [QUAN TRỌNG] Sắp xếp ID giảm dần để MỚI NHẤT lên đầu
-                activePromotions.sort((a, b) => b.promotionId - a.promotionId);
-
-                // 3. Map dữ liệu và lấy 4 cái đầu tiên
-                const validData = activePromotions.map(p => ({
-                    id: p.promotionId,
-                    title: p.description,
-                    description: p.description,
-                    discountValue: p.discountValue,
-                    discountType: p.discountType,
-                    endDate: p.endDate,
-                    image: getFullImageUrl(p.bannerUrl)
-                })).slice(0, 4);
-
-                setPromotions(validData);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
+                const valid = data
+                    .filter(p => p.status === "ACTIVE" && new Date(p.endDate) > now && p.bannerUrl)
+                    .sort((a, b) => b.promotionId - a.promotionId)
+                    .slice(0, 5) // Lấy 5 items
+                    .map(p => ({
+                        id: p.promotionId,
+                        title: p.description, // Hoặc title
+                        description: `Trải nghiệm chuyến đi tuyệt vời với ưu đãi ${p.discountValue}${p.discountType === 'PERCENTAGE' ? '%' : 'đ'} dành riêng cho thành viên TravelMate.`, // Placeholder nếu thiếu desc
+                        discountValue: p.discountValue,
+                        discountType: p.discountType,
+                        endDate: p.endDate,
+                        image: getImageUrl(p.bannerUrl),
+                        code: `SALE${p.discountValue}`
+                    }));
+                setPromotions(valid);
+            } catch (e) { console.error(e); }
+            finally { setLoading(false); }
         };
-        fetchData();
+        fetch();
     }, []);
 
-    // Logic Auto Scroll
+    // Auto Rotate
     useEffect(() => {
-        if (promotions.length <= 1) return;
-        setProgress(0);
-        const progressInterval = setInterval(() => {
-            setProgress(prev => (prev >= 100 ? 0 : prev + (100 / (AUTO_SWITCH_TIME / 100))));
-        }, 100);
-        const slideInterval = setInterval(() => {
+        if (!promotions.length) return;
+        const interval = setInterval(() => {
             setActiveIndex(prev => (prev + 1) % promotions.length);
         }, AUTO_SWITCH_TIME);
-        return () => {
-            clearInterval(progressInterval);
-            clearInterval(slideInterval);
-        };
-    }, [activeIndex, promotions.length]);
+        return () => clearInterval(interval);
+    }, [promotions.length, activeIndex]);
 
-    const handleSidebarClick = (index) => {
-        setActiveIndex(index);
-        setProgress(0);
-    };
-
-    // Deep Link Logic
     const handleExplore = (promo) => {
-        navigate('/promotions', {
-            state: { targetPromoId: promo.id }
-        });
+        navigate('/promotions', { state: { targetPromoId: promo.id } });
     };
 
-    if (loading) return <div className="container mx-auto h-[400px] bg-gray-100 animate-pulse rounded-3xl mt-12 mb-12" />;
-    if (promotions.length === 0) return null;
+    if (loading) return <div className="container mx-auto h-[500px] bg-gray-100 rounded-[2.5rem] animate-pulse mt-8" />;
+    if (!promotions.length) return null;
 
     return (
-        <section className="container mx-auto px-4 py-8 md:py-12">
-            <style>
-                {`@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');`}
-            </style>
+        <section className="container mx-auto px-4 py-10 font-sans text-gray-900">
+            {/* Styles for Animations */}
+            <style>{`
+                @keyframes progress-line { from { width: 0%; } to { width: 100%; } }
+                @keyframes fade-zoom {
+                    0% { opacity: 0; transform: scale(1.05); }
+                    10% { opacity: 1; }
+                    100% { opacity: 1; transform: scale(1); }
+                }
+                @keyframes slide-up {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-progress-line { animation: progress-line linear forwards; }
+                .animate-fade-zoom { animation: fade-zoom 8s ease-out forwards; }
+                .animate-slide-up { animation: slide-up 0.6s ease-out forwards; }
+            `}</style>
 
-            <div className="font-sans" style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}>
-                <PromoSectionHeader onSeeAll={() => navigate('/promotions')} />
+            {/* Header Area */}
+            <div className="flex items-end justify-between mb-8 px-2">
+                <div>
+                    {/* ĐÃ BỎ TAG TRAVELMATE SPECIAL Ở ĐÂY */}
+                    <h2 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
+                        Săn Deal <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Giờ Vàng</span>
+                    </h2>
+                    <p className="text-gray-500 mt-2 font-medium text-base">Cập nhật liên tục các ưu đãi hấp dẫn nhất</p>
+                </div>
+                <button onClick={() => navigate('/promotions')} className="hidden md:flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-blue-600 transition-colors bg-gray-50 px-4 py-2 rounded-lg border border-transparent hover:border-blue-100 hover:shadow-sm">
+                    Xem tất cả <ArrowRight size={16} />
+                </button>
+            </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto lg:h-[500px]">
+            {/* Main Layout: Asymmetric Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:h-[580px]">
 
-                    {/* LEFT COLUMN: Main Stage */}
-                    <div className="lg:col-span-8 h-full">
-                        <MainStage
-                            promo={promotions[activeIndex]}
-                            onAction={handleExplore}
-                        />
+                {/* LEFT: Hero (7 columns) */}
+                <div className="lg:col-span-8 h-[450px] lg:h-full order-1">
+                    <HeroBanner promo={promotions[activeIndex]} onAction={handleExplore} />
+                </div>
+
+                {/* RIGHT: List (5 columns) */}
+                <div className="lg:col-span-4 h-full flex flex-col gap-3 order-2 overflow-y-auto pr-1">
+                    <div className="flex items-center justify-between mb-2 px-1">
+                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Danh sách ưu đãi</h3>
+                        <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
+                            {activeIndex + 1}/{promotions.length}
+                        </span>
                     </div>
 
-                    {/* RIGHT COLUMN: Playlist Sidebar */}
-                    <div className="lg:col-span-4 flex flex-col gap-3 md:gap-4 h-[400px] lg:h-full overflow-y-auto pr-1 custom-scrollbar">
+                    <div className="flex flex-col gap-3 pb-4">
                         {promotions.map((promo, idx) => (
-                            <SidebarItem
+                            <PromoListItem
                                 key={promo.id}
                                 promo={promo}
                                 isActive={idx === activeIndex}
-                                onClick={() => handleSidebarClick(idx)}
-                                progress={idx === activeIndex ? progress : 0}
+                                onClick={() => setActiveIndex(idx)}
                             />
                         ))}
-
-                        <div className="mt-auto p-5 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl text-white text-center hidden lg:block shadow-lg">
-                            <p className="text-sm font-medium mb-3 opacity-90">Bạn muốn xem thêm ưu đãi?</p>
-                            <button
-                                onClick={() => navigate('/promotions')}
-                                className="w-full py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg text-sm font-bold transition-all border border-white/20"
-                            >
-                                Khám phá ngay
-                            </button>
-                        </div>
                     </div>
                 </div>
-            </div>
 
-            <style jsx>{`
-                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
-            `}</style>
+            </div>
         </section>
     );
 };
