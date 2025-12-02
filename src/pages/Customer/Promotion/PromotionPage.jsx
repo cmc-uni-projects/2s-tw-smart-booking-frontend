@@ -7,6 +7,8 @@ import PromotionDetailModal from "./components/PromotionDetailModal";
 import PromotionFilter from "./components/PromotionFilter";
 // Import Banner
 import AutoScrollBanner from "./components/AutoScrollBanner";
+// Import TabsComponent
+import TabsComponent from "@/components/common/Tabs/TabsComponent";
 import { Tag, ChevronLeft, ChevronRight } from "lucide-react";
 
 // Config URL ảnh
@@ -26,13 +28,48 @@ const PromotionPage = () => {
     const [selectedPromo, setSelectedPromo] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // --- LOGIC MỚI: QUẢN LÝ TAB & DANH SÁCH ĐÃ LƯU ---
+    const [activeTab, setActiveTab] = useState('all'); // 'all' | 'saved'
+    const [savedIds, setSavedIds] = useState([]);
+
+    // Load danh sách đã lưu từ localStorage khi component mount
+    useEffect(() => {
+        const saved = localStorage.getItem('savedPromotions');
+        if (saved) {
+            try {
+                setSavedIds(JSON.parse(saved));
+            } catch (e) {
+                console.error("Lỗi đọc savedPromotions từ localStorage", e);
+            }
+        }
+    }, []);
+
+    // Hàm xử lý khi người dùng bấm tim (Lưu/Bỏ lưu)
+    const handleToggleSave = (id) => {
+        setSavedIds(prev => {
+            const newSaved = prev.includes(id)
+                ? prev.filter(item => item !== id) // Nếu có rồi thì xoá
+                : [...prev, id]; // Nếu chưa có thì thêm
+
+            // Lưu lại vào localStorage
+            localStorage.setItem('savedPromotions', JSON.stringify(newSaved));
+            return newSaved;
+        });
+    };
+
+    // Cấu hình Tabs
+    const tabs = [
+        { id: 'all', name: 'Tất cả ưu đãi' },
+        { id: 'saved', name: 'Kho ưu đãi của tôi' }
+    ];
+
     // 1. State tìm kiếm & Phân trang
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [jumpPage, setJumpPage] = useState("");
     const itemsPerPage = 9;
 
-    // Gọi API
+    // Gọi API lấy danh sách khuyến mãi
     useEffect(() => {
         const fetchPromotions = async () => {
             try {
@@ -99,9 +136,18 @@ const PromotionPage = () => {
         fetchPromotions();
     }, [location.state]); // Thêm dependency để chạy lại khi chuyển trang có state
 
-    // 2. Logic Filter (Tìm kiếm)
+    // 2. Logic Filter (Tìm kiếm & Tab)
+    // Bước 1: Lọc nguồn dữ liệu dựa trên Tab
+    const sourcePromotions = useMemo(() => {
+        if (activeTab === 'saved') {
+            return promotions.filter(p => savedIds.includes(p.id));
+        }
+        return promotions;
+    }, [activeTab, promotions, savedIds]);
+
+    // Bước 2: Lọc theo từ khóa tìm kiếm
     const filteredPromotions = useMemo(() => {
-        return promotions.filter(promo => {
+        return sourcePromotions.filter(promo => {
             const term = searchTerm.toLowerCase();
             return (
                 promo.title?.toLowerCase().includes(term) ||
@@ -109,11 +155,12 @@ const PromotionPage = () => {
                 promo.description?.toLowerCase().includes(term)
             );
         });
-    }, [promotions, searchTerm]);
+    }, [sourcePromotions, searchTerm]);
 
+    // Reset trang về 1 khi search hoặc đổi tab
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm]);
+    }, [searchTerm, activeTab]);
 
     // 3. Logic Pagination (Phân trang)
     const totalPages = Math.ceil(filteredPromotions.length / itemsPerPage);
@@ -181,18 +228,27 @@ const PromotionPage = () => {
                     <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
                 </div>
 
-                {/* 2. Banner Tự Động Chạy (GIỮ NGUYÊN VỊ TRÍ CŨ) */}
-                {!loading && promotions.length > 0 && (
+                {/* 2. Banner Tự Động Chạy (Chỉ hiện ở Tab Tất cả) */}
+                {!loading && activeTab === 'all' && promotions.length > 0 && (
                     <div className="w-full">
                         <AutoScrollBanner
                             promotions={promotions}
-                            onBannerClick={handleOpenPromo} // Đã thêm hàm click
+                            onBannerClick={handleOpenPromo}
                         />
                     </div>
                 )}
 
-                {/* 3. Phần Content chính (Filter + List) */}
+                {/* 3. Phần Content chính (Tabs + Filter + List) */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 min-h-[500px] flex flex-col">
+
+                    {/* --- TABS COMPONENT --- */}
+                    <div className="mb-6">
+                        <TabsComponent
+                            tabs={tabs}
+                            activeTab={activeTab}
+                            onTabChange={setActiveTab}
+                        />
+                    </div>
 
                     <PromotionFilter
                         searchTerm={searchTerm}
@@ -200,11 +256,14 @@ const PromotionPage = () => {
                         totalCount={filteredPromotions.length}
                     />
 
-                    <div className="flex-1">
+                    <div className="flex-1 mt-4">
                         <PromotionList
                             promotions={paginatedData}
                             loading={loading}
                             onViewDetail={handleOpenPromo}
+                            // Truyền props cho tính năng Save
+                            savedIds={savedIds}
+                            onToggleSave={handleToggleSave}
                         />
                     </div>
 

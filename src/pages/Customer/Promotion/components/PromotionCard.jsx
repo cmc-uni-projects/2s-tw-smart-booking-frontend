@@ -2,10 +2,12 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Card from "@/components/common/Card/Card";
 import Button from "@/components/common/Button/Button";
-import { Tag, Flame, Crown, Clock, TicketPercent } from "lucide-react";
-import placeholderImg from "@/assets/images/placeholder.png"; // Đảm bảo bạn có ảnh này hoặc sửa đường dẫn
+// 1. Import thêm icon Heart
+import { Tag, Flame, Crown, Clock, TicketPercent, Heart } from "lucide-react";
+import placeholderImg from "@/assets/images/placeholder.png";
 
-export default function PromotionCard({ promo, onClick }) {
+// 2. Nhận thêm props isSaved và onToggleSave
+export default function PromotionCard({ promo, onClick, isSaved, onToggleSave }) {
     const isClickable = typeof onClick === 'function';
 
     // --- 1. CHUẨN HÓA DỮ LIỆU TỪ DTO BACKEND ---
@@ -59,11 +61,21 @@ export default function PromotionCard({ promo, onClick }) {
 
     const rankConfig = getRankConfig(targetRank);
 
+    // Xử lý click vào Card
     const handleClick = (e) => {
         if (isClickable) {
             e.preventDefault();
             e.stopPropagation();
             onClick(promo);
+        }
+    };
+
+    // 3. Xử lý click vào nút Tim (Lưu/Bỏ lưu)
+    const handleHeartClick = (e) => {
+        e.preventDefault();     // Ngăn chặn chuyển trang/mở modal
+        e.stopPropagation();    // Ngăn chặn sự kiện click lan ra card cha
+        if (onToggleSave) {
+            onToggleSave(promo.id);
         }
     };
 
@@ -83,6 +95,22 @@ export default function PromotionCard({ promo, onClick }) {
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
+
+                    {/* 4. Nút Tim (Heart Button) - Mới thêm vào */}
+                    <button
+                        onClick={handleHeartClick}
+                        className="absolute top-3 left-3 z-20 p-2 rounded-full bg-white/20 backdrop-blur-md hover:bg-white transition-all group/heart shadow-sm border border-white/10"
+                        title={isSaved ? "Bỏ lưu ưu đãi" : "Lưu ưu đãi"}
+                    >
+                        <Heart
+                            size={18}
+                            className={`transition-colors duration-300 ${
+                                isSaved
+                                    ? "fill-red-500 text-red-500" // Trạng thái đã lưu
+                                    : "text-white group-hover/heart:text-red-500" // Trạng thái chưa lưu
+                            }`}
+                        />
+                    </button>
 
                     {/* Badge HOT */}
                     <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
@@ -123,7 +151,7 @@ export default function PromotionCard({ promo, onClick }) {
                             {promo.discountDetail || promo.description || "Ưu đãi đặc biệt"}
                         </h3>
 
-                        {/* --- KHU VỰC THÔNG TIN ĐIỀU KIỆN (Quan trọng) --- */}
+                        {/* --- KHU VỰC THÔNG TIN ĐIỀU KIỆN --- */}
                         <div className="mb-4 space-y-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
                             {/* Hiển thị Đơn tối thiểu */}
                             {minBookingAmount > 0 ? (
