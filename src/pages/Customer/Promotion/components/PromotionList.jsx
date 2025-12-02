@@ -2,10 +2,10 @@ import React from "react";
 import PromotionCard from "./PromotionCard";
 import { Search } from "lucide-react";
 
-// ✅ QUAN TRỌNG: Phải nhận prop là 'onViewDetail' (để khớp với PromotionPage)
-const PromotionList = ({ promotions, loading, onViewDetail }) => {
+// ✅ Cập nhật props: Nhận thêm savedIds và onToggleSave từ PromotionPage
+const PromotionList = ({ promotions, loading, onViewDetail, savedIds = [], onToggleSave }) => {
 
-    // 1. Loading
+    // 1. Loading State
     if (loading) {
         return (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -16,7 +16,7 @@ const PromotionList = ({ promotions, loading, onViewDetail }) => {
         );
     }
 
-    // 2. Empty state
+    // 2. Empty State (Khi không có dữ liệu)
     if (!promotions || promotions.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-dashed border-gray-300">
@@ -24,6 +24,9 @@ const PromotionList = ({ promotions, loading, onViewDetail }) => {
                     <Search className="text-gray-400" size={32} />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-800">Không tìm thấy khuyến mãi nào</h3>
+                <p className="text-gray-500 text-sm mt-2">
+                    Vui lòng thử lại hoặc thay đổi bộ lọc tìm kiếm.
+                </p>
             </div>
         );
     }
@@ -35,8 +38,12 @@ const PromotionList = ({ promotions, loading, onViewDetail }) => {
                 <PromotionCard
                     key={promo.id}
                     promo={promo}
-                    // ✅ Truyền hàm này xuống Card
+                    // Truyền hàm xem chi tiết
                     onClick={onViewDetail}
+                    // ✅ Truyền trạng thái: Kiểm tra xem ID của promo này có trong danh sách đã lưu không
+                    isSaved={savedIds.includes(promo.id)}
+                    // ✅ Truyền hàm xử lý: Gọi hàm toggle khi bấm tim
+                    onToggleSave={onToggleSave}
                 />
             ))}
         </div>
