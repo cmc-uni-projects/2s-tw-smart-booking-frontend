@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Star, Eye, EyeOff, Trash2, Pin } from "lucide-react"; // ✅ Import Pin Icon
+import { Star, Eye, EyeOff, Trash2, Pin } from "lucide-react";
 
 // Helper lấy đường dẫn ảnh
 const API_BASE_URL = "http://localhost:8386";
@@ -9,11 +9,10 @@ const getImageUrl = (path) => {
   return `${API_BASE_URL}/${path}`;
 };
 
-// ✅ Receive isOwner and onPin props
 const ReviewCard = ({ review, isAdmin, isOwner, canDelete, onHide, onDelete, onOpenGallery, onPin }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Determine if the user has permission to pin (Admin or Owner)
+  // Admin hoặc Owner được phép ghim
   const canPin = isAdmin || isOwner;
 
   const formatDate = (dateString) => {
@@ -26,10 +25,10 @@ const ReviewCard = ({ review, isAdmin, isOwner, canDelete, onHide, onDelete, onO
   };
 
   return (
-    <div className={`border-b border-slate-100 py-6 last:border-0 ${review.hidden ? 'opacity-60 bg-slate-50 p-4 rounded-lg' : ''} ${review.isPinned ? 'bg-blue-50/50 -mx-4 px-4 rounded-xl border border-blue-100' : ''}`}>
+    <div className={`border-b border-slate-100 py-6 last:border-0 ${review.hidden ? 'opacity-60 bg-slate-50 p-4 rounded-lg' : ''} ${review.isPinned ? 'bg-yellow-50/50 -mx-4 px-4 rounded-xl border border-yellow-100' : ''}`}>
       <div className="flex items-start gap-4">
         {/* Avatar */}
-        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-slate-200">
+        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-slate-200 shadow-sm">
           <img
             src={review.userAvatar || `https://ui-avatars.com/api/?background=random&name=${review.userName || 'User'}`}
             alt={review.userName}
@@ -37,18 +36,19 @@ const ReviewCard = ({ review, isAdmin, isOwner, canDelete, onHide, onDelete, onO
           />
         </div>
 
-        {/* Content */}
+        {/* Nội dung */}
         <div className="flex-1">
-          {/* Header: Name + Actions */}
+          
+          {/* Header: Tên + Badge + Actions */}
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2">
                   <h4 className="font-bold text-slate-800">{review.userName || "Người dùng ẩn danh"}</h4>
                   
-                  {/* ✅ BADGE: Display if Pinned */}
+                  {/* ✅ BADGE MỚI: "Đánh giá nổi bật" màu Vàng */}
                   {review.isPinned && (
-                      <span className="flex items-center gap-1 text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full border border-blue-200">
-                          <Pin size={10} className="fill-blue-600" /> Đã ghim
+                      <span className="flex items-center gap-1 text-[10px] font-extrabold text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-full border border-yellow-200 shadow-sm">
+                          Đánh giá nổi bật
                       </span>
                   )}
               </div>
@@ -57,7 +57,7 @@ const ReviewCard = ({ review, isAdmin, isOwner, canDelete, onHide, onDelete, onO
                  <span>{formatDate(review.createdAt)}</span>
                  {review.roomName && (
                     <>
-                        <span>•</span>
+                        <span className="w-1 h-1 rounded-full bg-slate-300"></span>
                         <span>{review.roomName}</span>
                     </>
                  )}
@@ -65,35 +65,39 @@ const ReviewCard = ({ review, isAdmin, isOwner, canDelete, onHide, onDelete, onO
             </div>
 
             {/* Admin / Owner Actions */}
-            <div className="flex gap-2">
-                {/* ✅ BUTTON: Pin (Only for Admin/Owner) */}
+            <div className="flex gap-1">
+                {/* Nút Ghim (Update màu vàng khi active) */}
                 {canPin && (
                     <button
                         onClick={onPin}
-                        className={`p-1.5 rounded-full transition-colors ${review.isPinned ? 'bg-blue-100 text-blue-600' : 'hover:bg-slate-200 text-slate-400'}`}
-                        title={review.isPinned ? "Bỏ ghim" : "Ghim bình luận này (Max 3)"}
+                        className={`p-1.5 rounded-full transition-all duration-200 ${
+                            review.isPinned 
+                                ? 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200' // Active state
+                                : 'hover:bg-slate-100 text-slate-400 hover:text-slate-600' // Inactive state
+                        }`}
+                        title={review.isPinned ? "Bỏ ghim đánh giá này" : "Ghim đánh giá này lên đầu (Max 3)"}
                     >
-                        <Pin size={16} className={review.isPinned ? "fill-blue-600" : ""} />
+                        <Pin size={16} className={review.isPinned ? "fill-yellow-500" : ""} />
                     </button>
                 )}
 
-                {/* Hide/Show (Admin only) */}
+                {/* Nút Ẩn/Hiện */}
                 {isAdmin && (
                     <button
                         onClick={onHide}
-                        className="p-1.5 rounded-full hover:bg-slate-200 text-slate-500 transition-colors"
+                        className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
                         title={review.hidden ? "Hiện đánh giá" : "Ẩn đánh giá"}
                     >
                         {review.hidden ? <Eye size={16}/> : <EyeOff size={16}/>}
                     </button>
                 )}
 
-                {/* Delete (Admin or Owner) */}
+                {/* Nút Xóa */}
                 {canDelete && (
                     <button
                         onClick={onDelete}
-                        className="p-1.5 rounded-full hover:bg-red-100 text-red-500 transition-colors"
-                        title="Xóa đánh giá"
+                        className="p-1.5 rounded-full hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+                        title="Xóa đánh giá vĩnh viễn"
                     >
                         <Trash2 size={16}/>
                     </button>
@@ -102,7 +106,7 @@ const ReviewCard = ({ review, isAdmin, isOwner, canDelete, onHide, onDelete, onO
           </div>
 
           {/* Stars */}
-          <div className="mt-2 flex">
+          <div className="mt-2.5 flex">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
@@ -114,11 +118,14 @@ const ReviewCard = ({ review, isAdmin, isOwner, canDelete, onHide, onDelete, onO
             ))}
           </div>
 
+          {/* Hidden Badge text */}
           {review.hidden && isAdmin && (
-              <p className="mt-1 text-xs font-bold text-red-500">[Đánh giá này đang bị ẩn với người dùng thường]</p>
+              <p className="mt-1 text-xs font-bold text-red-500 bg-red-50 inline-block px-2 py-0.5 rounded border border-red-100">
+                  Đánh giá này đang bị ẩn với khách hàng
+              </p>
           )}
 
-          {/* Comment */}
+          {/* Comment Content */}
           <div className="mt-3 text-sm text-slate-700 leading-relaxed">
             <p className={!isExpanded ? "line-clamp-3" : ""}>
               {review.comment}
@@ -126,14 +133,14 @@ const ReviewCard = ({ review, isAdmin, isOwner, canDelete, onHide, onDelete, onO
             {review.comment && review.comment.length > 200 && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="mt-1 text-xs font-medium text-blue-600 hover:underline"
+                className="mt-1 text-xs font-bold text-slate-500 hover:text-slate-800 underline decoration-slate-300 underline-offset-2"
               >
                 {isExpanded ? "Thu gọn" : "Xem thêm"}
               </button>
             )}
           </div>
 
-          {/* Images (with Zoom Logic) */}
+          {/* Images Gallery */}
           {review.images && review.images.length > 0 && (
             <div className="mt-4 flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
               {review.images.map((img, idx) => (
@@ -145,19 +152,23 @@ const ReviewCard = ({ review, isAdmin, isOwner, canDelete, onHide, onDelete, onO
                   <img
                     src={getImageUrl(img)}
                     alt="review-img"
-                    className="h-full w-full object-cover transition-transform group-hover:scale-110"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
+                  {/* Overlay hiệu ứng hover */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                 </div>
               ))}
             </div>
           )}
 
-          {/* Reply */}
+          {/* Owner Reply */}
           {review.reply && (
-            <div className="mt-4 rounded-lg bg-slate-50 p-3 text-sm border-l-4 border-blue-200">
-                <p className="font-bold text-slate-700 text-xs mb-1">Phản hồi từ chỗ nghỉ:</p>
-                <p className="text-slate-600 italic">"{review.reply}"</p>
+            <div className="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div className="flex items-center gap-2 mb-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                    <p className="font-bold text-slate-800 text-xs">Phản hồi từ chỗ nghỉ</p>
+                </div>
+                <p className="text-slate-600 text-sm italic pl-3.5">"{review.reply}"</p>
             </div>
           )}
         </div>
