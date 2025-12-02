@@ -1,92 +1,84 @@
-// src/services/rating.service.js
-import api from "./axios.config";
+import axios from "./axios.config";
 
-/**
- * Upload file (ảnh / video) của rating.
- * Hiện tại bạn CHƯA dùng tới upload file thật,
- * nên tạm thời hàm này trả về mảng rỗng để không gây lỗi.
- * Sau này nếu có API upload riêng, chỉ cần sửa lại body hàm này.
- */
-export const uploadRatingFiles = async (files) => {
-  // TODO: sau này nếu có API upload thì implement lại.
-  // Bây giờ chỉ lưu rating + comment, bỏ qua ảnh/video.
-  return [];
+// Helper tạo FormData chuẩn cho Backend Spring Boot
+const createFormData = (ratingData, files) => {
+  const formData = new FormData();
+
+  formData.append(
+    "data",
+    new Blob([JSON.stringify(ratingData)], { type: "application/json" })
+  );
+
+  if (files && files.length > 0) {
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
+  }
+
+  return formData;
 };
 
-/**
- * Tạo rating mới
- * params:
- *  - bookingId: number
- *  - userId: string
- *  - rating: number
- *  - comment: string
- *  - files?: File[] (ảnh + video đã chọn) -> hiện tại bỏ qua
- */
-export const createRating = async ({
-  bookingId,
-  userId,
-  rating,
-  comment,
-  files, // vẫn nhận để không phải sửa MyBookings, nhưng KHÔNG dùng
-}) => {
-  // Nếu sau này bạn có URL ảnh sẵn (VD từ Cloudinary),
-  // có thể map vào payload.images tương tự như trước.
-  // Hiện tại ta chỉ gửi rating + comment.
-  const payload = {
-    bookingId: {
-      bookingId,
-    },
-    userId: {
-      userId,
-    },
-    rating,
-    comment,
-    // images: [] // tạm thời không gửi lên BE
+export const createRating = async ({ bookingId, stars, comment, files }) => {
+  const ratingPayload = {
+    bookingId: bookingId,
+    stars: stars,
+    comment: comment,
   };
 
-  try {
-    const res = await api.post("/rating/create", payload);
-    return res.data;
-  } catch (error) {
-    const respData = error?.response?.data;
+  const formData = createFormData(ratingPayload, files);
 
-    // Lấy message gốc từ backend (nếu có)
-    const backendMsg =
-      (respData && respData.message) ||
-      (typeof respData === "string" ? respData : "") ||
-      error?.message ||
-      "";
-
-    let uiMessage = backendMsg || "Không thể gửi đánh giá, vui lòng thử lại.";
-
-    // Map các lỗi đặc biệt sang tiếng Việt đẹp
-    if (
-      typeof backendMsg === "string" &&
-      (backendMsg.includes("Rating contains abusive content") ||
-        backendMsg.includes("VIOLATION") ||
-        backendMsg.toLowerCase().includes("abusive"))
-    ) {
-      uiMessage =
-        "❌ Bình luận chứa từ ngữ không phù hợp, vui lòng chỉnh sửa lại trước khi gửi.";
-    } else if (
-      typeof backendMsg === "string" &&
-      backendMsg.includes("Booking must be COMPLETE before rating")
-    ) {
-      uiMessage =
-        "Bạn chỉ có thể đánh giá sau khi chuyến đi đã được đánh dấu là hoàn thành.";
-    }
-
-    console.error("❌ Rating API Error:", respData || backendMsg);
-
-    // Ném Error với message tiếng Việt để ReviewBookingModal / MyBookings hiển thị
-    throw new Error(uiMessage);
-  }
+  const response = await axios.post("/rating/create", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
 };
 
-// Giữ lại default cho những chỗ còn import ratingService
-const ratingService = {
-  uploadRatingFiles,
-  createRating,
+export const updateRating = async (ratingId, { stars, comment, files }) => {
+  const ratingPayload = {
+    bookingId: 0,
+    stars: stars,
+    comment: comment,
+  };
+
+  const formData = createFormData(ratingPayload, files);
+
+  const response = await axios.put(`/rating/update/${ratingId}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
 };
 
-export default ratingService;
+export const getRatingByBooking = async (bookingId) => {
+  const response = await axios.get(`/rating/booking/${bookingId}`);
+  return response.data;
+};
+
+export const getRatingsByProperty = async (propertyId, page = 0) => {
+  const response = await axios.get(`/rating/property/${propertyId}?page=${page}`);
+  return response.data;
+};
+
+// --- BỔ SUNG 2 HÀM CÒN THIẾU ---
+
+// Hàm ẩn/hiện đánh giá (Dành cho Admin)
+export const hideRating = async (id, hide) => {
+  // Method PATCH: /api/v1/rating/hide/{id}?hide=true/false
+  const response = await axios.patch(`/rating/hide/${id}?hide=${hide}`);
+  return response.data;
+};
+
+// Hàm xóa đánh giá (Dành cho Admin hoặc Owner)
+export const deleteRating = async (id) => {
+  // Method DELETE: /api/v1/rating/delete/{id}
+  await axios.delete(`/rating/delete/${id}`);
+};
+
+export const pinRating = async (id, pin) => {
+  // Method PATCH: /api/v1/rating/pin/{id}?pin=true/false
+  const response = await axios.patch(`/rating/pin/${id}?pin=${pin}`);
+  return response.data;
+};

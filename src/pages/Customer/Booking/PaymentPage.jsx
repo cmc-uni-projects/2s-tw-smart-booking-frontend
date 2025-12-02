@@ -327,7 +327,7 @@ export default function PaymentPage() {
                             Đơn đặt phòng của bạn đã được xác nhận.
                         </p>
                         <div className="w-full pt-4 flex flex-col gap-3">
-                            <Button onClick={() => navigate('/customer/my-bookings')} fullWidth size="lg">
+                            <Button onClick={() => navigate('/customer/bookings')} fullWidth size="lg">
                                 Đi đến trang Đặt chỗ của tôi
                             </Button>
                             <Button variant="ghost" onClick={() => setIsSuccessOpen(false)} fullWidth>

@@ -97,7 +97,7 @@ const ProfilePage = () => {
       // Nếu là các mục nội bộ, chỉ cần set state
       setActiveSection(path);
     } else {
-      // Nếu là các mục khác (như transactions, my-bookings), dùng navigate để chuyển trang
+      // Nếu là các mục khác (như transactions, bookings), dùng navigate để chuyển trang
       navigate(`/customer/${path}`);
     }
   };

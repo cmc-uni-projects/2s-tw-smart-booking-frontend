@@ -84,7 +84,7 @@ export default function Refunds() {
                                 description="Khi bạn hủy phòng đủ điều kiện hoàn tiền, thông tin sẽ xuất hiện tại đây."
                             />
                             <div className="text-center mt-6">
-                                <Button size="lg" onClick={() => navigate("/customer/my-bookings")} leftIcon={<Search size={18} />}>
+                                <Button size="lg" onClick={() => navigate("/customer/bookings")} leftIcon={<Search size={18} />}>
                                     Xem đặt chỗ của tôi
                                 </Button>
                             </div>
