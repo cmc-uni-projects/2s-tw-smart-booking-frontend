@@ -1,6 +1,6 @@
 // src/pages/Customer/Home/TestimonialSection.jsx
 import React from "react";
-// ✅ Import component con mới
+import { MessageCircle } from "lucide-react"; // 1. Import icon MessageCircle
 import TestimonialCard from "@/components/common/Card/TestimonialCard"; 
 
 const testimonials = [
@@ -11,11 +11,13 @@ const testimonials = [
 
 const TestimonialSection = () => (
   <section className="max-w-6xl mx-auto px-6 mt-16 pb-10">
-    <h2 className="text-2xl font-bold text-gray-800 text-center mb-8">
-      💬 Khách hàng nói gì về chúng tôi
+    {/* 2. Thêm flex, justify-center để căn giữa cả icon và chữ */}
+    <h2 className="text-2xl font-bold text-gray-800 text-center mb-8 flex justify-center items-center gap-3">
+      {/* 3. Thay emoji bằng icon MessageCircle */}
+      <MessageCircle className="w-8 h-8 text-blue-600 fill-blue-100" />
+      Khách hàng nói gì về chúng tôi
     </h2>
     
-    {/* ✅ Sử dụng TestimonialCard thay vì logic inline */}
     <div className="grid md:grid-cols-3 gap-6">
       {testimonials.map((t, i) => (
         <TestimonialCard key={i} testimonial={t} />
