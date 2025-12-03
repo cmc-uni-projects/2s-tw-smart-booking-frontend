@@ -191,6 +191,12 @@ const updatePropertyPolicies = async (propertyId, policyData) => {
   }
 };
 
+const checkNameAvailability = (name) => {
+  return axios.get(`${API_URL}/check-name`, {
+    params: { name }
+  });
+};
+
 
 // ==========================================================
 // 📦 EXPORT
@@ -209,7 +215,8 @@ const propertyService = {
   findNearbyProperties,
   addPropertyPolicies,
   getPropertyPolicies,  
-  updatePropertyPolicies,   
+  updatePropertyPolicies,
+  checkNameAvailability,   
 };
 
 export default propertyService;

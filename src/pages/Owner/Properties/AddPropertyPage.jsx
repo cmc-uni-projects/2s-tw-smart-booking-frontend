@@ -22,7 +22,7 @@ import Step4_Details from "./AddPropertySteps/Step4_Details";
 import Step5_Review from "./AddPropertySteps/Step5_Review";
 import Step6_Status from "./AddPropertySteps/Step6_Status";
 import Step_WholeUnitSetup from "./AddPropertySteps/Step_WholeUnitSetup";
-import Step_Policies from "./AddPropertySteps/Step_Policies"; // ✅ Import Bước Chính sách
+import Step_Policies from "./AddPropertySteps/Step_Policies"; 
 
 // --- 1. VALIDATION SCHEMAS ---
 const fileListValidation = (min = 3) => yup
@@ -39,11 +39,19 @@ const baseSchemas = {
   step2: yup.object({ amenities: yup.object().nullable() }),
   step3: yup.object({ propertyImages: fileListValidation(3) }),
   step4: yup.object({
-    propertyName: yup.string().required("Nhập tên chỗ nghỉ"),
-    description: yup.string().min(50, "Mô tả tối thiểu 50 ký tự").required(),
-    area: yup.number().min(1, "Diện tích phải > 0").required("Bắt buộc nhập"),
+    propertyName: yup.string().required("Vui lòng nhập tên chỗ nghỉ"),
+    description: yup.string()
+      .min(50, "Mô tả quá ngắn, tối thiểu 50 ký tự")
+      .required("Vui lòng nhập mô tả chi tiết"),
+    // ✅ Sửa lại validate area để tránh lỗi NaN
+    area: yup.number()
+      .transform((value, originalValue) => (String(originalValue).trim() === "" ? null : value))
+      .nullable()
+      .typeError("Diện tích phải là số hợp lệ")
+      .positive("Diện tích phải lớn hơn 0")
+      .required("Vui lòng nhập diện tích"),
   }),
-  // ✅ Schema cho bước Chính sách
+  // Schema cho bước Chính sách
   stepPolicies: yup.object({
     policies: yup.object().shape({
       checkInFrom: yup.string().required("Chọn giờ nhận phòng"),
@@ -68,7 +76,7 @@ const baseSchemas = {
 export default function AddPropertyPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null); 
+  const [error, setErrorState] = useState(null); // Đổi tên state để tránh trùng tên với setError của RHF
   const navigate = useNavigate();
 
   // --- 2. KHỞI TẠO FORM ---
@@ -80,6 +88,8 @@ export default function AddPropertyPage() {
     setValue,
     control,
     getValues,
+    setError,      // ✅ Lấy hàm setError
+    clearErrors,   // ✅ Lấy hàm clearErrors
     formState: { errors },
   } = useForm({
     mode: "onChange",
@@ -101,7 +111,7 @@ export default function AddPropertyPage() {
         images: []
       },
 
-      // ✅ Dữ liệu mặc định cho Policies
+      // Dữ liệu mặc định cho Policies
       policies: {
         checkInFrom: "14:00",
         checkInTo: "23:00",
@@ -132,7 +142,7 @@ export default function AddPropertyPage() {
       { id: 3, title: "Hình ảnh", component: Step3_Images, schema: baseSchemas.step3 },
       { id: 4, title: "Chi tiết", component: Step4_Details, schema: baseSchemas.step4 },
       
-      // ✅ CHÈN BƯỚC CHÍNH SÁCH VÀO ĐÂY
+      // BƯỚC CHÍNH SÁCH
       { 
         id: 5, 
         title: "Chính sách", 
@@ -166,24 +176,34 @@ export default function AddPropertyPage() {
   // Danh sách hiển thị trên Stepper (bỏ bước 0 - Loại hình và bước Status)
   const stepperItems = stepsConfig.slice(1).map(s => ({ name: s.title }));
 
-  // --- 4. XỬ LÝ CHUYỂN BƯỚC ---
+  // --- 4. XỬ LÝ CHUYỂN BƯỚC (Đã sửa lại logic validate) ---
   const handleNext = async () => {
     const currentSchema = CurrentStepConfig.schema;
-    let isValid = true;
+    
+    // Xóa lỗi cũ để tránh hiển thị lỗi của lần check trước
+    clearErrors();
 
     if (currentSchema) {
       try {
+        // Validate dữ liệu trong form theo Schema của Yup
         await currentSchema.validate(getValues(), { abortEarly: false });
+        
+        // Nếu không có lỗi -> Chuyển bước
+        setCurrentStep(prev => prev + 1);
+        
       } catch (err) {
-        isValid = false;
-        err.inner.forEach(error => {
-          setValue(error.path, getValues(error.path), { shouldValidate: true }); 
-        });
-        await trigger(); 
+        // Nếu có lỗi Yup -> Map từng lỗi vào setError của React Hook Form
+        if (err.inner) {
+          err.inner.forEach(validationError => {
+            setError(validationError.path, {
+              type: "manual",
+              message: validationError.message,
+            });
+          });
+        }
       }
-    }
-
-    if (isValid) {
+    } else {
+      // Trường hợp không có schema (hiếm gặp) -> Next luôn
       setCurrentStep(prev => prev + 1);
     }
   };
@@ -196,7 +216,7 @@ export default function AddPropertyPage() {
   // --- 5. XỬ LÝ SUBMIT (GỌI API) ---
   const onFinalSubmit = async (data) => {
     setIsLoading(true);
-    setError(null);
+    setErrorState(null);
 
     try {
       // =======================================================
@@ -282,7 +302,7 @@ export default function AddPropertyPage() {
     } catch (err) {
       console.error("Lỗi Submit:", err);
       const serverMessage = err.response?.data?.message || err.message;
-      setError(`Lỗi: ${serverMessage}`);
+      setErrorState(`Lỗi: ${serverMessage}`);
       setCurrentStep(stepsConfig.length); // Chuyển sang trang Status để hiện lỗi
     } finally {
       setIsLoading(false);
@@ -293,7 +313,7 @@ export default function AddPropertyPage() {
   
   // Render component Status (Bước cuối cùng)
   if (currentStep === stepsConfig.length) {
-    return <Step6_Status error={error} onRetry={() => { setError(null); setCurrentStep(stepsConfig.length - 2); }} />;
+    return <Step6_Status error={error} onRetry={() => { setErrorState(null); setCurrentStep(stepsConfig.length - 2); }} />;
   }
 
   const StepComponent = CurrentStepConfig?.component;
@@ -343,6 +363,8 @@ export default function AddPropertyPage() {
                     setValue={setValue} 
                     control={control}
                     trigger={trigger}
+                    setError={setError}
+                    clearErrors={clearErrors}
                   />
                 )}
 
