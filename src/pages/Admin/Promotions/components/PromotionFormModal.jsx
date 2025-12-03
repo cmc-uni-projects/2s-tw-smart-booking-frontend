@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import {
-    X, Tag, Percent, DollarSign,
+    X, Tag, Percent, Banknote, // ĐÃ SỬA: Thay DollarSign bằng Banknote
     Layers, Hash, CheckCircle2, AlertCircle, Clock, Calendar, Upload, Image as ImageIcon,
-    Crown // [MỚI] Import icon vương miện cho Rank
+    Crown
 } from "lucide-react";
 import promotionService from "../../../../services/promotion.service";
 import toast from "react-hot-toast";
@@ -178,7 +178,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
     const [formData, setFormData] = useState({
         code: "", name: "", type: "PERCENT", value: "", quantity: "", minOrder: "", maxDiscount: "",
         startDate: "", endDate: "", isActive: true,
-        minMembershipRank: "BRONZE" // [MỚI] Mặc định là Đồng
+        minMembershipRank: "BRONZE"
     });
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -227,7 +227,6 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                     startDate: normalizeDateTime(rest.startDate),
                     endDate: normalizeDateTime(rest.endDate),
                     isActive: rest.isActive !== undefined ? rest.isActive : true,
-                    // [MỚI] Lấy rank từ dữ liệu sửa, nếu không có thì mặc định Bronze
                     minMembershipRank: rest.minMembershipRank || "BRONZE"
                 });
                 setPreviewUrl(getFullImageUrl(rest.bannerUrl));
@@ -235,7 +234,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                 setFormData({
                     code: "", name: "", type: "PERCENT", value: "", quantity: 100, minOrder: 0, maxDiscount: 0,
                     startDate: "", endDate: "", isActive: true,
-                    minMembershipRank: "BRONZE" // [MỚI] Reset về Bronze khi tạo mới
+                    minMembershipRank: "BRONZE"
                 });
                 setPreviewUrl(null);
             }
@@ -434,12 +433,21 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
 
                     <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <CustomSelect label="Loại giảm giá" name="type" value={formData.type} onChange={handleChange} icon={Layers} options={[ { value: "PERCENT", label: "Giảm theo % (Phần trăm)" }, { value: "FIXED", label: "Giảm giá cố định (VNĐ)" } ]} />
-                        <CustomInput label={formData.type === 'PERCENT' ? "Mức giảm (%)" : "Số tiền (VNĐ)"} name="value" type="number" value={formData.value} onChange={handleChange} placeholder={formData.type === 'PERCENT' ? "VD: 20" : "VD: 50000"} icon={formData.type === 'PERCENT' ? Percent : DollarSign} error={errors.value} min="0" onFocus={(e) => e.target.select()} />
+                        {/* ĐÃ SỬA: Dùng icon Banknote nếu là loại FIXED */}
+                        <CustomInput label={formData.type === 'PERCENT' ? "Mức giảm (%)" : "Số tiền (VNĐ)"} name="value" type="number" value={formData.value} onChange={handleChange} placeholder={formData.type === 'PERCENT' ? "VD: 20" : "VD: 50000"} icon={formData.type === 'PERCENT' ? Percent : Banknote} error={errors.value} min="0" onFocus={(e) => e.target.select()} />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                        <CustomInput label="Đơn tối thiểu" name="minOrder" type="number" value={formData.minOrder} onChange={handleChange} icon={DollarSign} placeholder="0" min="0" onFocus={(e) => e.target.select()} error={errors.minOrder} />
-                        {formData.type === 'PERCENT' ? (<CustomInput label="Giảm tối đa" name="maxDiscount" type="number" value={formData.maxDiscount} onChange={handleChange} icon={DollarSign} placeholder="VD: 200000" min="0" onFocus={(e) => e.target.select()} error={errors.maxDiscount} />) : (<div className="opacity-50"><CustomInput label="Giảm tối đa" value="-" disabled /></div>)}
+                        {/* ĐÃ SỬA: Icon Banknote cho đơn tối thiểu */}
+                        <CustomInput label="Đơn tối thiểu" name="minOrder" type="number" value={formData.minOrder} onChange={handleChange} icon={Banknote} placeholder="0" min="0" onFocus={(e) => e.target.select()} error={errors.minOrder} />
+
+                        {formData.type === 'PERCENT' ? (
+                            // ĐÃ SỬA: Icon Banknote cho giảm tối đa
+                            <CustomInput label="Giảm tối đa" name="maxDiscount" type="number" value={formData.maxDiscount} onChange={handleChange} icon={Banknote} placeholder="VD: 200000" min="0" onFocus={(e) => e.target.select()} error={errors.maxDiscount} />
+                        ) : (
+                            <div className="opacity-50"><CustomInput label="Giảm tối đa" value="-" disabled /></div>
+                        )}
+
                         <CustomInput label="Tổng số lượng" name="quantity" type="number" value={formData.quantity} onChange={handleChange} icon={Hash} placeholder="1000" min="1" onFocus={(e) => e.target.select()} error={errors.quantity} />
                     </div>
 

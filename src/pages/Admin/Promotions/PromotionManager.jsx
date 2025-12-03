@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import Table from "@/components/common/Table/Table";
 import Button from "@/components/common/Button/Button";
 import PromotionFormModal from "./components/PromotionFormModal";
@@ -24,11 +25,9 @@ const getFullImageUrl = (path) => {
     return `${BE_BASE_URL}${UPLOAD_DIR}${cleanPath}`;
 };
 
-// --- COMPONENT: Banner Image (Xử lý ảnh lỗi thông minh) ---
+// --- COMPONENT: Banner Image ---
 const BannerImage = ({ url }) => {
     const [error, setError] = useState(false);
-
-    // Nếu không có URL hoặc đã xảy ra lỗi tải ảnh -> Hiển thị Icon thay thế
     if (!url || error) {
         return (
             <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300">
@@ -36,13 +35,12 @@ const BannerImage = ({ url }) => {
             </div>
         );
     }
-
     return (
         <img
             src={getFullImageUrl(url)}
             alt="Banner"
             className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-            onError={() => setError(true)} // Khi lỗi xảy ra, set state error = true
+            onError={() => setError(true)}
         />
     );
 };
@@ -121,37 +119,117 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, promoCode }) => {
     );
 };
 
+// --- ACTION MENU (PORTAL) ---
 const ActionMenu = ({ promo, onEdit, onDelete, onRequestToggle }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [menuStyle, setMenuStyle] = useState({});
+    const buttonRef = useRef(null);
     const menuRef = useRef(null);
 
+    const toggleMenu = (e) => {
+        e.stopPropagation();
+
+        if (!isOpen && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            const menuHeightEstimate = 160;
+            const spaceBelow = viewportHeight - rect.bottom;
+
+            let style = {
+                position: 'fixed',
+                zIndex: 9999,
+                minWidth: '192px',
+            };
+
+            if (spaceBelow < menuHeightEstimate) {
+                style.bottom = `${viewportHeight - rect.top + 5}px`;
+                style.left = `${rect.right - 192}px`;
+                style.transformOrigin = 'bottom right';
+            } else {
+                style.top = `${rect.bottom + 5}px`;
+                style.left = `${rect.right - 192}px`;
+                style.transformOrigin = 'top right';
+            }
+            setMenuStyle(style);
+        }
+        setIsOpen(!isOpen);
+    };
+
     useEffect(() => {
-        const handleClickOutside = (event) => { if (menuRef.current && !menuRef.current.contains(event.target)) setIsOpen(false); };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+        const handleClickOutside = (event) => {
+            if (
+                isOpen &&
+                buttonRef.current && !buttonRef.current.contains(event.target) &&
+                menuRef.current && !menuRef.current.contains(event.target)
+            ) {
+                setIsOpen(false);
+            }
+        };
+
+        const handleScroll = () => {
+            if (isOpen) setIsOpen(false);
+        };
+
+        window.addEventListener("mousedown", handleClickOutside);
+        window.addEventListener("scroll", handleScroll, true);
+        window.addEventListener("resize", handleScroll);
+
+        return () => {
+            window.removeEventListener("mousedown", handleClickOutside);
+            window.removeEventListener("scroll", handleScroll, true);
+            window.removeEventListener("resize", handleScroll);
+        };
+    }, [isOpen]);
 
     const isExpired = parseDate(promo.endDate) < new Date();
     const isPaused = !promo.isActive;
 
-    return (
-        <div className="relative" ref={menuRef}>
-            <button onClick={() => setIsOpen(!isOpen)} className="p-2 rounded-full hover:bg-gray-100 text-gray-500 transition-colors"><MoreVertical size={18} /></button>
-            {isOpen && (
-                <div className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden animate-fadeIn">
-                    <div className="py-1">
-                        <button onClick={() => { onEdit(promo); setIsOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"><Edit size={16} className="text-blue-500"/> Sửa</button>
-                        {!isExpired && (
-                            <button onClick={() => { onRequestToggle(promo); setIsOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                                {isPaused ? <><PlayCircle size={16} className="text-green-500"/> Kích hoạt</> : <><PauseCircle size={16} className="text-orange-500"/> Tạm dừng</>}
-                            </button>
-                        )}
-                        <div className="border-t border-gray-100 my-1"></div>
-                        <button onClick={() => { onDelete(promo); setIsOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"><Trash2 size={16} /> Xóa</button>
-                    </div>
-                </div>
-            )}
+    const menuContent = (
+        <div
+            ref={menuRef}
+            style={menuStyle}
+            className="bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] border border-gray-100 overflow-hidden animate-fadeIn"
+        >
+            <div className="py-1">
+                {/* ĐÃ SỬA: Thêm hover effect cho nút Sửa (Blue) */}
+                <button
+                    onClick={() => { onEdit(promo); setIsOpen(false); }}
+                    className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2"
+                >
+                    <Edit size={16} className="text-blue-500"/> Sửa
+                </button>
+
+                {!isExpired && (
+                    <button
+                        onClick={() => { onRequestToggle(promo); setIsOpen(false); }}
+                        // ĐÃ SỬA: Thêm hover effect tùy theo trạng thái (Green cho Kích hoạt, Orange cho Tạm dừng)
+                        className={`w-full px-4 py-2.5 text-left text-sm text-gray-700 transition-colors flex items-center gap-2 ${
+                            isPaused ? 'hover:bg-green-50 hover:text-green-600' : 'hover:bg-orange-50 hover:text-orange-600'
+                        }`}
+                    >
+                        {isPaused ? <><PlayCircle size={16} className="text-green-500"/> Kích hoạt</> : <><PauseCircle size={16} className="text-orange-500"/> Tạm dừng</>}
+                    </button>
+                )}
+
+                <div className="border-t border-gray-100 my-1"></div>
+
+                {/* Nút Xóa đã có hover đỏ từ trước */}
+                <button onClick={() => { onDelete(promo); setIsOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"><Trash2 size={16} /> Xóa</button>
+            </div>
         </div>
+    );
+
+    return (
+        <>
+            <button
+                ref={buttonRef}
+                onClick={toggleMenu}
+                className={`p-2 rounded-full transition-colors ${isOpen ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100 text-gray-500'}`}
+            >
+                <MoreVertical size={18} />
+            </button>
+            {isOpen && createPortal(menuContent, document.body)}
+        </>
     );
 };
 
@@ -196,7 +274,6 @@ const PromotionManager = () => {
                 endDate: item.endDate,
                 isActive: item.status === "ACTIVE",
                 bannerUrl: item.bannerUrl,
-                // [MỚI] Map thêm trường này để khi Sửa modal biết được rank cũ
                 minMembershipRank: item.minMembershipRank
             }));
             mappedData.sort((a, b) => b.id - a.id);
@@ -339,7 +416,7 @@ const PromotionManager = () => {
     };
 
     const getDisplayData = (data) => {
-        return data.map(item => {
+        return data.map((item, index) => {
             const status = getPromoStatus(item);
             const daysRemaining = getDaysRemaining(item.endDate);
             const usagePercent = item.quantity > 0 ? Math.round((item.usedCount / item.quantity) * 100) : 0;
@@ -353,7 +430,6 @@ const PromotionManager = () => {
                         <Copy size={14} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"/>
                     </div>
                 ),
-                // ✅ SỬ DỤNG BannerImage component mới để hiển thị an toàn
                 bannerDisplay: (
                     <div className="w-16 h-10 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 flex items-center justify-center shadow-sm group relative">
                         <BannerImage url={item.bannerUrl} />
@@ -362,12 +438,21 @@ const PromotionManager = () => {
                 details: item.type === 'PERCENT' ? `${item.value}% (Tối đa ${Number(item.maxDiscount).toLocaleString()}đ)` : `${Number(item.value).toLocaleString()}đ`,
                 usageProgress: (
                     <div className="w-32">
-                        <div className="flex justify-between text-xs mb-1 font-medium">
-                            <span className={`${isNearFull ? 'text-red-600' : 'text-gray-700'}`}>{item.usedCount}</span>
-                            <span className="text-gray-400">/ {item.quantity}</span>
-                        </div>
-                        <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                            <div className={`h-1.5 rounded-full transition-all duration-500 ${isNearFull ? 'bg-red-500' : (usagePercent > 50 ? 'bg-orange-400' : 'bg-[rgb(40,169,224)]')}`} style={{ width: `${usagePercent}%` }}></div>
+                        <div className="relative w-full h-5 bg-gray-100 rounded-full overflow-hidden shadow-inner border border-gray-100 group" title={`${item.usedCount} đã dùng / ${item.quantity} tổng số`}>
+                            <div className="absolute inset-0 flex items-center justify-center z-0">
+                                <span className="text-[10px] font-bold text-gray-500 select-none">{item.usedCount} / {item.quantity}</span>
+                            </div>
+
+                            <div
+                                className={`absolute top-0 left-0 h-full z-10 overflow-hidden transition-all duration-700 ease-out ${
+                                    isNearFull ? 'bg-red-500' : (usagePercent > 50 ? 'bg-orange-400' : 'bg-[rgb(40,169,224)]')
+                                }`}
+                                style={{ width: `${usagePercent}%` }}
+                            >
+                                <div className="w-32 h-full flex items-center justify-center">
+                                    <span className="text-[10px] font-bold text-white drop-shadow-sm select-none">{item.usedCount} / {item.quantity}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 ),
@@ -384,14 +469,19 @@ const PromotionManager = () => {
                 ),
                 statusLabel: (
                     <>
-                        {status === 'ACTIVE' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200"><span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Hoạt động</span>}
-                        {status === 'PAUSED' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200"><span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Tạm dừng</span>}
-                        {status === 'EXPIRED' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200"><XCircle size={12} /> Hết hạn</span>}
+                        {status === 'ACTIVE' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200 whitespace-nowrap"><span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Hoạt động</span>}
+                        {status === 'PAUSED' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200 whitespace-nowrap"><span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Tạm dừng</span>}
+                        {status === 'EXPIRED' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200 whitespace-nowrap"><XCircle size={12} /> Hết hạn</span>}
                     </>
                 ),
                 actions: (
                     <div className="flex justify-center">
-                        <ActionMenu promo={item} onEdit={(p) => { setEditingPromo(p); setIsModalOpen(true); }} onDelete={handleRequestDelete} onRequestToggle={handleRequestToggleStatus} />
+                        <ActionMenu
+                            promo={item}
+                            onEdit={(p) => { setEditingPromo(p); setIsModalOpen(true); }}
+                            onDelete={handleRequestDelete}
+                            onRequestToggle={handleRequestToggleStatus}
+                        />
                     </div>
                 )
             };
@@ -402,7 +492,6 @@ const PromotionManager = () => {
 
     return (
         <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
-            {/* Đã sửa: Thêm containerStyle với z-index cực cao */}
             <Toaster
                 containerStyle={{
                     zIndex: 100000,
@@ -432,8 +521,9 @@ const PromotionManager = () => {
                     {(searchTerm || filterStatus !== 'ALL' || filterType !== 'ALL') && (<button onClick={() => { setSearchTerm(""); setFilterStatus("ALL"); setFilterType("ALL"); }} className="px-4 py-2.5 text-red-500 bg-red-50 hover:bg-red-100 rounded-xl text-sm font-medium whitespace-nowrap">Xóa lọc</button>)}
                 </div>
             </div>
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col min-h-[500px] [&_th:last-child]:hidden [&_td:last-child]:hidden relative">
-                {isLoading && (<div className="absolute inset-0 bg-white/80 z-10 flex items-center justify-center"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[rgb(40,169,224)]"></div></div>)}
+
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col relative [&_th:last-child]:hidden [&_td:last-child]:hidden">
+                {isLoading && (<div className="absolute inset-0 bg-white/80 z-10 flex items-center justify-center min-h-[400px]"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[rgb(40,169,224)]"></div></div>)}
                 {filteredPromotions.length > 0 ? (
                     <>
                         <Table columns={columns} data={getDisplayData(paginatedData)} />
@@ -450,7 +540,7 @@ const PromotionManager = () => {
                         </div>
                     </>
                 ) : (
-                    !isLoading && (<div className="flex flex-col items-center justify-center py-20 text-center"><div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-4"><Search size={40} className="text-gray-300" /></div><h3 className="text-lg font-semibold text-gray-800">Không tìm thấy kết quả</h3><button onClick={() => { setSearchTerm(""); setFilterStatus("ALL"); setFilterType("ALL"); }} className="mt-4 text-blue-600 font-medium hover:underline">Xóa bộ lọc & tìm lại</button></div>)
+                    !isLoading && (<div className="flex flex-col items-center justify-center py-20 text-center min-h-[400px]"><div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-4"><Search size={40} className="text-gray-300" /></div><h3 className="text-lg font-semibold text-gray-800">Không tìm thấy kết quả</h3><button onClick={() => { setSearchTerm(""); setFilterStatus("ALL"); setFilterType("ALL"); }} className="mt-4 text-blue-600 font-medium hover:underline">Xóa bộ lọc & tìm lại</button></div>)
                 )}
             </div>
             <PromotionFormModal open={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={fetchPromotions} initialData={editingPromo} />
