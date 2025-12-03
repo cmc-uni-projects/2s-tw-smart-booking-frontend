@@ -87,8 +87,8 @@ const GlassContent = ({ promo, onClick }) => (
                 Khuyến Mãi Hot
             </span>
 
-            {/* Title */}
-            <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-4 leading-tight drop-shadow-lg line-clamp-2">
+            {/* Title - Đã xóa line-clamp-2 để hiện đầy đủ */}
+            <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-4 leading-tight drop-shadow-lg">
                 {promo.title}
             </h2>
 
@@ -258,20 +258,20 @@ const AutoScrollBanner = ({ promotions, onBannerClick }) => {
 
             {/* Custom Animations Styles */}
             <style jsx>{`
-                @keyframes fadeInUp {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                .animate-fade-in-up {
-                    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-                }
-                @keyframes bounceSlow {
-                    0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(-6px); }
-                }
-                .animate-bounce-slow {
-                    animation: bounceSlow 3s infinite ease-in-out;
-                }
+              @keyframes fadeInUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+              }
+              .animate-fade-in-up {
+                animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+              }
+              @keyframes bounceSlow {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-6px); }
+              }
+              .animate-bounce-slow {
+                animation: bounceSlow 3s infinite ease-in-out;
+              }
             `}</style>
         </div>
     );

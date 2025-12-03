@@ -18,21 +18,33 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
         }
     }, [isOpen]);
 
+    // --- [XỬ LÝ THANH CUỘN] ---
+    // Khi Modal mở -> Ẩn thanh cuộn của trang web (body) đi
+    // Kết quả: Chỉ còn 1 thanh cuộn duy nhất nằm trong Modal
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        // Dọn dẹp khi tắt component (đề phòng lỗi mất thanh cuộn vĩnh viễn)
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
+
     if (!promo) return null;
 
-    // --- XỬ LÝ DỮ LIỆU THÔNG MINH (TRÁNH LỖI 0đ) ---
-    // Hàm làm sạch số: chuyển "10.00" hoặc 10.00 thành 10
+    // --- XỬ LÝ DỮ LIỆU ---
     const cleanNumber = (val) => {
         if (val === undefined || val === null) return 0;
         return Number(val);
     };
 
-    // 1. Ưu tiên lấy đúng tên trường từ API (minBookingAmount), nếu không có thì fallback về minOrder
     const minBookingAmount = cleanNumber(promo.minBookingAmount ?? promo.minOrder);
     const maxDiscountAmount = cleanNumber(promo.maxDiscountAmount ?? promo.maxDiscount);
     const discountVal = cleanNumber(promo.discountValue);
-
-    // 2. Xử lý hạng thành viên (Ưu tiên minMembershipRank)
     const targetRank = promo.minMembershipRank || promo.targetRank || "BRONZE";
 
     const handleCopyCode = () => {
@@ -57,7 +69,6 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
         return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     };
 
-    // CẤU HÌNH GIAO DIỆN THEO HẠNG
     const getRankConfig = (rank) => {
         const r = rank ? rank.toUpperCase() : 'ALL';
         switch (r) {
@@ -117,7 +128,6 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
     };
 
     const daysLeft = getDaysLeft();
-    // Logic xác định Big Sale: % >= 20 hoặc Tiền >= 500k
     const isBigSale = (promo.discountType === 'PERCENTAGE' && discountVal >= 20) ||
         (promo.discountType === 'FIXED' && discountVal >= 500000);
 
@@ -125,9 +135,15 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
 
     return (
         <Modal open={isOpen} onClose={onClose} title={null} maxWidth="max-w-2xl">
-            <div className={`bg-white rounded-3xl flex flex-col relative transition-all duration-500 ease-out
-                max-h-[90vh] overflow-y-auto
-                [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]
+            {/* [CẤU HÌNH CUỘN]:
+                - max-h-[85vh]: Giới hạn chiều cao modal.
+                - overflow-y-auto: HIỆN thanh cuộn cho modal khi nội dung dài.
+                - Đã xóa các class ẩn thanh cuộn để bạn có thể kéo chuột.
+                - Kết hợp với useEffect ở trên -> Chỉ còn 1 thanh cuộn này duy nhất.
+            */}
+            <div className={`bg-white rounded-3xl flex flex-col relative 
+                duration-500 ease-out transition-[opacity,transform] will-change-[opacity,transform]
+                w-full max-h-[85vh] overflow-y-auto overscroll-contain
                 ${animate ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
 
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0"
@@ -284,7 +300,6 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
                                         <span>Đơn tối thiểu:</span>
                                     </div>
                                     <span className="font-bold text-gray-900">
-                                        {/* .toLocaleString('vi-VN') sẽ tự động định dạng: 10000 -> 10.000, 10 -> 10 */}
                                         {minBookingAmount.toLocaleString('vi-VN')}đ
                                     </span>
                                 </li>
