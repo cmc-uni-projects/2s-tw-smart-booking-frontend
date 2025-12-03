@@ -1,3 +1,4 @@
+// src/pages/Owner/Rooms/components/EditRoomModal.jsx
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -10,12 +11,12 @@ import TextArea from "@/components/common/Input/TextArea";
 import ImageUploadGrid from "@/components/common/Input/ImageUploadGrid";
 import AmenityOption from "../../Properties/AddPropertySteps/components/AmenityOption";
 import roomService from "@/services/room.service";
-import api from "@/services/axios.config";
 
+// Icons
 import {
   Tv, Wind, Coffee, Wifi, Bath, Snowflake, 
   BedDouble, Users, DollarSign, Image as ImageIcon, Package, Trash2,
-  Wine, Ban, Star, RefreshCw // ✅ Đã import đủ icon
+  Wine, Ban, Star, RefreshCw, Loader2, CheckCircle, AlertCircle
 } from "lucide-react";
 
 // --- CONFIG ---
@@ -29,7 +30,6 @@ const getFullImageUrl = (url) => {
   return `${API_BASE_URL}${path}`;
 };
 
-// Amenities & Categories (Giữ nguyên)
 const ROOM_AMENITIES = [
   { id: "tv", label: "TV", icon: <Tv size={20} /> },
   { id: "ac", label: "Điều hòa", icon: <Snowflake size={20} /> },
@@ -58,12 +58,24 @@ const schema = yup.object({
 
 export default function EditRoomModal({ open, onClose, room, propertyId, onSuccess, showToast }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [currentImages, setCurrentImages] = useState([]); // Danh sách ảnh (có ID & isCover)
+  const [currentImages, setCurrentImages] = useState([]); 
   const [newImages, setNewImages] = useState([]);
+  
+  // State check tên
+  const [isCheckingName, setIsCheckingName] = useState(false);
+  const [isNameValid, setIsNameValid] = useState(null); 
 
   const isEditMode = !!room;
 
-  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
+  const { 
+    register, 
+    handleSubmit, 
+    reset, 
+    watch, 
+    setError, 
+    clearErrors, 
+    formState: { errors } 
+  } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
         roomCategory: "STANDARD",
@@ -72,12 +84,62 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
     }
   });
 
-  // 1. Load Data & Fetch Real Images
+  const roomNameValue = watch("roomName");
+
+  // ✅ FIX LOOP: Đã xóa errors.roomName?.type khỏi dependency array
+  useEffect(() => {
+    // 1. Reset nếu input rỗng hoặc modal đóng
+    if (!open || !roomNameValue || roomNameValue.trim() === "") {
+        setIsNameValid(null);
+        setIsCheckingName(false);
+        return;
+    }
+
+    // 2. Nếu đang Edit và tên giống tên cũ -> Không check
+    if (isEditMode && roomNameValue.trim() === room.roomName) {
+        setIsNameValid(null); 
+        return;
+    }
+
+    // 3. Bắt đầu quá trình check (Xóa lỗi cũ ngay khi user gõ)
+    setIsCheckingName(true);
+    setIsNameValid(null);
+    clearErrors("roomName"); // Reset lỗi cũ để tránh xung đột UI
+
+    const timer = setTimeout(async () => {
+        try {
+            const excludeId = isEditMode ? room.roomId : 0;
+            
+            await roomService.checkNameAvailability(propertyId, roomNameValue, excludeId);
+            
+            // Success: 200 OK
+            setIsNameValid(true);
+
+        } catch (error) {
+            // Error: 409 Conflict
+            setIsNameValid(false);
+            
+            const serverMessage = error.response?.data?.message || "Tên phòng này đã tồn tại.";
+            setError("roomName", {
+                type: "manual",
+                message: serverMessage
+            });
+        } finally {
+            setIsCheckingName(false);
+        }
+    }, 600); // Debounce 600ms
+
+    return () => clearTimeout(timer);
+    
+    // ⚠️ QUAN TRỌNG: KHÔNG ĐƯỢC thêm 'errors' vào dependency array
+  }, [roomNameValue, open, propertyId, isEditMode, room, setError, clearErrors]);
+
+
+  // 1. Load Data
   useEffect(() => {
     if (open) {
+      setIsNameValid(null);
       if (room) {
-        // --- EDIT MODE ---
-        // Map amenities
         const amenityMap = {};
         if(room.amenities) {
              room.amenities.forEach(item => {
@@ -96,11 +158,8 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
           amenities: amenityMap,
         });
         
-        // ✅ QUAN TRỌNG: Gọi API lấy danh sách ảnh chi tiết (để có ID và isCover)
-        // Vì object 'room' từ list bên ngoài chỉ chứa List<String> url
         const fetchImages = async () => {
             try {
-                // Gọi service lấy ảnh phòng (Bạn cần đảm bảo đã thêm hàm này vào room.service.js)
                 const images = await roomService.getRoomImages(room.roomId);
                 setCurrentImages(images || []);
             } catch (error) {
@@ -111,7 +170,6 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
         fetchImages();
 
       } else {
-        // --- ADD MODE ---
         reset({
             roomName: "",
             roomCategory: "STANDARD",
@@ -126,51 +184,39 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
     }
   }, [open, room, reset]);
 
-  // 2. Xử lý Đặt ảnh bìa (Giống EditPropertyModal)
+  // Các hàm xử lý ảnh giữ nguyên
   const handleSetCover = async (imageId) => {
       if (!room?.roomId) return;
       try {
           setIsLoading(true);
           await roomService.setRoomCoverImage(room.roomId, imageId);
-          
-          // Update UI local
-          const updated = currentImages.map(img => ({
-              ...img,
-              isCover: img.roomImageId === imageId
-          }));
+          const updated = currentImages.map(img => ({...img, isCover: img.roomImageId === imageId}));
           setCurrentImages(updated);
           if(showToast) showToast("Đã đặt ảnh bìa", "success");
       } catch (e) {
           if(showToast) showToast("Lỗi đặt ảnh bìa", "error");
-      } finally {
-          setIsLoading(false);
-      }
+      } finally { setIsLoading(false); }
   };
 
-  // 3. Xử lý Xóa ảnh (Giống EditPropertyModal)
   const handleDeleteImage = async (imageId) => {
      if (!room?.roomId) return;
      if(!window.confirm("Bạn có chắc muốn xóa ảnh này?")) return;
-     
      try {
          setIsLoading(true);
          await roomService.deleteRoomImage(room.roomId, imageId);
-         
-         // Update UI local
          setCurrentImages(prev => prev.filter(img => img.roomImageId !== imageId));
          if(showToast) showToast("Đã xóa ảnh", "success");
      } catch (e) {
          if(showToast) showToast("Lỗi xóa ảnh", "error");
-     } finally {
-         setIsLoading(false);
-     }
+     } finally { setIsLoading(false); }
   };
 
-  // 4. Submit Form
   const onSubmit = async (data) => {
+    // Chặn submit nếu đang check hoặc tên không hợp lệ
+    if (isCheckingName || isNameValid === false) return;
+
     try {
       setIsLoading(true);
-      
       const selectedAmenities = Object.keys(data.amenities || {}).filter(key => data.amenities[key]);
       
       const roomDataObj = {
@@ -185,7 +231,6 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
 
       const formData = new FormData();
       formData.append("roomData", JSON.stringify(roomDataObj));
-      
       if (newImages.length > 0) {
           Array.from(newImages).forEach(file => formData.append("images", file));
       }
@@ -218,11 +263,30 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
       >
         <form onSubmit={handleSubmit(onSubmit)} className="p-1 max-h-[75vh] overflow-y-auto pr-2">
            
-           {/* SECTION 1 & 2: INFO & AMENITIES (Giữ nguyên như cũ) */}
            <section className="mb-6">
                <h4 className="text-blue-600 font-semibold mb-3 flex items-center gap-2"><BedDouble size={20}/> Thông tin phòng</h4>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                   <FloatingTextField label="Tên phòng (Số phòng)" placeholder=" " {...register("roomName")} error={errors.roomName?.message} />
+                   
+                   {/* Tên phòng + Status Check */}
+                   <div className="relative">
+                       <FloatingTextField 
+                          label="Tên phòng (Số phòng)" 
+                          placeholder=" " 
+                          {...register("roomName")} 
+                          // Nếu có lỗi manual (từ server) thì hiển thị, nếu không thì hiển thị lỗi yup
+                          error={errors.roomName?.message} 
+                       />
+                       
+                       <div className="absolute right-3 top-3.5 pointer-events-none">
+                           {isCheckingName && <Loader2 size={18} className="animate-spin text-blue-500"/>}
+                           {!isCheckingName && isNameValid === true && !errors.roomName && (
+                               <CheckCircle size={18} className="text-green-500 animate-in fade-in zoom-in"/>
+                           )}
+                           {!isCheckingName && isNameValid === false && (
+                               <AlertCircle size={18} className="text-red-500 animate-in fade-in zoom-in"/>
+                           )}
+                       </div>
+                   </div>
                    
                    <div className="relative">
                        <select {...register("roomCategory")} className="w-full px-4 py-3.5 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-blue-100 outline-none appearance-none pt-5 pb-2">
@@ -252,11 +316,8 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
                    {ROOM_AMENITIES.map(item => (
                        <AmenityOption 
                            key={item.id} 
-                           // ✅ FIX: Tạo ID duy nhất để không trùng với các element khác trên trang
                            id={`modal_room_${item.id}`} 
-                           // ✅ FIX: Truyền tên field chính xác cho React Hook Form
                            name={`amenities.${item.id}`}
-                           
                            label={item.label} 
                            icon={item.icon} 
                            register={register} 
@@ -265,13 +326,11 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
                </div>
            </section>
 
-           {/* ✅ SECTION 3: HÌNH ẢNH (GIAO DIỆN MỚI GIỐNG PROPERTY) */}
            <section>
                <div className="flex justify-between items-center mb-4">
                  <h4 className="text-blue-600 font-semibold flex items-center gap-2">
                     <ImageIcon size={20}/> Quản lý hình ảnh
                  </h4>
-                 {/* Nút Refresh */}
                  <Button 
                     type="button" 
                     size="sm" 
@@ -284,7 +343,6 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
                  </Button>
                </div>
                
-               {/* Danh sách ảnh hiện tại */}
                <div className="mb-6">
                    {currentImages.length > 0 ? (
                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
@@ -295,16 +353,13 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
                                     
                                    <img src={getFullImageUrl(img.imageUrl)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Room" />
                                    
-                                   {/* Badge Ảnh bìa */}
                                    {img.isCover && (
                                        <div className="absolute top-2 left-2 bg-yellow-400 text-white p-1 rounded-full shadow-md z-10">
                                            <Star size={12} fill="currentColor" />
                                        </div>
                                    )}
 
-                                   {/* Actions Overlay */}
                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center gap-2 backdrop-blur-[1px]">
-                                       {/* Nút Set Cover */}
                                        {!img.isCover && (
                                            <Button
                                                type="button"
@@ -316,8 +371,6 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
                                                <Star size={18} />
                                            </Button>
                                        )}
-                                       
-                                       {/* Nút Xóa */}
                                        <Button
                                            type="button"
                                            size="sm"
@@ -341,7 +394,6 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
                    )}
                </div>
 
-               {/* Upload mới */}
                <div>
                    <h4 className="text-sm font-medium text-gray-600 mb-2">Tải lên ảnh mới:</h4>
                    <ImageUploadGrid 
@@ -353,10 +405,11 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
                </div>
            </section>
 
-           {/* FOOTER */}
            <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-100">
                <Button type="button" variant="ghost" onClick={onClose}>Hủy bỏ</Button>
-               <Button type="submit">{isEditMode ? "Lưu thay đổi" : "Tạo phòng ngay"}</Button>
+               <Button type="submit" disabled={isCheckingName || isNameValid === false}>
+                  {isEditMode ? "Lưu thay đổi" : "Tạo phòng ngay"}
+               </Button>
            </div>
         </form>
       </Modal>
