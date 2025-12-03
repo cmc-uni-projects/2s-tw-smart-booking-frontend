@@ -91,6 +91,16 @@ getRoomDetail: async (roomId) => {
       throw error.response?.data || error.message;
     }
   },
+
+  checkNameAvailability: async (propertyId, roomName, excludeRoomId = 0) => {
+    return api.get(`/rooms/check-name`, {
+      params: { 
+        propertyId, 
+        roomName, 
+        excludeRoomId 
+      }
+    });
+  },
 };
 
 export default roomService;
