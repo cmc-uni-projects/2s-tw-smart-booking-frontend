@@ -5,7 +5,7 @@ import { Copy, CheckCircle, Info, Clock, AlertCircle, Sparkles, Calendar, Crown 
 // Icon cho Super Deal
 const SUPER_DEAL_IMAGE = "https://cdn-icons-png.flaticon.com/512/5267/5267825.png";
 
-const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
+const PromotionDetailModal = ({ isOpen, onClose, promo, savedIds, onToggleSave }) => {
     const [copied, setCopied] = useState(false);
     const [animate, setAnimate] = useState(false);
 
@@ -18,27 +18,40 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
         }
     }, [isOpen]);
 
+    // [GIỮ NGUYÊN] Khóa cuộn trang chính khi Modal mở
+    // Để khi bạn cuộn Modal dài, trang web phía sau không bị trôi
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
+
     if (!promo) return null;
 
-    // --- XỬ LÝ DỮ LIỆU THÔNG MINH (TRÁNH LỖI 0đ) ---
-    // Hàm làm sạch số: chuyển "10.00" hoặc 10.00 thành 10
+    // --- XỬ LÝ DỮ LIỆU ---
     const cleanNumber = (val) => {
         if (val === undefined || val === null) return 0;
         return Number(val);
     };
 
-    // 1. Ưu tiên lấy đúng tên trường từ API (minBookingAmount), nếu không có thì fallback về minOrder
     const minBookingAmount = cleanNumber(promo.minBookingAmount ?? promo.minOrder);
     const maxDiscountAmount = cleanNumber(promo.maxDiscountAmount ?? promo.maxDiscount);
     const discountVal = cleanNumber(promo.discountValue);
-
-    // 2. Xử lý hạng thành viên (Ưu tiên minMembershipRank)
     const targetRank = promo.minMembershipRank || promo.targetRank || "BRONZE";
 
     const handleCopyCode = () => {
         navigator.clipboard.writeText(promo.code || "");
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+
+        if (onToggleSave && savedIds && !savedIds.includes(promo.id)) {
+            onToggleSave(promo.id);
+        }
     };
 
     const formatDate = (dateString) => {
@@ -57,7 +70,6 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
         return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     };
 
-    // CẤU HÌNH GIAO DIỆN THEO HẠNG
     const getRankConfig = (rank) => {
         const r = rank ? rank.toUpperCase() : 'ALL';
         switch (r) {
@@ -117,7 +129,6 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
     };
 
     const daysLeft = getDaysLeft();
-    // Logic xác định Big Sale: % >= 20 hoặc Tiền >= 500k
     const isBigSale = (promo.discountType === 'PERCENTAGE' && discountVal >= 20) ||
         (promo.discountType === 'FIXED' && discountVal >= 500000);
 
@@ -125,9 +136,13 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
 
     return (
         <Modal open={isOpen} onClose={onClose} title={null} maxWidth="max-w-2xl">
-            <div className={`bg-white rounded-3xl flex flex-col relative transition-all duration-500 ease-out
-                max-h-[90vh] overflow-y-auto
-                [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]
+            {/* [CẬP NHẬT QUAN TRỌNG]
+                1. Xóa 'max-h-[85vh]' và 'overflow-y-auto': Để Modal tự do giãn chiều cao theo nội dung (h-auto).
+                2. Xóa các class ẩn thanh cuộn: Vì bây giờ ta dùng thanh cuộn của trình duyệt (hoặc của wrapper Modal).
+            */}
+            <div className={`bg-white rounded-3xl block relative
+                duration-500 ease-out transition-[opacity,transform] will-change-[opacity,transform]
+                w-full h-auto
                 ${animate ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
 
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0"
@@ -135,7 +150,7 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
                 </div>
 
                 {/* --- 1. ẢNH BANNER --- */}
-                <div className="w-full relative z-10 bg-gray-100 min-h-[220px] group overflow-hidden shrink-0">
+                <div className="w-full relative z-10 bg-gray-100 min-h-[220px] group overflow-hidden shrink-0 rounded-t-3xl">
                     <img
                         src={promo.image}
                         alt={promo.title}
@@ -192,6 +207,7 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
                 </div>
 
                 {/* --- 2. NỘI DUNG CHÍNH --- */}
+                {/* Giữ lại pb-8 để nội dung cuối thoáng hơn một chút */}
                 <div className="px-8 pb-8 pt-2 space-y-6 relative z-10">
                     <div className="space-y-4 text-center">
                         {/* TAGS & LABELS */}
@@ -284,7 +300,6 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
                                         <span>Đơn tối thiểu:</span>
                                     </div>
                                     <span className="font-bold text-gray-900">
-                                        {/* .toLocaleString('vi-VN') sẽ tự động định dạng: 10000 -> 10.000, 10 -> 10 */}
                                         {minBookingAmount.toLocaleString('vi-VN')}đ
                                     </span>
                                 </li>
