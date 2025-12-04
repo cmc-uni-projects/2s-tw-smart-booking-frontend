@@ -191,10 +191,15 @@ const updatePropertyPolicies = async (propertyId, policyData) => {
   }
 };
 
-const checkNameAvailability = (name) => {
-  return axios.get(`${API_URL}/check-name`, {
-    params: { name }
-  });
+const checkNameAvailability = async (propertyName) => {
+  try {
+    const response = await api.get("/properties/check-name", {
+      params: { name: propertyName }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 

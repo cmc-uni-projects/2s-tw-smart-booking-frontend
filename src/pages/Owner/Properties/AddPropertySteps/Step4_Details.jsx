@@ -26,7 +26,7 @@ const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
     // 2. Set trạng thái đang check
     setIsChecking(true);
     setIsAvailable(null);
-    // Lưu ý: Không clearErrors("propertyName") ở đây để tránh nhấp nháy lỗi nếu đang gõ
+    clearErrors("propertyName"); // Xóa lỗi cũ (nếu có) để hiện loading
 
     // 3. Tạo timer delay 600ms (Debounce)
     const timer = setTimeout(async () => {
@@ -34,17 +34,20 @@ const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
         await propertyService.checkNameAvailability(propertyNameValue);
         // Nếu API trả về 200 OK -> Tên hợp lệ
         setIsAvailable(true);
-        // Nếu trước đó có lỗi trùng tên thì xóa đi
-        if (errors.propertyName?.type === "manual") {
-            clearErrors("propertyName");
-        }
       } catch (error) {
-        // Nếu API trả về lỗi (409 Conflict) -> Tên trùng
         setIsAvailable(false);
-        setError("propertyName", {
-          type: "manual",
-          message: "Tên chỗ nghỉ này đã được sử dụng. Vui lòng chọn tên khác."
-        });
+        
+        // ✅ FIX QUAN TRỌNG: Chỉ báo lỗi "Trùng tên" nếu status code là 409
+        if (error.response && error.response.status === 409) {
+            const serverMessage = error.response.data?.message || "Tên chỗ nghỉ này đã được sử dụng. Vui lòng chọn tên khác.";
+            setError("propertyName", {
+              type: "manual",
+              message: serverMessage
+            });
+        } else {
+            // Nếu lỗi khác (500, 404, Network Error...), log ra console để debug chứ không báo trùng
+            console.error("Lỗi kiểm tra tên (Check Name API):", error);
+        }
       } finally {
         setIsChecking(false);
       }
@@ -53,7 +56,8 @@ const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
     // 4. Cleanup function: Hủy timer nếu người dùng gõ tiếp trước khi hết 600ms
     return () => clearTimeout(timer);
 
-  }, [propertyNameValue, setError, clearErrors, errors.propertyName?.type]);
+    // ✅ FIX QUAN TRỌNG: Bỏ 'errors' ra khỏi dependency để tránh vòng lặp vô hạn
+  }, [propertyNameValue, setError, clearErrors]);
 
   return (
     <motion.div
@@ -101,7 +105,7 @@ const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
               required
               icon={<Type size={18} />}
               {...register("propertyName")}
-              // ✅ Component tự hiển thị lỗi, không cần render thủ công nữa
+              // ✅ Component tự hiển thị lỗi
               error={errors.propertyName?.message} 
             />
             
@@ -110,18 +114,18 @@ const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
               {isChecking && (
                 <Loader2 size={20} className="animate-spin text-blue-500" />
               )}
+              {/* Chỉ hiện tích xanh nếu không check, có kết quả available và KHÔNG có lỗi form */}
               {!isChecking && isAvailable === true && !errors.propertyName && (
                 <div className="flex items-center gap-1 text-green-500 bg-green-50 px-2 py-1 rounded-md text-xs font-medium animate-in fade-in zoom-in">
                   <CheckCircle size={14} /> Hợp lệ
                 </div>
               )}
+              {/* Hiện icon đỏ nếu server báo trùng (isAvailable = false) */}
               {!isChecking && isAvailable === false && (
                 <AlertCircle size={20} className="text-red-500 animate-in fade-in zoom-in" />
               )}
             </div>
           </div>
-
-            {/* ✅ Đã xóa đoạn code <p> hiển thị lỗi thủ công ở đây để tránh trùng lặp */}
 
           {!errors.propertyName && !isChecking && (
              <p className="text-xs text-gray-400 mt-1 ml-1">
@@ -139,7 +143,6 @@ const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
             required
             icon={<Maximize size={18} />}
             {...register("area")}
-            // ✅ Component tự hiển thị lỗi
             error={errors.area?.message}
           />
         </div>
@@ -152,11 +155,9 @@ const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
             rows={8}
             required
             {...register("description")}
-            // ✅ Component tự hiển thị lỗi
             error={errors.description?.message}
           />
           <div className="flex justify-between items-center mt-1 ml-1">
-             {/* Chỉ hiện gợi ý khi không có lỗi */}
              {!errors.description && (
                 <p className="text-xs text-gray-400">
                   Tối thiểu 50 ký tự để đảm bảo chất lượng nội dung.
