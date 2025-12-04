@@ -5,7 +5,7 @@ import { Copy, CheckCircle, Info, Clock, AlertCircle, Sparkles, Calendar, Crown 
 // Icon cho Super Deal
 const SUPER_DEAL_IMAGE = "https://cdn-icons-png.flaticon.com/512/5267/5267825.png";
 
-const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
+const PromotionDetailModal = ({ isOpen, onClose, promo, savedIds, onToggleSave }) => {
     const [copied, setCopied] = useState(false);
     const [animate, setAnimate] = useState(false);
 
@@ -18,17 +18,14 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
         }
     }, [isOpen]);
 
-    // --- [XỬ LÝ THANH CUỘN] ---
-    // Khi Modal mở -> Ẩn thanh cuộn của trang web (body) đi
-    // Kết quả: Chỉ còn 1 thanh cuộn duy nhất nằm trong Modal
+    // [GIỮ NGUYÊN] Khóa cuộn trang chính khi Modal mở
+    // Để khi bạn cuộn Modal dài, trang web phía sau không bị trôi
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
         }
-
-        // Dọn dẹp khi tắt component (đề phòng lỗi mất thanh cuộn vĩnh viễn)
         return () => {
             document.body.style.overflow = 'unset';
         };
@@ -51,6 +48,10 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
         navigator.clipboard.writeText(promo.code || "");
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+
+        if (onToggleSave && savedIds && !savedIds.includes(promo.id)) {
+            onToggleSave(promo.id);
+        }
     };
 
     const formatDate = (dateString) => {
@@ -135,15 +136,13 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
 
     return (
         <Modal open={isOpen} onClose={onClose} title={null} maxWidth="max-w-2xl">
-            {/* [CẤU HÌNH CUỘN]:
-                - max-h-[85vh]: Giới hạn chiều cao modal.
-                - overflow-y-auto: HIỆN thanh cuộn cho modal khi nội dung dài.
-                - Đã xóa các class ẩn thanh cuộn để bạn có thể kéo chuột.
-                - Kết hợp với useEffect ở trên -> Chỉ còn 1 thanh cuộn này duy nhất.
+            {/* [CẬP NHẬT QUAN TRỌNG]
+                1. Xóa 'max-h-[85vh]' và 'overflow-y-auto': Để Modal tự do giãn chiều cao theo nội dung (h-auto).
+                2. Xóa các class ẩn thanh cuộn: Vì bây giờ ta dùng thanh cuộn của trình duyệt (hoặc của wrapper Modal).
             */}
-            <div className={`bg-white rounded-3xl flex flex-col relative 
+            <div className={`bg-white rounded-3xl block relative
                 duration-500 ease-out transition-[opacity,transform] will-change-[opacity,transform]
-                w-full max-h-[85vh] overflow-y-auto overscroll-contain
+                w-full h-auto
                 ${animate ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
 
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0"
@@ -151,7 +150,7 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
                 </div>
 
                 {/* --- 1. ẢNH BANNER --- */}
-                <div className="w-full relative z-10 bg-gray-100 min-h-[220px] group overflow-hidden shrink-0">
+                <div className="w-full relative z-10 bg-gray-100 min-h-[220px] group overflow-hidden shrink-0 rounded-t-3xl">
                     <img
                         src={promo.image}
                         alt={promo.title}
@@ -208,6 +207,7 @@ const PromotionDetailModal = ({ isOpen, onClose, promo }) => {
                 </div>
 
                 {/* --- 2. NỘI DUNG CHÍNH --- */}
+                {/* Giữ lại pb-8 để nội dung cuối thoáng hơn một chút */}
                 <div className="px-8 pb-8 pt-2 space-y-6 relative z-10">
                     <div className="space-y-4 text-center">
                         {/* TAGS & LABELS */}

@@ -69,8 +69,6 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 opacity-60 transition-opacity group-hover:opacity-50" />
 
-                    {/* [ĐÃ XÓA] Nút Lưu cũ ở vị trí này */}
-
                     {/* Badge HOT & Rank */}
                     <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
                         {isHot && (
@@ -99,7 +97,7 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
                 {/* --- BODY CONTENT --- */}
                 <div className="p-4 flex flex-col flex-grow bg-white relative z-10">
                     <div className="mb-2">
-                        {/* [MỚI] Flex container: Tên + Nút Lưu */}
+                        {/* Flex container: Tên + Nút Lưu */}
                         <div className="flex justify-between items-start gap-2 min-h-[28px]">
                             {/* 1. TÊN KHUYẾN MÃI */}
                             <h3
@@ -110,26 +108,25 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
                                 {promo.name || promo.title || "Chương trình khuyến mãi"}
                             </h3>
 
-                            {/* 2. NÚT LƯU (Đã chuyển xuống đây) */}
+                            {/* 2. NÚT LƯU (Icon Bookmark) - Cập nhật màu vàng */}
                             <button
                                 onClick={handleSaveClick}
-                                className={`flex-shrink-0 -mt-1 p-1.5 rounded-full transition-all duration-300 
+                                className={`flex-shrink-0 -mt-1 p-1.5 rounded-full transition-all duration-300
                                     ${isSaved
-                                    ? "text-blue-600 bg-blue-50 hover:bg-blue-100"
-                                    : "text-gray-400 hover:text-blue-600 hover:bg-gray-50"
+                                    ? "text-yellow-500 bg-yellow-50 hover:bg-yellow-100" // ĐÃ LƯU: Màu vàng
+                                    : "text-gray-400 hover:text-yellow-500 hover:bg-yellow-50" // CHƯA LƯU: Hover ra màu vàng
                                 }`}
                                 title={isSaved ? "Bỏ lưu" : "Lưu ưu đãi"}
                             >
                                 <Bookmark
                                     size={20}
                                     strokeWidth={2}
-                                    fill={isSaved ? "currentColor" : "none"} // Chỉ tô màu khi đã lưu
+                                    fill={isSaved ? "currentColor" : "none"} // Tô màu vàng khi đã lưu
                                 />
                             </button>
                         </div>
 
                         {/* 3. CHI TIẾT ƯU ĐÃI */}
-                        {/* min-h-[40px] giữ chỗ cho 2 dòng để thẻ đều nhau */}
                         <p
                             className="text-sm text-gray-500 font-medium line-clamp-2 leading-snug min-h-[40px]"
                             title={promo.description}
