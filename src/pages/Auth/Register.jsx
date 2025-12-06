@@ -1,19 +1,21 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { User, Mail, ArrowLeft } from "lucide-react";
-import { authService } from "../../services/auth.service";
+// 1. Thêm icon User
+import { UserPlus, Chrome, Mail, ArrowLeft, User } from "lucide-react";
 import { FaFacebook } from "react-icons/fa";
+import { authService } from "../../services/auth.service";
 
 // Common Components
-import AuthTextField from "../../components/common/Input/AuthTextField";
+// ✅ THAY ĐỔI: Bỏ import TextField, thêm import AuthTextField
+import AuthTextField from "../../components/common/Input/AuthTextField"; 
 import PasswordField from "../../components/common/Input/PasswordField";
 import ConfirmPasswordField from "../../components/common/Input/ConfirmPasswordField";
 import Button from "../../components/common/Button/Button";
-import Divider from "../../components/common/Divider/Divider"; // Nhớ import Divider
+import Divider from "../../components/common/Divider/Divider";
 import Toast from "../../components/common/Notification/Toast";
 import ToastPortal from "../../components/common/Notification/ToastPortal";
 
-// Component Icon Google (Giống bên Login)
+// Component SVG cho icon Google (Giữ nguyên)
 const GoogleIcon = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -22,6 +24,7 @@ const GoogleIcon = ({ className }) => (
     height="20px"
     className={className}
   >
+    {/* ... (paths của icon Google) ... */}
     <path
       fill="#FFC107"
       d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
@@ -43,49 +46,76 @@ const GoogleIcon = ({ className }) => (
 
 const Register = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     fullName: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: "", type: "info" });
+  const [toastMsg, setToastMsg] = useState("");
+  const [toastType, setToastType] = useState("info");
+  const [showToast, setShowToast] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  // ... (Giữ nguyên các hàm showToastOnce, onChange, onSubmit, handleGoogleLogin, handleFacebookLogin) ...
+  const showToastOnce = (msg, type = "error") => {
+    setToastMsg(msg);
+    setToastType(type);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
   };
 
-  const showToast = (message, type = "error") => {
-    setToast({ show: true, message, type });
-    setTimeout(() => setToast({ ...toast, show: false }), 3000);
-  };
+  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      showToast("Mật khẩu xác nhận không khớp!", "error");
+
+    if (
+      !form.fullName.trim() ||
+      !form.email.trim() ||
+      !form.password ||
+      !form.confirmPassword
+    ) {
+      showToastOnce("Vui lòng điền đầy đủ tất cả các trường bắt buộc.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      showToastOnce("Địa chỉ email không hợp lệ.");
+      return;
+    }
+    if (form.password.length < 8) {
+      showToastOnce("Mật khẩu phải có ít nhất 8 ký tự.");
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      showToastOnce("Mật khẩu xác nhận không khớp!");
       return;
     }
 
     setLoading(true);
     try {
       await authService.register(
-        formData.fullName,
-        formData.email,
-        formData.password,
-        formData.confirmPassword
+        form.fullName.trim(),
+        form.email.trim(),
+        form.password,
+        form.confirmPassword
       );
-      showToast("Đăng ký thành công! Đang chuyển hướng...", "success");
-      setTimeout(() => navigate("/verify-email"), 1500);
+      showToastOnce(
+        "🎉 Đăng ký thành công! Hãy kiểm tra email để xác minh tài khoản.",
+        "success"
+      );
+      setTimeout(() => navigate("/login"), 2500);
     } catch (err) {
-      showToast(err.message || "Đăng ký thất bại", "error");
+      console.error("Register error:", err);
+      showToastOnce(
+        err.response?.data?.message || "Đăng ký thất bại, vui lòng thử lại."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Xử lý Đăng ký/Login Google/FB (Cổng 8386)
   const handleGoogleLogin = () => {
     window.location.href = "http://localhost:8386/oauth2/authorization/google";
   };
@@ -94,64 +124,78 @@ const Register = () => {
     window.location.href = "http://localhost:8386/oauth2/authorization/facebook";
   };
 
+
   return (
     <>
       <div
-        className="min-h-screen flex items-center justify-center px-6 bg-cover bg-center relative overflow-hidden"
+        className="min-h-screen flex justify-center items-center px-6 py-10 bg-cover bg-center bg-no-repeat relative overflow-hidden"
         style={{
           backgroundImage:
-            "url('https://images.unsplash.com/photo-1517840901100-8179e982acb7?auto=format&fit=crop&w=1600&q=80')",
+            "url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80')",
         }}
       >
+        {/* ... (Giữ nguyên phần Giao diện) ... */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#00A8E8]/60 via-[#0090C1]/50 to-[#006494]/70 backdrop-blur-sm"></div>
+        <div className="relative z-10 w-full max-w-4xl bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl flex flex-col lg:flex-row animate-fadeIn border border-white/30 overflow-hidden max-h-[90vh]">
+          {/* Left: Register Form */}
+          <div className="w-full lg:w-1/2 p-10 flex flex-col justify-start overflow-y-auto">
+            <img
+              src="/assets/logo/logo_travelmate_xoafont.png"
+              alt="TravelMate"
+              className="h-[164px] w-[164px] mx-auto mb-4 object-contain animate-float flex-shrink-0"
+            />
 
-        <div className="relative z-10 w-full max-w-4xl bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl flex flex-col lg:flex-row animate-fadeIn border border-white/30 overflow-hidden">
-          
-          {/* Left Side: Register Form */}
-          <div className="w-full lg:w-1/2 p-10 flex flex-col justify-center">
-            <h2 className="text-2xl font-extrabold text-[#006494] text-center mb-6 tracking-tight">
-              Đăng ký tài khoản
+            <h2 className="text-2xl font-extrabold text-[#006494] text-center mb-6 tracking-tight flex-shrink-0">
+              Tạo tài khoản TravelMate
             </h2>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={onSubmit} className="space-y-5">
+              {/* ✅ THAY ĐỔI: Sử dụng AuthTextField */}
               <AuthTextField
                 name="fullName"
                 label="Họ và tên"
-                value={formData.fullName}
-                onChange={handleChange}
+                value={form.fullName}
+                onChange={onChange}
                 required
                 icon={<User size={18} />}
               />
 
+              {/* ✅ THAY ĐỔI: Sử dụng AuthTextField */}
               <AuthTextField
                 name="email"
                 label="Email"
                 type="email"
-                value={formData.email}
-                onChange={handleChange}
+                value={form.email}
+                onChange={onChange}
                 required
                 icon={<Mail size={18} />}
               />
 
               <PasswordField
-                name="password"
-                label="Mật khẩu"
-                value={formData.password}
-                onChange={handleChange}
+                label="Mật khẩu (≥8 ký tự)"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
                 required
               />
 
               <ConfirmPasswordField
-                name="confirmPassword"
                 label="Xác nhận mật khẩu"
-                value={formData.confirmPassword}
-                onChange={handleChange}
+                password={form.password}
+                value={form.confirmPassword}
+                onChange={(e) =>
+                  setForm({ ...form, confirmPassword: e.target.value })
+                }
                 required
-                passwordValue={formData.password}
               />
 
-              <Button type="submit" isLoading={loading} fullWidth size="lg">
-                Đăng ký
+              <Button
+                type="submit"
+                disabled={loading}
+                isLoading={loading}
+                leftIcon={<UserPlus size={18} />}
+                fullWidth
+              >
+                {loading ? "Đang đăng ký..." : "Đăng ký tài khoản"}
               </Button>
 
               <Button
@@ -165,10 +209,13 @@ const Register = () => {
               </Button>
             </form>
 
-            <p className="text-gray-600 text-sm mt-6 text-center">
+            <p className="text-gray-600 text-sm mt-6 text-center flex-shrink-0">
               Đã có tài khoản?{" "}
-              <Link to="/login" className="text-[rgb(40,169,224)] hover:underline font-semibold">
-                Đăng nhập
+              <Link
+                to="/login"
+                className="text-[rgb(40,169,224)] hover:underline font-semibold"
+              >
+                Đăng nhập ngay
               </Link>
             </p>
           </div>
@@ -176,16 +223,10 @@ const Register = () => {
           {/* Divider */}
           <Divider vertical className="hidden lg:flex mx-4 my-10 bg-gray-300/30" />
 
-          {/* Right Side: Social Login */}
+          {/* Right: Social Login */}
           <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-10 bg-white/80">
-            <img
-              src="/assets/logo/logo_travelmate_xoafont.png"
-              alt="TravelMate"
-              className="h-[120px] w-[120px] mb-6 object-contain animate-float"
-            />
-            
-            <h3 className="text-xl font-semibold text-gray-800 mb-6 text-center">
-              Hoặc đăng ký nhanh với
+            <h3 className="text-xl font-semibold text-gray-800 mb-6">
+              Đăng nhập nhanh bằng mạng xã hội
             </h3>
 
             <div className="flex flex-col gap-4 w-full max-w-xs">
@@ -195,19 +236,16 @@ const Register = () => {
                 leftIcon={<GoogleIcon className="text-[#db4437]" />}
                 fullWidth
               >
-                Đăng ký với Google
+                Tiếp tục với Google
               </Button>
 
               <Button
-                style={{
-                  backgroundColor: "#1877F2",
-                  color: "white",
-                }}
+                style={{ backgroundColor: "#1877F2", color: "white" }}
                 onClick={handleFacebookLogin}
                 leftIcon={<FaFacebook size={20} />}
                 fullWidth
               >
-                Đăng ký với Facebook
+                Tiếp tục với Facebook
               </Button>
             </div>
 
@@ -226,10 +264,11 @@ const Register = () => {
         </div>
       </div>
 
+      {/* ToastPortal */}
       <ToastPortal>
-        {toast.show && (
+        {showToast && (
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999]">
-            <Toast message={toast.message} type={toast.type} />
+            <Toast message={toastMsg} type={toastType} />
           </div>
         )}
       </ToastPortal>

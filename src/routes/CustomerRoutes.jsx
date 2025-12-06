@@ -27,8 +27,14 @@ import PromotionPage from "@/pages/Customer/Promotion/PromotionPage";
 import PromotionDetailPage from "@/pages/Customer/Promotion/components/PromotionDetailModal.jsx";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import PartnerRoute from "@/routes/PartnerRoute";
+import CompleteProfile from "@/pages/Auth/CompleteProfile";
+
 
 const customerRoutes = [
+    {
+    path: "/auth/complete-profile",
+    element: <CompleteProfile />
+    },
     {
         path: "/oauth2/redirect",
         element: <OAuth2RedirectHandler />

@@ -1,36 +1,38 @@
+// src/pages/Auth/OAuth2RedirectHandler.jsx
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import LoadingOverlay from '../../components/common/Loading/LoadingOverlay'; // Tận dụng component loading có sẵn của bạn
+import LoadingOverlay from '../../components/common/Loading/LoadingOverlay';
 
 const OAuth2RedirectHandler = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { loginWithOAuth2 } = useAuth(); // Chúng ta sẽ viết hàm này ở bước 2
+  const { loginWithOAuth2 } = useAuth();
 
   useEffect(() => {
     const token = searchParams.get('token');
-    
+    const action = searchParams.get('action'); // Lấy tham số action
+
     if (token) {
-      // Gọi hàm xử lý đăng nhập bằng token
-      loginWithOAuth2(token)
-        .then((success) => {
-          if (success) {
-            navigate('/'); // Thành công về trang chủ
-          } else {
-            navigate('/login'); // Thất bại về trang login
-          }
-        })
-        .catch((err) => {
-          console.error("OAuth2 Login Error:", err);
-          navigate('/login');
-        });
+      if (action === 'require_email') {
+        // 1. Lưu token tạm thời để gọi API update
+        localStorage.setItem('accessToken', token);
+        // 2. Chuyển sang trang nhập email bổ sung
+        navigate('/auth/complete-profile');
+      } else {
+        // Luồng đăng nhập bình thường
+        loginWithOAuth2(token)
+          .then((success) => {
+            if (success) navigate('/');
+            else navigate('/login');
+          });
+      }
     } else {
       navigate('/login');
     }
   }, [searchParams, navigate, loginWithOAuth2]);
 
-  return <LoadingOverlay isLoading={true} message="Đang xác thực..." />;
+  return <LoadingOverlay isLoading={true} message="Đang xử lý..." />;
 };
 
 export default OAuth2RedirectHandler;
