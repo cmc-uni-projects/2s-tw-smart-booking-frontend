@@ -74,7 +74,7 @@ const LinkedAccounts = () => {
         {isConnected ? (
           <div className="flex items-center justify-center gap-2 text-green-600 font-semibold bg-green-50 px-6 py-2.5 rounded-xl border border-green-100 min-w-[160px]">
             <CheckCircle size={18} />
-            <span>Đã kết nối</span>
+            <span>Đã liên kết</span>
           </div>
         ) : (
           <Button
