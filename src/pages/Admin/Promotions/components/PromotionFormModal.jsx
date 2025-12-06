@@ -36,7 +36,7 @@ const parseCurrency = (value) => {
     return value.replace(/\./g, "").replace(/\D/g, "");
 };
 
-// --- 1. CustomInput (LOGIC QUAN TRỌNG: Chỉ hiện text lỗi bên trong khi error là chuỗi) ---
+// --- 1. CustomInput ---
 const CustomInput = ({ label, name, value, onChange, type = "text", placeholder, icon: Icon, error, disabled, className, ...props }) => {
     const inputRef = useRef(null);
 
@@ -87,7 +87,7 @@ const CustomInput = ({ label, name, value, onChange, type = "text", placeholder,
                     placeholder-gray-400 selection:bg-blue-100 [&::-webkit-calendar-picker-indicator]:hidden`}
                 />
             </div>
-            {/* Logic: Nếu 'error' là boolean (true/false) thì KHÔNG hiện thẻ <p> này -> Giúp ta tự do hiện lỗi ở bên ngoài */}
+            {/* Logic: Nếu 'error' là boolean (true/false) thì KHÔNG hiện thẻ <p> này */}
             {error && typeof error === 'string' && (
                 <p className="text-xs text-red-500 flex items-center gap-1 ml-1"><AlertCircle size={12}/> {error}</p>
             )}
@@ -361,6 +361,8 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
         return yearStr.length === 4 && year >= 1900 && year <= 9999;
     };
 
+    // --- SỬA ĐỔI: Hàm validate này chỉ kiểm tra FORMAT và Dữ liệu Rỗng ---
+    // (Logic so sánh ngày tháng được chuyển xuống handleSubmit để hiện Toast)
     const validateForm = () => {
         const newErrors = {};
         if (!formData.code.trim()) newErrors.code = "Mã không được để trống";
@@ -394,21 +396,14 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
 
         if (formData.quantity && Number(formData.quantity) <= 0) newErrors.quantity = "Số lượng phải lớn hơn 0";
 
-        // Validate Date
-        let startValid = true;
-        let endValid = true;
+        // Validate Date Format (Chỉ kiểm tra có nhập hay chưa, format đúng không)
+        if (!formData.startDate) { newErrors.startDate = "Chọn ngày giờ bắt đầu"; }
+        else if (!formData.startDate.includes('T')) { newErrors.startDate = "Thiếu thông tin giờ"; }
+        else if (!validateYear(formData.startDate)) { newErrors.startDate = "Năm không hợp lệ (Giới hạn 4 chữ số)"; }
 
-        if (!formData.startDate) { newErrors.startDate = "Chọn ngày giờ bắt đầu"; startValid = false; }
-        else if (!formData.startDate.includes('T')) { newErrors.startDate = "Thiếu thông tin giờ"; startValid = false; }
-        else if (!validateYear(formData.startDate)) { newErrors.startDate = "Năm không hợp lệ (Giới hạn 4 chữ số)"; startValid = false; }
-
-        if (!formData.endDate) { newErrors.endDate = "Chọn ngày giờ kết thúc"; endValid = false; }
-        else if (!formData.endDate.includes('T')) { newErrors.endDate = "Thiếu thông tin giờ"; endValid = false; }
-        else if (!validateYear(formData.endDate)) { newErrors.endDate = "Năm không hợp lệ (Giới hạn 4 chữ số)"; endValid = false; }
-
-        if (startValid && endValid && new Date(formData.startDate) > new Date(formData.endDate)) {
-            newErrors.endDate = "Thời gian kết thúc phải sau bắt đầu";
-        }
+        if (!formData.endDate) { newErrors.endDate = "Chọn ngày giờ kết thúc"; }
+        else if (!formData.endDate.includes('T')) { newErrors.endDate = "Thiếu thông tin giờ"; }
+        else if (!validateYear(formData.endDate)) { newErrors.endDate = "Năm không hợp lệ (Giới hạn 4 chữ số)"; }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -416,6 +411,26 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
 
     const handleSubmit = async () => {
         if (validateForm()) {
+            // --- SỬA ĐỔI: CHECK LOGIC NGÀY THÁNG Ở ĐÂY VÀ HIỆN TOAST ---
+            const start = new Date(formData.startDate);
+            const end = new Date(formData.endDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset giờ về 0 để so sánh ngày
+
+            // 1. Kiểm tra ngày bắt đầu không được trong quá khứ (Với ngày tạo mới)
+            // Nếu là update (có initialData) thì có thể bỏ qua check này nếu muốn, hoặc giữ nguyên tùy logic
+            if (!initialData && start < today) {
+                showToast("error", "Ngày bắt đầu không được chọn trong quá khứ.");
+                return;
+            }
+
+            // 2. Kiểm tra ngày kết thúc phải sau ngày bắt đầu
+            if (end <= start) {
+                showToast("error", "Thời gian kết thúc phải lớn hơn thời gian bắt đầu.");
+                return;
+            }
+            // -------------------------------------------------------------
+
             setIsLoading(true);
             try {
                 const submitData = { ...formData };
@@ -579,7 +594,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         <CustomInput label="Tổng số lượng" name="quantity" type="number" value={formData.quantity} onChange={handleChange} icon={Hash} placeholder="1000" min="1" onFocus={(e) => e.target.select()} error={errors.quantity} />
                     </div>
 
-                    {/* --- KHU VỰC NGÀY GIỜ: Đã fix lỗi hiển thị --- */}
+                    {/* --- KHU VỰC NGÀY GIỜ --- */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         {/* Start Date */}
                         <div className="space-y-1.5">
@@ -591,7 +606,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                                         value={getSplitValue(formData.startDate, 'date')}
                                         onChange={(e) => handleSplitDateTimeChange('startDate', 'date', e.target.value)}
                                         icon={Calendar}
-                                        error={!!errors.startDate} // Boolean: Chỉ tô đỏ viền
+                                        error={!!errors.startDate} // Boolean: Chỉ tô đỏ viền khi chưa nhập
                                         max="9999-12-31"
                                     />
                                 </div>
@@ -599,7 +614,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                                     <TimePicker value={getSplitValue(formData.startDate, 'time')} onChange={(newTime) => handleSplitDateTimeChange('startDate', 'time', newTime)} error={!!errors.startDate} />
                                 </div>
                             </div>
-                            {/* Hiển thị lỗi bên ngoài */}
+                            {/* Hiển thị lỗi bên ngoài: CHỈ KHI CHƯA NHẬP */}
                             {errors.startDate && <p className="text-xs text-red-500 flex items-center gap-1 ml-1 mt-1"><AlertCircle size={12}/> {errors.startDate}</p>}
                         </div>
 
@@ -613,7 +628,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                                         value={getSplitValue(formData.endDate, 'date')}
                                         onChange={(e) => handleSplitDateTimeChange('endDate', 'date', e.target.value)}
                                         icon={Calendar}
-                                        error={!!errors.endDate} // Boolean: Chỉ tô đỏ viền
+                                        error={!!errors.endDate} // Boolean: Chỉ tô đỏ viền khi chưa nhập
                                         max="9999-12-31"
                                     />
                                 </div>
@@ -621,7 +636,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                                     <TimePicker value={getSplitValue(formData.endDate, 'time')} onChange={(newTime) => handleSplitDateTimeChange('endDate', 'time', newTime)} error={!!errors.endDate} />
                                 </div>
                             </div>
-                            {/* Hiển thị lỗi bên ngoài (Giống hệt Start Date) */}
+                            {/* Hiển thị lỗi bên ngoài: CHỈ KHI CHƯA NHẬP */}
                             {errors.endDate && <p className="text-xs text-red-500 flex items-center gap-1 ml-1 mt-1"><AlertCircle size={12}/> {errors.endDate}</p>}
                         </div>
                     </div>
