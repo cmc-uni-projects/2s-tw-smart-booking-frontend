@@ -1,15 +1,12 @@
-import api from "./axios.config.js"; // ✅ 1. IMPORT API INSTANCE
-
-// ❌ 2. Xóa API_URL (đã có trong config)
-// const API_URL = ...
+import api from "./axios.config.js"; 
 
 // ============================
 // 🔒 AUTH SERVICE
 // ============================
 
+// 1. Đăng nhập thường
 const login = async (email, password) => {
   try {
-    // ✅ 3. Dùng 'api' (không cần URL đầy đủ)
     const response = await api.post(`/auth/login`, {
       email,
       password,
@@ -33,7 +30,6 @@ const login = async (email, password) => {
 // 2. Đăng ký
 const register = async (fullName, email, password, confirmPassword) => {
   try {
-    // ✅ 3. Dùng 'api'
     const response = await api.post(`/auth/register`, {
       fullName,
       email,
@@ -52,34 +48,32 @@ const register = async (fullName, email, password, confirmPassword) => {
 // 3. Đăng xuất
 const logout = (token) => {
   if (token) {
-    // ✅ 3. Dùng 'api' (headers đã được interceptor tự thêm)
-    api.post(`/auth/logout`, {});
+    api.post(`/auth/logout`, {}).catch(err => console.error(err));
   }
   
   localStorage.removeItem("user");
   localStorage.removeItem("accessToken"); 
-  localStorage.removeItem("token"); // Xóa token cũ
+  localStorage.removeItem("token"); 
 };
 
-// (Các hàm getCurrentUser và getAccessToken giữ nguyên)
+// 4. Lấy user từ LocalStorage
 const getCurrentUser = () => {
   const userStr = localStorage.getItem("user");
   if (userStr) return JSON.parse(userStr);
   return null;
 };
+
+// 5. Lấy token
 const getAccessToken = () => {
   return localStorage.getItem("accessToken") || localStorage.getItem("token");
 };
 
-
 // 6. Quên mật khẩu
 const forgotPassword = async (email) => {
   try {
-    // ✅ 3. Dùng 'api'
     const response = await api.post(`/auth/forgot-password`, { email });
     return response.data;
   } catch (error) {
-    // ... (xử lý lỗi giữ nguyên)
     if (error.response && error.response.data) {
       throw new Error(error.response.data.message || "Forgot password failed");
     }
@@ -90,11 +84,9 @@ const forgotPassword = async (email) => {
 // 7. Reset mật khẩu
 const resetPassword = async (token, newPassword) => {
   try {
-    // ✅ 3. Dùng 'api'
     const response = await api.post(`/auth/reset-password`, { token, newPassword });
     return response.data;
   } catch (error) {
-    // ... (xử lý lỗi giữ nguyên)
     if (error.response && error.response.data) {
       throw new Error(error.response.data.message || "Reset password failed");
     }
@@ -105,13 +97,11 @@ const resetPassword = async (token, newPassword) => {
 // 8. Xác thực Email
 const verifyEmail = async (token) => {
   try {
-    // ✅ 3. Dùng 'api'
     const response = await api.get(`/auth/verify-email`, { 
         params: { token } 
     });
     return response.data;
   } catch (error) {
-    // ... (xử lý lỗi giữ nguyên)
     if (error.response && error.response.data) {
       throw new Error(error.response.data.message || "Email verification failed");
     }
@@ -119,7 +109,24 @@ const verifyEmail = async (token) => {
   }
 };
 
-// Export (giữ nguyên)
+const fetchUserProfile = async () => {
+  try {
+    const response = await api.get('/auth/me'); 
+    const userData = response.data.data;
+
+    if (!userData.roles && userData.authorities) {
+      userData.roles = userData.authorities.map(auth => ({
+        roleName: auth.authority.replace("ROLE_", "") // Bỏ tiền tố ROLE_
+      }));
+    }
+
+    return userData;
+  } catch (error) {
+    console.error("Fetch profile error:", error);
+    throw error;
+  }
+};
+
 export const authService = {
   login,
   register,
@@ -129,4 +136,5 @@ export const authService = {
   forgotPassword,
   resetPassword,
   verifyEmail,
+  fetchUserProfile, // <-- Đừng quên export hàm mới này
 };
