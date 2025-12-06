@@ -1,6 +1,5 @@
-// ✅ SỬA 1: Thêm 'useCallback', 'Phone', 'Info', 'Calendar', 'User'
+// src/pages/Customer/Profile/ProfilePage.jsx
 import React, { useState, useEffect, useCallback } from "react";
-// ✅ 1. Thêm hooks của router
 import { useNavigate } from "react-router-dom";
 import StyledTextField from "@/components/common/Input/StyledTextField";
 import Button from "@/components/common/Button/Button";
@@ -8,23 +7,26 @@ import Card from "@/components/common/Card/Card";
 import Toast from "@/components/common/Notification/Toast";
 import ToastPortal from "@/components/common/Notification/ToastPortal";
 import TabsComponent from "@/components/common/Tabs/TabsComponent";
-// ✅ SỬA LỖI ĐƯỜNG DẪN: Đổi từ './' sang alias '@/'
+
 import SettingsPage from "@/pages/Customer/Profile/SettingsPage";
 import ChangePassword from "@/pages/Customer/Profile/ChangePassword";
 import AccountMenu from "@/pages/Customer/Profile/AccountMenu";
-// ✅ SỬA 1 (tiếp): Thêm 'User'
-import { Save, X, Phone, MapPin, Flag, Building, Info, Calendar, User, Users } from "lucide-react";
+// ✅ IMPORT MỚI: LinkedAccounts
+import LinkedAccounts from "@/pages/Customer/Profile/LinkedAccounts";
+
+import { Save, X, Phone, MapPin, Flag, Building, Info, User, Users, Share2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { userService } from "@/services/user.service";
 import DatePickerInput from "@/components/common/Input/DatePickerInput";
 import CustomSelect from "@/components/common/Select/CustomSelect";
 
+// ✅ CẬP NHẬT TABS: Thêm tab Social
 const PROFILE_TABS = [
   { id: "info", name: "Thông tin tài khoản" },
+  { id: "social", name: "Liên kết mạng xã hội" }, // Tab mới
   { id: "security", name: "Mật khẩu & Bảo mật" },
 ];
 
-// --- (Các hàm Helper chuyển đổi ngày giữ nguyên) ---
 const parseApiDate = (isoDate) => {
   if (!isoDate || !isoDate.includes('-')) return null;
   try {
@@ -41,14 +43,11 @@ const formatApiDate = (dateObj) => {
     return `${y}-${m}-${d}`;
   } catch (e) { return null; }
 };
-// --- Hết Helper ---
-
 
 const ProfilePage = () => {
   const { currentUser, updateUser } = useAuth();
-  const navigate = useNavigate(); // ✅ 2. Khởi tạo hook navigate
+  const navigate = useNavigate();
 
-  // --- (State và các Helper giữ nguyên) ---
   const [activeTab, setActiveTab] = useState("info");
   const [activeSection, setActiveSection] = useState("account-settings");
   const [loading, setLoading] = useState(false);
@@ -88,28 +87,20 @@ const ProfilePage = () => {
     setTimeout(() => setToast((prev) => ({ ...prev, show: false })), duration);
   };
 
-  // ✅ 3. Hàm xử lý logic khi chọn menu
   const handleMenuSelect = (path) => {
-    // Đây là các mục sẽ render nội dung ngay tại trang Profile
     const internalSections = ["account-settings", "notification-settings"];
-
     if (internalSections.includes(path)) {
-      // Nếu là các mục nội bộ, chỉ cần set state
       setActiveSection(path);
     } else {
-      // Nếu là các mục khác (như transactions, bookings), dùng navigate để chuyển trang
       navigate(`/customer/${path}`);
     }
   };
 
-  // --- 1. Fetch Profile (Đã sửa lỗi tên hàm) ---
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setError(null);
-        // ✅ Đã dùng 'getUserDetail' (ĐÚNG)
         const profileData = await userService.getUserDetail();
-
         if (profileData) {
           const mapped = mapDataToForm(profileData);
           setUserData(mapped);
@@ -117,7 +108,6 @@ const ProfilePage = () => {
         } else {
           throw new Error("Không nhận được dữ liệu hồ sơ");
         }
-
       } catch (error) {
         console.error("Failed to fetch profile:", error);
         setError(error.message || "Lỗi kết nối máy chủ");
@@ -128,7 +118,6 @@ const ProfilePage = () => {
     }
   }, [currentUser]);
 
-  // --- (Handlers Form - giữ nguyên) ---
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -136,12 +125,10 @@ const ProfilePage = () => {
   const handleCancel = () => setFormData(userData);
   const isFormDirty = () => JSON.stringify(formData) !== JSON.stringify(userData);
 
-  // (useCallback cho DatePicker - giữ nguyên, chống lặp)
   const handleDateChange = useCallback((dateString) => {
     setFormData((prev) => ({ ...prev, dateOfBirth: dateString }));
   }, []);
 
-  // --- 2. Xử lý Upload Avatar (VIẾT ĐẦY ĐỦ) ---
   const handleAvatarUpload = async (file) => {
     setIsUploadingAvatar(true);
     try {
@@ -162,7 +149,6 @@ const ProfilePage = () => {
     }
   };
 
-  // --- 3. Lưu Thông Tin (ĐÃ SỬA LỖI LOGIC RESPONSE) ---
   const handleSave = async (e) => {
     e.preventDefault();
 
@@ -173,16 +159,14 @@ const ProfilePage = () => {
     
     const payload = {
       ...formData,
-      birthDate: formatApiDate(formData.birthDate) 
+      birthDate: formatApiDate(formData.dateOfBirth) // Sửa lại key dateOfBirth cho đúng state
     };
 
     setLoading(true);
     try {
       const res = await userService.updateUserDetail(payload); 
 
-      // ✅ SỬA 1: Kiểm tra 'res.success' thay vì 'res.data.success'
       if (res.success) {
-        // ✅ SỬA 2: Lấy dữ liệu từ 'res.data' thay vì 'res.data.data'
         const updatedData = res.data; 
         const newUserData = mapDataToForm(updatedData); 
         
@@ -207,9 +191,8 @@ const ProfilePage = () => {
             
             const retryRes = await userService.updateUserDetail(retryData);
             
-            // ✅ SỬA 3: Sửa logic retry tương tự
             if (retryRes.success) {
-              const newUserData = mapDataToForm(retryRes.data); // Sửa retryRes.data.data -> retryRes.data
+              const newUserData = mapDataToForm(retryRes.data);
               setUserData(newUserData);
               setFormData(newUserData);
               
@@ -233,9 +216,6 @@ const ProfilePage = () => {
     }
   };
 
-
-  // --- RENDER UI ---
-
   const renderInfoTab = () => {
     const GENDER_OPTIONS = [
       { label: "Nam", value: "Nam" },
@@ -251,7 +231,7 @@ const ProfilePage = () => {
     );
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-10 animate-fadeIn">
           <Card>
             <div className="p-6 space-y-6">
               <h3 className="text-xl font-semibold text-gray-800 border-b pb-4">
@@ -266,7 +246,6 @@ const ProfilePage = () => {
               </div>
 
               <form onSubmit={handleSave} className="space-y-4">
-
                 <StyledTextField
                     label={requiredLabel("Họ và tên")}
                     name="fullName"
@@ -353,7 +332,6 @@ const ProfilePage = () => {
             </div>
           </Card>
 
-          {/* Email Section (Giữ nguyên) */}
           <Card>
             <div className="p-6">
               <div className="flex justify-between items-center border-b pb-4 mb-4">
@@ -376,14 +354,12 @@ const ProfilePage = () => {
               </div>
             </div>
           </Card>
-
         </div>
     );
   };
 
-  // (Các hàm render... còn lại VIẾT ĐẦY ĐỦ)
   const renderSecurityTab = () => (
-      <div className="space-y-10">
+      <div className="space-y-10 animate-fadeIn">
         <ChangePassword />
         <Card>
           <div className="p-6 space-y-4">
@@ -404,6 +380,13 @@ const ProfilePage = () => {
           </div>
         </Card>
       </div>
+  );
+
+  // ✅ RENDER SOCIAL TAB
+  const renderSocialTab = () => (
+    <div className="animate-fadeIn">
+      <LinkedAccounts />
+    </div>
   );
 
   const renderMainContent = () => {
@@ -427,7 +410,6 @@ const ProfilePage = () => {
     if (activeSection === "notification-settings") {
       return <SettingsPage />;
     }
-    // ✅ HIỂN THỊ PLACEHOLDER CHO CÁC MỤC CHƯA CÓ TRANG
     return (
         <div className="p-6 text-center text-gray-500 border border-dashed rounded-lg bg-white min-h-[300px] flex flex-col justify-center items-center">
           <h1 className="text-xl font-bold text-gray-700">Chức năng đang phát triển</h1>
@@ -439,12 +421,12 @@ const ProfilePage = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "info": return renderInfoTab();
+      case "social": return renderSocialTab(); // ✅ Case mới
       case "security": return renderSecurityTab();
       default: return null;
     }
   };
 
-  // Xử lý trạng thái Loading / Lỗi
   if (error) {
     return (
         <div className="flex flex-col justify-center items-center h-[50vh] p-6">
@@ -465,7 +447,6 @@ const ProfilePage = () => {
     );
   }
 
-  // Render chính
   return (
       <main className="w-full bg-gray-50 text-gray-800">
         <div className="max-w-7xl mx-auto p-6">
@@ -473,7 +454,7 @@ const ProfilePage = () => {
             <div className="col-span-12 lg:col-span-3">
               <AccountMenu
                   activeSection={activeSection}
-                  onSelect={handleMenuSelect} // ✅ 4. Thay đổi prop ở đây
+                  onSelect={handleMenuSelect}
                   userData={userData || formData}
                   onAvatarUpload={handleAvatarUpload}
                   isUploadingAvatar={isUploadingAvatar}
@@ -497,7 +478,4 @@ const ProfilePage = () => {
   );
 };
 
-
-
 export default ProfilePage;
-
