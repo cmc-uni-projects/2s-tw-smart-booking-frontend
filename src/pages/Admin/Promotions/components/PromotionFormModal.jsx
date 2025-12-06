@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import {
-    X, Tag, Percent, Banknote, // ĐÃ SỬA: Thay DollarSign bằng Banknote
+    X, Tag, Percent, Banknote,
     Layers, Hash, CheckCircle2, AlertCircle, Clock, Calendar, Upload, Image as ImageIcon,
     Crown
 } from "lucide-react";
@@ -12,6 +12,7 @@ import Toast from "@/components/common/Notification/Toast";
 // --- CONFIG: URL hiển thị ảnh từ Backend ---
 const BE_BASE_URL = "http://127.0.0.1:8386";
 const UPLOAD_DIR = "/uploads/";
+const MIN_VND = 1000; // Hằng số validate tiền tệ tối thiểu
 
 // Helper hiển thị Toast đồng bộ giao diện
 const showToast = (type, message) => {
@@ -21,6 +22,19 @@ const showToast = (type, message) => {
         duration: 3000,
         position: 'bottom-center'
     });
+};
+
+// --- [NEW] Helper Format tiền tệ (VD: 10000 -> "10.000") ---
+const formatCurrency = (value) => {
+    if (!value) return "";
+    // Chuyển sang chuỗi, xóa ký tự không phải số, rồi format
+    const number = value.toString().replace(/\D/g, "");
+    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
+
+// --- [NEW] Helper Parse tiền tệ (VD: "10.000" -> "10000") ---
+const parseCurrency = (value) => {
+    return value.replace(/\./g, "").replace(/\D/g, "");
 };
 
 // --- 1. CustomInput (Giữ nguyên) ---
@@ -68,7 +82,10 @@ const CustomInput = ({ label, name, value, onChange, type = "text", placeholder,
                     disabled={disabled}
                     placeholder={placeholder}
                     {...props}
-                    className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-4 py-2.5 bg-gray-50 border rounded-xl outline-none transition-all duration-200 ${error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100 bg-red-50' : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white'} ${disabled ? 'opacity-60 cursor-not-allowed' : ''} placeholder-gray-400 selection:bg-blue-100 [&::-webkit-calendar-picker-indicator]:hidden`}
+                    className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-4 py-2.5 bg-gray-50 border rounded-xl outline-none transition-all duration-200 
+                    ${error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100 bg-red-50' : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white'} 
+                    ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''} 
+                    placeholder-gray-400 selection:bg-blue-100 [&::-webkit-calendar-picker-indicator]:hidden`}
                 />
             </div>
             {error && <p className="text-xs text-red-500 flex items-center gap-1 ml-1"><AlertCircle size={12}/> {error}</p>}
@@ -175,8 +192,11 @@ const TimePicker = ({ value, onChange, error }) => {
 
 // --- 4. Main Component ---
 const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
+    // State riêng để quản lý Loại giảm giá trên UI (3 loại)
+    const [promotionTypeOption, setPromotionTypeOption] = useState("FIXED_AMOUNT");
+
     const [formData, setFormData] = useState({
-        code: "", name: "", type: "PERCENT", value: "", quantity: "", minOrder: "", maxDiscount: "",
+        code: "", name: "", value: "", quantity: "", minOrder: "", maxDiscount: "",
         startDate: "", endDate: "", isActive: true,
         minMembershipRank: "BRONZE"
     });
@@ -222,8 +242,21 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
             setBannerFile(null);
             if (initialData) {
                 const { target, ...rest } = initialData;
+
+                // --- PHÂN LOẠI 2 TYPE BACKEND -> 3 TYPE UI ---
+                let uiType = "FIXED_AMOUNT";
+                if (rest.type === "PERCENTAGE" || rest.type === "PERCENT") {
+                    if (rest.maxDiscount && rest.maxDiscount > 0) {
+                        uiType = "PERCENTAGE_CAPPED"; // % có giới hạn
+                    } else {
+                        uiType = "PERCENTAGE_UNLIMITED"; // % không giới hạn
+                    }
+                }
+                setPromotionTypeOption(uiType);
+
                 setFormData({
                     ...rest,
+                    maxDiscount: (uiType === "PERCENTAGE_CAPPED") ? rest.maxDiscount : "",
                     startDate: normalizeDateTime(rest.startDate),
                     endDate: normalizeDateTime(rest.endDate),
                     isActive: rest.isActive !== undefined ? rest.isActive : true,
@@ -231,8 +264,9 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                 });
                 setPreviewUrl(getFullImageUrl(rest.bannerUrl));
             } else {
+                setPromotionTypeOption("FIXED_AMOUNT");
                 setFormData({
-                    code: "", name: "", type: "PERCENT", value: "", quantity: 100, minOrder: 0, maxDiscount: 0,
+                    code: "", name: "", value: "", quantity: 100, minOrder: 0, maxDiscount: "",
                     startDate: "", endDate: "", isActive: true,
                     minMembershipRank: "BRONZE"
                 });
@@ -241,7 +275,6 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
         }
     }, [open, initialData]);
 
-    // Cleanup URL preview khi unmount hoặc modal đóng
     useEffect(() => {
         return () => {
             if (previewUrl && previewUrl.startsWith('blob:')) {
@@ -253,7 +286,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.size > 5 * 1024 * 1024) { // Check size 5MB
+            if (file.size > 5 * 1024 * 1024) {
                 showToast("error", "Ảnh quá lớn (Max 5MB)");
                 return;
             }
@@ -268,10 +301,31 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
         }
     };
 
+    // Handle Change mặc định
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
         if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
+    };
+
+    // --- [NEW] Handle Change riêng cho input Tiền ---
+    // Chỉ nhận số, tự động parse để lưu raw value vào state
+    const handleCurrencyChange = (e) => {
+        const { name, value } = e.target;
+        const rawValue = parseCurrency(value); // Xóa dấu chấm để lưu số nguyên
+        setFormData((prev) => ({ ...prev, [name]: rawValue }));
+        if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
+    };
+
+    const handleTypeChange = (e) => {
+        const newType = e.target.value;
+        setPromotionTypeOption(newType);
+
+        if (newType !== "PERCENTAGE_CAPPED") {
+            setFormData(prev => ({ ...prev, maxDiscount: "" }));
+            if (errors.maxDiscount) setErrors(prev => ({ ...prev, maxDiscount: null }));
+        }
+        if (errors.value) setErrors(prev => ({ ...prev, value: null }));
     };
 
     const handleSplitDateTimeChange = (field, type, value) => {
@@ -306,12 +360,44 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
         const newErrors = {};
         if (!formData.code.trim()) newErrors.code = "Mã không được để trống";
         if (!formData.name.trim()) newErrors.name = "Tên chương trình là bắt buộc";
-        if (!formData.value) newErrors.value = "Nhập giá trị giảm";
-        else if (Number(formData.value) <= 0) newErrors.value = "Giá trị phải lớn hơn 0";
-        if (formData.type === 'PERCENT' && Number(formData.value) > 100) newErrors.value = "Giảm giá % không quá 100%";
 
-        if (formData.minOrder && Number(formData.minOrder) < 0) newErrors.minOrder = "Số tiền không được âm";
-        if (formData.maxDiscount && Number(formData.maxDiscount) < 0) newErrors.maxDiscount = "Số tiền không được âm";
+        // 1. Validate Mức giảm
+        if (!formData.value) {
+            newErrors.value = "Nhập mức giảm";
+        } else {
+            const val = Number(formData.value);
+            if (promotionTypeOption === "FIXED_AMOUNT") {
+                if (val < MIN_VND) newErrors.value = `Giảm tối thiểu ${formatCurrency(MIN_VND)}đ`;
+            } else {
+                if (val <= 0) newErrors.value = "Phần trăm phải > 0";
+                if (val > 100) newErrors.value = "Không được quá 100%";
+            }
+        }
+
+        // 2. Validate Đơn tối thiểu
+        if (formData.minOrder === "" || formData.minOrder === null) {
+            newErrors.minOrder = "Nhập giá trị đơn tối thiểu";
+        } else {
+            const minOrd = Number(formData.minOrder);
+            if (minOrd < 0) {
+                newErrors.minOrder = "Không được âm";
+            } else if (minOrd > 0 && minOrd < MIN_VND) {
+                newErrors.minOrder = `Phải từ ${formatCurrency(MIN_VND)}đ trở lên`;
+            }
+        }
+
+        // 3. Validate Giảm tối đa
+        if (promotionTypeOption === 'PERCENTAGE_CAPPED') {
+            if (!formData.maxDiscount) {
+                newErrors.maxDiscount = "Vui lòng nhập mức giảm tối đa";
+            } else {
+                const maxDisc = Number(formData.maxDiscount);
+                if (maxDisc < MIN_VND) {
+                    newErrors.maxDiscount = `Phải từ ${formatCurrency(MIN_VND)}đ trở lên`;
+                }
+            }
+        }
+
         if (formData.quantity && Number(formData.quantity) <= 0) newErrors.quantity = "Số lượng phải lớn hơn 0";
 
         if (!formData.startDate) newErrors.startDate = "Chọn ngày giờ bắt đầu";
@@ -332,20 +418,27 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
         if (validateForm()) {
             setIsLoading(true);
             try {
-                let promotionId;
+                const submitData = { ...formData };
 
-                // BƯỚC 1: Lưu thông tin chữ
+                if (promotionTypeOption === "FIXED_AMOUNT") {
+                    submitData.type = "FIXED_AMOUNT";
+                    submitData.maxDiscount = 0;
+                } else if (promotionTypeOption === "PERCENTAGE_UNLIMITED") {
+                    submitData.type = "PERCENTAGE";
+                    submitData.maxDiscount = 0;
+                } else if (promotionTypeOption === "PERCENTAGE_CAPPED") {
+                    submitData.type = "PERCENTAGE";
+                }
+
+                let promotionId;
                 if (initialData) {
-                    // Update
                     promotionId = initialData.promotionId;
-                    await promotionService.updatePromotion(promotionId, formData);
+                    await promotionService.updatePromotion(promotionId, submitData);
                 } else {
-                    // Create
-                    const res = await promotionService.createPromotion(formData);
+                    const res = await promotionService.createPromotion(submitData);
                     promotionId = res.data?.data?.promotionId || res.data?.promotionId;
                 }
 
-                // BƯỚC 2: Upload ảnh (Nếu có file mới)
                 if (bannerFile && promotionId) {
                     await promotionService.uploadBanner(promotionId, bannerFile);
                 }
@@ -363,6 +456,10 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
     };
 
     if (!open) return null;
+
+    // Check disable input logic
+    const isPercentage = promotionTypeOption === "PERCENTAGE_UNLIMITED" || promotionTypeOption === "PERCENTAGE_CAPPED";
+    const isMaxDiscountDisabled = promotionTypeOption !== "PERCENTAGE_CAPPED";
 
     return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity p-4 animate-fadeIn">
@@ -413,7 +510,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         <div className="sm:col-span-2"><CustomInput label="Tên chương trình" name="name" value={formData.name} onChange={handleChange} placeholder="VD: Siêu sale tháng 11" icon={CheckCircle2} error={errors.name} /></div>
                     </div>
 
-                    {/* [MỚI] Thêm phần chọn Hạng thành viên với label đã sửa */}
+                    {/* Hạng thành viên */}
                     <div className="bg-orange-50/50 border border-orange-100 rounded-xl p-5">
                         <CustomSelect
                             label="Đối tượng áp dụng (Hạng thành viên tối thiểu)"
@@ -431,22 +528,63 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         <p className="text-xs text-gray-500 mt-2 ml-1 italic">* Khuyến mãi này sẽ áp dụng cho các thành viên có hạng này trở lên.</p>
                     </div>
 
+                    {/* Chọn loại giảm giá */}
                     <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <CustomSelect label="Loại giảm giá" name="type" value={formData.type} onChange={handleChange} icon={Layers} options={[ { value: "PERCENT", label: "Giảm theo % (Phần trăm)" }, { value: "FIXED", label: "Giảm giá cố định (VNĐ)" } ]} />
-                        {/* ĐÃ SỬA: Dùng icon Banknote nếu là loại FIXED */}
-                        <CustomInput label={formData.type === 'PERCENT' ? "Mức giảm (%)" : "Số tiền (VNĐ)"} name="value" type="number" value={formData.value} onChange={handleChange} placeholder={formData.type === 'PERCENT' ? "VD: 20" : "VD: 50000"} icon={formData.type === 'PERCENT' ? Percent : Banknote} error={errors.value} min="0" onFocus={(e) => e.target.select()} />
+                        <CustomSelect
+                            label="Loại giảm giá"
+                            name="type"
+                            value={promotionTypeOption}
+                            onChange={handleTypeChange}
+                            icon={Layers}
+                            options={[
+                                { value: "FIXED_AMOUNT", label: "Giảm tiền trực tiếp" },
+                                { value: "PERCENTAGE_UNLIMITED", label: "Giảm theo % (Không giới hạn)" },
+                                { value: "PERCENTAGE_CAPPED", label: "Giảm theo % (Có giới hạn tiền)" }
+                            ]}
+                        />
+
+                        <CustomInput
+                            label={isPercentage ? "Mức giảm (%)" : "Số tiền giảm (VNĐ)"}
+                            name="value"
+                            // [EDIT] Nếu là %, dùng input number, Nếu là tiền, dùng input text để format
+                            type={isPercentage ? "number" : "text"}
+                            value={isPercentage ? formData.value : formatCurrency(formData.value)}
+                            onChange={isPercentage ? handleChange : handleCurrencyChange}
+                            placeholder={isPercentage ? "VD: 20" : "VD: 50.000"}
+                            icon={isPercentage ? Percent : Banknote}
+                            error={errors.value}
+                            min="0"
+                            onFocus={(e) => e.target.select()}
+                        />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                        {/* ĐÃ SỬA: Icon Banknote cho đơn tối thiểu */}
-                        <CustomInput label="Đơn tối thiểu" name="minOrder" type="number" value={formData.minOrder} onChange={handleChange} icon={Banknote} placeholder="0" min="0" onFocus={(e) => e.target.select()} error={errors.minOrder} />
+                        {/* [EDIT] Format tiền tệ cho Min Order */}
+                        <CustomInput
+                            label="Đơn tối thiểu (VNĐ)"
+                            name="minOrder"
+                            type="text"
+                            value={formatCurrency(formData.minOrder)}
+                            onChange={handleCurrencyChange}
+                            icon={Banknote}
+                            placeholder="0 (Không giới hạn)"
+                            onFocus={(e) => e.target.select()}
+                            error={errors.minOrder}
+                        />
 
-                        {formData.type === 'PERCENT' ? (
-                            // ĐÃ SỬA: Icon Banknote cho giảm tối đa
-                            <CustomInput label="Giảm tối đa" name="maxDiscount" type="number" value={formData.maxDiscount} onChange={handleChange} icon={Banknote} placeholder="VD: 200000" min="0" onFocus={(e) => e.target.select()} error={errors.maxDiscount} />
-                        ) : (
-                            <div className="opacity-50"><CustomInput label="Giảm tối đa" value="-" disabled /></div>
-                        )}
+                        {/* [EDIT] Format tiền tệ cho Max Discount */}
+                        <CustomInput
+                            label="Giảm tối đa (VNĐ)"
+                            name="maxDiscount"
+                            type="text"
+                            value={formatCurrency(formData.maxDiscount)}
+                            onChange={handleCurrencyChange}
+                            icon={Banknote}
+                            placeholder={isMaxDiscountDisabled ? "Không áp dụng" : "VD: 200.000"}
+                            onFocus={(e) => e.target.select()}
+                            error={errors.maxDiscount}
+                            disabled={isMaxDiscountDisabled}
+                        />
 
                         <CustomInput label="Tổng số lượng" name="quantity" type="number" value={formData.quantity} onChange={handleChange} icon={Hash} placeholder="1000" min="1" onFocus={(e) => e.target.select()} error={errors.quantity} />
                     </div>
