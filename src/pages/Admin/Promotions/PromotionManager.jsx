@@ -10,14 +10,12 @@ import {
     Plus, Edit, Trash2, Tag, Search,
     Copy, CheckCircle2, AlertCircle, Ticket,
     ChevronLeft, ChevronRight, MoreVertical, PauseCircle, PlayCircle, XCircle,
-    AlertTriangle, Clock, RotateCw, Image as ImageIcon
+    AlertTriangle, Clock, RotateCw, Image as ImageIcon, Building2, MapPin
 } from "lucide-react";
 
-// --- CONFIG ---
 const BE_BASE_URL = "http://localhost:8386";
 const UPLOAD_DIR = "/uploads/";
 
-// Helper ghép URL
 const getFullImageUrl = (path) => {
     if (!path) return null;
     if (path.startsWith("http")) return path;
@@ -25,7 +23,6 @@ const getFullImageUrl = (path) => {
     return `${BE_BASE_URL}${UPLOAD_DIR}${cleanPath}`;
 };
 
-// --- COMPONENT: Banner Image ---
 const BannerImage = ({ url }) => {
     const [error, setError] = useState(false);
     if (!url || error) {
@@ -55,7 +52,6 @@ const showToast = (type, message) => {
     });
 };
 
-// --- HELPER PARSE DATE ---
 const parseDate = (dateInput) => {
     if (!dateInput) return new Date();
     if (Array.isArray(dateInput)) {
@@ -191,7 +187,6 @@ const ActionMenu = ({ promo, onEdit, onDelete, onRequestToggle }) => {
             className="bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] border border-gray-100 overflow-hidden animate-fadeIn"
         >
             <div className="py-1">
-                {/* ĐÃ SỬA: Thêm hover effect cho nút Sửa (Blue) */}
                 <button
                     onClick={() => { onEdit(promo); setIsOpen(false); }}
                     className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2"
@@ -202,7 +197,6 @@ const ActionMenu = ({ promo, onEdit, onDelete, onRequestToggle }) => {
                 {!isExpired && (
                     <button
                         onClick={() => { onRequestToggle(promo); setIsOpen(false); }}
-                        // ĐÃ SỬA: Thêm hover effect tùy theo trạng thái (Green cho Kích hoạt, Orange cho Tạm dừng)
                         className={`w-full px-4 py-2.5 text-left text-sm text-gray-700 transition-colors flex items-center gap-2 ${
                             isPaused ? 'hover:bg-green-50 hover:text-green-600' : 'hover:bg-orange-50 hover:text-orange-600'
                         }`}
@@ -213,7 +207,6 @@ const ActionMenu = ({ promo, onEdit, onDelete, onRequestToggle }) => {
 
                 <div className="border-t border-gray-100 my-1"></div>
 
-                {/* Nút Xóa đã có hover đỏ từ trước */}
                 <button onClick={() => { onDelete(promo); setIsOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"><Trash2 size={16} /> Xóa</button>
             </div>
         </div>
@@ -435,7 +428,13 @@ const PromotionManager = () => {
                         <BannerImage url={item.bannerUrl} />
                     </div>
                 ),
-                details: item.type === 'PERCENT' ? `${item.value}% (Tối đa ${Number(item.maxDiscount).toLocaleString()}đ)` : `${Number(item.value).toLocaleString()}đ`,
+
+                details: item.type === 'PERCENT'
+                    ? (item.maxDiscount > 0
+                        ? `${item.value}% (Tối đa ${Number(item.maxDiscount).toLocaleString()}đ)`
+                        : `${item.value}%`)
+                    : `${Number(item.value).toLocaleString()}đ`,
+
                 usageProgress: (
                     <div className="w-32">
                         <div className="relative w-full h-5 bg-gray-100 rounded-full overflow-hidden shadow-inner border border-gray-100 group" title={`${item.usedCount} đã dùng / ${item.quantity} tổng số`}>

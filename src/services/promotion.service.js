@@ -2,9 +2,7 @@ import axios from "./axios.config";
 
 const API_URL = "/promotions";
 
-// ... (giữ nguyên hàm formatDateTime) ...
 const formatDateTime = (dateInput, isEndOfDay = false) => {
-    // ... (giữ nguyên code cũ) ...
     if (!dateInput) return null;
     if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
         const time = isEndOfDay ? '23:59:59' : '00:00:00';
@@ -28,9 +26,22 @@ const formatDateTime = (dateInput, isEndOfDay = false) => {
     return dateInput;
 };
 
+// ✅ Helper: Parse số an toàn để tránh gửi chuỗi rỗng lên Backend gây lỗi 400
+const parseNumber = (val) => {
+    if (val === "" || val === null || val === undefined) return null;
+    const cleanVal = String(val).replace(/\./g, "");
+    return Number(cleanVal);
+};
+
 const promotionService = {
     getAllPromotions: async () => {
         const response = await axios.get(`${API_URL}/all`);
+        return response.data;
+    },
+
+    // ✅ API lấy danh sách của Owner
+    getOwnerPromotions: async () => {
+        const response = await axios.get(`${API_URL}/owner/my-promotions`);
         return response.data;
     },
 
@@ -39,15 +50,19 @@ const promotionService = {
             code: data.code,
             description: data.name,
             discountType: data.type === "PERCENT" || data.type === "PERCENTAGE" ? "PERCENTAGE" : "FIXED_AMOUNT",
-            discountValue: data.value,
+
+            discountValue: parseNumber(data.value), // Parse số
+
             startDate: formatDateTime(data.startDate, false),
             endDate: formatDateTime(data.endDate, true),
-            minBookingAmount: data.minOrder || 0,
-            maxDiscountAmount: data.maxDiscount || 0,
-            usageLimit: data.quantity && data.quantity > 0 ? data.quantity : null,
+
+            minBookingAmount: parseNumber(data.minOrder) || 0,
+            maxDiscountAmount: parseNumber(data.maxDiscount) || 0,
+            usageLimit: parseNumber(data.quantity) > 0 ? parseNumber(data.quantity) : null,
+
             status: "ACTIVE",
-            // [QUAN TRỌNG] Thêm trường rank
-            minMembershipRank: data.minMembershipRank || "BRONZE"
+            minMembershipRank: data.minMembershipRank || "BRONZE",
+            propertyId: data.propertyId // ✅ Gửi ID khách sạn
         };
         return await axios.post(`${API_URL}/create`, payload);
     },
@@ -57,20 +72,19 @@ const promotionService = {
             code: data.code,
             description: data.name,
             discountType: data.type === "PERCENT" || data.type === "PERCENTAGE" ? "PERCENTAGE" : "FIXED_AMOUNT",
-            discountValue: data.value,
+            discountValue: parseNumber(data.value),
             startDate: formatDateTime(data.startDate, false),
             endDate: formatDateTime(data.endDate, true),
-            minBookingAmount: data.minOrder || 0,
-            maxDiscountAmount: data.maxDiscount || 0,
-            usageLimit: data.quantity && data.quantity > 0 ? data.quantity : null,
+            minBookingAmount: parseNumber(data.minOrder) || 0,
+            maxDiscountAmount: parseNumber(data.maxDiscount) || 0,
+            usageLimit: parseNumber(data.quantity) > 0 ? parseNumber(data.quantity) : null,
             status: data.isActive ? "ACTIVE" : "PAUSED",
-            // [QUAN TRỌNG] Thêm trường rank khi update
-            minMembershipRank: data.minMembershipRank || "BRONZE"
+            minMembershipRank: data.minMembershipRank || "BRONZE",
+            propertyId: data.propertyId // ✅ Gửi ID khách sạn để update
         };
         return await axios.put(`${API_URL}/update/${id}`, payload);
     },
 
-    // ... (Giữ nguyên các hàm delete, uploadBanner, softDelete) ...
     softDeletePromotion: async (id, currentPromotionData) => {
         const dataToSend = { ...currentPromotionData, status: "DELETED" };
         return await promotionService.updatePromotion(id, dataToSend);
