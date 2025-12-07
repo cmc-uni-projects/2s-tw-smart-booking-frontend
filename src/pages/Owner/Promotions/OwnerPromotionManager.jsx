@@ -60,7 +60,7 @@ const BannerImage = ({ url }) => {
     );
 };
 
-// --- MODALS (Giữ nguyên) ---
+
 const StatusConfirmModal = ({ isOpen, onClose, onConfirm, promo }) => {
     if (!isOpen || !promo) return null;
     const willPause = promo.isActive;
@@ -190,7 +190,7 @@ const StatCard = ({ title, value, icon: Icon, colorClass, bgClass }) => (
     </div>
 );
 
-// --- MAIN PAGE ---
+
 const OwnerPromotionManager = () => {
     const [promotions, setPromotions] = useState([]);
 
@@ -427,7 +427,7 @@ const OwnerPromotionManager = () => {
                     <span className="text-sm text-gray-400 italic">Toàn hệ thống (Admin)</span>
                 ),
 
-                // ✅ SỬA: Chỉ hiển thị "(Tối đa...)" nếu có maxDiscount > 0
+
                 details: item.type === 'PERCENT'
                     ? (item.maxDiscount > 0
                         ? `${item.value}% (Tối đa ${Number(item.maxDiscount).toLocaleString()}đ)`

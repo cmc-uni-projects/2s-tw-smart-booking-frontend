@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import {
     X, Tag, Percent, Banknote,
     Layers, Hash, CheckCircle2, AlertCircle, Clock, Calendar, Upload, Image as ImageIcon,
-    Building, Home // Đã xóa Crown vì không dùng nữa
+    Building, Home
 } from "lucide-react";
 import promotionService from "@/services/promotion.service";
 import propertyService from "@/services/property.service";
@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
 import Toast from "@/components/common/Notification/Toast";
 import CustomSelect from "@/components/common/Select/CustomSelect";
 
-// --- CONFIG ---
+
 const BE_BASE_URL = "http://localhost:8386";
 const UPLOAD_DIR = "/uploads/";
 const MIN_VND = 1000;
@@ -32,7 +32,7 @@ const parseCurrency = (value) => {
     return value.replace(/\./g, "").replace(/\D/g, "");
 };
 
-// --- COMPONENTS CON ---
+
 const CustomInput = ({ label, name, value, onChange, type = "text", placeholder, icon: Icon, error, disabled, className, ...props }) => {
     const inputRef = useRef(null);
     const handleIconClick = () => {
@@ -89,11 +89,11 @@ const TimePicker = ({ value, onChange, error }) => {
     );
 };
 
-// --- MAIN COMPONENT ---
+
 const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
     const [promotionTypeOption, setPromotionTypeOption] = useState("FIXED_AMOUNT");
 
-    // Mặc định minMembershipRank là BRONZE (Tất cả) và không hiển thị cho Owner chọn
+    // BRONZE
     const [formData, setFormData] = useState({
         code: "", name: "", value: "", quantity: "", minOrder: "", maxDiscount: "",
         startDate: "", endDate: "", isActive: true, minMembershipRank: "BRONZE"
@@ -124,7 +124,6 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
         return "";
     };
 
-    // Load Properties
     useEffect(() => {
         const loadProperties = async () => {
             try {
@@ -143,7 +142,6 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
         if (open) loadProperties();
     }, [open]);
 
-    // Init Data
     useEffect(() => {
         if (open) {
             setErrors({});
@@ -166,7 +164,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                     startDate: normalizeDateTime(startDate),
                     endDate: normalizeDateTime(endDate),
                     isActive: isActive !== undefined ? isActive : true,
-                    // Vẫn load giá trị cũ nhưng UI không hiện
+                    // măặc dinhj bronze
                     minMembershipRank: minMembershipRank || "BRONZE"
                 });
 
@@ -317,7 +315,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                 else if (promotionTypeOption === "PERCENTAGE_UNLIMITED") { submitData.type = "PERCENTAGE"; submitData.maxDiscount = 0; }
                 else { submitData.type = "PERCENTAGE"; }
 
-                // Default lại minMembershipRank cho chắc chắn
+
                 submitData.minMembershipRank = "BRONZE";
 
                 let fileToUpload = bannerFile;
@@ -333,7 +331,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
 
                 const realProperties = properties.filter(p => p.value !== "ALL");
 
-                // CASE 1: TẤT CẢ KHÁCH SẠN
+
                 if (selectedProperty === "ALL") {
                     if (realProperties.length === 0) {
                         showToast("error", "Bạn chưa có khách sạn nào.");
@@ -399,9 +397,9 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         if (successCount === 0) {
                             let msg = "Không thể áp dụng mã khuyến mãi.";
                             if (skippedHotels.length > 0) {
-                                msg = `⚠️ Tất cả ${skippedHotels.length} khách sạn đã có mã này: ${skippedHotels.join(", ")}.`;
+                                msg = ` Tất cả ${skippedHotels.length} khách sạn đã có mã này: ${skippedHotels.join(", ")}.`;
                             } else if (otherErrors.length > 0) {
-                                msg = `❌ Lỗi: ${otherErrors[0]}`;
+                                msg = ` Lỗi: ${otherErrors[0]}`;
                             }
                             showToast("error", msg);
                         } else {
@@ -412,7 +410,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                                 msg += `\n⚠️ Bỏ qua ${skippedHotels.length} khách sạn trùng mã: ${displayNames}${moreText}`;
                             }
                             if (otherErrors.length > 0) {
-                                msg += `\n❌ Lỗi khác: ${otherErrors[0]}`;
+                                msg += `\n Lỗi khác: ${otherErrors[0]}`;
                             }
                             showToast("success", msg);
                         }
@@ -420,7 +418,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         showToast("success", "Đã áp dụng thành công cho tất cả khách sạn!");
                     }
 
-                    // CASE 2: MỘT KHÁCH SẠN CỤ THỂ
+
                 } else {
                     if (initialData) {
                         await promotionService.updatePromotion(initialData.promotionId, {
@@ -472,7 +470,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
 
                 <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
 
-                    {/* 1. BANNER */}
+
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700 ml-1">Banner Khuyến Mãi</label>
                         <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50/50 transition-colors relative overflow-hidden group">
@@ -482,7 +480,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         </div>
                     </div>
 
-                    {/* 2. CHỌN KHÁCH SẠN */}
+
                     <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
                         <CustomSelect
                             label="Áp dụng cho khách sạn"
@@ -499,13 +497,13 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         )}
                     </div>
 
-                    {/* 3. MÃ CODE & TÊN */}
+
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                         <div className="sm:col-span-1"><CustomInput label="Mã Code" name="code" value={formData.code} onChange={handleChange} placeholder="VD: SALE50" icon={Tag} error={errors.code} /></div>
                         <div className="sm:col-span-2"><CustomInput label="Tên chương trình" name="name" value={formData.name} onChange={handleChange} placeholder="VD: Siêu sale hè" icon={CheckCircle2} error={errors.name} /></div>
                     </div>
 
-                    {/* 4. LOẠI GIẢM GIÁ & GIÁ TRỊ (Đã xóa Hạng thành viên) */}
+
                     <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <CustomSelect label="Loại giảm giá" name="type" value={promotionTypeOption} onChange={(val) => handleTypeChange(val)} icon={<Layers />}
                                       options={[
@@ -517,14 +515,14 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         <CustomInput label={isPercentage ? "Mức giảm (%)" : "Số tiền giảm (VNĐ)"} name="value" type={isPercentage ? "number" : "text"} value={isPercentage ? formData.value : formatCurrency(formData.value)} onChange={isPercentage ? handleChange : handleCurrencyChange} placeholder={isPercentage ? "VD: 20" : "VD: 50.000"} icon={isPercentage ? Percent : Banknote} error={errors.value} min="0" onFocus={(e) => e.target.select()} />
                     </div>
 
-                    {/* 5. ĐIỀU KIỆN ÁP DỤNG */}
+
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                         <CustomInput label="Đơn tối thiểu (VNĐ)" name="minOrder" type="text" value={formatCurrency(formData.minOrder)} onChange={handleCurrencyChange} icon={Banknote} error={errors.minOrder} placeholder="0 (Không giới hạn)" />
                         <CustomInput label="Giảm tối đa (VNĐ)" name="maxDiscount" type="text" value={formatCurrency(formData.maxDiscount)} onChange={handleCurrencyChange} icon={Banknote} placeholder={isMaxDiscountDisabled ? "Không áp dụng" : "VD: 200.000"} onFocus={(e) => e.target.select()} error={errors.maxDiscount} disabled={isMaxDiscountDisabled} />
                         <CustomInput label="Tổng số lượng" name="quantity" type="number" value={formData.quantity} onChange={handleChange} icon={Hash} placeholder="1000" min="1" onFocus={(e) => e.target.select()} error={errors.quantity} />
                     </div>
 
-                    {/* 6. THỜI GIAN */}
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian bắt đầu {errors.startDate && <span className="text-red-500">*</span>}</label>
