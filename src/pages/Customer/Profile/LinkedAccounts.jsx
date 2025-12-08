@@ -62,6 +62,19 @@ const LinkedAccounts = () => {
   };
 
   const handleLink = (provider) => {
+    // 1. Lấy token hiện tại
+    const token = localStorage.getItem('accessToken');
+    
+    if (token) {
+        // ✅ CẬP NHẬT: Set Cookie với SameSite=Lax để đảm bảo nó được gửi khi redirect
+        document.cookie = `LINKING_TOKEN=${token}; path=/; max-age=300; SameSite=Lax`;
+        console.log("Cookie LINKING_TOKEN set:", document.cookie); // Debug log
+    } else {
+        console.error("No access token found to link account!");
+        return;
+    }
+
+    // 2. Chuyển hướng
     window.location.href = `http://localhost:8386/oauth2/authorization/${provider}`;
   };
 
