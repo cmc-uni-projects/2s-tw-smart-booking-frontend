@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-// 1. Thêm icon User
-import { UserPlus, Chrome, Mail, ArrowLeft, User } from "lucide-react";
+// ✅ 1. Thêm Check, Circle vào import
+import { UserPlus, Mail, ArrowLeft, User, Check, Circle } from "lucide-react";
 import { FaFacebook } from "react-icons/fa";
 import { authService } from "../../services/auth.service";
 
 // Common Components
-// ✅ THAY ĐỔI: Bỏ import TextField, thêm import AuthTextField
 import AuthTextField from "../../components/common/Input/AuthTextField"; 
 import PasswordField from "../../components/common/Input/PasswordField";
 import ConfirmPasswordField from "../../components/common/Input/ConfirmPasswordField";
@@ -24,7 +23,6 @@ const GoogleIcon = ({ className }) => (
     height="20px"
     className={className}
   >
-    {/* ... (paths của icon Google) ... */}
     <path
       fill="#FFC107"
       d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
@@ -58,7 +56,16 @@ const Register = () => {
   const [toastType, setToastType] = useState("info");
   const [showToast, setShowToast] = useState(false);
 
-  // ... (Giữ nguyên các hàm showToastOnce, onChange, onSubmit, handleGoogleLogin, handleFacebookLogin) ...
+  // ✅ 2. State kiểm tra độ mạnh mật khẩu & Hiển thị Hint
+  const [showPasswordHints, setShowPasswordHints] = useState(false);
+  const [validations, setValidations] = useState({
+    length: false,
+    upper: false,
+    lower: false,
+    number: false,
+    special: false
+  });
+
   const showToastOnce = (msg, type = "error") => {
     setToastMsg(msg);
     setToastType(type);
@@ -67,6 +74,23 @@ const Register = () => {
   };
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  // ✅ 3. Hàm riêng xử lý input mật khẩu để check realtime
+  const handlePasswordChange = (e) => {
+    const val = e.target.value;
+    setForm({ ...form, password: val });
+
+    setValidations({
+      length: val.length >= 8,
+      upper: /[A-Z]/.test(val),
+      lower: /[a-z]/.test(val),
+      number: /[0-9]/.test(val),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(val),
+    });
+  };
+
+  // Kiểm tra tổng thể
+  const isPasswordValid = Object.values(validations).every(Boolean);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -84,10 +108,13 @@ const Register = () => {
       showToastOnce("Địa chỉ email không hợp lệ.");
       return;
     }
-    if (form.password.length < 8) {
-      showToastOnce("Mật khẩu phải có ít nhất 8 ký tự.");
+    
+    // ✅ Check độ mạnh password trước khi gửi
+    if (!isPasswordValid) {
+      showToastOnce("Mật khẩu chưa đủ mạnh (Cần chữ hoa, thường, số, ký tự đặc biệt).");
       return;
     }
+
     if (form.password !== form.confirmPassword) {
       showToastOnce("Mật khẩu xác nhận không khớp!");
       return;
@@ -124,6 +151,13 @@ const Register = () => {
     window.location.href = "http://localhost:8386/oauth2/authorization/facebook";
   };
 
+  // ✅ Component hiển thị dòng check
+  const ValidationItem = ({ fulfilled, text }) => (
+    <div className={`flex items-center gap-2 text-xs transition-colors ${fulfilled ? "text-green-600 font-medium" : "text-gray-400"}`}>
+      {fulfilled ? <Check size={14} strokeWidth={3} /> : <Circle size={14} />}
+      <span>{text}</span>
+    </div>
+  );
 
   return (
     <>
@@ -134,7 +168,6 @@ const Register = () => {
             "url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80')",
         }}
       >
-        {/* ... (Giữ nguyên phần Giao diện) ... */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#00A8E8]/60 via-[#0090C1]/50 to-[#006494]/70 backdrop-blur-sm"></div>
         <div className="relative z-10 w-full max-w-4xl bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl flex flex-col lg:flex-row animate-fadeIn border border-white/30 overflow-hidden max-h-[90vh]">
           {/* Left: Register Form */}
@@ -150,7 +183,6 @@ const Register = () => {
             </h2>
 
             <form onSubmit={onSubmit} className="space-y-5">
-              {/* ✅ THAY ĐỔI: Sử dụng AuthTextField */}
               <AuthTextField
                 name="fullName"
                 label="Họ và tên"
@@ -160,7 +192,6 @@ const Register = () => {
                 icon={<User size={18} />}
               />
 
-              {/* ✅ THAY ĐỔI: Sử dụng AuthTextField */}
               <AuthTextField
                 name="email"
                 label="Email"
@@ -171,12 +202,35 @@ const Register = () => {
                 icon={<Mail size={18} />}
               />
 
-              <PasswordField
-                label="Mật khẩu (≥8 ký tự)"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                required
-              />
+              {/* ✅ MẬT KHẨU CÓ CHECKLIST */}
+              <div>
+                <PasswordField
+                  label="Mật khẩu"
+                  value={form.password}
+                  onChange={handlePasswordChange} // Sử dụng hàm handle riêng
+                  required
+                  // Bắt sự kiện focus/blur để hiện/ẩn checklist
+                  onFocus={() => setShowPasswordHints(true)}
+                  onBlur={() => setShowPasswordHints(false)}
+                />
+                
+                {/* Checklist hiển thị khi focus HOẶC khi đã nhập nhưng chưa đủ mạnh */}
+                <div 
+                  className={`transition-all duration-300 overflow-hidden ${
+                    showPasswordHints || (form.password.length > 0 && !isPasswordValid) 
+                      ? 'max-h-[200px] opacity-100 mt-3 p-3 border border-gray-200 bg-gray-50 rounded-lg' 
+                      : 'max-h-0 opacity-0'
+                  }`}
+                >
+                   <div className="grid grid-cols-2 gap-2">
+                      <ValidationItem fulfilled={validations.length} text="Tối thiểu 8 ký tự" />
+                      <ValidationItem fulfilled={validations.upper} text="Chữ in hoa (A-Z)" />
+                      <ValidationItem fulfilled={validations.lower} text="Chữ thường (a-z)" />
+                      <ValidationItem fulfilled={validations.number} text="Số (0-9)" />
+                      <ValidationItem fulfilled={validations.special} text="Ký tự đặc biệt" />
+                   </div>
+                </div>
+              </div>
 
               <ConfirmPasswordField
                 label="Xác nhận mật khẩu"

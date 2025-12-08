@@ -6,29 +6,39 @@ export default function PasswordField({
   value = "",
   onChange,
   required = false,
+  // ✅ THÊM 2 PROPS NÀY
+  onFocus, 
+  onBlur,
+  // ... các props khác nếu có
+  ...props 
 }) {
   const [show, setShow] = useState(false);
-  const [focused, setFocused] = useState(false);
+  const [focused, setFocused] = useState(false); // State nội bộ để làm hiệu ứng floating label
   const isFloating = focused || value?.length > 0;
 
   return (
     <div className="relative w-full">
-      <Lock
-        size={18}
-        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-      />
+      <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
 
       <input
         id={label}
         type={show ? "text" : "password"}
         value={value}
         onChange={onChange}
-        onFocus={() => setFocused(true)}
-        onBlur={(e) => setFocused(e.target.value !== "")}
+        // ✅ GỌI HÀM TỪ CHA TRUYỀN XUỐNG
+        onFocus={(e) => {
+            setFocused(true);
+            onFocus && onFocus(e); 
+        }}
+        onBlur={(e) => {
+            setFocused(e.target.value !== "");
+            onBlur && onBlur(e);
+        }}
         placeholder={label}
         className="peer w-full rounded-xl border border-gray-300 bg-white py-3 pl-10 pr-10 text-gray-800 placeholder-transparent shadow-sm focus:border-[rgb(40,169,224)] focus:ring-2 focus:ring-[rgb(40,169,224,0.15)] transition-all duration-200"
+        {...props} // Spread các props còn lại
       />
-
+      {/* ... (Phần label và button Eye giữ nguyên) ... */}
       <label
         htmlFor={label}
         className={`absolute left-10 transition-all duration-200 text-gray-500 ${

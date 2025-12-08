@@ -1,59 +1,90 @@
 import React, { useState, useEffect } from "react";
+// ✅ 1. Import Hooks & Service
+import { useAuth } from "@/context/AuthContext";
+import { userService } from "@/services/user.service";
+
+// ✅ 2. Import Components
 import AccountMenu from "@/pages/Customer/Profile/AccountMenu";
-import { 
-    Bell, Globe, Shield, 
-    Check, ChevronRight 
-} from "lucide-react";
 import ToggleSwitch from "@/components/common/Input/ToggleSwitch";
 import Button from "@/components/common/Button/Button";
 import Card from "@/components/common/Card/Card";
 import Toast from "@/components/common/Notification/Toast";
 import ToastPortal from "@/components/common/Notification/ToastPortal";
+import CustomSelect from "@/components/common/Select/CustomSelect"; // Component chọn email
 
-// ✅ 1. Import thêm Auth & Service
-import { useAuth } from "@/context/AuthContext";
-import { userService } from "@/services/user.service";
+// ✅ 3. Import Icons
+import { 
+    Bell, Globe, Shield, 
+    Check, ChevronRight, Mail 
+} from "lucide-react";
 
 const SettingsPage = () => {
-    // ✅ 2. Lấy currentUser từ Context
     const { currentUser, updateUser } = useAuth();
     
-    // State lưu data user mới nhất
-    const [userInfo, setUserInfo] = useState(currentUser);
-    
-    const [loading, setLoading] = useState(false);
-    const [toast, setToast] = useState({ show: false, msg: "", type: "success" });
-    
-    // State cho upload avatar (để AccountMenu hoạt động full chức năng)
-    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-
-    // Mock Data cho Settings
+    // State settings (bao gồm cả notificationEmail)
     const [settings, setSettings] = useState({
         emailNoti: true,
         smsNoti: false,
         deviceNoti: true,
-        twoFactor: false
+        twoFactor: false,
+        notificationEmail: "" // Mặc định rỗng, sẽ set sau khi fetch
     });
+
+    const [loading, setLoading] = useState(false);
+    const [toast, setToast] = useState({ show: false, msg: "", type: "success" });
+    
+    // Danh sách email khả dụng để chọn (Email chính + Email MXH)
+    const [availableEmails, setAvailableEmails] = useState([]);
+    
+    // State để render AccountMenu (Avatar, tên...)
+    const [userInfo, setUserInfo] = useState(currentUser);
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
     const showToastAndDismiss = (msg, type = "info") => {
         setToast({ show: true, msg, type });
         setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
     };
 
-    // ✅ 3. Fetch dữ liệu mới nhất khi vào trang
+    // ✅ 4. Fetch dữ liệu user mới nhất (bao gồm socialAccounts và notificationEmail)
     useEffect(() => {
-        const fetchUser = async () => {
+        const fetchUserData = async () => {
             try {
                 const data = await userService.getUserDetail();
-                if(data) setUserInfo(data);
+                if (data) {
+                    setUserInfo(data);
+                    
+                    // 4a. Xây dựng danh sách email
+                    const emails = [
+                        { value: data.email, label: `${data.email} (Email chính)` }
+                    ];
+
+                    if (data.socialAccounts && data.socialAccounts.length > 0) {
+                        data.socialAccounts.forEach(acc => {
+                            if (acc.email !== data.email) {
+                                emails.push({
+                                    value: acc.email,
+                                    label: `${acc.email} (Liên kết ${acc.provider})`
+                                });
+                            }
+                        });
+                    }
+                    setAvailableEmails(emails);
+
+                    // 4b. Set giá trị settings hiện tại
+                    setSettings(prev => ({
+                        ...prev,
+                        notificationEmail: data.notificationEmail || data.email
+                    }));
+                }
             } catch (error) {
-                console.error("Lỗi lấy thông tin:", error);
+                console.error("Lỗi tải thông tin:", error);
             }
         };
-        fetchUser();
+
+        fetchUserData();
     }, []);
 
-    // ✅ 4. Hàm xử lý Upload Avatar (Copy từ ProfilePage/MembershipPage)
+    // Xử lý upload avatar
     const handleAvatarUpload = async (file) => {
         setIsUploadingAvatar(true);
         try {
@@ -61,7 +92,7 @@ const SettingsPage = () => {
             if (res.success && res.data) {
                 const newUrl = res.data.profilePhotoUrl;
                 setUserInfo(prev => ({ ...prev, profilePhotoUrl: newUrl }));
-                updateUser({ profilePhotoUrl: newUrl }); // Đồng bộ Context
+                updateUser({ profilePhotoUrl: newUrl });
                 showToastAndDismiss("Cập nhật ảnh đại diện thành công!", "success");
             }
         } catch (err) {
@@ -76,12 +107,27 @@ const SettingsPage = () => {
         setSettings(prev => ({ ...prev, [key]: !prev[key] }));
     };
 
-    const handleSave = () => {
+    // ✅ 5. Lưu cài đặt (Gửi notificationEmail lên server)
+    const handleSave = async () => {
         setLoading(true);
-        setTimeout(() => {
+        try {
+            const payload = {
+                notificationEmail: settings.notificationEmail,
+                // Các settings khác nếu backend hỗ trợ lưu
+            };
+
+            const res = await userService.updateUserDetail(payload);
+            
+            if (res.success) {
+                updateUser({ notificationEmail: settings.notificationEmail });
+                showToastAndDismiss("Đã lưu cài đặt thành công!", "success");
+            }
+        } catch (err) {
+            console.error(err);
+            showToastAndDismiss("Lưu thất bại.", "error");
+        } finally {
             setLoading(false);
-            showToastAndDismiss("Đã lưu cài đặt thành công!", "success");
-        }, 800);
+        }
     };
 
     return (
@@ -89,9 +135,8 @@ const SettingsPage = () => {
             <div className="max-w-7xl mx-auto p-6">
                 <div className="grid grid-cols-12 gap-8">
                     
-                    {/* CỘT TRÁI: MENU */}
+                    {/* CỘT TRÁI */}
                     <div className="col-span-12 lg:col-span-3">
-                        {/* ✅ 5. Truyền props vào AccountMenu */}
                         <AccountMenu 
                             userData={userInfo} 
                             onAvatarUpload={handleAvatarUpload}
@@ -99,7 +144,7 @@ const SettingsPage = () => {
                         /> 
                     </div>
 
-                    {/* CỘT PHẢI: NỘI DUNG CÀI ĐẶT */}
+                    {/* CỘT PHẢI */}
                     <div className="col-span-12 lg:col-span-9 space-y-6">
                         
                         {/* Header */}
@@ -118,41 +163,59 @@ const SettingsPage = () => {
                             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-3">
                                 <Bell size={20} className="text-blue-500" /> Cài đặt thông báo
                             </h3>
-                            <div className="space-y-5">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="font-medium text-gray-700">Thông báo qua Email</p>
-                                        <p className="text-xs text-gray-500">Nhận cập nhật về đơn đặt phòng và khuyến mãi</p>
-                                    </div>
-                                    <ToggleSwitch 
-                                        checked={settings.emailNoti} 
-                                        onChange={() => handleToggle("emailNoti")} 
+                            
+                            <div className="space-y-6">
+                                {/* ✅ SELECT CHỌN EMAIL */}
+                                <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                                    <CustomSelect
+                                        label="Địa chỉ Email nhận thông báo"
+                                        options={availableEmails}
+                                        value={settings.notificationEmail}
+                                        onChange={(val) => setSettings(prev => ({...prev, notificationEmail: val}))}
+                                        icon={<Mail size={18} />}
+                                        placeholder="Chọn email..."
                                     />
+                                    <p className="text-xs text-gray-500 mt-2 ml-1">
+                                        * Vé điện tử, hóa đơn và thông báo quan trọng sẽ được gửi về địa chỉ này.
+                                    </p>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="font-medium text-gray-700">Tin nhắn SMS</p>
-                                        <p className="text-xs text-gray-500">Nhận mã OTP và thông báo khẩn cấp</p>
+
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="font-medium text-gray-700">Thông báo qua Email</p>
+                                            <p className="text-xs text-gray-500">Nhận cập nhật về đơn đặt phòng và khuyến mãi</p>
+                                        </div>
+                                        <ToggleSwitch 
+                                            checked={settings.emailNoti} 
+                                            onChange={() => handleToggle("emailNoti")} 
+                                        />
                                     </div>
-                                    <ToggleSwitch 
-                                        checked={settings.smsNoti} 
-                                        onChange={() => handleToggle("smsNoti")} 
-                                    />
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="font-medium text-gray-700">Thông báo đẩy (Push Notification)</p>
-                                        <p className="text-xs text-gray-500">Thông báo trực tiếp trên trình duyệt/ứng dụng</p>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="font-medium text-gray-700">Tin nhắn SMS</p>
+                                            <p className="text-xs text-gray-500">Nhận mã OTP và thông báo khẩn cấp</p>
+                                        </div>
+                                        <ToggleSwitch 
+                                            checked={settings.smsNoti} 
+                                            onChange={() => handleToggle("smsNoti")} 
+                                        />
                                     </div>
-                                    <ToggleSwitch 
-                                        checked={settings.deviceNoti} 
-                                        onChange={() => handleToggle("deviceNoti")} 
-                                    />
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="font-medium text-gray-700">Thông báo đẩy</p>
+                                            <p className="text-xs text-gray-500">Thông báo trực tiếp trên trình duyệt</p>
+                                        </div>
+                                        <ToggleSwitch 
+                                            checked={settings.deviceNoti} 
+                                            onChange={() => handleToggle("deviceNoti")} 
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </Card>
 
-                        {/* 2. Ngôn ngữ & Giao diện */}
+                        {/* 2. Ngôn ngữ */}
                         <Card className="p-6">
                             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-3">
                                 <Globe size={20} className="text-green-500" /> Ngôn ngữ & Khu vực
@@ -184,7 +247,7 @@ const SettingsPage = () => {
                             </div>
                         </Card>
 
-                        {/* 3. Bảo mật khác */}
+                        {/* 3. Bảo mật */}
                         <Card className="p-6">
                             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-3">
                                 <Shield size={20} className="text-red-500" /> Bảo mật nâng cao

@@ -1,8 +1,6 @@
-// src/components/common/Avatar/Avatar.jsx
 import React, { useState, useEffect } from "react";
 
-// Helper: Lấy domain gốc từ biến môi trường (đã cấu hình trong .env)
-// Ví dụ: "http://localhost:8386/api/v1" -> "http://localhost:8386"
+// Helper: Lấy domain gốc từ biến môi trường
 const getBaseUrl = () => {
   const apiUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1";
   try {
@@ -25,7 +23,7 @@ const Avatar = ({ name, src, size = 64, className = "" }) => {
   useEffect(() => {
     if (src) {
       // Nếu src bắt đầu bằng "/" (đường dẫn tương đối), nối thêm domain backend
-      if (src.startsWith("/")) {
+      if (src.toString().startsWith("/")) {
         setImgSrc(`${baseUrl}${src}`);
       } else {
         // Nếu là link tuyệt đối (http...) hoặc base64, giữ nguyên
@@ -46,9 +44,14 @@ const Avatar = ({ name, src, size = 64, className = "" }) => {
       {imgSrc && !hasError ? (
         <img
           src={imgSrc}
-          alt={name}
+          alt={name || "User Avatar"}
           className="w-full h-full object-cover"
-          onError={() => setHasError(true)} // Nếu tải ảnh thất bại, chuyển sang hiển thị tên
+          onError={() => setHasError(true)}
+          
+          // ✅ QUAN TRỌNG: 3 dòng này giúp tránh lỗi 429 từ Google
+          referrerPolicy="no-referrer" 
+          crossOrigin="anonymous"
+          loading="lazy"
         />
       ) : (
         // Fallback: Hiển thị ký tự đầu tên với kích thước chữ tự động theo size
