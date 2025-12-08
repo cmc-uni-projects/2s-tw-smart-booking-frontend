@@ -3,15 +3,24 @@ import { useAuth } from '@/context/AuthContext';
 import { FaFacebook } from 'react-icons/fa';
 import Button from '@/components/common/Button/Button';
 import Card from '@/components/common/Card/Card';
-import { Link2, AlertCircle, ExternalLink, Trash2, CheckCircle, Lock } from 'lucide-react'; // ✅ Thêm icon Lock
+import { Link2, AlertCircle, ExternalLink, Trash2, CheckCircle, Lock } from 'lucide-react';
 import { authService } from '@/services/auth.service';
 import Toast from '@/components/common/Notification/Toast';
 import ToastPortal from '@/components/common/Notification/ToastPortal';
 import ConfirmModal from '@/components/common/Modal/ConfirmModal';
-import { useNavigate } from 'react-router-dom'; // ✅ Import useNavigate
+import CreatePasswordModal from '@/components/common/Modal/CreatePasswordModal';
+import AccountReviewModal from '@/components/common/Modal/AccountReviewModal';
+import { useNavigate } from 'react-router-dom';
 
+// ✅ 1. ĐỊNH NGHĨA COMPONENT GoogleIcon TẠI ĐÂY
 const GoogleIcon = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" className={className}>
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 48 48" 
+    width="24px" 
+    height="24px" 
+    className={className}
+  >
     <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
     <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
     <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
@@ -21,16 +30,19 @@ const GoogleIcon = ({ className }) => (
 
 const LinkedAccounts = () => {
   const { currentUser, updateUser } = useAuth();
-  const navigate = useNavigate(); // ✅ Hook để chuyển trang khi cần tạo pass
+  // const navigate = useNavigate(); // Không cần dùng navigate nữa vì đã có modal
   const [linkedProviders, setLinkedProviders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: "", type: "info" });
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUnlinkModalOpen, setIsUnlinkModalOpen] = useState(false);
   const [providerToUnlink, setProviderToUnlink] = useState(null);
 
-  // ✅ LOGIC AN TOÀN: Kiểm tra xem user có được phép unlink không
-  // User an toàn nếu: Có mật khẩu HOẶC có nhiều hơn 1 tài khoản MXH
+  // State cho Modal tạo mật khẩu
+  const [isCreatePassOpen, setIsCreatePassOpen] = useState(false);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+
+  // Logic kiểm tra an toàn
   const isSafeToUnlink = currentUser?.hasPassword || (currentUser?.socialAccounts?.length > 1);
 
   useEffect(() => {
@@ -53,26 +65,17 @@ const LinkedAccounts = () => {
     window.location.href = `http://localhost:8386/oauth2/authorization/${provider}`;
   };
 
-  const confirmUnlink = (provider) => {
-    // Check lại lần nữa cho chắc chắn
-    if (!isSafeToUnlink && linkedProviders.length <= 1) {
-       showToast("Bạn cần tạo mật khẩu trước khi ngắt kết nối tài khoản này!", "error");
-       return;
-    }
-    setProviderToUnlink(provider);
-    setIsModalOpen(true);
-  };
-
   const handleUnlinkExecution = async () => {
     if (!providerToUnlink) return;
-
     setLoading(true);
     try {
       await authService.unlinkSocialAccount(providerToUnlink);
       
+      // Cập nhật state local
       const updatedProviders = linkedProviders.filter(p => p !== providerToUnlink);
       setLinkedProviders(updatedProviders);
 
+      // Cập nhật context global
       const updatedSocialAccounts = currentUser.socialAccounts.filter(
         acc => acc.provider.toLowerCase() !== providerToUnlink
       );
@@ -83,14 +86,26 @@ const LinkedAccounts = () => {
       showToast(error.message, "error");
     } finally {
       setLoading(false);
-      setIsModalOpen(false);
+      setIsUnlinkModalOpen(false);
       setProviderToUnlink(null);
     }
   };
 
+  const confirmUnlink = (provider) => {
+    if (!isSafeToUnlink && linkedProviders.length <= 1) {
+       showToast("Bạn cần tạo mật khẩu trước khi ngắt kết nối tài khoản này!", "error");
+       return;
+    }
+    setProviderToUnlink(provider);
+    setIsUnlinkModalOpen(true);
+  };
+
+  const handleCreatePasswordSuccess = () => {
+    setTimeout(() => setIsReviewOpen(true), 300);
+  };
+
   const SocialItem = ({ provider, icon, title, description, isConnected, colorClass }) => {
-    // ✅ Logic khóa nút riêng cho từng item
-    // Nếu ĐÃ kết nối + là phương thức duy nhất + không có mật khẩu -> KHÓA
+    // Logic khóa nút: Nếu đã kết nối + là duy nhất + chưa có pass => KHÓA
     const isLocked = isConnected && !isSafeToUnlink && linkedProviders.length === 1;
 
     return (
@@ -105,9 +120,8 @@ const LinkedAccounts = () => {
               {isConnected && <CheckCircle size={16} className="text-green-500" />}
             </h4>
             <p className="text-sm text-gray-500 max-w-[300px]">
-              {/* ✅ Hiển thị thông báo nếu đang bị khóa */}
               {isLocked 
-                ? <span className="text-red-500 font-medium">Đây là phương thức đăng nhập duy nhất của bạn.</span>
+                ? <span className="text-red-500 font-medium">Đây là phương thức đăng nhập duy nhất.</span>
                 : (isConnected ? `Đã liên kết với tài khoản ${title}.` : description)
               }
             </p>
@@ -117,17 +131,17 @@ const LinkedAccounts = () => {
         <div className="w-full sm:w-auto flex justify-end">
           {isConnected ? (
             isLocked ? (
-              // ✅ TRƯỜNG HỢP BỊ KHÓA: Hiển thị nút "Tạo mật khẩu"
+              // Nút Tạo mật khẩu (khi bị khóa)
               <Button
                 variant="primary"
-                onClick={() => navigate('/customer/profile/change-password')} // Chuyển sang trang tạo pass
+                onClick={() => setIsCreatePassOpen(true)} 
                 className="w-full sm:w-auto min-w-[160px] justify-center"
                 leftIcon={<Lock size={16} />}
               >
                 Tạo mật khẩu
               </Button>
             ) : (
-              // ✅ TRƯỜNG HỢP ĐƯỢC PHÉP XÓA
+              // Nút Ngắt kết nối (khi an toàn)
               <Button
                 variant="outline"
                 onClick={() => confirmUnlink(provider)}
@@ -139,6 +153,7 @@ const LinkedAccounts = () => {
               </Button>
             )
           ) : (
+            // Nút Kết nối
             <Button
               variant="outline"
               onClick={() => handleLink(provider)}
@@ -167,47 +182,61 @@ const LinkedAccounts = () => {
             </div>
           </div>
 
-          {/* ✅ Alert thông báo nếu chưa có mật khẩu */}
           {!currentUser?.hasPassword && (
              <div className="mb-6 bg-orange-50 border border-orange-100 text-orange-800 p-4 rounded-xl flex gap-3 items-start">
                 <AlertCircle size={22} className="mt-0.5 flex-shrink-0 text-orange-600" />
                 <div className="text-sm leading-relaxed">
-                  <strong>Chú ý:</strong> Bạn chưa thiết lập mật khẩu cho tài khoản này. Để tránh mất quyền truy cập, bạn vui lòng <strong>Tạo mật khẩu</strong> hoặc liên kết thêm một tài khoản mạng xã hội khác trước khi ngắt kết nối tài khoản hiện tại.
+                  <strong>Chú ý:</strong> Bạn chưa thiết lập mật khẩu. Vui lòng <strong>Tạo mật khẩu</strong> để bảo vệ tài khoản tốt hơn và tránh mất quyền truy cập.
                 </div>
              </div>
           )}
 
           <div className="space-y-4">
-            <SocialItem
-              provider="google"
-              title="Google"
-              description="Sử dụng tài khoản Google để đăng nhập một chạm."
-              isConnected={linkedProviders.includes('google')}
-              icon={<GoogleIcon />}
+            <SocialItem 
+              provider="google" 
+              title="Google" 
+              description="Sử dụng tài khoản Google để đăng nhập một chạm." 
+              isConnected={linkedProviders.includes('google')} 
+              icon={<GoogleIcon />} // ✅ Sử dụng Component đã định nghĩa
               colorClass="bg-white" 
             />
 
-            <SocialItem
-              provider="facebook"
-              title="Facebook"
-              description="Kết nối với Facebook để đăng nhập dễ dàng."
-              isConnected={linkedProviders.includes('facebook')}
+            <SocialItem 
+              provider="facebook" 
+              title="Facebook" 
+              description="Kết nối với Facebook để đăng nhập dễ dàng." 
+              isConnected={linkedProviders.includes('facebook')} 
               icon={<FaFacebook className="text-[#1877F2] text-3xl" />} 
-              colorClass="bg-blue-50"
+              colorClass="bg-blue-50" 
             />
           </div>
         </div>
       </Card>
 
+      {/* Modal xác nhận xóa */}
       <ConfirmModal 
-        open={isModalOpen}
+        open={isUnlinkModalOpen}
         type="danger"
         title="Ngắt kết nối tài khoản"
-        message={`Bạn có chắc chắn muốn ngắt kết nối tài khoản ${providerToUnlink === 'google' ? 'Google' : 'Facebook'}? Bạn sẽ không thể sử dụng tài khoản này để đăng nhập nữa.`}
+        message={`Bạn có chắc chắn muốn ngắt kết nối tài khoản ${providerToUnlink}?`}
         confirmText="Ngắt kết nối"
         cancelText="Hủy bỏ"
         onConfirm={handleUnlinkExecution}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => setIsUnlinkModalOpen(false)}
+      />
+
+      {/* Modal Tạo mật khẩu */}
+      <CreatePasswordModal
+        open={isCreatePassOpen}
+        onClose={() => setIsCreatePassOpen(false)}
+        onSuccess={handleCreatePasswordSuccess}
+      />
+
+      {/* Modal Review thông tin */}
+      <AccountReviewModal
+        open={isReviewOpen}
+        userData={currentUser}
+        onClose={() => setIsReviewOpen(false)}
       />
 
       <ToastPortal>

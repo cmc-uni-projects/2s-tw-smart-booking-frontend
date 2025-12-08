@@ -139,6 +139,14 @@ const unlinkSocialAccount = async (provider) => {
     throw new Error(msg);
   }
 };
+const createPassword = async (password) => {
+  try {
+    const response = await api.post(`/auth/create-password`, { password });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Tạo mật khẩu thất bại");
+  }
+};
 
 export const authService = {
   login,
@@ -151,4 +159,5 @@ export const authService = {
   verifyEmail,
   fetchUserProfile,
   unlinkSocialAccount,
+  createPassword,
 };
