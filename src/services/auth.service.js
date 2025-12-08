@@ -126,6 +126,19 @@ const fetchUserProfile = async () => {
     throw error;
   }
 };
+const unlinkSocialAccount = async (provider) => {
+  try {
+    // Gọi method DELETE: /api/v1/auth/social/unlink?provider=google
+    const response = await api.delete(`/auth/social/unlink`, {
+      params: { provider }
+    });
+    return response.data;
+  } catch (error) {
+    // Ném lỗi để component xử lý hiển thị
+    const msg = error.response?.data?.message || "Không thể ngắt kết nối.";
+    throw new Error(msg);
+  }
+};
 
 export const authService = {
   login,
@@ -136,5 +149,6 @@ export const authService = {
   forgotPassword,
   resetPassword,
   verifyEmail,
-  fetchUserProfile, // <-- Đừng quên export hàm mới này
+  fetchUserProfile,
+  unlinkSocialAccount,
 };
