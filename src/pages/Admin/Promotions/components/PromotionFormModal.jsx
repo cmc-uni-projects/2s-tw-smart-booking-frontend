@@ -8,7 +8,7 @@ import {
 import promotionService from "../../../../services/promotion.service";
 import toast from "react-hot-toast";
 import Toast from "@/components/common/Notification/Toast";
-import CustomSelect from "@/components/common/Select/CustomSelect"; // ✅ Đảm bảo import CustomSelect
+import CustomSelect from "@/components/common/Select/CustomSelect";
 
 // --- CONFIG ---
 const BE_BASE_URL = "http://127.0.0.1:8386";
@@ -32,6 +32,8 @@ const parseCurrency = (value) => {
 };
 
 // --- COMPONENTS ---
+// SỬA: Dùng flex-col gap-1.5 để đồng bộ khoảng cách label với Select
+// SỬA: Chỉnh height input về h-[42px] để khớp với Select chuẩn
 const CustomInput = ({ label, name, value, onChange, type = "text", placeholder, icon: Icon, error, disabled, className, ...props }) => {
     const inputRef = useRef(null);
     const handleIconClick = () => {
@@ -42,7 +44,7 @@ const CustomInput = ({ label, name, value, onChange, type = "text", placeholder,
     };
     const isDateInput = type === 'date';
     return (
-        <div className={`space-y-1.5 ${className}`}>
+        <div className={`flex flex-col gap-1.5 ${className}`}>
             {label && <label className="text-sm font-semibold text-gray-700 ml-1">{label} {error && <span className="text-red-500">*</span>}</label>}
             <div className="relative group">
                 {Icon && (
@@ -50,7 +52,9 @@ const CustomInput = ({ label, name, value, onChange, type = "text", placeholder,
                         <Icon size={18} strokeWidth={isDateInput ? 2.5 : 2} />
                     </div>
                 )}
-                <input ref={inputRef} type={type} name={name} value={value} onChange={onChange} disabled={disabled} placeholder={placeholder} {...props} className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-4 py-2.5 bg-gray-50 border rounded-xl outline-none transition-all duration-200 ${error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100 bg-red-50' : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white'} ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''} placeholder-gray-400 selection:bg-blue-100 [&::-webkit-calendar-picker-indicator]:hidden`} />
+                {/* SỬA: h-[42px] thay vì h-[46px] hay py-2.5 */}
+                <input ref={inputRef} type={type} name={name} value={value} onChange={onChange} disabled={disabled} placeholder={placeholder} {...props}
+                       className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-4 h-[42px] bg-gray-50 border rounded-xl outline-none transition-all duration-200 ${error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100 bg-red-50' : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white'} ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''} placeholder-gray-400 selection:bg-blue-100 [&::-webkit-calendar-picker-indicator]:hidden`} />
             </div>
             {error && typeof error === 'string' && <p className="text-xs text-red-500 flex items-center gap-1 ml-1"><AlertCircle size={12}/> {error}</p>}
         </div>
@@ -79,7 +83,7 @@ const TimePicker = ({ value, onChange, error }) => {
         if (type === 'hour') { setHour(val); onChange(`${val}:${minute}`); } else { setMinute(val); onChange(`${hour}:${val}`); }
     };
     return (
-        <div className={`flex items-center border rounded-xl bg-gray-50 px-3 py-2.5 transition-all duration-200 ${error ? 'border-red-300 ring-4 ring-red-100 bg-red-50' : 'border-gray-200 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:bg-white'}`}>
+        <div className={`flex items-center border rounded-xl bg-gray-50 px-3 py-2.5 transition-all duration-200 h-[42px] ${error ? 'border-red-300 ring-4 ring-red-100 bg-red-50' : 'border-gray-200 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:bg-white'}`}>
             <div className="text-gray-400 mr-2"><Clock size={18} strokeWidth={2} /></div>
             <input type="text" value={hour} onChange={(e) => handleChangeInput(e, 'hour')} onBlur={() => handleBlur('hour')} onFocus={(e)=>e.target.select()} placeholder="HH" className="bg-transparent outline-none text-gray-700 font-semibold w-8 text-center placeholder-gray-300 focus:text-blue-600 selection:bg-blue-200" />
             <span className="text-gray-400 font-bold mx-1">:</span>
@@ -316,7 +320,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                 </div>
                 <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
 
-                    {/* 1. BANNER (Đã đưa lên đầu) */}
+                    {/* 1. BANNER */}
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700 ml-1">Banner Khuyến Mãi</label>
                         <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50/50 transition-colors relative overflow-hidden group">
@@ -327,7 +331,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                     </div>
 
                     {/* 2. MÃ CODE & TÊN */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-start">
                         <div className="sm:col-span-1"><CustomInput label="Mã Code" name="code" value={formData.code} onChange={handleChange} placeholder="VD: SALE50" icon={Tag} error={errors.code} /></div>
                         <div className="sm:col-span-2"><CustomInput label="Tên chương trình" name="name" value={formData.name} onChange={handleChange} placeholder="VD: Siêu sale tháng 11" icon={CheckCircle2} error={errors.name} /></div>
                     </div>
@@ -340,8 +344,8 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         <p className="text-xs text-gray-500 mt-2 ml-1 italic">* Khuyến mãi này sẽ áp dụng cho các thành viên có hạng này trở lên.</p>
                     </div>
 
-                    {/* 4. LOẠI GIẢM GIÁ & GIÁ TRỊ */}
-                    <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {/* 4. LOẠI GIẢM GIÁ & GIÁ TRỊ - CHỖ BỊ LỆCH */}
+                    <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
                         <CustomSelect label="Loại giảm giá" name="type" value={promotionTypeOption} onChange={(val) => handleTypeChange(val)} icon={<Layers />}
                                       options={[
                                           { value: "FIXED_AMOUNT", label: "Giảm tiền trực tiếp" },
@@ -353,17 +357,17 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                     </div>
 
                     {/* 5. ĐIỀU KIỆN ÁP DỤNG */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-start">
                         <CustomInput label="Đơn tối thiểu (VNĐ)" name="minOrder" type="text" value={formatCurrency(formData.minOrder)} onChange={handleCurrencyChange} icon={Banknote} error={errors.minOrder} placeholder="0 (Không giới hạn)" />
                         <CustomInput label="Giảm tối đa (VNĐ)" name="maxDiscount" type="text" value={formatCurrency(formData.maxDiscount)} onChange={handleCurrencyChange} icon={Banknote} placeholder={isMaxDiscountDisabled ? "Không áp dụng" : "VD: 200.000"} onFocus={(e) => e.target.select()} error={errors.maxDiscount} disabled={isMaxDiscountDisabled} />
                         <CustomInput label="Tổng số lượng" name="quantity" type="number" value={formData.quantity} onChange={handleChange} icon={Hash} error={errors.quantity} placeholder="1000" min="1" onFocus={(e) => e.target.select()} />
                     </div>
 
                     {/* 6. THỜI GIAN */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian bắt đầu {errors.startDate && <span className="text-red-500">*</span>}</label>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 items-start">
                                 <div className="w-3/5"><CustomInput type="date" value={getSplitValue(formData.startDate, 'date')} onChange={(e) => handleSplitDateTimeChange('startDate', 'date', e.target.value)} icon={Calendar} error={!!errors.startDate} max="9999-12-31" /></div>
                                 <div className="w-2/5"><TimePicker value={getSplitValue(formData.startDate, 'time')} onChange={(newTime) => handleSplitDateTimeChange('startDate', 'time', newTime)} error={!!errors.startDate} /></div>
                             </div>
@@ -371,7 +375,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         </div>
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian kết thúc {errors.endDate && <span className="text-red-500">*</span>}</label>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 items-start">
                                 <div className="w-3/5"><CustomInput type="date" value={getSplitValue(formData.endDate, 'date')} onChange={(e) => handleSplitDateTimeChange('endDate', 'date', e.target.value)} icon={Calendar} error={!!errors.endDate} max="9999-12-31" /></div>
                                 <div className="w-2/5"><TimePicker value={getSplitValue(formData.endDate, 'time')} onChange={(newTime) => handleSplitDateTimeChange('endDate', 'time', newTime)} error={!!errors.endDate} /></div>
                             </div>
