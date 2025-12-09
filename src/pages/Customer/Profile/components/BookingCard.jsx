@@ -1,5 +1,3 @@
-// src/pages/Customer/Profile/components/BookingCard.jsx
-
 import React from "react";
 import {
   CalendarDays,
@@ -13,7 +11,7 @@ import {
   Star,
   Clock,
   CalendarCheck,
-  Tag // [UPDATE] Import thêm icon Tag
+  Tag
 } from "lucide-react";
 import Button from "@/components/common/Button/Button";
 
@@ -27,10 +25,19 @@ const getImageUrl = (path) => {
 
 const BookingCard = ({ booking, onClick, onReviewClick }) => {
 
-  // 1. Tính toán giá tiền thực tế
-  // Backend lưu totalPrice là giá gốc, discountAmount là số tiền giảm
+  // ==================================================================
+  // 👇 [SỬA LẠI LOGIC TÍNH GIÁ] 
+  // Backend trả về totalPrice là GIÁ ĐÃ GIẢM (Final Price).
+  // Nên muốn hiện giá gốc, ta phải CỘNG NGƯỢC LẠI discount.
+  // ==================================================================
+
   const discount = booking.discountAmount || 0;
-  const finalPrice = Math.max(0, booking.totalPrice - discount);
+
+  // Giá khách phải trả (Lấy trực tiếp từ DB vì DB đã lưu giá sau giảm)
+  const finalPrice = booking.totalPrice;
+
+  // Giá gốc (để hiển thị gạch ngang)
+  const originalPrice = finalPrice + discount;
 
   const formatCurrency = (val) =>
       new Intl.NumberFormat("vi-VN", {
@@ -39,6 +46,7 @@ const BookingCard = ({ booking, onClick, onReviewClick }) => {
       }).format(val);
 
   const renderStatusBadge = (status) => {
+    // ... (Giữ nguyên code phần badge status của bạn) ...
     const config = {
       PENDING_PAYMENT: {
         style: "bg-orange-100 text-orange-700 border-orange-200",
@@ -89,7 +97,7 @@ const BookingCard = ({ booking, onClick, onReviewClick }) => {
               booking.status === "CANCELLED" ? "opacity-75 grayscale-[0.1]" : ""
           }`}
       >
-        {/* Image Section */}
+        {/* ... (Giữ nguyên phần Image Section) ... */}
         <div className="relative h-48 w-full shrink-0 bg-slate-100 md:h-auto md:w-60">
           <img
               src={getImageUrl(booking.propertyImage)}
@@ -105,6 +113,7 @@ const BookingCard = ({ booking, onClick, onReviewClick }) => {
         {/* Content Section */}
         <div className="flex flex-1 flex-col justify-between p-5">
           <div>
+            {/* ... (Giữ nguyên phần thông tin Property, Date, Room Type) ... */}
             <div className="flex items-start justify-between gap-2">
               <div>
                 <h3 className="line-clamp-1 text-lg font-bold text-slate-800 transition-colors group-hover:text-blue-600">
@@ -147,6 +156,7 @@ const BookingCard = ({ booking, onClick, onReviewClick }) => {
 
           <div className="mt-4 flex items-end justify-between border-t border-slate-100 pt-3">
             <div>
+              {/* ... (Giữ nguyên logic hiển thị trạng thái Refund) ... */}
               {booking.paymentStatus === "REFUND_REQUESTED" && (
                   <span className="mb-1 flex items-center gap-1 text-xs font-bold text-orange-600 animate-pulse">
                 <Loader2 size={12} className="animate-spin" /> Đang chờ hoàn tiền
@@ -160,13 +170,13 @@ const BookingCard = ({ booking, onClick, onReviewClick }) => {
 
               <p className="text-xs font-medium text-slate-400">Tổng thanh toán</p>
 
-              {/* [UPDATE] Phần hiển thị giá tiền */}
+              {/* 👇 [UPDATE] Hiển thị giá tiền đã sửa logic */}
               <div className="flex flex-col items-start">
                 {discount > 0 && (
                     <div className="flex items-center gap-1.5 mb-0.5">
-                      {/* Giá gốc gạch ngang */}
+                      {/* Giá gốc (originalPrice) gạch ngang */}
                       <span className="text-xs text-gray-400 line-through decoration-slate-400">
-                        {formatCurrency(booking.totalPrice)}
+                        {formatCurrency(originalPrice)}
                     </span>
                       {/* Badge hiển thị số tiền được giảm */}
                       <span className="text-[10px] font-bold text-red-500 bg-red-50 border border-red-100 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
@@ -175,13 +185,14 @@ const BookingCard = ({ booking, onClick, onReviewClick }) => {
                     </div>
                 )}
 
-                {/* Giá cuối cùng */}
+                {/* Giá cuối cùng (finalPrice = totalPrice từ Backend) */}
                 <p className="text-xl font-bold text-blue-600">
                   {formatCurrency(finalPrice)}
                 </p>
               </div>
             </div>
 
+            {/* ... (Giữ nguyên các nút bấm Review/Detail) ... */}
             <div className="flex gap-2">
               {booking.status === "COMPLETED" && (
                   <>
