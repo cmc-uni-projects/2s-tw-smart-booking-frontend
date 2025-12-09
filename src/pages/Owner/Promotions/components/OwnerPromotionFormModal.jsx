@@ -43,7 +43,7 @@ const CustomInput = ({ label, name, value, onChange, type = "text", placeholder,
     };
     const isDateInput = type === 'date';
     return (
-        <div className={`space-y-1.5 ${className}`}>
+        <div className={`flex flex-col gap-1.5 ${className}`}>
             {label && <label className="text-sm font-semibold text-gray-700 ml-1">{label} {error && <span className="text-red-500">*</span>}</label>}
             <div className="relative group">
                 {Icon && (
@@ -51,7 +51,9 @@ const CustomInput = ({ label, name, value, onChange, type = "text", placeholder,
                         <Icon size={18} strokeWidth={isDateInput ? 2.5 : 2} />
                     </div>
                 )}
-                <input ref={inputRef} type={type} name={name} value={value} onChange={onChange} disabled={disabled} placeholder={placeholder} {...props} className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-4 py-2.5 bg-gray-50 border rounded-xl outline-none transition-all duration-200 ${error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100 bg-red-50' : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white'} ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''} placeholder-gray-400 selection:bg-blue-100 [&::-webkit-calendar-picker-indicator]:hidden`} />
+
+                <input ref={inputRef} type={type} name={name} value={value} onChange={onChange} disabled={disabled} placeholder={placeholder} {...props}
+                       className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-4 h-[42px] bg-gray-50 border rounded-xl outline-none transition-all duration-200 ${error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100 bg-red-50' : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white'} ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''} placeholder-gray-400 selection:bg-blue-100 [&::-webkit-calendar-picker-indicator]:hidden`} />
             </div>
             {error && typeof error === 'string' && <p className="text-xs text-red-500 flex items-center gap-1 ml-1"><AlertCircle size={12}/> {error}</p>}
         </div>
@@ -80,7 +82,7 @@ const TimePicker = ({ value, onChange, error }) => {
         if (type === 'hour') { setHour(val); onChange(`${val}:${minute}`); } else { setMinute(val); onChange(`${hour}:${val}`); }
     };
     return (
-        <div className={`flex items-center border rounded-xl bg-gray-50 px-3 py-2.5 transition-all duration-200 ${error ? 'border-red-300 ring-4 ring-red-100 bg-red-50' : 'border-gray-200 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:bg-white'}`}>
+        <div className={`flex items-center border rounded-xl bg-gray-50 px-3 py-2.5 transition-all duration-200 h-[42px] ${error ? 'border-red-300 ring-4 ring-red-100 bg-red-50' : 'border-gray-200 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:bg-white'}`}>
             <div className="text-gray-400 mr-2"><Clock size={18} strokeWidth={2} /></div>
             <input type="text" value={hour} onChange={(e) => handleChangeInput(e, 'hour')} onBlur={() => handleBlur('hour')} onFocus={(e)=>e.target.select()} placeholder="HH" className="bg-transparent outline-none text-gray-700 font-semibold w-8 text-center placeholder-gray-300 focus:text-blue-600 selection:bg-blue-200" />
             <span className="text-gray-400 font-bold mx-1">:</span>
@@ -407,7 +409,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                             if (skippedHotels.length > 0) {
                                 const displayNames = skippedHotels.slice(0, 3).join(", ");
                                 const moreText = skippedHotels.length > 3 ? `... và ${skippedHotels.length - 3} KS khác` : "";
-                                msg += `\n⚠️ Bỏ qua ${skippedHotels.length} khách sạn trùng mã: ${displayNames}${moreText}`;
+                                msg += `\n Bỏ qua ${skippedHotels.length} khách sạn trùng mã: ${displayNames}${moreText}`;
                             }
                             if (otherErrors.length > 0) {
                                 msg += `\n Lỗi khác: ${otherErrors[0]}`;
@@ -504,7 +506,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                     </div>
 
 
-                    <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
                         <CustomSelect label="Loại giảm giá" name="type" value={promotionTypeOption} onChange={(val) => handleTypeChange(val)} icon={<Layers />}
                                       options={[
                                           { value: "FIXED_AMOUNT", label: "Giảm tiền trực tiếp" },
@@ -516,17 +518,17 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                     </div>
 
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-start">
                         <CustomInput label="Đơn tối thiểu (VNĐ)" name="minOrder" type="text" value={formatCurrency(formData.minOrder)} onChange={handleCurrencyChange} icon={Banknote} error={errors.minOrder} placeholder="0 (Không giới hạn)" />
                         <CustomInput label="Giảm tối đa (VNĐ)" name="maxDiscount" type="text" value={formatCurrency(formData.maxDiscount)} onChange={handleCurrencyChange} icon={Banknote} placeholder={isMaxDiscountDisabled ? "Không áp dụng" : "VD: 200.000"} onFocus={(e) => e.target.select()} error={errors.maxDiscount} disabled={isMaxDiscountDisabled} />
                         <CustomInput label="Tổng số lượng" name="quantity" type="number" value={formData.quantity} onChange={handleChange} icon={Hash} placeholder="1000" min="1" onFocus={(e) => e.target.select()} error={errors.quantity} />
                     </div>
 
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian bắt đầu {errors.startDate && <span className="text-red-500">*</span>}</label>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 items-start">
                                 <div className="w-3/5"><CustomInput type="date" value={getSplitValue(formData.startDate, 'date')} onChange={(e) => handleSplitDateTimeChange('startDate', 'date', e.target.value)} icon={Calendar} error={!!errors.startDate} max="9999-12-31" /></div>
                                 <div className="w-2/5"><TimePicker value={getSplitValue(formData.startDate, 'time')} onChange={(newTime) => handleSplitDateTimeChange('startDate', 'time', newTime)} error={!!errors.startDate} /></div>
                             </div>
@@ -534,7 +536,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         </div>
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian kết thúc {errors.endDate && <span className="text-red-500">*</span>}</label>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 items-start">
                                 <div className="w-3/5"><CustomInput type="date" value={getSplitValue(formData.endDate, 'date')} onChange={(e) => handleSplitDateTimeChange('endDate', 'date', e.target.value)} icon={Calendar} error={!!errors.endDate} max="9999-12-31" /></div>
                                 <div className="w-2/5"><TimePicker value={getSplitValue(formData.endDate, 'time')} onChange={(newTime) => handleSplitDateTimeChange('endDate', 'time', newTime)} error={!!errors.endDate} /></div>
                             </div>
