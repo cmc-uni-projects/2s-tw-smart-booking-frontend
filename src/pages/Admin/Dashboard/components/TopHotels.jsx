@@ -1,37 +1,42 @@
 import React from "react";
-import Card from "../../../../components/common/Card/Card";
-import CardHeader from "../../../../components/common/Card/CardHeader";
-import Badge from "../../../../components/common/Badge/Badge";
-import { Hotel } from "lucide-react";
+import { Trophy } from "lucide-react";
 
-// Dữ liệu mock
-const topHotels = [
-  { id: 1, name: "Sunrise Resort", bookings: 120, revenue: "50.000.000₫" },
-  { id: 2, name: "Ocean View", bookings: 98, revenue: "42.000.000₫" },
-  { id: 3, name: "Hanoi Grand", bookings: 95, revenue: "38.000.000₫" },
-  { id: 4, name: "DaLat Dream", bookings: 80, revenue: "25.000.000₫" },
-];
+const TopHotels = ({ hotels }) => {
+  const formatMoney = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(val);
 
-const TopHotels = () => {
   return (
-    <Card>
-      <CardHeader
-        title="Top khách sạn (Doanh thu)"
-        icon={<Hotel className="text-[rgb(40,169,224)]" />}
-      />
-      <div className="space-y-4 mt-2 max-h-64 overflow-y-auto">
-        {topHotels.map((hotel, index) => (
-          <div key={hotel.id} className="flex items-center gap-4">
-            <span className="text-lg font-bold text-gray-400">{index + 1}</span>
-            <div className="flex-1">
-              <p className="font-semibold text-gray-800 text-sm">{hotel.name}</p>
-              <span className="text-xs text-gray-500">{hotel.bookings} bookings</span>
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-full flex flex-col">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-bold text-gray-800">Top Doanh Thu</h3>
+        <Trophy className="text-yellow-500" size={20} />
+      </div>
+
+      <div className="flex-1 overflow-y-auto space-y-4 pr-1 custom-scrollbar">
+        {hotels?.map((hotel, index) => (
+          <div key={index} className="flex items-center p-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
+            {/* Ranking Badge */}
+            <div className={`
+              w-8 h-8 flex items-center justify-center rounded-full font-bold text-sm mr-3 flex-shrink-0
+              ${index === 0 ? 'bg-yellow-100 text-yellow-700 ring-4 ring-yellow-50' : 
+                index === 1 ? 'bg-gray-200 text-gray-700' : 
+                index === 2 ? 'bg-orange-100 text-orange-700' : 'bg-blue-50 text-blue-600'}
+            `}>
+              {index + 1}
             </div>
-            <Badge color="primary" icon={false}>{hotel.revenue}</Badge>
+
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-semibold text-gray-800 truncate">{hotel.name}</h4>
+              <p className="text-xs text-gray-500">{hotel.bookings} đơn đặt phòng</p>
+            </div>
+
+            <div className="text-right">
+              <span className="text-sm font-bold text-green-600 block">{formatMoney(hotel.revenue)}</span>
+            </div>
           </div>
         ))}
+        {(!hotels || hotels.length === 0) && <p className="text-center text-gray-400 py-10">Chưa có dữ liệu</p>}
       </div>
-    </Card>
+    </div>
   );
 };
 

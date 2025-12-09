@@ -12,6 +12,7 @@ const initialFormState = {
   confirmPassword: "",
 };
 
+
 export default function ChangePassword() {
   const [formData, setFormData] = useState(initialFormState);
   const [loading, setLoading] = useState(false);

@@ -1,69 +1,40 @@
 import React from "react";
-import Card from "../../../../components/common/Card/Card";
-import CardHeader from "../../../../components/common/Card/CardHeader";
-import { UserPlus } from "lucide-react";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { Users } from "lucide-react";
 
-// ✅ 1. Bỏ comment imports
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from "recharts";
-
-// Dữ liệu mock
-const mockUserData = [
-  { name: "T5", newUsers: 120 },
-  { name: "T6", newUsers: 150 },
-  { name: "T7", newUsers: 130 },
-  { name: "T8", newUsers: 180 },
-  { name: "T9", newUsers: 210 },
-  { name: "T10", newUsers: 250 },
-];
-
-const UserGrowthChart = () => {
+const UserGrowthChart = ({ data }) => {
   return (
-    <Card>
-      <CardHeader
-        title="Tăng trưởng Người dùng (6 tháng)"
-        icon={<UserPlus className="text-[rgb(40,169,224)]" />}
-      />
-      {/* ✅ 2. Sửa: Xóa h-64, gán height trực tiếp cho ResponsiveContainer */}
-      <div className="w-full mt-4">
-        {/* ✅ 3. Bỏ comment code Recharts */}
-        <ResponsiveContainer width="100%" height={256}>
-          <AreaChart data={mockUserData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-            <defs>
-              <linearGradient id="colorUser" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="rgb(40, 169, 224)" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="rgb(40, 169, 224)" stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-            <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis fontSize={12} tickLine={false} axisLine={false} />
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+       <div className="flex items-center gap-2 mb-6">
+        <div className="p-2 bg-green-50 rounded-lg text-green-600">
+            <Users size={20} />
+        </div>
+        <h3 className="text-lg font-bold text-gray-800">Tăng Trưởng Người Dùng</h3>
+      </div>
+      
+      {/* ✅ FIX LỖI WIDTH(-1): Đặt height cố định */}
+      <div className="w-full h-[300px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#6b7280'}} dy={10} />
+            <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#6b7280'}} />
             <Tooltip 
-              contentStyle={{
-                backgroundColor: "#fff",
-                borderRadius: "8px",
-                borderColor: "#eee",
-              }}
+                contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'}}
+                formatter={(value) => [value, "Người dùng mới"]}
             />
-            <Area
-              type="monotone"
-              dataKey="newUsers"
-              stroke="rgb(40, 169, 224)"
-              strokeWidth={2}
-              fillOpacity={1}
-              fill="url(#colorUser)"
+            <Line 
+                type="monotone" 
+                dataKey="value" 
+                stroke="#10b981" 
+                strokeWidth={3} 
+                dot={{r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff'}} 
+                activeDot={{r: 6, fill: '#10b981', stroke: '#fff', strokeWidth: 2}} 
             />
-          </AreaChart>
+          </LineChart>
         </ResponsiveContainer>
       </div>
-    </Card>
+    </div>
   );
 };
 

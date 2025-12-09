@@ -1,53 +1,70 @@
-import React from "react";
+// File: src/pages/Admin/Dashboard/AdminDashboard.jsx
+import React, { useEffect, useState } from "react";
+import adminService from "@/services/admin.service";
+import LoadingOverlay from "@/components/common/Loading/LoadingOverlay";
 
-// Import các component con từ thư mục ./components/
 import StatCards from "./components/StatCards";
 import RevenueChart from "./components/RevenueChart";
-import RecentActivity from "./components/RecentActivity";
-import RecentBookingsTable from "./components/RecentBookingsTable";
-
-// ✅ THÊM MỚI 4 COMPONENTS
 import BookingTrends from "./components/BookingTrends";
+import UserGrowthChart from "./components/UserGrowthChart";
 import RevenueOverview from "./components/RevenueOverview";
 import TopHotels from "./components/TopHotels";
-import UserGrowthChart from "./components/UserGrowthChart";
+import RecentBookingsTable from "./components/RecentBookingsTable";
 
 const AdminDashboard = () => {
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await adminService.getDashboardStats();
+        // ✅ SỬA: API trả về "data", không phải "result"
+        if (res && res.data) {
+          setData(res.data);
+        }
+      } catch (error) {
+        console.error("Dashboard error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) return <LoadingOverlay isLoading={true} />;
+
+  // ✅ FIX LỖI RECHARTS: Kiểm tra nếu có data mới render biểu đồ
+  // Nếu data null mà render ResponsiveContainer ngay sẽ bị lỗi width/height
+  const hasData = data !== null;
+
   return (
-    <div className="space-y-6">
-      
-      {/* Hàng 1: Các thẻ thống kê */}
-      <StatCards />
+    <div className="space-y-6 pb-10"> 
+      <StatCards stats={data} />
 
-      {/* Hàng 2: Biểu đồ Doanh thu (cột) và Hoạt động gần đây */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <RevenueChart />
+           {/* Chỉ render khi có dữ liệu để tránh lỗi width=-1 */}
+           {hasData && <RevenueChart data={data?.revenueChart} />}
         </div>
         <div className="lg:col-span-1">
-          <RecentActivity />
+          <TopHotels hotels={data?.topHotels} />
         </div>
       </div>
-      
-      {/* ✅ HÀNG MỚI: Thêm 2 biểu đồ (Xu hướng Booking và Tăng trưởng User) */}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <BookingTrends />
-        <UserGrowthChart />
+        {hasData && <BookingTrends data={data?.bookingTrends} />}
+        {hasData && <UserGrowthChart data={data?.userGrowth} />}
       </div>
-      
-      {/* ✅ HÀNG MỚI: Thêm 2 thẻ (Nguồn Doanh thu và Top Khách sạn) */}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
-           <TopHotels />
+           {hasData && <RevenueOverview data={data?.revenueByType} />}
         </div>
         <div className="lg:col-span-2">
-          <RevenueOverview />
+          <RecentBookingsTable bookings={data?.recentBookings} />
         </div>
       </div>
-
-      {/* Hàng cuối: Bảng Bookings */}
-      <RecentBookingsTable />
-
     </div>
   );
 };
