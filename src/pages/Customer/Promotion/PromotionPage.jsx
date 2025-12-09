@@ -45,13 +45,19 @@ const PromotionPage = () => {
     useEffect(() => {
         const fetchPromotions = async () => {
             try {
+                // Gọi API: /api/v1/promotions/all
                 const response = await promotionService.getAllPromotions();
-                // [Lưu ý] Dữ liệu từ API trả về bao gồm cả khuyến mãi Admin và Owner
-                const rawData = Array.isArray(response) ? response : (response.data || []);
+
+                // Dữ liệu từ API có thể nằm trực tiếp trong response hoặc trong response.data
+                const rawData = Array.isArray(response) ? response : (response.data || response.result || []);
+
+                // >>> BƯỚC DEBUG QUAN TRỌNG: Kiểm tra log này trong Console (F12)
+                console.log("Raw Promotions Data (Check the 'property' field):", rawData);
 
                 const now = new Date();
                 const activePromotions = rawData.filter(p => {
-                    const endDate = new Date(p.endDate);
+                    const endDate = p.endDate ? new Date(p.endDate) : new Date();
+                    // Chỉ lấy trạng thái ACTIVE và chưa hết hạn
                     return p.status === "ACTIVE" && endDate > now;
                 });
 
@@ -65,9 +71,10 @@ const PromotionPage = () => {
                     const cleanMaxDiscount = Number(p.maxDiscountAmount || 0);
 
                     // --- [MẤU CHỐT KẾT NỐI] ---
-                    // Kiểm tra xem khuyến mãi này có phải của Owner (Khách sạn) không?
-                    // Code bên Owner khi tạo đã gửi propertyId, nên ở đây ta kiểm tra sự tồn tại của nó.
-                    const isOwnerPromotion = !!(p.propertyId || p.property?.propertyId || p.ownerId);
+                    // Kiểm tra sự tồn tại của object property và propertyId bên trong nó (từ PromotionResponseDTO.java)
+                    const propertyInfo = p.property;
+                    const isOwnerPromotion = !!(propertyInfo && propertyInfo.propertyId);
+
 
                     return {
                         id: p.promotionId,
@@ -76,7 +83,7 @@ const PromotionPage = () => {
                         isExclusive: isOwnerPromotion,
 
                         // Lấy tên khách sạn (nếu có) để hiển thị
-                        hotelName: p.property?.propertyName || null,
+                        hotelName: isOwnerPromotion ? propertyInfo.propertyName : null,
 
                         title: p.description,
                         description: `Giảm ${p.discountType === 'PERCENTAGE' ? cleanDiscountValue + '%' : cleanDiscountValue.toLocaleString('vi-VN') + 'đ'} cho đơn từ ${cleanMinOrder.toLocaleString('vi-VN')}đ`,
@@ -95,6 +102,10 @@ const PromotionPage = () => {
                         targetRank: p.minMembershipRank || p.targetRank || null
                     };
                 });
+
+                // LOG để kiểm tra sau khi mapping
+                console.log("Mapped Promotions (Check isExclusive):", mappedPromotions);
+
 
                 setPromotions(mappedPromotions);
 
@@ -119,7 +130,7 @@ const PromotionPage = () => {
         fetchPromotions();
     }, [location.state]);
 
-    // --- LOGIC HIỂN THỊ THEO TAB ---
+    // --- LOGIC HIỂN THỊ THEO TAB (Giữ nguyên) ---
     const sourcePromotions = useMemo(() => {
         // 1. Tab Đã lưu
         if (activeTab === 'saved') {
@@ -135,7 +146,7 @@ const PromotionPage = () => {
         return promotions;
     }, [activeTab, promotions, savedIds]);
 
-    // Lọc theo từ khóa tìm kiếm
+    // Lọc theo từ khóa tìm kiếm (Giữ nguyên)
     const filteredPromotions = useMemo(() => {
         return sourcePromotions.filter(promo => {
             const term = searchTerm.toLowerCase();
@@ -148,7 +159,7 @@ const PromotionPage = () => {
         });
     }, [sourcePromotions, searchTerm]);
 
-    // --- CÁC HÀM XỬ LÝ SỰ KIỆN ---
+    // --- CÁC HÀM XỬ LÝ SỰ KIỆN (Giữ nguyên) ---
     // Load danh sách đã lưu
     useEffect(() => {
         const saved = localStorage.getItem('savedPromotions');
