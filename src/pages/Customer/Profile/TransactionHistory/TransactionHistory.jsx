@@ -2,13 +2,19 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AccountMenu from "../AccountMenu";
 import { useAuth } from "@/context/AuthContext";
-import paymentService from "@/services/payment.service"; // ✅ Import service
+import paymentService from "@/services/payment.service";
 import { format } from "date-fns";
 
+// Components
 import TransactionCard from "./components/TransactionCard";
 import TransactionDetailModal from "./components/TransactionDetailModal";
 import TransactionTabs from "./components/TransactionTabs";
-import Spinner from "@/components/common/Loading/Spinner"; // ✅ Import Spinner nếu có
+import Spinner from "@/components/common/Loading/Spinner";
+
+// ✅ 1. IMPORT MỚI
+import EmptyState from "@/components/common/EmptyState/EmptyState";
+import Button from "@/components/common/Button/Button";
+import { Receipt, Search } from "lucide-react"; 
 
 export default function TransactionHistory() {
     const navigate = useNavigate();
@@ -19,25 +25,25 @@ export default function TransactionHistory() {
     const [selectedTransaction, setSelectedTransaction] = useState(null);
     const [activeTab, setActiveTab] = useState("ALL");
 
-    // ✅ 1. Fetch Data từ API
     useEffect(() => {
         const fetchHistory = async () => {
             if (!currentUser) return;
             setLoading(true);
             try {
-                const data = await paymentService.getHistoryByUser(currentUser.userId); // Lưu ý: dùng userId hay id tùy AuthContext
+                // Lưu ý: Đảm bảo currentUser.userId tồn tại (hoặc dùng currentUser.id)
+                const userId = currentUser.userId || currentUser.id;
+                const data = await paymentService.getHistoryByUser(userId);
                 
-                // Map dữ liệu Backend sang format Frontend cần
                 const mappedData = data.map(item => ({
                     id: `TRX-${item.paymentId}`,
                     bookingId: item.bookingId,
                     date: item.paymentDate,
                     description: `Thanh toán đặt phòng: ${item.propertyName}`,
-                    amount: -item.amount, // Tiền ra là số âm
-                    refunded: item.refundedAmount, // Tiền hoàn (nếu có)
+                    amount: -item.amount,
+                    refunded: item.refundedAmount,
                     method: item.paymentMethod || "Online Payment",
                     status: mapStatus(item.paymentStatus),
-                    rawStatus: item.paymentStatus // Giữ status gốc để check logic khác nếu cần
+                    rawStatus: item.paymentStatus
                 }));
 
                 setTransactions(mappedData);
@@ -51,7 +57,6 @@ export default function TransactionHistory() {
         fetchHistory();
     }, [currentUser]);
 
-    // ✅ Helper map status từ Backend (Enum) sang Frontend
     const mapStatus = (backendStatus) => {
         switch (backendStatus) {
             case 'APPROVED': return 'SUCCESS';
@@ -62,7 +67,6 @@ export default function TransactionHistory() {
         }
     };
 
-    // ✅ Logic lọc hiển thị
     const filteredTransactions = transactions.filter(item => {
         if (activeTab === "ALL") return true;
         return item.status === activeTab;
@@ -73,7 +77,7 @@ export default function TransactionHistory() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div className="lg:col-span-3">
                     <AccountMenu
-                        activeSection="transactions"
+                        activeSection="transactions" // Highlight menu item
                         onSelect={(path) => navigate(`/customer/${path}`)}
                         userData={currentUser}
                     />
@@ -94,9 +98,9 @@ export default function TransactionHistory() {
 
                     {/* Danh sách Giao dịch */}
                     {loading ? (
-                        <div className="flex justify-center py-10"><Spinner /></div>
+                        <div className="flex justify-center py-20"><Spinner /></div>
                     ) : (
-                        <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-4 animate-fadeIn">
                             {filteredTransactions.length > 0 ? (
                                 filteredTransactions.map((item) => (
                                     <TransactionCard
@@ -106,16 +110,35 @@ export default function TransactionHistory() {
                                     />
                                 ))
                             ) : (
-                                <div className="py-10 text-center bg-white rounded-xl border border-dashed border-gray-300">
-                                    <p className="text-gray-500">Không có giao dịch nào.</p>
-                                </div>
+                                // ✅ 2. TÍCH HỢP EMPTY STATE TẠI ĐÂY
+                                <EmptyState
+                                    title={activeTab === 'ALL' ? "Chưa có giao dịch nào" : "Không tìm thấy giao dịch"}
+                                    description={activeTab === 'ALL' 
+                                        ? "Bạn chưa thực hiện thanh toán nào trên hệ thống. Hãy đặt phòng ngay để trải nghiệm!"
+                                        : "Không có giao dịch nào khớp với bộ lọc hiện tại."
+                                    }
+                                    // Icon thay đổi tùy ngữ cảnh
+                                    icon={activeTab === 'ALL' 
+                                        ? <Receipt size={48} className="text-gray-300" strokeWidth={1.5} />
+                                        : <Search size={48} className="text-gray-300" strokeWidth={1.5} />
+                                    }
+                                    // Chỉ hiện nút Action khi ở tab Tất cả (khuyến khích đặt phòng)
+                                    action={activeTab === 'ALL' && (
+                                        <Button 
+                                            onClick={() => navigate('/hotels')}
+                                            className="px-6"
+                                        >
+                                            Khám phá khách sạn ngay
+                                        </Button>
+                                    )}
+                                />
                             )}
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Modal */}
+            {/* Modal Chi tiết */}
             <TransactionDetailModal
                 open={!!selectedTransaction}
                 onClose={() => setSelectedTransaction(null)}
