@@ -1,8 +1,9 @@
+// src/pages/Admin/Transactions/components/AdminRefundDetailModal.jsx
 import React from "react";
 import { 
   X, FileText, CreditCard, User, Calendar, 
   CheckCircle, XCircle, AlertTriangle, Copy,
-  Check, Ban // Thêm icon cho nút bấm
+  Check, Ban 
 } from "lucide-react";
 import Button from "@/components/common/Button/Button";
 
@@ -16,7 +17,7 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
     alert("Đã sao chép: " + text);
   };
 
-  const formatMoney = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+  const formatMoney = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val || 0);
   const formatDate = (date) => date ? new Date(date).toLocaleString('vi-VN') : "N/A";
 
   return (
@@ -73,10 +74,19 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider border-b pb-2">Thông tin yêu cầu</h4>
-              <div>
-                <p className="text-xs text-slate-500">Số tiền cần hoàn</p>
-                <p className="text-xl font-bold text-blue-600">{formatMoney(refundInfo.amount || amount)}</p>
+              
+              {/* ✅ HIỂN THỊ CẢ 2 SỐ TIỀN */}
+              <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-xs text-slate-500">Số tiền gốc</p>
+                    <p className="text-base font-semibold text-slate-700">{formatMoney(amount)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500">Cần hoàn lại</p>
+                    <p className="text-xl font-bold text-blue-600">{formatMoney(refundInfo.amount)}</p>
+                  </div>
               </div>
+
               <div>
                 <p className="text-xs text-slate-500">Lý do khách hủy/yêu cầu</p>
                 <div className="bg-slate-50 p-3 rounded border border-slate-100 text-sm text-slate-700 italic">
@@ -139,10 +149,9 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
 
         </div>
 
-        {/* Footer Actions - ĐÃ CHỈNH SỬA */}
+        {/* Footer Actions */}
         {refundInfo.status === 'PENDING' && (
           <div className="p-5 border-t bg-slate-50 flex justify-end gap-3">
-            {/* 1. Nút Từ chối (Đỏ + Icon) */}
             <Button 
                 className="bg-red-600 hover:bg-red-700 text-white shadow-red-100 flex items-center gap-2 !border-none" 
                 onClick={onReject}
@@ -151,7 +160,6 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
               Từ chối hoàn tiền
             </Button>
             
-            {/* 2. Nút Duyệt (Xanh + Icon) */}
             <Button 
                 className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100 flex items-center gap-2 !border-none"
                 onClick={onApprove}
