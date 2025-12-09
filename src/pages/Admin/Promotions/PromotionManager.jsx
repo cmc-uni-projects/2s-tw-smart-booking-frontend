@@ -1,3 +1,5 @@
+// src/pages/Admin/Promotions/PromotionManager.jsx
+
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import Table from "@/components/common/Table/Table";
@@ -252,7 +254,11 @@ const PromotionManager = () => {
         try {
             const response = await promotionService.getAllPromotions();
             const rawData = response.data || [];
-            const mappedData = rawData.map(item => ({
+
+            // ✅ [CẬP NHẬT] Lọc bỏ mã của Owner (chỉ lấy mã Admin/System)
+            const adminPromotions = rawData.filter(item => !item.property);
+
+            const mappedData = adminPromotions.map(item => ({
                 id: item.promotionId,
                 promotionId: item.promotionId,
                 code: item.code,
