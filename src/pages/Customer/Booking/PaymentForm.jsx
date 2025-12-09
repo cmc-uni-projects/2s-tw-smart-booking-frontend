@@ -17,7 +17,8 @@ const PaymentForm = () => {
 
     return (
         <div className="payment-form-container">
-            <div className="form-header">
+            {/* Đã thêm mb-4 để tạo khoảng cách với phần options bên dưới */}
+            <div className="form-header flex items-center gap-2 mb-4">
                 <CreditCard size={20} className="form-header-icon" />
                 <h2>Phương thức thanh toán</h2>
             </div>

@@ -1,57 +1,136 @@
-import React, { useEffect, useState } from 'react';
-import Modal from '@/components/common/Modal/Modal';
-import Button from '@/components/common/Button/Button';
+// src/pages/Customer/Booking/components/PromotionSelectionModal.jsx
+
+import React, { useEffect, useState, useRef } from 'react';
 import Spinner from '@/components/common/Loading/Spinner';
 import promotionService from "@/services/promotion.service";
-import { TicketPercent, Calendar, CheckCircle2, ShieldCheck, Store } from 'lucide-react';
+import { TicketPercent, Calendar, CheckCircle2, ChevronDown } from 'lucide-react';
+import Button from '@/components/common/Button/Button';
 
-// Helper xử lý ảnh
-const BE_BASE_URL = "http://localhost:8386";
-const UPLOAD_DIR = "/uploads/";
+// Đường dẫn Public Path (Đã được sửa lỗi import)
+const TRAVEL_MATE_LOGO_PUBLIC_PATH = "/assets/logo_promption/1.jpg";
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
 const getFullImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/150x100?text=No+Image";
     if (path.startsWith("http")) return path;
-    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-    return `${BE_BASE_URL}${UPLOAD_DIR}${cleanPath}`;
+    let cleanPath = path.startsWith('/') ? path : `/${path}`;
+    if (!cleanPath.startsWith('/uploads')) cleanPath = `/uploads${cleanPath}`;
+    return `${BASE_URL}${cleanPath}`;
 };
 
-// [CẬP NHẬT] Nhận thêm filterType ('ADMIN' | 'OWNER') và bookingOwnerId
-const PromotionSelectionModal = ({ isOpen, onClose, onSelect, selectedId, filterType, bookingOwnerId }) => {
+// ====================================================================
+// CON COMPONENT 1: RENDER MỘT MÃ KHUYẾN MÃI TRONG DANH SÁCH (ĐÃ CẬP NHẬT KÍCH THƯỚC)
+// ====================================================================
+const PromotionListItem = ({ promo, isSelected, accentColor, onSelect }) => {
+    const isSystemPromo = !promo.ownerId; // Mã Admin/Hệ thống
+    const isOwner = promo.ownerId;
+    const discountText = promo.discountType === 'PERCENTAGE'
+        ? `${promo.discountValue}%`
+        : `${promo.discountValue?.toLocaleString()}₫`;
+
+    const maxDiscountText = promo.maxDiscountAmount > 0
+        ? ` (Tối đa ${promo.maxDiscountAmount.toLocaleString()}₫)`
+        : '';
+
+    // LOGIC: Nếu là mã hệ thống, dùng PUBLIC PATH. Ngược lại, dùng URL BE.
+    const imageUrl = isSystemPromo
+        ? TRAVEL_MATE_LOGO_PUBLIC_PATH
+        : getFullImageUrl(promo.bannerUrl);
+
+    return (
+        <li
+            className={`group relative cursor-pointer select-none py-2 pl-3 pr-9 transition-colors border-l-4 border-transparent hover:bg-gray-50 ${
+                isSelected ? `${isOwner ? 'bg-purple-50 border-purple-500 hover:bg-purple-100' : 'bg-blue-50 border-blue-500 hover:bg-blue-100'}` : 'hover:bg-gray-50'
+            }`}
+            onClick={() => onSelect(promo)}
+        >
+            <div className="flex items-center gap-3">
+                {/* Logo/Image đại diện (KÍCH THƯỚC MỚI: w-20 h-16) */}
+                <div className="w-20 h-16 flex-shrink-0 rounded-md overflow-hidden border border-gray-200 bg-white shadow-sm">
+                    <img
+                        src={imageUrl}
+                        alt={promo.code}
+                        className={`w-full h-full ${isSystemPromo ? 'object-contain p-1' : 'object-cover'}`}
+                        onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/48x40?text=Voucher"; }}
+                    />
+                </div>
+
+                {/* Nội dung chi tiết */}
+                <div className="flex flex-col min-w-0 flex-1">
+                    <span className={`font-semibold block truncate text-sm ${isSelected ? accentColor : 'text-gray-900'}`}>
+                        {promo.code}
+                    </span>
+                    <p className="text-gray-500 text-xs truncate">
+                        Giảm {discountText} {maxDiscountText}
+                    </p>
+                    <span className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+                        <Calendar size={10} /> HSD: {new Date(promo.endDate).toLocaleDateString('vi-VN')}
+                    </span>
+                </div>
+            </div>
+
+            {/* Icon Check nếu đang chọn */}
+            {isSelected && (
+                <span className={`absolute inset-y-0 right-0 flex items-center pr-4 ${accentColor}`}>
+                    <CheckCircle2 size={16} />
+                </span>
+            )}
+        </li>
+    );
+};
+
+// ====================================================================
+// CON COMPONENT 2: OPTION KHÔNG DÙNG MÃ (Giữ nguyên)
+// ====================================================================
+const NoPromotionOption = ({ isSelected, accentColor, onSelect }) => (
+    <li
+        className="group relative cursor-pointer select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-gray-100 border-l-4 border-transparent"
+        onClick={() => onSelect(null)}
+    >
+        <div className="flex items-center">
+            <span className={`font-normal block truncate text-gray-500 italic ${isSelected ? 'font-medium' : ''}`}>
+                Không dùng mã khuyến mãi
+            </span>
+        </div>
+        {isSelected && (
+            <span className={`absolute inset-y-0 right-0 flex items-center pr-4 ${accentColor}`}>
+                <CheckCircle2 size={16} />
+            </span>
+        )}
+    </li>
+);
+
+// ====================================================================
+// MAIN COMPONENT: DROPDOWN (Giữ nguyên)
+// ====================================================================
+const PromotionSelectionDropdown = ({ isOpen, onClose, onSelect, selectedId, filterType, bookingOwnerId }) => {
     const [promotions, setPromotions] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const isOwner = filterType === 'OWNER';
+    const accentColor = isOwner ? 'text-purple-600' : 'text-blue-600';
+    const title = isOwner ? "Ưu đãi từ Khách sạn" : "Ưu đãi từ TravelMate";
 
     useEffect(() => {
         if (isOpen) {
             fetchPromotions();
         }
-    }, [isOpen, filterType]);
+    }, [isOpen, filterType, bookingOwnerId]);
 
     const fetchPromotions = async () => {
         setLoading(true);
         try {
             const response = await promotionService.getAllPromotions();
             const rawData = Array.isArray(response) ? response : (response.data || []);
-
             const now = new Date();
-            let activePromotions = rawData.filter(p => {
-                const endDate = new Date(p.endDate);
-                return p.status === "ACTIVE" && endDate > now;
-            });
+            let activePromotions = rawData.filter(p => p.status === "ACTIVE" && new Date(p.endDate) > now);
 
-            // [LOGIC LỌC MỚI]
             if (filterType === 'ADMIN') {
-                // Lấy khuyến mãi hệ thống (không có ownerId)
                 activePromotions = activePromotions.filter(p => !p.ownerId);
             } else if (filterType === 'OWNER') {
-                // Lấy khuyến mãi của Owner hiện tại
-                // Lưu ý: Cần đảm bảo bookingOwnerId được truyền vào đúng
-                if (bookingOwnerId) {
-                    activePromotions = activePromotions.filter(p => p.ownerId === bookingOwnerId);
-                } else {
-                    activePromotions = []; // Không có ownerId thì không hiện gì
-                }
+                activePromotions = bookingOwnerId
+                    ? activePromotions.filter(p => p.ownerId === bookingOwnerId)
+                    : [];
             }
-
             setPromotions(activePromotions);
         } catch (error) {
             console.error("Lỗi tải khuyến mãi:", error);
@@ -60,95 +139,49 @@ const PromotionSelectionModal = ({ isOpen, onClose, onSelect, selectedId, filter
         }
     };
 
+    if (!isOpen) return null;
+
     return (
-        <Modal
-            open={isOpen}
-            onClose={onClose}
-            title={filterType === 'ADMIN' ? "Ưu đãi từ TravelMate" : "Ưu đãi từ Khách sạn"}
-            maxWidth="max-w-2xl"
+        <div
+            className="absolute z-50 mt-1 left-0 right-0 max-h-64 w-full overflow-y-auto rounded-xl bg-white text-base shadow-2xl ring-1 ring-black/10 focus:outline-none sm:text-sm transform transition-opacity duration-200"
         >
-            <div className="p-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+            <div className="sticky top-0 bg-white/95 backdrop-blur-sm p-4 border-b border-gray-100 z-10">
+                <h4 className={`font-bold text-lg ${accentColor}`}>{title}</h4>
+                <p className="text-xs text-gray-500 mt-0.5">Vui lòng chọn mã áp dụng.</p>
+            </div>
+
+            <div className="py-1">
                 {loading ? (
-                    <div className="flex justify-center py-8"><Spinner /></div>
-                ) : promotions.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500 flex flex-col items-center gap-2">
-                        <TicketPercent size={40} className="text-gray-300" />
-                        <p>Không có mã khuyến mãi {filterType === 'ADMIN' ? 'hệ thống' : 'khách sạn'} nào khả dụng.</p>
-                    </div>
+                    <div className="flex justify-center py-4"><Spinner size="sm" /></div>
                 ) : (
-                    <div className="space-y-4">
-                        {promotions.map((promo) => {
-                            const isSelected = selectedId === promo.promotionId;
-                            return (
-                                <div
-                                    key={promo.promotionId}
-                                    className={`relative flex flex-col sm:flex-row border rounded-xl overflow-hidden transition-all hover:shadow-md cursor-pointer ${isSelected ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}
-                                    onClick={() => onSelect(promo)}
-                                >
-                                    {/* Ảnh thumbnail */}
-                                    <div className="w-full sm:w-32 h-32 sm:h-auto shrink-0 bg-gray-100 relative">
-                                        <img
-                                            src={getFullImageUrl(promo.bannerUrl)}
-                                            alt={promo.code}
-                                            className="w-full h-full object-cover"
-                                        />
-                                        {/* Badge loại khuyến mãi */}
-                                        <div className="absolute top-1 left-1">
-                                            {!promo.ownerId ? (
-                                                <div className="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1"><ShieldCheck size={10}/> Admin</div>
-                                            ) : (
-                                                <div className="bg-purple-600 text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1"><Store size={10}/> Owner</div>
-                                            )}
-                                        </div>
-                                    </div>
+                    <ul className="divide-y divide-gray-100">
+                        {/* Option Không dùng mã */}
+                        <NoPromotionOption
+                            isSelected={!selectedId}
+                            accentColor={accentColor}
+                            onSelect={onSelect}
+                        />
 
-                                    {/* Nội dung */}
-                                    <div className="flex-1 p-4 flex flex-col justify-between">
-                                        <div>
-                                            <div className="flex justify-between items-start">
-                                                <h4 className="font-bold text-gray-800 text-sm sm:text-base line-clamp-1">{promo.description || promo.name}</h4>
-                                                {isSelected && <CheckCircle2 size={20} className="text-blue-600 shrink-0 ml-2" />}
-                                            </div>
-                                            <div className="flex items-center gap-2 mt-2">
-                                                <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded flex items-center gap-1 border border-blue-200">
-                                                    <TicketPercent size={12} /> {promo.code}
-                                                </span>
-                                                <span className="text-xs text-gray-500 flex items-center gap-1">
-                                                    <Calendar size={12} /> HSD: {new Date(promo.endDate).toLocaleDateString('vi-VN')}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-3 flex justify-between items-center">
-                                            <p className="text-xs text-gray-500 line-clamp-1">
-                                                Giảm {promo.discountType === 'PERCENTAGE' ? `${promo.discountValue}%` : `${promo.discountValue?.toLocaleString()}đ`}
-                                                {promo.minBookingAmount > 0 && ` cho đơn từ ${promo.minBookingAmount?.toLocaleString()}đ`}
-                                            </p>
-                                            <Button
-                                                size="sm"
-                                                variant={isSelected ? "solid" : "outline"}
-                                                className={`text-xs h-8 ${isSelected ? 'bg-blue-600 text-white' : ''}`}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onSelect(promo);
-                                                }}
-                                            >
-                                                {isSelected ? "Đang dùng" : "Áp dụng"}
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                        {/* Danh sách mã */}
+                        {promotions.length > 0 ? promotions.map((promo) => (
+                            <PromotionListItem
+                                key={promo.promotionId}
+                                promo={promo}
+                                isSelected={selectedId === promo.promotionId}
+                                accentColor={accentColor}
+                                onSelect={onSelect}
+                            />
+                        )) : (
+                            <div className="text-center py-4 text-gray-500 flex flex-col items-center gap-1 text-sm px-4">
+                                <TicketPercent size={20} className="text-gray-300" />
+                                <p>Không có mã nào khả dụng.</p>
+                            </div>
+                        )}
+                    </ul>
                 )}
             </div>
-
-            <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
-                <Button variant="ghost" onClick={onClose}>Đóng</Button>
-            </div>
-        </Modal>
+        </div>
     );
 };
 
-export default PromotionSelectionModal;
+export default PromotionSelectionDropdown;

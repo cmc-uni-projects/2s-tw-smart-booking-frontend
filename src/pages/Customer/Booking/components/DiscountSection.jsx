@@ -1,132 +1,211 @@
-import React, { useState } from 'react';
+// src/pages/Customer/Booking/components/DiscountSection.jsx
+
+import React, { useState, useRef, useEffect } from 'react';
 import Card from '@/components/common/Card/Card';
 import Button from '@/components/common/Button/Button';
-import { Tag, TicketPercent, X, ShieldCheck, Store } from 'lucide-react';
-import PromotionSelectionModal from './PromotionSelectionModal';
+import { Tag, TicketPercent, X, ShieldCheck, Store, ChevronDown } from 'lucide-react';
+import PromotionSelectionDropdown from './PromotionSelectionModal'; // Import Dropdown Component
+// Đường dẫn Public Path (Đã được sửa lỗi import)
+const TRAVEL_MATE_LOGO_PUBLIC_PATH = "/assets/logo_promption/1.jpg";
 
-// [CẬP NHẬT] Component con hiển thị 1 slot mã giảm giá
-const DiscountSlot = ({ title, icon: Icon, promo, onSelectClick, onRemove, colorClass, emptyText }) => {
+// ====================================================================
+// CON COMPONENT 1: NÚT GỠ BỎ MÃ (Giữ nguyên)
+// ====================================================================
+const PromoSlotRemoveButton = ({ onRemove }) => (
+    <button
+        onClick={onRemove}
+        className="p-1.5 hover:bg-red-50 rounded-full text-gray-400 hover:text-red-500 transition-colors shrink-0"
+        title="Gỡ bỏ"
+    >
+        <X size={16} />
+    </button>
+);
+
+// ====================================================================
+// CON COMPONENT 2: HIỂN THỊ MÃ ĐÃ CHỌN HOẶC TRẠNG THÁI CHƯA CHỌN (ĐÃ CẬP NHẬT KÍCH THƯỚC)
+// ====================================================================
+const PromoSlotDisplay = ({ promo, icon: Icon, colorClass, emptyText, onClick, isDropdownOpen, isAdminPromo, logoUrl }) => {
+    // Kích thước mới: w-12 h-12
+    const ICON_SIZE_CLASS = "w-20 h-19";
+
+    // Kiểu hiển thị khi mã đã được chọn
+    if (promo) {
+        // Kiểm tra nếu là mã Admin, hiển thị Logo TravelMate
+        const DisplayIcon = isAdminPromo ? (
+            <div className={`${ICON_SIZE_CLASS} rounded-full flex items-center justify-center shrink-0 overflow-hidden bg-white`}>
+                <img src={logoUrl} alt="TravelMate Logo" className="w-full h-full object-contain p-0.5" />
+            </div>
+        ) : (
+            // Nếu là mã Owner, hiển thị Icon mặc định (Store)
+            <div className={`${ICON_SIZE_CLASS} rounded-full ${colorClass} bg-opacity-20 flex items-center justify-center shrink-0`}>
+                <TicketPercent size={20} className={colorClass.replace('bg-', 'text-')} /> {/* Tăng size icon nội bộ cho cân xứng */}
+            </div>
+        );
+
+        return (
+            <div className={`border bg-opacity-5 rounded-xl p-3 flex items-center justify-between ${colorClass.replace('bg-', 'border-').replace('text-', 'border-')} bg-white shadow-sm`}>
+                <div className="flex items-center gap-3 overflow-hidden">
+                    {DisplayIcon}
+                    <div className="min-w-0">
+                        <p className={`text-sm font-bold ${colorClass.replace('bg-', 'text-')}`}>{promo.code}</p>
+                        <p className="text-xs text-gray-500 truncate">{promo.description || "Đã áp dụng"}</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Kiểu hiển thị khi chưa có mã (CTA cho Dropdown)
     return (
-        <div className="mb-4 last:mb-0">
-            <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">{title}</p>
-            {!promo ? (
-                // Trạng thái chưa chọn
-                <div
-                    className="border border-dashed border-gray-300 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-all group"
-                    onClick={onSelectClick}
-                >
-                    <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full ${colorClass} bg-opacity-10 flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                            <Icon size={16} className={colorClass.replace('bg-', 'text-')} />
-                        </div>
-                        <span className="text-sm text-gray-500 group-hover:text-gray-700">{emptyText}</span>
-                    </div>
-                    <Button size="sm" variant="ghost" className="text-blue-600 text-xs px-2">Chọn mã</Button>
+        <div
+            className={`relative border rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all ${
+                isDropdownOpen ? colorClass.replace('bg-', 'border-').replace('text-', 'border-') + ' ring-2 ring-offset-1 ' : 'border-gray-300 hover:bg-gray-50'
+            }`}
+            onClick={onClick}
+        >
+            <div className="flex items-center gap-3 overflow-hidden">
+                <div className={`${ICON_SIZE_CLASS} rounded-full ${colorClass} bg-opacity-10 flex items-center justify-center shrink-0`}>
+                    <Icon size={20} className={colorClass.replace('bg-', 'text-')} /> {/* Tăng size icon nội bộ cho cân xứng */}
                 </div>
-            ) : (
-                // Trạng thái đã chọn
-                <div className={`border bg-opacity-5 rounded-xl p-3 flex items-center justify-between ${colorClass.replace('bg-', 'border-').replace('text-', 'border-')} bg-white shadow-sm`}>
-                    <div className="flex items-center gap-3 overflow-hidden">
-                        <div className={`w-8 h-8 rounded-full ${colorClass} bg-opacity-20 flex items-center justify-center shrink-0`}>
-                            <TicketPercent size={16} className={colorClass.replace('bg-', 'text-')} />
-                        </div>
-                        <div className="min-w-0">
-                            <p className={`text-sm font-bold ${colorClass.replace('bg-', 'text-')}`}>{promo.code}</p>
-                            <p className="text-xs text-gray-500 truncate">{promo.description || "Đã áp dụng"}</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={onRemove}
-                        className="p-1.5 hover:bg-red-50 rounded-full text-gray-400 hover:text-red-500 transition-colors shrink-0"
-                        title="Gỡ bỏ"
-                    >
-                        <X size={16} />
-                    </button>
+                <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-500">{emptyText}</p>
+                    <p className="text-xs text-gray-400">Chọn để xem danh sách mã</p>
                 </div>
-            )}
+            </div>
+
+            <div className={`text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-gray-600' : ''}`}>
+                <ChevronDown size={16} />
+            </div>
         </div>
     );
 };
 
-// [CẬP NHẬT] Main Component
-const DiscountSection = ({ onApplyAdmin, onApplyOwner, bookingOwnerId }) => {
-    // Modal State
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalType, setModalType] = useState('ADMIN'); // 'ADMIN' or 'OWNER'
 
+// ====================================================================
+// CON COMPONENT 3: SLOT KHUYẾN MÃI (Bao gồm logic Dropdown & State - Giữ nguyên)
+// ====================================================================
+const PromoSlotContainer = ({ title, icon, colorClass, emptyText, promo, onSelect, onRemove, filterType, bookingOwnerId, logoUrl }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
+    const isAdminPromo = filterType === 'ADMIN';
+
+    // Đóng dropdown khi click ra ngoài
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleSelectPromo = (selectedPromo) => {
+        onSelect(selectedPromo);
+        setIsOpen(false);
+    };
+
+    return (
+        <div className="mb-5 last:mb-0" ref={dropdownRef}>
+            <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">{title}</p>
+
+            <div className="relative">
+                <PromoSlotDisplay
+                    promo={promo}
+                    icon={icon}
+                    colorClass={colorClass}
+                    emptyText={emptyText}
+                    isDropdownOpen={isOpen}
+                    isAdminPromo={isAdminPromo}
+                    logoUrl={logoUrl}
+                    onClick={() => {
+                        if (!promo) setIsOpen(!isOpen);
+                    }}
+                />
+
+                {promo && (
+                    <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                        <PromoSlotRemoveButton onRemove={onRemove} />
+                    </div>
+                )}
+
+                {/* Dropdown Content */}
+                {
+                    !promo &&
+                    <PromotionSelectionDropdown
+                        isOpen={isOpen}
+                        onClose={() => setIsOpen(false)}
+                        onSelect={handleSelectPromo}
+                        selectedId={promo?.promotionId}
+                        filterType={filterType}
+                        bookingOwnerId={bookingOwnerId}
+                    />
+                }
+            </div>
+        </div>
+    );
+};
+
+// ====================================================================
+// MAIN COMPONENT: DiscountSection (Giữ nguyên)
+// ====================================================================
+const DiscountSection = ({ onApplyAdmin, onApplyOwner, bookingOwnerId }) => {
     // Selection State
     const [adminPromo, setAdminPromo] = useState(null);
     const [ownerPromo, setOwnerPromo] = useState(null);
 
-    const openModal = (type) => {
-        setModalType(type);
-        setIsModalOpen(true);
-    };
-
-    const handleSelectPromo = (promo) => {
-        if (modalType === 'ADMIN') {
+    // Logic xử lý khi chọn/gỡ bỏ mã
+    const handleSelectPromo = (type, promo) => {
+        if (type === 'ADMIN') {
             setAdminPromo(promo);
             if (onApplyAdmin) onApplyAdmin(promo);
         } else {
             setOwnerPromo(promo);
             if (onApplyOwner) onApplyOwner(promo);
         }
-        setIsModalOpen(false);
     };
 
     const handleRemove = (type) => {
-        if (type === 'ADMIN') {
-            setAdminPromo(null);
-            if (onApplyAdmin) onApplyAdmin(null);
-        } else {
-            setOwnerPromo(null);
-            if (onApplyOwner) onApplyOwner(null);
-        }
+        handleSelectPromo(type, null);
     };
 
     return (
-        <>
-            <Card className="p-5 border border-gray-200 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
-                    <Tag size={20} className="text-blue-600" />
-                    <h3 className="font-bold text-gray-800">Mã ưu đãi & Khuyến mãi</h3>
-                </div>
+        <Card className="p-5 border border-gray-200 shadow-xl rounded-xl">
+            {/* Component Header riêng biệt */}
+            <div className="flex items-center gap-2 mb-6 border-b pb-4">
+                <Tag size={20} className="text-blue-600" />
+                <h3 className="font-bold text-xl text-gray-800">Mã ưu đãi & Khuyến mãi</h3>
+            </div>
 
-                {/* Slot 1: Admin Promo */}
-                <DiscountSlot
-                    title="Voucher từ TravelMate"
-                    icon={ShieldCheck}
-                    colorClass="bg-blue-600"
-                    promo={adminPromo}
-                    emptyText="Chọn mã khuyến mãi hệ thống"
-                    onSelectClick={() => openModal('ADMIN')}
-                    onRemove={() => handleRemove('ADMIN')}
-                />
+            {/* Slot 1: Admin Promo (Truyền logoUrl) */}
+            <PromoSlotContainer
+                title="VOUCHER TỪ TRAVELMATE"
+                icon={ShieldCheck}
+                colorClass="text-blue-600 bg-blue-600"
+                promo={adminPromo}
+                emptyText="TravelMate Voucher"
+                onSelect={(promo) => handleSelectPromo('ADMIN', promo)}
+                onRemove={() => handleRemove('ADMIN')}
+                filterType={'ADMIN'}
+                bookingOwnerId={bookingOwnerId}
+                logoUrl={TRAVEL_MATE_LOGO_PUBLIC_PATH}
+            />
 
-                <div className="my-3 border-t border-dashed border-gray-200" />
+            <div className="my-3 border-t border-dashed border-gray-200" />
 
-                {/* Slot 2: Owner Promo */}
-                <DiscountSlot
-                    title="Voucher từ Khách sạn"
-                    icon={Store}
-                    colorClass="bg-purple-600"
-                    promo={ownerPromo}
-                    emptyText="Chọn mã ưu đãi của khách sạn"
-                    onSelectClick={() => openModal('OWNER')}
-                    onRemove={() => handleRemove('OWNER')}
-                />
-            </Card>
-
-            {/* MODAL (Dùng chung cho cả 2 loại, thay đổi content dựa vào modalType) */}
-            <PromotionSelectionModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSelect={handleSelectPromo}
-                selectedId={modalType === 'ADMIN' ? adminPromo?.promotionId : ownerPromo?.promotionId}
-                filterType={modalType}
+            {/* Slot 2: Owner Promo (Không dùng logo công ty) */}
+            <PromoSlotContainer
+                title="VOUCHER TỪ KHÁCH SẠN"
+                icon={Store}
+                colorClass="text-purple-600 bg-purple-600"
+                promo={ownerPromo}
+                emptyText="Partner Voucher"
+                onSelect={(promo) => handleSelectPromo('OWNER', promo)}
+                onRemove={() => handleRemove('OWNER')}
+                filterType={'OWNER'}
                 bookingOwnerId={bookingOwnerId}
             />
-        </>
+        </Card>
     );
 };
 
