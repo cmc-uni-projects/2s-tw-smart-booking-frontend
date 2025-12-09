@@ -4,7 +4,6 @@ import {
     Bell, CheckCheck, Clock, Info, AlertTriangle, CheckCircle, XCircle 
 } from "lucide-react";
 import notificationService from "../../services/notification.service";
-import Avatar from "../../components/common/Avatar/Avatar";
 
 const OwnerNotificationDropdown = () => {
     const [open, setOpen] = useState(false);
@@ -14,15 +13,18 @@ const OwnerNotificationDropdown = () => {
     
     const dropdownRef = useRef(null);
 
-    // --- 1. Gọi API lấy thông báo ---
+    // --- 1. Gọi API lấy dữ liệu ---
     const fetchNotifications = async () => {
-        setLoading(true);
+        // Chỉ hiện loading lần đầu nếu chưa có dữ liệu
+        if (notifications.length === 0) setLoading(true);
+        
         try {
             const data = await notificationService.getNotifications(0, 5); // Lấy 5 tin mới nhất
-            if (data && data.content) {
-                setNotifications(data.content);
-                // Nếu API trả về unreadCount trong object data thì dùng luôn, không thì gọi API riêng
-                setUnreadCount(data.unreadCount !== undefined ? data.unreadCount : 0);
+            
+            // Backend trả về map: { content: [], unreadCount: ... }
+            if (data) {
+                setNotifications(data.content || []);
+                setUnreadCount(data.unreadCount || 0);
             }
         } catch (error) {
             console.error("Failed to load notifications");
@@ -31,11 +33,9 @@ const OwnerNotificationDropdown = () => {
         }
     };
 
-    // Gọi lần đầu và thiết lập interval (tuỳ chọn)
+    // --- 2. Polling: Tự động cập nhật mỗi 60s ---
     useEffect(() => {
         fetchNotifications();
-        
-        // Polling: Cập nhật mỗi 60s (hoặc dùng WebSocket nếu có)
         const interval = setInterval(fetchNotifications, 60000); 
         return () => clearInterval(interval);
     }, []);
@@ -51,31 +51,38 @@ const OwnerNotificationDropdown = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // --- 2. Xử lý hành động ---
+    // --- 3. Xử lý hành động ---
     const handleMarkAllRead = async () => {
-        await notificationService.markAllAsRead();
+        if (unreadCount === 0) return;
+        
+        // Cập nhật UI trước cho mượt (Optimistic UI)
         setUnreadCount(0);
-        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+        setNotifications(prev => prev.map(n => ({ ...n, read: true }))); // Lưu ý field 'read' hoặc 'isRead' tùy JSON
+
+        // Gọi API sau
+        await notificationService.markAllAsRead();
+        fetchNotifications(); // Refresh lại cho chắc
     };
 
     const handleNotificationClick = async (notification) => {
-        if (!notification.isRead) {
+        // Nếu chưa đọc thì đánh dấu đã đọc
+        if (!notification.read && !notification.isRead) {
             await notificationService.markAsRead(notification.id);
             setUnreadCount(prev => Math.max(0, prev - 1));
             setNotifications(prev => 
-                prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
+                prev.map(n => n.id === notification.id ? { ...n, read: true, isRead: true } : n)
             );
         }
-        setOpen(false);
+        // Đóng dropdown (hoặc điều hướng nếu cần)
+        // setOpen(false); 
     };
 
-    // --- 3. Helper hiển thị ---
+    // --- 4. Helper hiển thị ---
     const getIcon = (type) => {
         switch (type) {
             case 'SUCCESS': return <CheckCircle size={18} className="text-green-500" />;
             case 'WARNING': return <AlertTriangle size={18} className="text-orange-500" />;
             case 'ERROR': return <XCircle size={18} className="text-red-500" />;
-            case 'INFO': 
             default: return <Info size={18} className="text-blue-500" />;
         }
     };
@@ -94,7 +101,7 @@ const OwnerNotificationDropdown = () => {
 
     return (
         <div className="relative" ref={dropdownRef}>
-            {/* --- TRIGGER BUTTON --- */}
+            {/* Trigger Button */}
             <button 
                 onClick={() => {
                     setOpen(!open);
@@ -104,18 +111,18 @@ const OwnerNotificationDropdown = () => {
             >
                 <Bell size={22} />
                 {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm border-2 border-white">
+                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm border-2 border-white animate-pulse">
                         {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                 )}
             </button>
 
-            {/* --- DROPDOWN PANEL --- */}
+            {/* Dropdown Content */}
             {open && (
                 <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden z-50 animate-fade-in-up origin-top-right ring-1 ring-black/5">
                     
                     {/* Header */}
-                    <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between bg-white">
+                    <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between bg-white sticky top-0 z-10">
                         <h3 className="font-bold text-gray-800">Thông báo</h3>
                         {unreadCount > 0 && (
                             <button 
@@ -128,70 +135,78 @@ const OwnerNotificationDropdown = () => {
                         )}
                     </div>
 
-                    {/* Notification List */}
-                    <div className="max-h-[400px] overflow-y-auto custom-scrollbar bg-gray-50/50">
+                    {/* List */}
+                    <div className="max-h-[400px] overflow-y-auto custom-scrollbar bg-gray-50/30">
                         {loading && notifications.length === 0 ? (
                             <div className="p-8 text-center text-gray-400">
-                                <div className="animate-spin inline-block w-6 h-6 border-[3px] border-current border-t-transparent text-blue-500 rounded-full mb-2"></div>
+                                <div className="animate-spin inline-block w-5 h-5 border-[2px] border-current border-t-transparent text-blue-500 rounded-full mb-2"></div>
                                 <p className="text-xs">Đang tải...</p>
                             </div>
                         ) : notifications.length > 0 ? (
                             <div className="divide-y divide-gray-100">
-                                {notifications.map((item) => (
-                                    <div 
-                                        key={item.id}
-                                        onClick={() => handleNotificationClick(item)}
-                                        className={`flex gap-3 px-4 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors relative
-                                            ${!item.isRead ? 'bg-white' : 'bg-gray-50/30 opacity-70'}
-                                        `}
-                                    >
-                                        {/* Status Icon */}
-                                        <div className="flex-shrink-0 mt-0.5">
-                                            <div className={`p-2 rounded-full ${!item.isRead ? 'bg-blue-50' : 'bg-gray-100'}`}>
-                                                {getIcon(item.type)}
+                                {notifications.map((item) => {
+                                    // Kiểm tra cả 2 trường hợp tên field JSON
+                                    const isRead = item.read || item.isRead; 
+                                    return (
+                                        <div 
+                                            key={item.id}
+                                            onClick={() => handleNotificationClick(item)}
+                                            className={`flex gap-3 px-4 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors relative group
+                                                ${!isRead ? 'bg-white' : 'bg-gray-50/50 opacity-80'}
+                                            `}
+                                        >
+                                            {/* Icon */}
+                                            <div className="flex-shrink-0 mt-0.5">
+                                                <div className={`p-2 rounded-full ${!isRead ? 'bg-white shadow-sm border border-gray-100' : 'bg-transparent'}`}>
+                                                    {getIcon(item.type)}
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        {/* Content */}
-                                        <div className="flex-1 min-w-0">
-                                            <p className={`text-sm leading-snug mb-1 ${!item.isRead ? 'font-semibold text-gray-900' : 'font-medium text-gray-700'}`}>
-                                                {item.title}
-                                            </p>
-                                            <p className="text-xs text-gray-500 line-clamp-2">
-                                                {item.message}
-                                            </p>
-                                            <div className="flex items-center gap-1 mt-1.5 text-[10px] text-gray-400 font-medium">
-                                                <Clock size={10} />
-                                                <span>{formatTime(item.createdAt)}</span>
+                                            {/* Content */}
+                                            <div className="flex-1 min-w-0">
+                                                <p className={`text-sm leading-snug mb-1 ${!isRead ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>
+                                                    {item.title}
+                                                </p>
+                                                <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+                                                    {item.message}
+                                                </p>
+                                                <div className="flex items-center gap-1 mt-1.5 text-[10px] text-gray-400 font-medium">
+                                                    <Clock size={10} />
+                                                    <span>{formatTime(item.createdAt)}</span>
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        {/* Unread Dot */}
-                                        {!item.isRead && (
-                                            <div className="absolute top-4 right-4 w-2 h-2 bg-blue-500 rounded-full"></div>
-                                        )}
-                                    </div>
-                                ))}
+                                            {/* Unread Indicator */}
+                                            {!isRead && (
+                                                <div className="flex-shrink-0 self-center">
+                                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         ) : (
-                            <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-                                <div className="bg-gray-100 p-3 rounded-full mb-3">
-                                    <Bell size={24} className="text-gray-400" />
+                            <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                                <div className="bg-gray-100 p-4 rounded-full mb-3 text-gray-400">
+                                    <Bell size={24} />
                                 </div>
                                 <p className="text-gray-800 font-medium text-sm">Không có thông báo mới</p>
-                                <p className="text-gray-500 text-xs mt-1">Khi có cập nhật mới, chúng sẽ hiện ở đây.</p>
+                                <p className="text-gray-500 text-xs mt-1 max-w-[200px]">Mọi cập nhật quan trọng về đơn đặt phòng sẽ xuất hiện ở đây.</p>
                             </div>
                         )}
                     </div>
 
                     {/* Footer */}
-                    <Link 
-                        to="/owner/notifications" 
-                        onClick={() => setOpen(false)}
-                        className="block bg-white border-t border-gray-100 px-4 py-3 text-center text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-gray-50 transition-colors"
-                    >
-                        Xem tất cả thông báo
-                    </Link>
+                    <div className="border-t border-gray-100 p-1 bg-gray-50">
+                        <Link 
+                            to="/owner/notifications" 
+                            onClick={() => setOpen(false)}
+                            className="block w-full py-2 text-center text-xs font-semibold text-gray-600 hover:text-blue-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-200 shadow-sm hover:shadow"
+                        >
+                            Xem tất cả thông báo
+                        </Link>
+                    </div>
                 </div>
             )}
         </div>

@@ -8,8 +8,9 @@ import RoomManagementPage from "@/pages/Owner/Rooms/RoomManagementPage";
 import RoomListPage from "@/pages/Owner/Rooms/RoomListPage";
 import PlaceholderPage from "@/pages/Owner/PlaceholderPage";
 import OwnerBookingsPage from "@/pages/Owner/Bookings/OwnerBookingsPage";
-// ✅ IMPORT TRANG MỚI
 import OwnerPromotionManager from "@/pages/Owner/Promotions/OwnerPromotionManager";
+// ✅ IMPORT TRANG THÔNG BÁO MỚI
+import OwnerNotificationsPage from "@/pages/Owner/Notifications/OwnerNotificationsPage";
 
 const ownerRoutes = [
     {
@@ -44,13 +45,12 @@ const ownerRoutes = [
         ),
     },
 
-    // --- QUẢN LÝ PHÒNG (ĐÃ SỬA) ---
+    // --- QUẢN LÝ PHÒNG ---
     {
         path: "/owner/rooms",
         element: (
             <OwnerLayout>
                 <ProtectedRoute requiredRole="OWNER">
-                    {/* Trang danh sách Property để chọn quản lý phòng */}
                     <RoomListPage />
                 </ProtectedRoute>
             </OwnerLayout>
@@ -61,14 +61,13 @@ const ownerRoutes = [
         element: (
             <OwnerLayout>
                 <ProtectedRoute requiredRole="OWNER">
-                    {/* Trang quản lý chi tiết phòng của 1 Property */}
                     <RoomManagementPage />
                 </ProtectedRoute>
             </OwnerLayout>
         ),
     },
 
-    // --- 🌟 TRANG QUẢN LÝ BOOKINGS (ĐÃ CỐ ĐỊNH) 🌟 ---
+    // --- QUẢN LÝ BOOKINGS ---
     {
         path: "/owner/bookings",
         element: (
@@ -79,8 +78,18 @@ const ownerRoutes = [
             </OwnerLayout>
         ),
     },
+    {
+        path: "/owner/bookings/:propertyId",
+        element: (
+            <OwnerLayout>
+                <ProtectedRoute requiredRole="OWNER">
+                    <OwnerBookingsPage />
+                </ProtectedRoute>
+            </OwnerLayout>
+        ),
+    },
 
-    // --- ✅ MỚI: QUẢN LÝ KHUYẾN MÃI ---
+    // --- QUẢN LÝ KHUYẾN MÃI ---
     {
         path: "/owner/promotions",
         element: (
@@ -91,25 +100,26 @@ const ownerRoutes = [
             </OwnerLayout>
         ),
     },
-    // ------------------------------------
 
-    // --- CÁC TRANG KHÁC (GIỮ NGUYÊN PLACEHOLDER) ---
+    // --- ✅ ROUTE MỚI: QUẢN LÝ THÔNG BÁO ---
+    {
+        path: "/owner/notifications",
+        element: (
+            <OwnerLayout>
+                <ProtectedRoute requiredRole="OWNER">
+                    <OwnerNotificationsPage />
+                </ProtectedRoute>
+            </OwnerLayout>
+        ),
+    },
+
+    // --- CÁC TRANG KHÁC ---
     {
         path: "/owner/tasks",
         element: (
             <OwnerLayout>
                 <ProtectedRoute requiredRole="OWNER">
                     <PlaceholderPage title="Quản lý Tác vụ" />
-                </ProtectedRoute>
-            </OwnerLayout>
-        ),
-    },
-    {
-        path: "/owner/bookings/:propertyId", //
-        element: (
-            <OwnerLayout>
-                <ProtectedRoute requiredRole="OWNER">
-                    <OwnerBookingsPage />
                 </ProtectedRoute>
             </OwnerLayout>
         ),

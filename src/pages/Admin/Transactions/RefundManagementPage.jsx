@@ -147,7 +147,7 @@ const RefundManagementPage = () => {
               <tr>
                 <th className="px-6 py-4">Mã đơn</th>
                 <th className="px-6 py-4">Ngày yêu cầu</th>
-                <th className="px-6 py-4">Số tiền</th>
+                <th className="px-6 py-4">Số tiền cần hoàn</th>
                 <th className="px-6 py-4">Chủ tài khoản</th>
                 <th className="px-6 py-4 text-center">Trạng thái</th>
                 <th className="px-6 py-4 text-right">Thao tác</th>
