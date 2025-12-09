@@ -13,19 +13,18 @@ const OwnerNotificationsPage = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [filterType, setFilterType] = useState("ALL");
 
-    // --- MAP DỊCH THUẬT ---
+    // ✅ SỬA LẠI: NGÔN NGỮ NGHIỆP VỤ (Thay vì Lỗi/Cảnh báo)
     const TYPE_LABELS = {
         ALL: "Tất cả",
-        SUCCESS: "Thành công",
-        WARNING: "Cảnh báo",
-        ERROR: "Lỗi",
-        INFO: "Thông tin"
+        SUCCESS: "Thành công",      // Đặt phòng, Thanh toán
+        WARNING: "Cần chú ý",       // Hoàn tiền, Thay đổi lịch
+        ERROR: "Đã hủy",            // Khách hủy, Từ chối
+        INFO: "Thông tin"           // Tin tức chung
     };
 
     const fetchNotifications = async () => {
         setLoading(true);
         try {
-            // Nếu backend hỗ trợ filter thì truyền thêm params filterType ở đây
             const data = await notificationService.getNotifications(page, 10);
             if (data) {
                 setNotifications(data.content || []);
@@ -52,30 +51,31 @@ const OwnerNotificationsPage = () => {
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
     };
 
+    // Giữ nguyên màu sắc để phân loại mức độ quan trọng
     const getBorderColor = (type) => {
         switch (type) {
             case 'SUCCESS': return 'border-l-green-500';
-            case 'WARNING': return 'border-l-orange-500';
-            case 'ERROR': return 'border-l-red-500';
+            case 'WARNING': return 'border-l-orange-500'; 
+            case 'ERROR': return 'border-l-rose-500'; // Màu đỏ hồng nhẹ hơn chút cho đỡ gắt
             default: return 'border-l-blue-500';
         }
     };
 
-    // Filter local nếu backend chưa hỗ trợ
+    // Filter local
     const filteredNotifications = filterType === "ALL" 
         ? notifications 
         : notifications.filter(n => n.type === filterType);
 
     return (
         <div className="space-y-6 fade-in-up">
-            {/* --- HEADER --- */}
+            {/* HEADER */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
                         <Bell className="text-teal-600" />
                         Thông báo hệ thống
                     </h1>
-                    <p className="text-sm text-gray-500 mt-1">Cập nhật tất cả các hoạt động liên quan đến tài sản của bạn</p>
+                    <p className="text-sm text-gray-500 mt-1">Cập nhật hoạt động đặt phòng và tài chính</p>
                 </div>
                 <button 
                     onClick={handleMarkAllRead}
@@ -86,16 +86,16 @@ const OwnerNotificationsPage = () => {
                 </button>
             </div>
 
-            {/* --- FILTERS (ĐÃ VIỆT HÓA) --- */}
+            {/* FILTERS */}
             <div className="flex flex-wrap gap-3">
                 {['ALL', 'SUCCESS', 'WARNING', 'ERROR'].map(type => (
                     <button
                         key={type}
                         onClick={() => setFilterType(type)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
                             filterType === type 
-                            ? 'bg-teal-600 text-white shadow-md' 
-                            : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                            ? 'bg-teal-600 text-white border-teal-600 shadow-md' 
+                            : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-200'
                         }`}
                     >
                         {TYPE_LABELS[type]}
@@ -103,7 +103,7 @@ const OwnerNotificationsPage = () => {
                 ))}
             </div>
 
-            {/* --- LIST --- */}
+            {/* LIST */}
             {loading ? (
                 <div className="h-64 flex items-center justify-center">
                     <LoadingOverlay isLoading={true} />
@@ -114,20 +114,20 @@ const OwnerNotificationsPage = () => {
                         <div 
                             key={item.id}
                             onClick={() => handleMarkRead(item.id)}
-                            className={`group relative bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer border-l-4 ${getBorderColor(item.type)} 
-                                ${!item.isRead ? 'bg-blue-50/30' : ''}
+                            className={`group relative bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer border-l-[4px] ${getBorderColor(item.type)} 
+                                ${!item.isRead ? 'bg-blue-50/40' : ''}
                             `}
                         >
                             <div className="flex justify-between items-start gap-4">
                                 <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        {/* Badge loại thông báo */}
-                                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase border 
-                                            ${item.type === 'SUCCESS' ? 'text-green-600 border-green-200 bg-green-50' : 
-                                              item.type === 'WARNING' ? 'text-orange-600 border-orange-200 bg-orange-50' : 
-                                              item.type === 'ERROR' ? 'text-red-600 border-red-200 bg-red-50' : 
-                                              'text-blue-600 border-blue-200 bg-blue-50'}`}>
-                                            {TYPE_LABELS[item.type] || item.type}
+                                    <div className="flex items-center gap-2 mb-1.5">
+                                        {/* ✅ SỬA: Badge hiển thị text nghiệp vụ thay vì code */}
+                                        <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase border tracking-wide
+                                            ${item.type === 'SUCCESS' ? 'text-green-700 border-green-200 bg-green-50' : 
+                                              item.type === 'WARNING' ? 'text-orange-700 border-orange-200 bg-orange-50' : 
+                                              item.type === 'ERROR' ? 'text-rose-700 border-rose-200 bg-rose-50' : 
+                                              'text-blue-700 border-blue-200 bg-blue-50'}`}>
+                                            {TYPE_LABELS[item.type]}
                                         </span>
                                         <h3 className={`text-base ${!item.isRead ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>
                                             {item.title}
@@ -137,11 +137,11 @@ const OwnerNotificationsPage = () => {
                                     <p className="text-gray-600 text-sm leading-relaxed">{item.message}</p>
                                     
                                     <div className="flex items-center gap-4 mt-3 text-xs text-gray-400 font-medium">
-                                        <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
+                                        <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded text-gray-500">
                                             <Calendar size={12} />
                                             {new Date(item.createdAt).toLocaleString('vi-VN')}
                                         </span>
-                                        {!item.isRead && <span className="text-blue-600 font-bold">• Chưa đọc</span>}
+                                        {!item.isRead && <span className="text-blue-600 font-bold flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span> Chưa đọc</span>}
                                     </div>
                                 </div>
                             </div>
@@ -153,11 +153,11 @@ const OwnerNotificationsPage = () => {
                     <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Bell className="text-gray-300" size={32} />
                     </div>
-                    <p className="text-gray-500 font-medium">Bạn chưa có thông báo nào</p>
+                    <p className="text-gray-500 font-medium">Không tìm thấy thông báo nào</p>
                 </div>
             )}
 
-            {/* --- PAGINATION --- */}
+            {/* PAGINATION */}
             {totalPages > 1 && (
                 <div className="flex justify-center mt-6">
                     <Pagination 
