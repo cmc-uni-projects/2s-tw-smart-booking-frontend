@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import Toast from "@/components/common/Notification/Toast";
 import CustomSelect from "@/components/common/Select/CustomSelect";
 
-// --- CONFIG ---
+
 const BE_BASE_URL = "http://127.0.0.1:8386";
 const UPLOAD_DIR = "/uploads/";
 const MIN_VND = 1000;
@@ -31,9 +31,7 @@ const parseCurrency = (value) => {
     return value.replace(/\./g, "").replace(/\D/g, "");
 };
 
-// --- COMPONENTS ---
-// SỬA: Dùng flex-col gap-1.5 để đồng bộ khoảng cách label với Select
-// SỬA: Chỉnh height input về h-[42px] để khớp với Select chuẩn
+
 const CustomInput = ({ label, name, value, onChange, type = "text", placeholder, icon: Icon, error, disabled, className, ...props }) => {
     const inputRef = useRef(null);
     const handleIconClick = () => {
@@ -92,7 +90,7 @@ const TimePicker = ({ value, onChange, error }) => {
     );
 };
 
-// --- MAIN COMPONENT ---
+
 const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
     const [promotionTypeOption, setPromotionTypeOption] = useState("FIXED_AMOUNT");
     const [formData, setFormData] = useState({
@@ -320,7 +318,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                 </div>
                 <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
 
-                    {/* 1. BANNER */}
+
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700 ml-1">Banner Khuyến Mãi</label>
                         <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50/50 transition-colors relative overflow-hidden group">
@@ -330,13 +328,13 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         </div>
                     </div>
 
-                    {/* 2. MÃ CODE & TÊN */}
+
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-start">
                         <div className="sm:col-span-1"><CustomInput label="Mã Code" name="code" value={formData.code} onChange={handleChange} placeholder="VD: SALE50" icon={Tag} error={errors.code} /></div>
                         <div className="sm:col-span-2"><CustomInput label="Tên chương trình" name="name" value={formData.name} onChange={handleChange} placeholder="VD: Siêu sale tháng 11" icon={CheckCircle2} error={errors.name} /></div>
                     </div>
 
-                    {/* 3. HẠNG THÀNH VIÊN */}
+
                     <div className="bg-orange-50/50 border border-orange-100 rounded-xl p-5">
                         <CustomSelect label="Đối tượng áp dụng (Hạng thành viên tối thiểu)" name="minMembershipRank" value={formData.minMembershipRank} onChange={(val) => setFormData(prev => ({ ...prev, minMembershipRank: val }))} icon={<Crown />}
                                       options={[{ value: "BRONZE", label: "Đồng (Tất cả thành viên)" }, { value: "SILVER", label: "Bạc (Silver - Chi tiêu > 1 triệu đồng)" }, { value: "GOLD", label: "Vàng (Gold - Chi tiêu > 5 triệu đồng)" }, { value: "DIAMOND", label: "Kim Cương (Diamond - Chi tiêu > 10 triệu đồng)" }]}
@@ -344,7 +342,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         <p className="text-xs text-gray-500 mt-2 ml-1 italic">* Khuyến mãi này sẽ áp dụng cho các thành viên có hạng này trở lên.</p>
                     </div>
 
-                    {/* 4. LOẠI GIẢM GIÁ & GIÁ TRỊ - CHỖ BỊ LỆCH */}
+
                     <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
                         <CustomSelect label="Loại giảm giá" name="type" value={promotionTypeOption} onChange={(val) => handleTypeChange(val)} icon={<Layers />}
                                       options={[
@@ -356,14 +354,14 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         <CustomInput label={isPercentage ? "Mức giảm (%)" : "Số tiền giảm (VNĐ)"} name="value" type={isPercentage ? "number" : "text"} value={isPercentage ? formData.value : formatCurrency(formData.value)} onChange={isPercentage ? handleChange : handleCurrencyChange} placeholder={isPercentage ? "VD: 20" : "VD: 50.000"} icon={isPercentage ? Percent : Banknote} error={errors.value} min="0" onFocus={(e) => e.target.select()} />
                     </div>
 
-                    {/* 5. ĐIỀU KIỆN ÁP DỤNG */}
+
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-start">
                         <CustomInput label="Đơn tối thiểu (VNĐ)" name="minOrder" type="text" value={formatCurrency(formData.minOrder)} onChange={handleCurrencyChange} icon={Banknote} error={errors.minOrder} placeholder="0 (Không giới hạn)" />
                         <CustomInput label="Giảm tối đa (VNĐ)" name="maxDiscount" type="text" value={formatCurrency(formData.maxDiscount)} onChange={handleCurrencyChange} icon={Banknote} placeholder={isMaxDiscountDisabled ? "Không áp dụng" : "VD: 200.000"} onFocus={(e) => e.target.select()} error={errors.maxDiscount} disabled={isMaxDiscountDisabled} />
                         <CustomInput label="Tổng số lượng" name="quantity" type="number" value={formData.quantity} onChange={handleChange} icon={Hash} error={errors.quantity} placeholder="1000" min="1" onFocus={(e) => e.target.select()} />
                     </div>
 
-                    {/* 6. THỜI GIAN */}
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian bắt đầu {errors.startDate && <span className="text-red-500">*</span>}</label>

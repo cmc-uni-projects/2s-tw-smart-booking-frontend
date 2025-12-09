@@ -32,8 +32,7 @@ const parseCurrency = (value) => {
     return value.replace(/\./g, "").replace(/\D/g, "");
 };
 
-// SỬA: Dùng flex-col gap-1.5 để đồng bộ khoảng cách label với Select
-// SỬA: Chỉnh height input về h-[42px]
+
 const CustomInput = ({ label, name, value, onChange, type = "text", placeholder, icon: Icon, error, disabled, className, ...props }) => {
     const inputRef = useRef(null);
     const handleIconClick = () => {
@@ -52,7 +51,7 @@ const CustomInput = ({ label, name, value, onChange, type = "text", placeholder,
                         <Icon size={18} strokeWidth={isDateInput ? 2.5 : 2} />
                     </div>
                 )}
-                {/* SỬA: h-[42px] */}
+
                 <input ref={inputRef} type={type} name={name} value={value} onChange={onChange} disabled={disabled} placeholder={placeholder} {...props}
                        className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-4 h-[42px] bg-gray-50 border rounded-xl outline-none transition-all duration-200 ${error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100 bg-red-50' : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white'} ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''} placeholder-gray-400 selection:bg-blue-100 [&::-webkit-calendar-picker-indicator]:hidden`} />
             </div>
@@ -410,7 +409,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                             if (skippedHotels.length > 0) {
                                 const displayNames = skippedHotels.slice(0, 3).join(", ");
                                 const moreText = skippedHotels.length > 3 ? `... và ${skippedHotels.length - 3} KS khác` : "";
-                                msg += `\n⚠️ Bỏ qua ${skippedHotels.length} khách sạn trùng mã: ${displayNames}${moreText}`;
+                                msg += `\n Bỏ qua ${skippedHotels.length} khách sạn trùng mã: ${displayNames}${moreText}`;
                             }
                             if (otherErrors.length > 0) {
                                 msg += `\n Lỗi khác: ${otherErrors[0]}`;
