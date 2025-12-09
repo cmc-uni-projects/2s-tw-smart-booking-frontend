@@ -1,156 +1,212 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, User, Home, LayoutDashboard, Building2, ChevronRight, ShieldCheck, Smile } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import Avatar from "@/components/common/Avatar/Avatar";
-import { userService } from "@/services/user.service"; // Import service
+import { 
+    User, Settings, LogOut, Briefcase, 
+    ChevronRight, Mail 
+} from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { userService } from "../../services/user.service"; // ✅ Import service
+import Avatar from "../../components/common/Avatar/Avatar";
+import ConfirmModal from "../../components/common/Modal/ConfirmModal";
 
-const OwnerProfileDropdown = ({ onClose }) => {
-  const { currentUser, logout, hasRole } = useAuth();
-  const navigate = useNavigate();
+const OwnerProfileDropdown = () => {
+  const [open, setOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   
-  // State để lưu avatar mới nhất từ API
-  const [currentAvatar, setCurrentAvatar] = useState(currentUser?.profilePhotoUrl);
-  const [roleLabel, setRoleLabel] = useState("ĐỐI TÁC");
+  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
+  const ref = useRef(null);
 
-  // Style giống hệt Customer
-  const dropdownLinkClass =
-    "flex items-center justify-between w-full text-left px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-[rgb(40,169,224)] transition-all group";
+  // ✅ State lưu thông tin chi tiết
+  const [userInfo, setUserInfo] = useState(currentUser);
 
-  // 1. Gọi API lấy thông tin mới nhất (Avatar) khi mount
+  // ✅ Gọi API lấy thông tin chi tiết (Avatar, Fullname mới nhất)
   useEffect(() => {
-    const fetchLatestUserInfo = async () => {
-      try {
-        const data = await userService.getUserDetail();
-        if (data && data.profilePhotoUrl) {
-          setCurrentAvatar(data.profilePhotoUrl);
+    const fetchLatestData = async () => {
+        try {
+            const data = await userService.getUserDetail();
+            if (data) {
+                setUserInfo(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch owner profile:", error);
         }
-      } catch (error) {
-        console.error("Failed to fetch fresh user details:", error);
-      }
     };
 
-    fetchLatestUserInfo();
-    determineRoleLabel();
-  }, []);
-
-  // 2. Logic xác định Role hiển thị
-  const determineRoleLabel = () => {
-    if (hasRole("ADMIN")) {
-      setRoleLabel("QUẢN TRỊ VIÊN");
-    } else if (hasRole("OWNER")) {
-      setRoleLabel("ĐỐI TÁC");
-    } else {
-      setRoleLabel("KHÁCH HÀNG");
+    if (currentUser) {
+        fetchLatestData();
     }
-  };
+  }, [currentUser]);
 
-  // Icon cho role
-  const getRoleIcon = () => {
-    if (hasRole("ADMIN")) return <ShieldCheck size={10} className="mr-1" />;
-    if (hasRole("OWNER")) return <Building2 size={10} className="mr-1" />;
-    return <Smile size={10} className="mr-1" />;
-  };
+  // Đóng khi click ra ngoài
+  useEffect(() => {
+    const onClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
 
   const handleLogout = () => {
     logout();
+    setShowLogoutConfirm(false);
     navigate("/login");
   };
 
-  if (!currentUser) return null;
+  // 🎨 Theme màu sắc cho Owner (Teal/Emerald - Tượng trưng Kinh doanh)
+  const ownerTheme = {
+    gradient: "from-teal-600 to-emerald-600",
+    icon: <Briefcase size={16} className="text-emerald-100" />,
+    label: "Đối tác"
+  };
+
+  // Ưu tiên lấy dữ liệu từ state userInfo (API)
+  const displayAvatar = userInfo?.profilePhotoUrl || userInfo?.avatar || currentUser?.avatar;
+  const displayName = userInfo?.fullName || currentUser?.fullName || "Partner";
+  const displayEmail = userInfo?.email || currentUser?.email;
 
   return (
-    <div className="absolute right-0 mt-3 w-80 bg-white border border-gray-100 rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] z-50 overflow-hidden animate-fadeIn origin-top-right ring-1 ring-black/5">
-      
-      {/* === 1. HEADER GRADIENT (Đồng bộ Customer) === */}
-      <div className="bg-gradient-to-r from-[rgb(40,169,224)] to-[#006494] p-5 text-white relative overflow-hidden">
-        {/* Họa tiết nền mờ */}
-        <div className="absolute -top-6 -right-6 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-        
-        <div className="flex items-center gap-3 relative z-10">
-          <Avatar
-            src={currentAvatar} // Sử dụng state avatar mới nhất
-            name={currentUser.fullName}
-            size={52}
-            className="border-[3px] border-white/30 shadow-md"
-          />
-          <div className="overflow-hidden">
-            <p className="font-bold text-lg truncate leading-tight">{currentUser.fullName}</p>
-            <p className="text-xs text-blue-100 truncate font-medium opacity-90">{currentUser.email}</p>
-            
-            {/* Badge hiển thị Role động */}
-            <div className="mt-1.5 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-white/20 text-white border border-white/20 shadow-sm">
-               {getRoleIcon()} {roleLabel}
+    <>
+      <div className="relative" ref={ref}>
+        {/* --- TRIGGER BUTTON --- */}
+        <button
+          onClick={() => setOpen((prev) => !prev)}
+          className="flex items-center gap-2 cursor-pointer p-1 rounded-xl hover:bg-gray-100 transition-all border border-transparent hover:border-gray-200"
+        >
+          <div className="relative">
+            {/* Avatar nhỏ ở Header */}
+            <Avatar 
+              src={displayAvatar} 
+              name={displayName} 
+              size={38} 
+            />
+            {/* Dot trạng thái online */}
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-teal-500 border-2 border-white rounded-full"></div>
+          </div>
+          
+          <div className="text-left hidden md:block mr-1">
+            <div className="font-bold text-sm text-gray-800 leading-tight">
+              {displayName}
+            </div>
+            <div className="text-[11px] font-medium text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded inline-block mt-0.5">
+              Owner
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* === 2. MENU ITEMS === */}
-      <div className="py-2">
-        <Link
-          to="/owner/dashboard"
-          className={dropdownLinkClass}
-          onClick={onClose}
-        >
-          <div className="flex items-center gap-3">
-            <LayoutDashboard size={18} className="text-gray-400 group-hover:text-[rgb(40,169,224)] transition-colors" />
-            <span className="font-medium">Bảng điều khiển</span>
-          </div>
-          <ChevronRight size={14} className="text-gray-300 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
-        </Link>
-
-        <Link
-          to="/owner/properties"
-          className={dropdownLinkClass}
-          onClick={onClose}
-        >
-           <div className="flex items-center gap-3">
-            <Building2 size={18} className="text-gray-400 group-hover:text-[rgb(40,169,224)] transition-colors" />
-            <span className="font-medium">Quản lý tài sản</span>
-          </div>
-          <ChevronRight size={14} className="text-gray-300 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
-        </Link>
-
-        <Link
-          to="/owner/profile"
-          className={dropdownLinkClass}
-          onClick={onClose}
-        >
-          <div className="flex items-center gap-3">
-            <User size={18} className="text-gray-400 group-hover:text-[rgb(40,169,224)] transition-colors" />
-            <span className="font-medium">Hồ sơ đối tác</span>
-          </div>
-          <ChevronRight size={14} className="text-gray-300 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
-        </Link>
-
-        <div className="h-px bg-gray-100 my-1 mx-4"></div>
-
-        <Link
-          to="/"
-          className={dropdownLinkClass}
-          onClick={onClose}
-        >
-           <div className="flex items-center gap-3">
-            <Home size={18} className="text-gray-400 group-hover:text-[rgb(40,169,224)] transition-colors" />
-            <span className="font-medium">Về trang khách hàng</span>
-          </div>
-        </Link>
-      </div>
-
-      {/* === 3. FOOTER LOGOUT === */}
-      <div className="bg-gray-50 p-2 border-t border-gray-100">
-        <button
-          onClick={handleLogout}
-          className="flex items-center justify-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-white hover:shadow-sm hover:border-red-100 border border-transparent rounded-xl transition-all font-semibold"
-        >
-          <LogOut size={16} />
-          Đăng xuất
         </button>
+
+        {/* --- DROPDOWN CONTENT --- */}
+        {open && (
+          <div className="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden z-50 animate-fade-in-up origin-top-right ring-1 ring-black/5">
+            
+            {/* Header Gradient */}
+            <div className={`bg-gradient-to-r ${ownerTheme.gradient} p-5 text-white relative overflow-hidden`}>
+                <div className="absolute top-0 right-0 -mt-2 -mr-2 opacity-10">
+                    <div className="transform scale-[5] origin-top-right">
+                        <Briefcase />
+                    </div>
+                </div>
+
+                <div className="relative z-10 flex items-start gap-3">
+                    <div className="border-[3px] border-white/30 rounded-full shadow-sm">
+                        {/* Avatar lớn trong Dropdown */}
+                        <Avatar 
+                            src={displayAvatar} 
+                            name={displayName} 
+                            size={52} 
+                        />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-lg truncate leading-tight">
+                            {displayName}
+                        </h4>
+                        <div className="flex items-center gap-1.5 text-white/80 text-xs mb-2 mt-1">
+                             <Mail size={10} />
+                             <span className="truncate">{displayEmail}</span>
+                        </div>
+                        
+                        <div className="inline-flex items-center gap-1.5 bg-black/20 backdrop-blur-sm px-2.5 py-1 rounded-md text-[11px] font-bold border border-white/10 shadow-sm">
+                            {ownerTheme.icon}
+                            <span>{ownerTheme.label}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Menu Items */}
+            <div className="p-2">
+                <Link 
+                    to="/owner/properties" // Điều hướng về trang quản lý chính
+                    className="flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors group"
+                    onClick={() => setOpen(false)}
+                >
+                    <div className="p-2 bg-teal-50 text-teal-600 rounded-full group-hover:bg-teal-100 transition-colors">
+                        <Briefcase size={18} />
+                    </div>
+                    <div className="flex-1">
+                        <span className="font-medium text-sm">Quản lý tài sản</span>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
+                </Link>
+
+                <Link 
+                    to="/customer/profile" // Owner cũng là User, dùng chung trang profile customer hoặc trang riêng nếu có
+                    className="flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors group"
+                    onClick={() => setOpen(false)}
+                >
+                    <div className="p-2 bg-blue-50 text-blue-600 rounded-full group-hover:bg-blue-100 transition-colors">
+                        <User size={18} />
+                    </div>
+                    <div className="flex-1">
+                        <span className="font-medium text-sm">Hồ sơ cá nhân</span>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
+                </Link>
+
+                <Link 
+                    to="/owner/settings" // Trang cài đặt riêng cho Owner (nếu có)
+                    className="flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors group"
+                    onClick={() => setOpen(false)}
+                >
+                    <div className="p-2 bg-gray-100 text-gray-600 rounded-full group-hover:bg-gray-200 transition-colors">
+                        <Settings size={18} />
+                    </div>
+                    <div className="flex-1">
+                        <span className="font-medium text-sm">Cài đặt</span>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
+                </Link>
+
+                <div className="h-[1px] bg-gray-100 my-1 mx-2"></div>
+
+                <button 
+                    onClick={() => setShowLogoutConfirm(true)}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors group text-left"
+                >
+                    <div className="p-2 bg-red-50 text-red-500 rounded-full group-hover:bg-red-100 transition-colors">
+                        <LogOut size={18} />
+                    </div>
+                    <span className="font-medium text-sm">Đăng xuất</span>
+                </button>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+
+      {/* Modal xác nhận đăng xuất */}
+      <ConfirmModal
+        open={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        title="Xác nhận Đăng xuất"
+        message="Bạn có chắc chắn muốn đăng xuất khỏi trang quản lý?"
+        type="danger"
+        confirmText="Đăng xuất"
+        cancelText="Hủy"
+      />
+    </>
   );
 };
 
 export default OwnerProfileDropdown;
-    

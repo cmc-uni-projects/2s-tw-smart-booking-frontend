@@ -1,67 +1,54 @@
 import React from "react";
-import {
-    LineChart,
-    LogIn,
-    LogOut,
-    CircleDollarSign
-} from "lucide-react";
+import { LogIn, LogOut, CircleDollarSign, CalendarCheck } from "lucide-react";
 
-const stats = [
-    {
-        id: 1,
-        title: "Công suất phòng (Hôm nay)",
-        value: "78%",
-        emoji: <LineChart className="text-blue-500" />,
-        change: "+5% so với hôm qua",
-    },
-    {
-        id: 2,
-        title: "Check-in hôm nay",
-        value: "32",
-        emoji: <LogIn className="text-green-500" />,
-        change: "12 khách dự kiến",
-    },
-    {
-        id: 3,
-        title: "Check-out hôm nay",
-        value: "21",
-        emoji: <LogOut className="text-red-500" />,
-        change: "8 khách đã trả phòng",
-    },
-    {
-        id: 4,
-        title: "Doanh thu (Hôm nay)",
-        value: "120.5M",
-        emoji: <CircleDollarSign className="text-yellow-600" />,
-        change: "+15M so với hôm qua",
-    },
-];
-
-const HotelStatCard = ({ title, value, emoji, change }) => (
-    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col justify-between">
-        <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</span>
-            <span className="text-3xl">{emoji}</span>
-        </div>
-        <div className="mt-4">
-            <span className="text-4xl font-bold text-gray-900 dark:text-white">{value}</span>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{change}</p>
+const HotelStatCard = ({ title, value, icon, colorClass, subText }) => (
+    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
+        <div className="flex justify-between items-start">
+            <div>
+                <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
+                <h3 className="text-2xl font-bold text-gray-800">{value}</h3>
+                <p className="text-xs text-gray-400 mt-2 font-medium">{subText}</p>
+            </div>
+            <div className={`p-3 rounded-xl ${colorClass} text-white shadow-lg shadow-opacity-20`}>
+                {icon}
+            </div>
         </div>
     </div>
 );
 
-const HotelStatCards = () => {
+const HotelStatCards = ({ stats }) => {
+    const formatMoney = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(val || 0);
+
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat) => (
-                <HotelStatCard
-                    key={stat.id}
-                    title={stat.title}
-                    value={stat.value}
-                    emoji={stat.emoji}
-                    change={stat.change}
-                />
-            ))}
+            <HotelStatCard
+                title="Check-in Hôm nay"
+                value={stats?.checkInToday || 0}
+                icon={<LogIn size={24} />}
+                colorClass="bg-gradient-to-r from-emerald-500 to-teal-500"
+                subText="Khách đến"
+            />
+            <HotelStatCard
+                title="Check-out Hôm nay"
+                value={stats?.checkOutToday || 0}
+                icon={<LogOut size={24} />}
+                colorClass="bg-gradient-to-r from-orange-500 to-red-500"
+                subText="Khách đi"
+            />
+            <HotelStatCard
+                title="Doanh thu Hôm nay"
+                value={formatMoney(stats?.revenueToday)}
+                icon={<CircleDollarSign size={24} />}
+                colorClass="bg-gradient-to-r from-blue-500 to-indigo-500"
+                subText="Tạm tính"
+            />
+            <HotelStatCard
+                title="Booking Mới (24h)"
+                value={stats?.newBookings24h || 0}
+                icon={<CalendarCheck size={24} />}
+                colorClass="bg-gradient-to-r from-violet-500 to-purple-500"
+                subText="Đơn đặt mới"
+            />
         </div>
     );
 };
