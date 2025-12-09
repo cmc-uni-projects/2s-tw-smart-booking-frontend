@@ -1,4 +1,5 @@
-// ... (Giữ nguyên các import ban đầu)
+// src/pages/Customer/Booking/PaymentPage.jsx
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { format, differenceInCalendarDays } from 'date-fns';
@@ -12,12 +13,12 @@ import { MapPin, BedDouble, Users, Receipt, User, Phone, Mail, ArrowLeft, CheckC
 import PaymentForm from './PaymentForm';
 import QRCodeModal from './QRCodeModal';
 import PaymentTimeoutModal from './components/PaymentTimeoutModal';
-import DiscountSection from './components/DiscountSection'; // Component mới
+import DiscountSection from './components/DiscountSection';
 import bookingService from "@/services/booking.service";
 import paymentService from "@/services/payment.service";
 import './PaymentPage.css';
 
-// ... (Giữ nguyên phần Helpers và PaymentSummary)
+// ... (Giữ nguyên phần Helpers)
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
 const getFullImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/300x200?text=No+Image";
@@ -73,7 +74,6 @@ const PaymentSummary = ({ booking }) => {
     );
 };
 
-// [CẬP NHẬT] TotalPriceSection hỗ trợ hiển thị 2 loại giảm giá
 const TotalPriceSection = ({ totalPrice, adminDiscount, ownerDiscount, onSubmit, loading, disabled }) => {
     // Tổng tiền giảm
     const totalDiscount = adminDiscount + ownerDiscount;
@@ -234,7 +234,6 @@ export default function PaymentPage() {
             return;
         }
         setAdminPromoCode(promo.code);
-        // Tính toán dựa trên giá gốc
         const discount = calculateDiscountValue(promo, booking?.totalPrice || 0);
         setAdminDiscount(discount);
     };
@@ -247,7 +246,6 @@ export default function PaymentPage() {
             return;
         }
         setOwnerPromoCode(promo.code);
-        // Tính toán dựa trên giá gốc (hoặc giá sau khi trừ admin tùy chính sách, ở đây tính trên giá gốc)
         const discount = calculateDiscountValue(promo, booking?.totalPrice || 0);
         setOwnerDiscount(discount);
     };
@@ -255,12 +253,10 @@ export default function PaymentPage() {
     const handlePaymentSubmit = async () => {
         if (timeLeft <= 0) return;
 
-        // Tạo mảng các mã đã dùng để gửi xuống BE
         const usedCodes = [];
         if (adminPromoCode) usedCodes.push(adminPromoCode);
         if (ownerPromoCode) usedCodes.push(ownerPromoCode);
 
-        // Convert array to string if needed by BE API, or pass as array
         const promoCodeString = usedCodes.join(',');
 
         if (paymentMethod === 'qr_code') {
@@ -303,7 +299,6 @@ export default function PaymentPage() {
     if (loading) return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>;
     if (!booking) return null;
 
-    // Tính tổng tiền cuối cùng để hiển thị cho QR
     const finalAmountQR = Math.max(0, booking.totalPrice - adminDiscount - ownerDiscount);
 
     return (
@@ -335,12 +330,11 @@ export default function PaymentPage() {
 
                     <PaymentForm onChange={setPaymentMethod} selected={paymentMethod} />
 
-                    {/* [MỚI] Discount Section hỗ trợ 2 loại mã */}
+                    {/* [CẬP NHẬT] Truyền propertyId để lọc mã khuyến mãi theo khách sạn */}
                     <DiscountSection
                         onApplyAdmin={handleApplyAdmin}
                         onApplyOwner={handleApplyOwner}
-                        // Truyền ID owner của booking hiện tại để lọc mã
-                        bookingOwnerId={booking.ownerId}
+                        bookingPropertyId={booking.propertyId} // <-- Đã sửa tại đây
                     />
 
                     {/* [MỚI] Truyền cả 2 loại giảm giá xuống Total Section */}
