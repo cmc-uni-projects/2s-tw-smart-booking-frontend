@@ -60,6 +60,16 @@ const adminService = {
       throw new Error(error.response?.data?.message || "Lỗi khi duyệt cơ sở lưu trú");
     }
   },
+  getDashboardStats: async () => {
+    try {
+      // Endpoint này map với AdminApplicationController.getDashboardStats
+      const response = await api.get("/admin/owner-applications/dashboard-stats");
+      return response.data; // Trả về toàn bộ ApiResponse
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      throw error;
+    }
+  },
 };
 
 export default adminService;

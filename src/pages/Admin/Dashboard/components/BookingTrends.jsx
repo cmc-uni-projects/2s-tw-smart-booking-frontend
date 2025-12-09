@@ -1,64 +1,46 @@
 import React from "react";
-import Card from "../../../../components/common/Card/Card";
-import CardHeader from "../../../../components/common/Card/CardHeader";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { TrendingUp } from "lucide-react";
 
-// ✅ 1. Bỏ comment imports
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from "recharts";
-
-// Dữ liệu mock
-const mockTrendData = [
-  { name: "Mon", bookings: 12 },
-  { name: "Tue", bookings: 15 },
-  { name: "Wed", bookings: 8 },
-  { name: "Thu", bookings: 14 },
-  { name: "Fri", bookings: 22 },
-  { name: "Sat", bookings: 30 },
-  { name: "Sun", bookings: 25 },
-];
-
-const BookingTrends = () => {
+const BookingTrends = ({ data }) => {
   return (
-    <Card>
-      <CardHeader
-        title="Xu hướng Booking (7 ngày)"
-        icon={<TrendingUp className="text-[rgb(40,169,224)]" />}
-      />
-      {/* ✅ 2. Sửa: Xóa h-64, gán height trực tiếp cho ResponsiveContainer */}
-      <div className="w-full mt-4">
-        {/* ✅ 3. Bỏ comment code Recharts */}
-        <ResponsiveContainer width="100%" height={256}>
-          <LineChart data={mockTrendData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-            <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis fontSize={12} tickLine={false} axisLine={false} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "#fff",
-                borderRadius: "8px",
-                borderColor: "#eee",
-              }}
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div className="flex items-center gap-2 mb-6">
+        <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
+            <TrendingUp size={20} />
+        </div>
+        <h3 className="text-lg font-bold text-gray-800">Xu Hướng Đặt Phòng</h3>
+      </div>
+      
+      {/* ✅ FIX LỖI WIDTH(-1): Đặt height cố định */}
+      <div className="w-full h-[300px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <defs>
+              <linearGradient id="colorBooking" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.2}/>
+                <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#6b7280'}} dy={10} />
+            <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#6b7280'}} />
+            <Tooltip 
+                contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'}} 
+                formatter={(value) => [value, "Lượt đặt"]}
             />
-            <Line
-              type="monotone"
-              dataKey="bookings"
-              stroke="rgb(40, 169, 224)"
-              strokeWidth={2}
-              activeDot={{ r: 8 }}
-              dot={{ r: 4 }}
+            <Area 
+                type="monotone" 
+                dataKey="value" 
+                stroke="#8b5cf6" 
+                strokeWidth={3}
+                fillOpacity={1} 
+                fill="url(#colorBooking)" 
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
-    </Card>
+    </div>
   );
 };
 

@@ -1,58 +1,57 @@
 import React from "react";
-import Card from "../../../../components/common/Card/Card";
-import CardHeader from "../../../../components/common/Card/CardHeader";
-import { BarChart } from "lucide-react";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { BarChart3 } from "lucide-react";
 
-// ✅ 1. Bỏ comment imports
-import {
-  ResponsiveContainer,
-  BarChart as RechartsBarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from "recharts";
-
-// Dữ liệu mock cho biểu đồ
-const mockChartData = [
-  { name: "T5", revenue: 25 },
-  { name: "T6", revenue: 40 },
-  { name: "T7", revenue: 30 },
-  { name: "T8", revenue: 60 },
-  { name: "T9", revenue: 55 },
-  { name: "T10", revenue: 80 },
-];
-
-const RevenueChart = () => {
+const RevenueChart = ({ data }) => {
   return (
-    <Card>
-      <CardHeader
-        title="Tổng quan Doanh thu (6 tháng)"
-        subtitle="Đơn vị: Triệu VNĐ"
-        icon={<BarChart className="text-[rgb(40,169,224)]" />}
-      />
-      {/* ✅ 2. Sửa: Xóa h-80, gán height trực tiếp cho ResponsiveContainer */}
-      <div className="w-full mt-4">
-        {/* ✅ 3. Bỏ comment code Recharts */}
-        <ResponsiveContainer width="100%" height={320}>
-          <RechartsBarChart data={mockChartData}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-            <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}tr`} />
-            <Tooltip
-              cursor={{ fill: "rgba(40, 169, 224, 0.1)" }}
-              contentStyle={{
-                backgroundColor: "#fff",
-                borderRadius: "8px",
-                borderColor: "#eee",
-              }}
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-full">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+           <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+              <BarChart3 size={20} />
+           </div>
+           <div>
+              <h3 className="text-lg font-bold text-gray-800">Biểu đồ Doanh Thu</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Thống kê theo từng tháng (Năm nay)</p>
+           </div>
+        </div>
+      </div>
+      
+      {/* ✅ FIX LỖI WIDTH(-1): Đặt height cố định */}
+      <div className="w-full h-[320px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data || []} barSize={40}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+            <XAxis 
+                dataKey="name" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{fill: '#6b7280', fontSize: 12}} 
+                dy={10} 
             />
-            <Bar dataKey="revenue" fill="rgb(40, 169, 224)" radius={[4, 4, 0, 0]} />
-          </RechartsBarChart>
+            <YAxis 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{fill: '#6b7280', fontSize: 12}} 
+                tickFormatter={(val) => `${(val/1000000).toFixed(0)}Tr`} 
+                width={45}
+            />
+            <Tooltip 
+                cursor={{fill: '#f8fafc'}}
+                contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'}}
+                formatter={(value) => [new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value), "Doanh thu"]}
+                labelStyle={{ color: '#6b7280', marginBottom: '0.25rem' }}
+            />
+            <Bar 
+                dataKey="value" 
+                fill="#3b82f6" 
+                radius={[6, 6, 0, 0]} 
+                activeBar={{ fill: '#2563eb' }}
+            />
+          </BarChart>
         </ResponsiveContainer>
       </div>
-    </Card>
+    </div>
   );
 };
 
