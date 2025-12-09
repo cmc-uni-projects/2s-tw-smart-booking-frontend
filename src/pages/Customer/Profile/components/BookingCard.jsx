@@ -12,11 +12,12 @@ import {
   XCircle,
   Star,
   Clock,
-  CalendarCheck
+  CalendarCheck,
+  Tag // [UPDATE] Import thêm icon Tag
 } from "lucide-react";
 import Button from "@/components/common/Button/Button";
 
-// Helper lấy ảnh (bạn có thể đưa vào utils chung)
+// Helper lấy ảnh
 const API_BASE_URL = "http://localhost:8386";
 const getImageUrl = (path) => {
   if (!path) return "https://via.placeholder.com/300x200?text=No+Image";
@@ -26,8 +27,8 @@ const getImageUrl = (path) => {
 
 const BookingCard = ({ booking, onClick, onReviewClick }) => {
 
-  // 1. [UPDATE] Tính toán giá tiền thực tế sau khi trừ khuyến mãi
-  // Lưu ý: Backend lưu totalPrice là giá gốc, và discountAmount là số tiền được giảm
+  // 1. Tính toán giá tiền thực tế
+  // Backend lưu totalPrice là giá gốc, discountAmount là số tiền giảm
   const discount = booking.discountAmount || 0;
   const finalPrice = Math.max(0, booking.totalPrice - discount);
 
@@ -159,16 +160,22 @@ const BookingCard = ({ booking, onClick, onReviewClick }) => {
 
               <p className="text-xs font-medium text-slate-400">Tổng thanh toán</p>
 
-              {/* 2. [UPDATE] Cập nhật phần hiển thị giá tiền */}
+              {/* [UPDATE] Phần hiển thị giá tiền */}
               <div className="flex flex-col items-start">
-                {/* Nếu có giảm giá thì hiển thị giá gốc bị gạch ngang */}
                 {discount > 0 && (
-                    <span className="text-xs text-gray-400 line-through decoration-slate-400 mb-0.5">
-                  {formatCurrency(booking.totalPrice)}
-                </span>
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      {/* Giá gốc gạch ngang */}
+                      <span className="text-xs text-gray-400 line-through decoration-slate-400">
+                        {formatCurrency(booking.totalPrice)}
+                    </span>
+                      {/* Badge hiển thị số tiền được giảm */}
+                      <span className="text-[10px] font-bold text-red-500 bg-red-50 border border-red-100 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                        <Tag size={10} /> -{formatCurrency(discount)}
+                    </span>
+                    </div>
                 )}
 
-                {/* Hiển thị giá cuối cùng (đã trừ khuyến mãi) */}
+                {/* Giá cuối cùng */}
                 <p className="text-xl font-bold text-blue-600">
                   {formatCurrency(finalPrice)}
                 </p>
@@ -200,7 +207,7 @@ const BookingCard = ({ booking, onClick, onReviewClick }) => {
                             }}
                         >
                           <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                          Xem đánh giá của bạn
+                          Xem đánh giá
                         </Button>
                     )}
                   </>

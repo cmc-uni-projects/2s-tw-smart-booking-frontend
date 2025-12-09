@@ -18,7 +18,7 @@ import bookingService from "@/services/booking.service";
 import paymentService from "@/services/payment.service";
 import './PaymentPage.css';
 
-// ... (Giữ nguyên phần Helpers)
+// ... (Giữ nguyên phần Helpers và Constants)
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
 const getFullImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/300x200?text=No+Image";
@@ -75,7 +75,6 @@ const PaymentSummary = ({ booking }) => {
 };
 
 const TotalPriceSection = ({ totalPrice, adminDiscount, ownerDiscount, onSubmit, loading, disabled }) => {
-    // Tổng tiền giảm
     const totalDiscount = adminDiscount + ownerDiscount;
     const finalPrice = Math.max(0, totalPrice - totalDiscount);
 
@@ -87,7 +86,6 @@ const TotalPriceSection = ({ totalPrice, adminDiscount, ownerDiscount, onSubmit,
                     <span>{new Intl.NumberFormat('vi-VN').format(totalPrice)}₫</span>
                 </div>
 
-                {/* Hiển thị giảm giá Admin */}
                 {adminDiscount > 0 && (
                     <div className="flex justify-between items-center text-sm text-blue-600 font-medium">
                         <span>TravelMate Voucher</span>
@@ -95,7 +93,6 @@ const TotalPriceSection = ({ totalPrice, adminDiscount, ownerDiscount, onSubmit,
                     </div>
                 )}
 
-                {/* Hiển thị giảm giá Owner */}
                 {ownerDiscount > 0 && (
                     <div className="flex justify-between items-center text-sm text-purple-600 font-medium">
                         <span>Partner Voucher</span>
@@ -132,7 +129,7 @@ export default function PaymentPage() {
     const [loading, setLoading] = useState(true);
     const [isConfirming, setIsConfirming] = useState(false);
 
-    // [MỚI] State quản lý 2 loại mã giảm giá
+    // State quản lý 2 loại mã giảm giá
     const [adminPromoCode, setAdminPromoCode] = useState(null);
     const [ownerPromoCode, setOwnerPromoCode] = useState(null);
     const [adminDiscount, setAdminDiscount] = useState(0);
@@ -211,7 +208,7 @@ export default function PaymentPage() {
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
-    // [MỚI] Hàm helper tính toán giảm giá
+    // Hàm helper tính toán giảm giá
     const calculateDiscountValue = (promo, originalPrice) => {
         if (!promo) return 0;
         let amount = 0;
@@ -226,7 +223,7 @@ export default function PaymentPage() {
         return Math.round(amount);
     };
 
-    // [MỚI] Xử lý áp dụng mã ADMIN
+    // Xử lý áp dụng mã ADMIN
     const handleApplyAdmin = (promo) => {
         if (!promo) {
             setAdminPromoCode(null);
@@ -238,7 +235,7 @@ export default function PaymentPage() {
         setAdminDiscount(discount);
     };
 
-    // [MỚI] Xử lý áp dụng mã OWNER
+    // Xử lý áp dụng mã OWNER
     const handleApplyOwner = (promo) => {
         if (!promo) {
             setOwnerPromoCode(null);
@@ -257,6 +254,7 @@ export default function PaymentPage() {
         if (adminPromoCode) usedCodes.push(adminPromoCode);
         if (ownerPromoCode) usedCodes.push(ownerPromoCode);
 
+        // Tạo chuỗi mã khuyến mãi
         const promoCodeString = usedCodes.join(',');
 
         if (paymentMethod === 'qr_code') {
@@ -266,7 +264,13 @@ export default function PaymentPage() {
 
         setIsConfirming(true);
         try {
-            await paymentService.submitPayment(bookingId, "Thanh toán tiền mặt (Demo)", promoCodeString);
+            // [CẬP NHẬT] Truyền đúng 4 tham số: id, note, promotionCode, method
+            await paymentService.submitPayment(
+                bookingId,
+                "Thanh toán tiền mặt (Demo)",
+                promoCodeString,
+                paymentMethod
+            );
             setIsSuccessOpen(true);
         } catch (error) {
             alert("Thanh toán thất bại: " + error.message);
@@ -279,11 +283,18 @@ export default function PaymentPage() {
         const usedCodes = [];
         if (adminPromoCode) usedCodes.push(adminPromoCode);
         if (ownerPromoCode) usedCodes.push(ownerPromoCode);
+
         const promoCodeString = usedCodes.join(',');
 
         setIsConfirming(true);
         try {
-            await paymentService.submitPayment(bookingId, "Thanh toán qua QR Code", promoCodeString);
+            // [CẬP NHẬT] Truyền đúng 4 tham số
+            await paymentService.submitPayment(
+                bookingId,
+                "Thanh toán qua QR Code",
+                promoCodeString,
+                "QR_CODE"
+            );
             setIsModalOpen(false);
             setIsSuccessOpen(true);
         } catch (error) {
@@ -313,7 +324,6 @@ export default function PaymentPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Cảnh báo đếm ngược */}
                     <div className={`border rounded-xl p-4 flex items-center justify-between shadow-sm transition-colors ${timeLeft < 60 ? 'bg-red-50 border-red-200' : 'bg-orange-50 border-orange-200'}`}>
                         <div className="flex items-center gap-3">
                             <Clock className={`${timeLeft < 60 ? 'text-red-600' : 'text-orange-600'} animate-pulse`} size={24} />
@@ -330,14 +340,12 @@ export default function PaymentPage() {
 
                     <PaymentForm onChange={setPaymentMethod} selected={paymentMethod} />
 
-                    {/* [CẬP NHẬT] Truyền propertyId để lọc mã khuyến mãi theo khách sạn */}
                     <DiscountSection
                         onApplyAdmin={handleApplyAdmin}
                         onApplyOwner={handleApplyOwner}
-                        bookingPropertyId={booking.propertyId} // <-- Đã sửa tại đây
+                        bookingPropertyId={booking.propertyId}
                     />
 
-                    {/* [MỚI] Truyền cả 2 loại giảm giá xuống Total Section */}
                     <TotalPriceSection
                         totalPrice={booking.totalPrice}
                         adminDiscount={adminDiscount}
