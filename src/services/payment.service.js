@@ -1,3 +1,5 @@
+// src/services/payment.service.js
+
 import api from "./axios.config";
 
 const paymentService = {
@@ -6,10 +8,22 @@ const paymentService = {
   // ============================================================
 
   // 1. Khách hàng thanh toán
-  submitPayment: async (bookingId, note = "", method = "Online Banking") => {
+  // [CẬP NHẬT] Thêm tham số promotionCode
+  submitPayment: async (bookingId, note = "", promotionCode = null, method = "Online Banking") => {
     try {
+      // Tạo object params cơ bản
+      const params = {
+        note,
+        method
+      };
+
+      // Nếu có mã khuyến mãi (chuỗi string "CODE1,CODE2"), thêm vào params
+      if (promotionCode) {
+        params.promotionCode = promotionCode;
+      }
+
       const response = await api.post(`/payments/${bookingId}/pay`, null, {
-        params: { note, method }
+        params: params
       });
       return response.data;
     } catch (error) {
@@ -21,7 +35,7 @@ const paymentService = {
   getHistoryByUser: async (userId) => {
     try {
       const response = await api.get(`/payments/user/${userId}`);
-      return response.data; 
+      return response.data;
     } catch (error) {
       console.error("Lỗi lấy lịch sử giao dịch:", error);
       return [];
@@ -49,7 +63,7 @@ const paymentService = {
       const response = await api.get("/payments/all"); // ✅ API số nhiều
       // Xử lý linh hoạt: trả về mảng data bất kể cấu trúc ApiResponse
       const result = response.data;
-      return Array.isArray(result) ? result : (result.data || []); 
+      return Array.isArray(result) ? result : (result.data || []);
     } catch (error) {
       console.error("Lỗi lấy danh sách giao dịch:", error);
       throw new Error(error.response?.data?.message || "Không thể tải dữ liệu giao dịch");

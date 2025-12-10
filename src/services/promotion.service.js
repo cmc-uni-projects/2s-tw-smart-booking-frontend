@@ -39,9 +39,16 @@ const promotionService = {
         return response.data;
     },
 
-    // ✅ API lấy danh sách của Owner
+    // ✅ API lấy danh sách của Owner (cho trang quản lý của Owner)
     getOwnerPromotions: async () => {
         const response = await axios.get(`${API_URL}/owner/my-promotions`);
+        return response.data;
+    },
+
+    // ✅ NEW: API Public lấy danh sách khuyến mãi cho khách hàng (Admin + Owner)
+    // Dùng cho trang chi tiết khách sạn (Customer View)
+    getPromotionsByPropertyPublic: async (propertyId) => {
+        const response = await axios.get(`${API_URL}/public/property/${propertyId}`);
         return response.data;
     },
 

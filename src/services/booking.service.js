@@ -50,6 +50,10 @@ const bookingService = {
       throw error.response?.data || error.message;
     }
   },
+
+  // ==========================================
+  // 5. CHECK-IN
+  // ==========================================
   checkInBooking: async (bookingId) => {
     try {
       const response = await api.put(`/bookings/${bookingId}/check-in`);
@@ -60,7 +64,7 @@ const bookingService = {
   },
 
   // ==========================================
-  // 5. LẤY DANH SÁCH BOOKING THEO KHÁCH SẠN (Dành cho Chủ nhà/Admin)
+  // 6. LẤY DANH SÁCH BOOKING THEO KHÁCH SẠN (Dành cho Chủ nhà/Admin)
   // ==========================================
   getBookingsByPropertyId: async (propertyId) => {
     try {
@@ -70,6 +74,7 @@ const bookingService = {
       throw error.response?.data || error.message;
     }
   },
+
   getBookingsByProperty: async (propertyId) => {
     try {
       const response = await api.get(`/bookings/property/${propertyId}`);
@@ -79,10 +84,11 @@ const bookingService = {
       throw error;
     }
   },
-  
 
-  // 2. API Check-out (Trả phòng)
-checkOutBooking: async (bookingId) => {
+  // ==========================================
+  // 7. CHECK-OUT (Trả phòng)
+  // ==========================================
+  checkOutBooking: async (bookingId) => {
     try {
       // Gọi đúng đường dẫn đã định nghĩa ở Controller (/checkout/{id})
       const response = await api.put(`/bookings/checkout/${bookingId}`);
@@ -92,18 +98,35 @@ checkOutBooking: async (bookingId) => {
     }
   },
 
+  // ==========================================
+  // 8. LẤY TÌNH TRẠNG PHÒNG TRỐNG
+  // ==========================================
   getRoomAvailability: async (roomId) => {
     try {
-        // ✅ BỎ COMMENT DÒNG NÀY ĐỂ GỌI API THẬT
-        const response = await api.get(`/bookings/room/${roomId}/availability`);
-        return response.data; // Backend trả về { success: true, message: "...", data: [...] }
+      const response = await api.get(`/bookings/room/${roomId}/availability`);
+      return response.data; // Backend trả về { success: true, message: "...", data: [...] }
     } catch (error) {
-        console.error("Error fetching availability:", error);
-        return { data: [] }; // Trả về mảng rỗng nếu lỗi để không chặn nhầm
+      console.error("Error fetching availability:", error);
+      return { data: [] }; // Trả về mảng rỗng nếu lỗi để không chặn nhầm
     }
-  },  
+  },
+
+  // ==========================================
+  // 9. [MỚI] ÁP DỤNG MÃ KHUYẾN MÃI
+  // ==========================================
+  // Hàm này gọi API để lưu mã vào DB và cập nhật lại giá tiền
+  applyPromotion: async (bookingId, code) => {
+    try {
+      // Gọi endpoint PUT /api/v1/bookings/{id}/apply-promotion?code=...
+      const response = await api.put(`/bookings/${bookingId}/apply-promotion`, null, {
+        params: { code }
+      });
+      // Backend trả về ApiResponse, ta cần lấy phần data (BookingResponseDTO)
+      return response.data?.data || response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };
-
-
 
 export default bookingService;

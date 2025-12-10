@@ -1,15 +1,13 @@
 import React, { useEffect, useState, useMemo } from "react";
-// 1. Thêm useLocation để nhận state từ trang Home chuyển sang
 import { useLocation } from "react-router-dom";
 import promotionService from "@/services/promotion.service";
 import PromotionList from "./components/PromotionList";
 import PromotionDetailModal from "./components/PromotionDetailModal";
 import PromotionFilter from "./components/PromotionFilter";
-// Import Banner
 import AutoScrollBanner from "./components/AutoScrollBanner";
-// Import TabsComponent
 import TabsComponent from "@/components/common/Tabs/TabsComponent";
-import { Tag, ChevronLeft, ChevronRight } from "lucide-react";
+// Import các icon hiển thị
+import { Tag, ChevronLeft, ChevronRight, Crown, Sparkles, Gift } from "lucide-react";
 
 // Config URL ảnh
 const BE_BASE_URL = "http://localhost:8386";
@@ -22,68 +20,48 @@ const getFullImageUrl = (path) => {
 };
 
 const PromotionPage = () => {
-    const location = useLocation(); // Hook lấy state từ trang Home
+    const location = useLocation();
     const [promotions, setPromotions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedPromo, setSelectedPromo] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // --- LOGIC MỚI: QUẢN LÝ TAB & DANH SÁCH ĐÃ LƯU ---
-    const [activeTab, setActiveTab] = useState('all'); // 'all' | 'saved'
+    // --- CẤU HÌNH TAB ---
+    const [activeTab, setActiveTab] = useState('all');
     const [savedIds, setSavedIds] = useState([]);
 
-    // Load danh sách đã lưu từ localStorage khi component mount
-    useEffect(() => {
-        const saved = localStorage.getItem('savedPromotions');
-        if (saved) {
-            try {
-                setSavedIds(JSON.parse(saved));
-            } catch (e) {
-                console.error("Lỗi đọc savedPromotions từ localStorage", e);
-            }
-        }
-    }, []);
-
-    // Hàm xử lý khi người dùng bấm tim (Lưu/Bỏ lưu)
-    // Hàm này cũng được truyền vào Modal để lưu khi bấm Copy
-    const handleToggleSave = (id) => {
-        setSavedIds(prev => {
-            const newSaved = prev.includes(id)
-                ? prev.filter(item => item !== id) // Nếu có rồi thì xoá
-                : [...prev, id]; // Nếu chưa có thì thêm
-
-            // Lưu lại vào localStorage
-            localStorage.setItem('savedPromotions', JSON.stringify(newSaved));
-            return newSaved;
-        });
-    };
-
-    // Cấu hình Tabs
     const tabs = [
         { id: 'all', name: 'Tất cả ưu đãi' },
+        { id: 'exclusive', name: 'Khuyến mãi độc quyền' }, // Tab này sẽ hiện khuyến mãi của Owner
         { id: 'saved', name: 'Kho ưu đãi của tôi' }
     ];
 
-    // 1. State tìm kiếm & Phân trang
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [jumpPage, setJumpPage] = useState("");
     const itemsPerPage = 9;
 
-    // Gọi API lấy danh sách khuyến mãi
+    // --- TẢI DỮ LIỆU & PHÂN LOẠI ---
     useEffect(() => {
         const fetchPromotions = async () => {
             try {
+                // Gọi API: /api/v1/promotions/all
                 const response = await promotionService.getAllPromotions();
-                const rawData = Array.isArray(response) ? response : (response.data || []);
+
+                // Dữ liệu từ API có thể nằm trực tiếp trong response hoặc trong response.data
+                const rawData = Array.isArray(response) ? response : (response.data || response.result || []);
+
+                // >>> BƯỚC DEBUG QUAN TRỌNG: Kiểm tra log này trong Console (F12)
+                console.log("Raw Promotions Data (Check the 'property' field):", rawData);
 
                 const now = new Date();
                 const activePromotions = rawData.filter(p => {
-                    const endDate = new Date(p.endDate);
+                    const endDate = p.endDate ? new Date(p.endDate) : new Date();
+                    // Chỉ lấy trạng thái ACTIVE và chưa hết hạn
                     return p.status === "ACTIVE" && endDate > now;
                 });
 
-                // Sắp xếp ID giảm dần
+                // Sắp xếp mới nhất lên đầu
                 activePromotions.sort((a, b) => b.promotionId - a.promotionId);
 
                 // Mapping dữ liệu
@@ -92,8 +70,21 @@ const PromotionPage = () => {
                     const cleanMinOrder = Number(p.minBookingAmount || 0);
                     const cleanMaxDiscount = Number(p.maxDiscountAmount || 0);
 
+                    // --- [MẤU CHỐT KẾT NỐI] ---
+                    // Kiểm tra sự tồn tại của object property và propertyId bên trong nó (từ PromotionResponseDTO.java)
+                    const propertyInfo = p.property;
+                    const isOwnerPromotion = !!(propertyInfo && propertyInfo.propertyId);
+
+
                     return {
                         id: p.promotionId,
+
+                        // Flag này đánh dấu: "Đây là khuyến mãi độc quyền từ Owner"
+                        isExclusive: isOwnerPromotion,
+
+                        // Lấy tên khách sạn (nếu có) để hiển thị
+                        hotelName: isOwnerPromotion ? propertyInfo.propertyName : null,
+
                         title: p.description,
                         description: `Giảm ${p.discountType === 'PERCENTAGE' ? cleanDiscountValue + '%' : cleanDiscountValue.toLocaleString('vi-VN') + 'đ'} cho đơn từ ${cleanMinOrder.toLocaleString('vi-VN')}đ`,
                         image: getFullImageUrl(p.bannerUrl),
@@ -112,17 +103,19 @@ const PromotionPage = () => {
                     };
                 });
 
+                // LOG để kiểm tra sau khi mapping
+                console.log("Mapped Promotions (Check isExclusive):", mappedPromotions);
+
+
                 setPromotions(mappedPromotions);
 
-                // 3. --- LOGIC MỚI: TỰ ĐỘNG MỞ MODAL KHI CÓ ID TỪ TRANG HOME ---
+                // Tự động mở modal nếu có link từ trang chủ
                 if (location.state?.targetPromoId) {
                     const targetId = location.state.targetPromoId;
                     const foundPromo = mappedPromotions.find(p => p.id === targetId);
-
                     if (foundPromo) {
                         setSelectedPromo(foundPromo);
                         setIsModalOpen(true);
-                        // Xóa state để không mở lại khi F5
                         window.history.replaceState({}, document.title);
                     }
                 }
@@ -135,59 +128,72 @@ const PromotionPage = () => {
         };
 
         fetchPromotions();
-    }, [location.state]); // Thêm dependency để chạy lại khi chuyển trang có state
+    }, [location.state]);
 
-    // 2. Logic Filter (Tìm kiếm & Tab)
-    // Bước 1: Lọc nguồn dữ liệu dựa trên Tab
+    // --- LOGIC HIỂN THỊ THEO TAB (Giữ nguyên) ---
     const sourcePromotions = useMemo(() => {
+        // 1. Tab Đã lưu
         if (activeTab === 'saved') {
             return promotions.filter(p => savedIds.includes(p.id));
         }
+
+        // 2. Tab Độc quyền -> Lọc ra các item có isExclusive = true (tức là có propertyId)
+        if (activeTab === 'exclusive') {
+            return promotions.filter(p => p.isExclusive);
+        }
+
+        // 3. Tab Tất cả -> Hiện hết
         return promotions;
     }, [activeTab, promotions, savedIds]);
 
-    // Bước 2: Lọc theo từ khóa tìm kiếm
+    // Lọc theo từ khóa tìm kiếm (Giữ nguyên)
     const filteredPromotions = useMemo(() => {
         return sourcePromotions.filter(promo => {
             const term = searchTerm.toLowerCase();
             return (
                 promo.title?.toLowerCase().includes(term) ||
                 promo.code?.toLowerCase().includes(term) ||
-                promo.description?.toLowerCase().includes(term)
+                promo.description?.toLowerCase().includes(term) ||
+                (promo.hotelName && promo.hotelName.toLowerCase().includes(term))
             );
         });
     }, [sourcePromotions, searchTerm]);
 
-    // Reset trang về 1 khi search hoặc đổi tab
+    // --- CÁC HÀM XỬ LÝ SỰ KIỆN (Giữ nguyên) ---
+    // Load danh sách đã lưu
     useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm, activeTab]);
+        const saved = localStorage.getItem('savedPromotions');
+        if (saved) setSavedIds(JSON.parse(saved));
+    }, []);
 
-    // 3. Logic Pagination (Phân trang)
+    const handleToggleSave = (id) => {
+        setSavedIds(prev => {
+            const newSaved = prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id];
+            localStorage.setItem('savedPromotions', JSON.stringify(newSaved));
+            return newSaved;
+        });
+    };
+
+    // Reset trang khi đổi tab/search
+    useEffect(() => { setCurrentPage(1); }, [searchTerm, activeTab]);
+
+    // Phân trang
     const totalPages = Math.ceil(filteredPromotions.length / itemsPerPage);
-
     const paginatedData = useMemo(() => {
         const start = (currentPage - 1) * itemsPerPage;
         return filteredPromotions.slice(start, start + itemsPerPage);
     }, [filteredPromotions, currentPage]);
 
     const getPaginationGroup = () => {
-        const delta = 1;
-        const range = [];
-        const rangeWithDots = [];
-        let l;
+        const delta = 1; const range = []; const rangeWithDots = []; let l;
         for (let i = 1; i <= totalPages; i++) {
             if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
                 range.push(i);
             }
         }
         range.forEach(i => {
-            if (l) {
-                if (i - l === 2) rangeWithDots.push(l + 1);
-                else if (i - l !== 1) rangeWithDots.push('...');
-            }
-            rangeWithDots.push(i);
-            l = i;
+            if (l) { if (i - l === 2) rangeWithDots.push(l + 1); else if (i - l !== 1) rangeWithDots.push('...'); }
+            rangeWithDots.push(i); l = i;
         });
         return rangeWithDots;
     };
@@ -195,32 +201,19 @@ const PromotionPage = () => {
     const handleJumpPage = (e) => {
         if (e.key === 'Enter') {
             const page = parseInt(jumpPage);
-            if (!isNaN(page) && page >= 1 && page <= totalPages) {
-                setCurrentPage(page);
-                setJumpPage("");
-            }
+            if (!isNaN(page) && page >= 1 && page <= totalPages) { setCurrentPage(page); setJumpPage(""); }
         }
-    };
-
-    const handleOpenPromo = (promo) => {
-        setSelectedPromo(promo);
-        setIsModalOpen(true);
-    };
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setSelectedPromo(null);
     };
 
     return (
         <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6">
             <div className="max-w-7xl mx-auto space-y-8">
 
-                {/* 1. Header Trang */}
+                {/* Header Trang */}
                 <div className="bg-gradient-to-r from-[rgb(40,169,224)] to-[rgb(26,140,189)] rounded-3xl p-8 text-white shadow-lg relative overflow-hidden">
                     <div className="relative z-10">
                         <h1 className="text-3xl font-bold flex items-center gap-3">
-                            <Tag className="w-8 h-8" /> Kho Ưu Đãi & Khuyến Mãi
+                            <Gift className="w-8 h-8" /> Kho Ưu Đãi & Khuyến Mãi
                         </h1>
                         <p className="mt-2 text-blue-100 max-w-2xl">
                             Săn ngay hàng ngàn mã giảm giá độc quyền dành cho khách hàng thân thiết.
@@ -229,106 +222,76 @@ const PromotionPage = () => {
                     <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
                 </div>
 
-                {/* 2. Banner Tự Động Chạy (Chỉ hiện ở Tab Tất cả) */}
+                {/* Banner (Chỉ hiện khi ở tab All) */}
                 {!loading && activeTab === 'all' && promotions.length > 0 && (
                     <div className="w-full">
-                        <AutoScrollBanner
-                            promotions={promotions}
-                            onBannerClick={handleOpenPromo}
-                        />
+                        <AutoScrollBanner promotions={promotions} onBannerClick={(p) => { setSelectedPromo(p); setIsModalOpen(true); }} />
                     </div>
                 )}
 
-                {/* 3. Phần Content chính (Tabs + Filter + List) */}
+                {/* Nội dung chính */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 min-h-[500px] flex flex-col">
 
-                    {/* --- TABS COMPONENT --- */}
+                    {/* Menu Tabs */}
                     <div className="mb-6">
-                        <TabsComponent
-                            tabs={tabs}
-                            activeTab={activeTab}
-                            onTabChange={setActiveTab}
-                        />
+                        <TabsComponent tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
                     </div>
 
-                    <PromotionFilter
-                        searchTerm={searchTerm}
-                        onSearchChange={setSearchTerm}
-                        totalCount={filteredPromotions.length}
-                    />
+                    <PromotionFilter searchTerm={searchTerm} onSearchChange={setSearchTerm} totalCount={filteredPromotions.length} />
 
-                    <div className="flex-1 mt-4">
+                    <div className="flex-1 mt-6">
+
+                        {/* Giao diện riêng cho Tab Độc Quyền */}
+                        {activeTab === 'exclusive' && (
+                            <div className="mb-6 flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                                <div className="bg-yellow-100 p-2 rounded-full shadow-sm">
+                                    <Crown className="w-6 h-6 text-yellow-600 fill-yellow-600" />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                        Bộ Sưu Tập Độc Quyền <Sparkles size={16} className="text-yellow-500 animate-pulse"/>
+                                    </h2>
+                                    <p className="text-sm text-gray-600">
+                                        Những ưu đãi đặc biệt từ các khách sạn đối tác của TravelMate.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
                         <PromotionList
                             promotions={paginatedData}
                             loading={loading}
-                            onViewDetail={handleOpenPromo}
-                            // Truyền props cho tính năng Save ở danh sách
+                            onViewDetail={(p) => { setSelectedPromo(p); setIsModalOpen(true); }}
                             savedIds={savedIds}
                             onToggleSave={handleToggleSave}
                         />
+
+                        {/* Trạng thái trống */}
+                        {!loading && paginatedData.length === 0 && (
+                            <div className="text-center py-12 flex flex-col items-center justify-center">
+                                <div className="bg-gray-100 p-4 rounded-full mb-3">
+                                    {activeTab === 'exclusive' ? <Crown className="w-8 h-8 text-gray-400" /> : <Tag className="w-8 h-8 text-gray-400" />}
+                                </div>
+                                <p className="text-gray-500 font-medium">
+                                    {activeTab === 'exclusive'
+                                        ? "Chưa có chương trình khuyến mãi độc quyền nào."
+                                        : "Không tìm thấy khuyến mãi nào."}
+                                </p>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Pagination Controls */}
+                    {/* Phân trang */}
                     {filteredPromotions.length > 0 && !loading && (
                         <div className="mt-8 border-t border-gray-100 pt-6">
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-
                                 <span className="text-sm text-gray-500">
                                     Hiển thị <span className="font-semibold text-gray-700">{paginatedData.length}</span> / <span className="font-semibold text-gray-700">{filteredPromotions.length}</span> kết quả
                                 </span>
-
                                 <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                        disabled={currentPage === 1}
-                                        className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-                                    >
-                                        <ChevronLeft size={18} />
-                                    </button>
-
-                                    <div className="flex gap-1">
-                                        {getPaginationGroup().map((item, index) => (
-                                            <button
-                                                key={index}
-                                                onClick={() => typeof item === 'number' && setCurrentPage(item)}
-                                                disabled={item === '...'}
-                                                className={`w-8 h-8 rounded-lg text-sm font-medium transition-all flex items-center justify-center ${
-                                                    item === currentPage
-                                                        ? 'bg-[rgb(40,169,224)] text-white shadow-sm'
-                                                        : item === '...'
-                                                            ? 'bg-transparent text-gray-400 cursor-default'
-                                                            : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-                                                }`}
-                                            >
-                                                {item}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <button
-                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                        disabled={currentPage === totalPages}
-                                        className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-                                    >
-                                        <ChevronRight size={18} />
-                                    </button>
-
-                                    <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200 hidden sm:flex">
-                                        <span className="text-sm text-gray-500 whitespace-nowrap">Đi đến:</span>
-                                        <div className="relative">
-                                            <input
-                                                type="text"
-                                                className="w-12 h-8 pl-2 pr-1 rounded-lg border border-gray-200 text-sm text-center focus:outline-none focus:border-[rgb(40,169,224)] focus:ring-1 focus:ring-[rgb(40,169,224)] transition-all"
-                                                placeholder={currentPage}
-                                                value={jumpPage}
-                                                onChange={(e) => {
-                                                    const val = e.target.value;
-                                                    if (val === '' || /^[0-9]+$/.test(val)) setJumpPage(val);
-                                                }}
-                                                onKeyDown={handleJumpPage}
-                                            />
-                                        </div>
-                                    </div>
+                                    <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"><ChevronLeft size={18} /></button>
+                                    <div className="flex gap-1">{getPaginationGroup().map((item, index) => (<button key={index} onClick={() => typeof item === 'number' && setCurrentPage(item)} disabled={item === '...'} className={`w-8 h-8 rounded-lg text-sm font-medium transition-all flex items-center justify-center ${item === currentPage ? 'bg-[rgb(40,169,224)] text-white shadow-sm' : item === '...' ? 'bg-transparent text-gray-400 cursor-default' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>{item}</button>))}</div>
+                                    <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"><ChevronRight size={18} /></button>
                                 </div>
                             </div>
                         </div>
@@ -336,12 +299,11 @@ const PromotionPage = () => {
                 </div>
             </div>
 
-            {/* Modal Chi tiết - Đã cập nhật props */}
+            {/* Modal Chi tiết */}
             <PromotionDetailModal
                 isOpen={isModalOpen}
-                onClose={handleCloseModal}
+                onClose={() => { setIsModalOpen(false); setSelectedPromo(null); }}
                 promo={selectedPromo}
-                // [QUAN TRỌNG] Truyền props để Modal có thể gọi hàm lưu
                 savedIds={savedIds}
                 onToggleSave={handleToggleSave}
             />
