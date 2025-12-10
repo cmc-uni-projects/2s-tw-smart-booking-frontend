@@ -38,7 +38,7 @@ const PaymentTimeoutModal = ({ open, onConfirm }) => {
                     onClick={handleRedirect}
                     className="w-full shadow-lg shadow-blue-200"
                 >
-                    Tìm phòng khác
+                    Quay lại trang chủ
                 </Button>
             </div>
         </Modal>

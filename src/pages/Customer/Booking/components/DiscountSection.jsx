@@ -55,6 +55,8 @@ const PromoSlotDisplay = ({ promo, icon: Icon, colorClass, emptyText, onClick, i
                             {promo.description || "Đã áp dụng mã ưu đãi"}
                         </p>
                     </div>
+                    
+                    
                 </div>
                 {/* Nút xóa sẽ được render ở component cha */}
             </div>

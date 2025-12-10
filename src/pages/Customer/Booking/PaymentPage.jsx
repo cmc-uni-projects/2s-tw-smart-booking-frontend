@@ -7,7 +7,7 @@ import Card from '@/components/common/Card/Card';
 import Button from '@/components/common/Button/Button';
 import Divider from '@/components/common/Divider/Divider';
 import Spinner from '@/components/common/Loading/Spinner';
-import LoadingOverlay from '@/components/common/Loading/LoadingOverlay'; // Component này giúp không bị giật trang
+import LoadingOverlay from '@/components/common/Loading/LoadingOverlay'; 
 import Modal from '@/components/common/Modal/Modal';
 import Toast from "@/components/common/Notification/Toast";
 import ToastPortal from "@/components/common/Notification/ToastPortal";
@@ -21,7 +21,6 @@ import bookingService from "@/services/booking.service";
 import paymentService from "@/services/payment.service";
 import './PaymentPage.css';
 
-// ... (Giữ nguyên các hàm helper và const BASE_URL)
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
 const getFullImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/300x200?text=No+Image";
@@ -31,7 +30,6 @@ const getFullImageUrl = (path) => {
     return `${BASE_URL}${cleanPath}`;
 };
 
-// ... (Giữ nguyên component PaymentSummary)
 const PaymentSummary = ({ booking }) => {
     if (!booking) return null;
     const { propertyName, propertyImage, propertyAddress, roomName, checkInDate, checkOutDate, guestCount, user } = booking;
@@ -78,7 +76,6 @@ const PaymentSummary = ({ booking }) => {
     );
 };
 
-// ... (Giữ nguyên TotalPriceSection)
 const TotalPriceSection = ({ originalPrice, finalPrice, adminDiscount, ownerDiscount, onSubmit, loading, disabled }) => {
     return (
         <Card className="p-6 border border-gray-200 shadow-md bg-white">
@@ -128,28 +125,19 @@ export default function PaymentPage() {
 
     // --- STATES ---
     const [booking, setBooking] = useState(location.state?.booking || null);
+    
+    // [SỬA] Khởi tạo state code từ booking nếu có
+    const [adminPromoCode, setAdminPromoCode] = useState(booking?.adminPromotionCode || null);
+    const [ownerPromoCode, setOwnerPromoCode] = useState(booking?.ownerPromotionCode || null);
 
-    // 1. Loading ban đầu (Dùng để hiển thị Spinner toàn màn hình)
     const [loading, setLoading] = useState(true);
-
-    // 2. Loading khi xác nhận thanh toán hoặc áp mã (Hiển thị Overlay)
-    // [QUAN TRỌNG] State mới này giúp không bị giật trang
     const [isProcessing, setIsProcessing] = useState(false);
-
     const [toast, setToast] = useState({ show: false, msg: "", type: "info" });
-
-    // Promo States
-    const [adminPromoCode, setAdminPromoCode] = useState(null);
-    const [ownerPromoCode, setOwnerPromoCode] = useState(null);
     const [adminDiscount, setAdminDiscount] = useState(0);
     const [ownerDiscount, setOwnerDiscount] = useState(0);
-
-    // Modals
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSuccessOpen, setIsSuccessOpen] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('qr_code');
-
-    // Timer
     const [timeLeft, setTimeLeft] = useState(5 * 60);
     const [isTimeoutOpen, setIsTimeoutOpen] = useState(false);
     const timerRef = useRef(null);
@@ -159,7 +147,16 @@ export default function PaymentPage() {
         setTimeout(() => setToast({ show: false, msg: "", type: "info" }), 3000);
     };
 
-    // Fetch Data
+    // [MỚI] Đồng bộ state khi booking thay đổi (để cập nhật giao diện sau khi gọi API)
+    useEffect(() => {
+        if (booking) {
+            setAdminPromoCode(booking.adminPromotionCode || null);
+            setOwnerPromoCode(booking.ownerPromotionCode || null);
+            // Lưu ý: adminDiscount/ownerDiscount hiển thị có thể = 0 nếu load lại trang,
+            // nhưng Tổng tiền (finalPrice) sẽ luôn đúng vì lấy từ server.
+        }
+    }, [booking]);
+
     useEffect(() => {
         const fetchBooking = async () => {
             try {
@@ -188,13 +185,12 @@ export default function PaymentPage() {
                 showToast("Lỗi khi tải đơn đặt phòng. Vui lòng thử lại.", "error");
                 setTimeout(() => navigate('/hotels'), 2000);
             } finally {
-                setLoading(false); // Chỉ tắt loading chính ở đây
+                setLoading(false);
             }
         };
         fetchBooking();
     }, [bookingId]);
 
-    // Timer Logic
     useEffect(() => {
         if (isTimeoutOpen) return;
         timerRef.current = setInterval(() => {
@@ -240,63 +236,87 @@ export default function PaymentPage() {
     const totalDiscountAmount = booking ? (booking.discountAmount || 0) : 0;
     const originalPrice = finalPrice + totalDiscountAmount;
 
-    // --- HANDLE APPLY ADMIN PROMO ---
+    // --- HANDLE APPLY ADMIN PROMO (SỬA LOGIC HỦY) ---
     const handleApplyAdmin = async (promo) => {
+        // [CASE HỦY MÃ] Khi ấn X hoặc chọn không dùng mã
         if (!promo) {
-            setAdminPromoCode(null);
-            setAdminDiscount(0);
+            if (!adminPromoCode) return; // Nếu chưa có mã thì không cần hủy
+
+            try {
+                setIsProcessing(true);
+                // Gọi API hủy mã
+                const updatedBooking = await bookingService.cancelPromotion(booking.bookingId, adminPromoCode);
+                setBooking(updatedBooking);
+
+                // Reset state hiển thị
+                setAdminPromoCode(null);
+                setAdminDiscount(0);
+                showToast("Đã hủy mã giảm giá TravelMate", "success");
+            } catch (error) {
+                console.error(error);
+                showToast("Lỗi khi hủy mã.", "error");
+            } finally {
+                setIsProcessing(false);
+            }
             return;
         }
 
+        // [CASE ÁP DỤNG MÃ]
         try {
-            // [SỬA LỖI] Dùng setIsProcessing thay vì setLoading
-            // Điều này giữ nguyên giao diện, chỉ hiện overlay mờ lên trên
             setIsProcessing(true);
-
             const updatedBooking = await bookingService.applyPromotion(booking.bookingId, promo.code);
             setBooking(updatedBooking);
 
             setAdminPromoCode(promo.code);
-
             const baseForAdmin = originalPrice - ownerDiscount;
             const discount = calculateDiscountValue(promo, baseForAdmin);
             setAdminDiscount(discount);
 
             showToast(`Áp dụng mã ${promo.code} thành công!`, "success");
-
         } catch (error) {
             console.error(error);
             showToast(error.message || "Không thể áp dụng mã giảm giá này.", "error");
             setAdminPromoCode(null);
             setAdminDiscount(0);
         } finally {
-            // Tắt overlay
             setIsProcessing(false);
         }
     };
 
-    // --- HANDLE APPLY OWNER PROMO ---
+    // --- HANDLE APPLY OWNER PROMO (SỬA LOGIC HỦY) ---
     const handleApplyOwner = async (promo) => {
+        // [CASE HỦY MÃ]
         if (!promo) {
-            setOwnerPromoCode(null);
-            setOwnerDiscount(0);
+            if (!ownerPromoCode) return;
+
+            try {
+                setIsProcessing(true);
+                const updatedBooking = await bookingService.cancelPromotion(booking.bookingId, ownerPromoCode);
+                setBooking(updatedBooking);
+
+                setOwnerPromoCode(null);
+                setOwnerDiscount(0);
+                showToast("Đã hủy voucher khách sạn", "success");
+            } catch (error) {
+                console.error(error);
+                showToast("Lỗi khi hủy voucher.", "error");
+            } finally {
+                setIsProcessing(false);
+            }
             return;
         }
 
+        // [CASE ÁP DỤNG MÃ]
         try {
-            // [SỬA LỖI] Dùng setIsProcessing
             setIsProcessing(true);
-
             const updatedBooking = await bookingService.applyPromotion(booking.bookingId, promo.code);
             setBooking(updatedBooking);
 
             setOwnerPromoCode(promo.code);
-
             const discount = calculateDiscountValue(promo, originalPrice);
             setOwnerDiscount(discount);
 
             showToast(`Áp dụng mã ${promo.code} thành công!`, "success");
-
         } catch (error) {
             console.error(error);
             showToast(error.message || "Không thể áp dụng mã giảm giá này.", "error");
@@ -307,7 +327,6 @@ export default function PaymentPage() {
         }
     };
 
-    // --- HANDLE PAYMENT SUBMIT ---
     const handlePaymentSubmit = async () => {
         if (timeLeft <= 0) return;
 
@@ -321,7 +340,6 @@ export default function PaymentPage() {
             return;
         }
 
-        // Cũng dùng isProcessing để đồng bộ trải nghiệm
         setIsProcessing(true);
         try {
             await paymentService.submitPayment(
@@ -364,24 +382,13 @@ export default function PaymentPage() {
 
     const handleTimeoutConfirm = () => { navigate("/"); };
 
-    // --- RENDER ---
-
-    // 1. Loading ban đầu (Vẫn dùng Spinner toàn trang vì chưa có dữ liệu)
     if (loading) return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>;
-
     if (!booking) return null;
-
     const finalAmountQR = booking.totalPrice;
 
     return (
         <main className="max-w-7xl mx-auto px-4 md:px-6 py-8 bg-gray-50 min-h-screen relative">
-
-            {/* [SỬA LỖI] Hiển thị LoadingOverlay khi đang xử lý (áp mã/thanh toán)
-                LoadingOverlay sẽ đè lên nội dung chứ không thay thế nội dung -> Hết giật */}
-            {isProcessing && (
-                <LoadingOverlay message="Đang xử lý..." />
-            )}
-
+            {isProcessing && (<LoadingOverlay message="Đang xử lý..." />)}
             <PaymentTimeoutModal open={isTimeoutOpen} onConfirm={handleTimeoutConfirm} />
 
             <div className="mb-6">
@@ -424,7 +431,7 @@ export default function PaymentPage() {
                         adminDiscount={adminDiscount}
                         ownerDiscount={ownerDiscount}
                         onSubmit={handlePaymentSubmit}
-                        loading={isProcessing} // Disable nút khi đang xử lý
+                        loading={isProcessing}
                         disabled={timeLeft <= 0}
                     />
                 </div>

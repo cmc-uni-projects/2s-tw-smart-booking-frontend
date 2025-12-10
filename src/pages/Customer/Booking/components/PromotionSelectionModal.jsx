@@ -23,16 +23,16 @@ const getFullImageUrl = (path) => {
 // SUB-COMPONENT: MỘT DÒNG KHUYẾN MÃI
 // ====================================================================
 const PromotionListItem = ({ promo, isSelected, accentColor, onSelect }) => {
-    // ✅ [SỬA ĐỔI] Xác định mã hệ thống dựa trên việc không có property
+    // Xác định mã hệ thống (Admin) là mã không có property
     const isSystemPromo = !promo.property;
 
     // Format giá trị giảm
     const discountText = promo.discountType === 'PERCENTAGE'
         ? `${promo.discountValue}%`
-        : `${promo.discountValue?.toLocaleString()}₫`;
+        : `${new Intl.NumberFormat('vi-VN').format(promo.discountValue)}₫`;
 
     const maxDiscountText = promo.maxDiscountAmount > 0
-        ? ` (Tối đa ${promo.maxDiscountAmount.toLocaleString()}₫)`
+        ? ` (Tối đa ${new Intl.NumberFormat('vi-VN').format(promo.maxDiscountAmount)}₫)`
         : '';
 
     // Chọn ảnh: Mã hệ thống dùng ảnh tĩnh, Mã khách sạn dùng ảnh từ API
@@ -122,7 +122,7 @@ const PromotionSelectionDropdown = ({
                                         onSelect,
                                         selectedId,
                                         filterType, // 'ADMIN' hoặc 'OWNER'
-                                        bookingPropertyId // ✅ [SỬA ĐỔI] Nhận ID khách sạn để lọc mã chủ sở hữu
+                                        bookingPropertyId // ID khách sạn để lọc mã chủ sở hữu
                                     }) => {
     const [promotions, setPromotions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -150,18 +150,18 @@ const PromotionSelectionDropdown = ({
                 p.status === "ACTIVE" && new Date(p.endDate) > now
             );
 
-            // 2. Lọc theo ngữ cảnh (✅ LOGIC MỚI KHÔNG CẦN SỬA BACKEND)
+            // 2. Lọc theo ngữ cảnh (QUAN TRỌNG: Lọc mã của đúng khách sạn)
             if (filterType === 'ADMIN') {
                 // Admin: Mã hệ thống là mã có property = null
                 activePromotions = activePromotions.filter(p => !p.property);
             } else if (filterType === 'OWNER') {
-                // Owner: Mã khách sạn phải có property VÀ propertyId trùng với khách sạn đang đặt
+                // Owner: Mã khách sạn phải có property VÀ propertyId TRÙNG với khách sạn đang đặt
                 if (bookingPropertyId) {
                     activePromotions = activePromotions.filter(p =>
-                        p.property && p.property.propertyId === bookingPropertyId
+                        p.property && Number(p.property.propertyId) === Number(bookingPropertyId)
                     );
                 } else {
-                    // Nếu không có thông tin khách sạn -> không hiển thị gì để tránh nhầm lẫn
+                    // Nếu không có thông tin khách sạn -> không hiển thị gì để an toàn
                     activePromotions = [];
                 }
             }

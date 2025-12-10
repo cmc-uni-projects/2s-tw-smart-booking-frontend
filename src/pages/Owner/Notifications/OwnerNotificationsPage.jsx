@@ -171,4 +171,5 @@ const OwnerNotificationsPage = () => {
     );
 };
 
+
 export default OwnerNotificationsPage;

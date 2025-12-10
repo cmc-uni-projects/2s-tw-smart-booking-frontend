@@ -127,6 +127,25 @@ const bookingService = {
       throw error.response?.data || error.message;
     }
   },
+  // ==========================================
+  // 10. [MỚI] HỦY MÃ KHUYẾN MÃI
+  // ==========================================
+  cancelPromotion: async (bookingId, code) => {
+    try {
+      // Gọi endpoint POST /api/v1/promotions/cancel
+      const response = await api.post(`/promotions/cancel`, null, {
+        params: { 
+            bookingId: bookingId,
+            code: code 
+        }
+      });
+      // Trả về dữ liệu BookingResponseDTO mới nhất
+      return response.data?.data || response.data;
+    } catch (error) {
+       throw error.response?.data || error.message;
+    }
+  },
+  
 };
 
 export default bookingService;
