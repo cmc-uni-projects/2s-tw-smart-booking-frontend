@@ -360,7 +360,6 @@ const PromotionManager = () => {
         { key: "details", label: "Chi tiết giảm" },
         { key: "usageProgress", label: "Lượt sử dụng" },
         { key: "endDateDisplay", label: "Hết hạn" },
-        // ✅ [FIX] Thêm các cờ disable cho cột Trạng thái để tắt icon sort/filter thừa
         {
             key: "statusLabel",
             label: "Trạng thái",
@@ -371,7 +370,7 @@ const PromotionManager = () => {
             hideMenu: true,
             disableColumnMenu: true
         },
-        // ✅ [FIX] Tắt tất cả các loại menu/filter/sort có thể có
+        // Action column defined by you
         {
             key: "actions",
             label: "",
@@ -547,8 +546,8 @@ const PromotionManager = () => {
                 </div>
             </div>
 
-            {/* ✅ [FIX] Sửa lại CSS: ẩn icon svg trong cả cột cuối (actions) và cột kế cuối (status) nếu có */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col relative [&_thead_th:last-child_svg]:!hidden [&_thead_th:nth-last-child(2)_svg]:!hidden [&_thead_th:last-child]:!cursor-default">
+            {/* ✅ [FIX TRIỆT ĐỂ] Dùng CSS Selector để ẩn cột cuối (do Table.jsx sinh ra thừa) mà không sửa file gốc */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col relative [&_th:last-child]:!hidden [&_td:last-child:not(:only-child)]:!hidden">
                 {isLoading && (<div className="absolute inset-0 bg-white/80 z-10 flex items-center justify-center min-h-[400px]"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[rgb(40,169,224)]"></div></div>)}
                 {filteredPromotions.length > 0 ? (
                     <>
