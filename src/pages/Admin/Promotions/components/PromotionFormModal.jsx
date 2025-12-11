@@ -10,13 +10,6 @@ import toast from "react-hot-toast";
 import Toast from "@/components/common/Notification/Toast";
 import CustomSelect from "@/components/common/Select/CustomSelect";
 
-// --- IMPORT DATEPICKER ---
-import DatePicker, { registerLocale } from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import { vi } from 'date-fns/locale/vi';
-registerLocale('vi', vi); // Đăng ký tiếng Việt
-
-// --- CONFIG ---
 const BE_BASE_URL = "http://127.0.0.1:8386";
 const UPLOAD_DIR = "/uploads/";
 const MIN_VND = 1000;
@@ -37,28 +30,75 @@ const parseCurrency = (value) => {
     return value.replace(/\./g, "").replace(/\D/g, "");
 };
 
-// --- COMPONENTS ---
-
-// 1. CustomInput (Giữ nguyên cho các ô nhập text/number)
+// --- CUSTOM INPUT (Đã sửa đổi để hiện dd/mm/yyyy và placeholder) ---
 const CustomInput = ({ label, name, value, onChange, type = "text", placeholder, icon: Icon, error, disabled, className, ...props }) => {
+    const inputRef = useRef(null);
+    const isDateInput = type === 'date';
+
+    // Mặc định là text để hiển thị format VN hoặc placeholder, khi focus mới chuyển sang date
+    const [inputType, setInputType] = useState(isDateInput ? 'text' : type);
+
+    // Hàm chuyển đổi yyyy-mm-dd -> dd/mm/yyyy
+    const formatDateToVN = (isoDate) => {
+        if (!isoDate || typeof isoDate !== 'string' || !isoDate.includes('-')) return isoDate;
+        const parts = isoDate.split('-');
+        if (parts.length === 3) {
+            const [year, month, day] = parts;
+            return `${day}/${month}/${year}`;
+        }
+        return isoDate;
+    };
+
+    const handleIconClick = () => {
+        if (isDateInput && inputRef.current) {
+            setInputType('date');
+            setTimeout(() => {
+                if (inputRef.current.showPicker) inputRef.current.showPicker();
+                else inputRef.current.focus();
+            }, 0);
+        }
+    };
+
+    const handleFocus = (e) => {
+        if (isDateInput) setInputType('date');
+        if (props.onFocus) props.onFocus(e);
+    };
+
+    const handleBlur = (e) => {
+        if (isDateInput) setInputType('text');
+        if (props.onBlur) props.onBlur(e);
+    };
+
+    // Logic hiển thị giá trị: Nếu là date ở trạng thái text -> format VN, ngược lại giữ nguyên
+    const displayValue = (isDateInput && inputType === 'text' && value)
+        ? formatDateToVN(value)
+        : value;
+
+    // Logic Placeholder: Nếu là date input và chưa có placeholder -> tự điền dd/mm/yyyy
+    const displayPlaceholder = placeholder || (isDateInput ? "dd/mm/yyyy" : "");
+
     return (
-        <div className={`space-y-1.5 ${className}`}>
+        <div className={`flex flex-col gap-1.5 ${className}`}>
             {label && <label className="text-sm font-semibold text-gray-700 ml-1">{label} {error && <span className="text-red-500">*</span>}</label>}
             <div className="relative group">
                 {Icon && (
-                    <div className={`absolute left-2 top-1/2 -translate-y-1/2 transition-all duration-200 z-10 pl-2 rounded-lg p-1.5 pointer-events-none text-gray-400 group-focus-within:text-blue-500`}>
-                        <Icon size={18} strokeWidth={2} />
+                    <div onClick={handleIconClick} className={`absolute left-2 top-1/2 -translate-y-1/2 transition-all duration-200 z-10 pl-2 rounded-lg p-1.5 ${isDateInput ? 'cursor-pointer pointer-events-auto text-[rgb(40,169,224)] hover:bg-blue-50' : 'pointer-events-none text-gray-400 group-focus-within:text-blue-500'}`}>
+                        <Icon size={18} strokeWidth={isDateInput ? 2.5 : 2} />
                     </div>
                 )}
+
                 <input
-                    type={type}
+                    ref={inputRef}
+                    type={inputType}
                     name={name}
-                    value={value}
+                    value={displayValue}
                     onChange={onChange}
                     disabled={disabled}
-                    placeholder={placeholder}
+                    placeholder={displayPlaceholder}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
                     {...props}
-                    className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-4 py-2.5 bg-gray-50 border rounded-xl outline-none transition-all duration-200 ${error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100 bg-red-50' : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white'} ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''} placeholder-gray-400 selection:bg-blue-100`}
+                    className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-4 h-[42px] bg-gray-50 border rounded-xl outline-none transition-all duration-200 ${error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100 bg-red-50' : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white'} ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''} placeholder-gray-400 selection:bg-blue-100 [&::-webkit-calendar-picker-indicator]:hidden`}
                 />
             </div>
             {error && typeof error === 'string' && <p className="text-xs text-red-500 flex items-center gap-1 ml-1"><AlertCircle size={12}/> {error}</p>}
@@ -66,57 +106,6 @@ const CustomInput = ({ label, name, value, onChange, type = "text", placeholder,
     );
 };
 
-// 2. CustomDatePicker (ĐÃ CẬP NHẬT: Tự động format dd/MM/yyyy khi nhập)
-const CustomDatePicker = ({ selectedDate, onChange, placeholder, icon: Icon, error, disabled }) => {
-
-    // Hàm xử lý logic format khi nhập tay
-    const handleRawChange = (e) => {
-        let value = e.target.value;
-
-        // 1. Chỉ giữ lại số, loại bỏ mọi ký tự khác
-        const cleanVal = value.replace(/\D/g, '');
-
-        // 2. Xây dựng lại chuỗi theo format dd/MM/yyyy
-        let formattedVal = cleanVal;
-
-        // Nếu đã nhập hơn 2 số (đã nhập ngày), thêm dấu /
-        if (cleanVal.length > 2) {
-            formattedVal = `${cleanVal.slice(0, 2)}/${cleanVal.slice(2)}`;
-        }
-        // Nếu đã nhập hơn 4 số (đã nhập ngày và tháng), thêm dấu / thứ 2
-        if (cleanVal.length > 4) {
-            formattedVal = `${cleanVal.slice(0, 2)}/${cleanVal.slice(2, 4)}/${cleanVal.slice(4, 8)}`; // Giới hạn 8 số (ddMMyyyy)
-        }
-
-        // 3. Gán ngược lại vào ô input
-        e.target.value = formattedVal;
-    };
-
-    return (
-        <div className="relative group w-full">
-            {Icon && (
-                <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10 pl-2 pointer-events-none text-[rgb(40,169,224)]">
-                    <Icon size={18} strokeWidth={2.5} />
-                </div>
-            )}
-            <DatePicker
-                selected={selectedDate}
-                onChange={onChange}
-                dateFormat="dd/MM/yyyy"
-                locale="vi"
-                placeholderText={placeholder || "dd/MM/yyyy"}
-                disabled={disabled}
-                className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-4 py-2.5 bg-gray-50 border rounded-xl outline-none transition-all duration-200 ${error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100 bg-red-50' : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white'} ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''} placeholder-gray-400 cursor-pointer`}
-
-                // Sự kiện quan trọng để format
-                onChangeRaw={handleRawChange}
-                strictParsing
-            />
-        </div>
-    );
-};
-
-// 3. TimePicker (Giữ nguyên)
 const TimePicker = ({ value, onChange, error }) => {
     const [hour, setHour] = useState("00");
     const [minute, setMinute] = useState("00");
@@ -139,7 +128,7 @@ const TimePicker = ({ value, onChange, error }) => {
         if (type === 'hour') { setHour(val); onChange(`${val}:${minute}`); } else { setMinute(val); onChange(`${hour}:${val}`); }
     };
     return (
-        <div className={`flex items-center border rounded-xl bg-gray-50 px-3 py-2.5 transition-all duration-200 ${error ? 'border-red-300 ring-4 ring-red-100 bg-red-50' : 'border-gray-200 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:bg-white'}`}>
+        <div className={`flex items-center border rounded-xl bg-gray-50 px-3 py-2.5 transition-all duration-200 h-[42px] ${error ? 'border-red-300 ring-4 ring-red-100 bg-red-50' : 'border-gray-200 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:bg-white'}`}>
             <div className="text-gray-400 mr-2"><Clock size={18} strokeWidth={2} /></div>
             <input type="text" value={hour} onChange={(e) => handleChangeInput(e, 'hour')} onBlur={() => handleBlur('hour')} onFocus={(e)=>e.target.select()} placeholder="HH" className="bg-transparent outline-none text-gray-700 font-semibold w-8 text-center placeholder-gray-300 focus:text-blue-600 selection:bg-blue-200" />
             <span className="text-gray-400 font-bold mx-1">:</span>
@@ -148,7 +137,7 @@ const TimePicker = ({ value, onChange, error }) => {
     );
 };
 
-// --- MAIN COMPONENT ---
+
 const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
     const [promotionTypeOption, setPromotionTypeOption] = useState("FIXED_AMOUNT");
     const [formData, setFormData] = useState({
@@ -254,18 +243,6 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
         if (errors.value) setErrors(prev => ({ ...prev, value: null }));
     };
 
-    // --- XỬ LÝ DATE PICKER ---
-    const handleDateOnlyChange = (field, dateObj) => {
-        if (!dateObj) return;
-
-        const year = dateObj.getFullYear();
-        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const day = String(dateObj.getDate()).padStart(2, '0');
-        const newDateStr = `${year}-${month}-${day}`;
-
-        handleSplitDateTimeChange(field, 'date', newDateStr);
-    };
-
     const handleSplitDateTimeChange = (field, type, value) => {
         setFormData(prev => {
             const currentFull = prev[field] || "";
@@ -275,20 +252,12 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
             if (newDate) return { ...prev, [field]: `${newDate}T${newTime}` };
             return prev;
         });
-        if (errors[field]) setErrors(prev => ({ ...prev, [field]: null }));
     };
 
     const getSplitValue = (str, type) => {
         if (!str) return "";
         const parts = str.split('T');
         return type === 'date' ? parts[0] : (parts[1] || "00:00");
-    };
-
-    const parseDateString = (dateStr) => {
-        if (!dateStr) return null;
-        const [year, month, day] = dateStr.split('-');
-        if (!year || !month || !day) return null;
-        return new Date(year, month - 1, day);
     };
 
     const validateYear = (dateTimeStr) => {
@@ -396,7 +365,6 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                 </div>
                 <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
 
-                    {/* 1. BANNER */}
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700 ml-1">Banner Khuyến Mãi</label>
                         <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50/50 transition-colors relative overflow-hidden group">
@@ -406,13 +374,11 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         </div>
                     </div>
 
-                    {/* 2. MÃ CODE & TÊN */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-start">
                         <div className="sm:col-span-1"><CustomInput label="Mã Code" name="code" value={formData.code} onChange={handleChange} placeholder="VD: SALE50" icon={Tag} error={errors.code} /></div>
                         <div className="sm:col-span-2"><CustomInput label="Tên chương trình" name="name" value={formData.name} onChange={handleChange} placeholder="VD: Siêu sale tháng 11" icon={CheckCircle2} error={errors.name} /></div>
                     </div>
 
-                    {/* 3. HẠNG THÀNH VIÊN */}
                     <div className="bg-orange-50/50 border border-orange-100 rounded-xl p-5">
                         <CustomSelect label="Đối tượng áp dụng (Hạng thành viên tối thiểu)" name="minMembershipRank" value={formData.minMembershipRank} onChange={(val) => setFormData(prev => ({ ...prev, minMembershipRank: val }))} icon={<Crown />}
                                       options={[{ value: "BRONZE", label: "Đồng (Tất cả thành viên)" }, { value: "SILVER", label: "Bạc (Silver - Chi tiêu > 1 triệu đồng)" }, { value: "GOLD", label: "Vàng (Gold - Chi tiêu > 5 triệu đồng)" }, { value: "DIAMOND", label: "Kim Cương (Diamond - Chi tiêu > 10 triệu đồng)" }]}
@@ -420,8 +386,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         <p className="text-xs text-gray-500 mt-2 ml-1 italic">* Khuyến mãi này sẽ áp dụng cho các thành viên có hạng này trở lên.</p>
                     </div>
 
-                    {/* 4. LOẠI GIẢM GIÁ & GIÁ TRỊ */}
-                    <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
                         <CustomSelect label="Loại giảm giá" name="type" value={promotionTypeOption} onChange={(val) => handleTypeChange(val)} icon={<Layers />}
                                       options={[
                                           { value: "FIXED_AMOUNT", label: "Giảm tiền trực tiếp" },
@@ -432,49 +397,31 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         <CustomInput label={isPercentage ? "Mức giảm (%)" : "Số tiền giảm (VNĐ)"} name="value" type={isPercentage ? "number" : "text"} value={isPercentage ? formData.value : formatCurrency(formData.value)} onChange={isPercentage ? handleChange : handleCurrencyChange} placeholder={isPercentage ? "VD: 20" : "VD: 50.000"} icon={isPercentage ? Percent : Banknote} error={errors.value} min="0" onFocus={(e) => e.target.select()} />
                     </div>
 
-                    {/* 5. ĐIỀU KIỆN ÁP DỤNG */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-start">
                         <CustomInput label="Đơn tối thiểu (VNĐ)" name="minOrder" type="text" value={formatCurrency(formData.minOrder)} onChange={handleCurrencyChange} icon={Banknote} error={errors.minOrder} placeholder="0 (Không giới hạn)" />
                         <CustomInput label="Giảm tối đa (VNĐ)" name="maxDiscount" type="text" value={formatCurrency(formData.maxDiscount)} onChange={handleCurrencyChange} icon={Banknote} placeholder={isMaxDiscountDisabled ? "Không áp dụng" : "VD: 200.000"} onFocus={(e) => e.target.select()} error={errors.maxDiscount} disabled={isMaxDiscountDisabled} />
                         <CustomInput label="Tổng số lượng" name="quantity" type="number" value={formData.quantity} onChange={handleChange} icon={Hash} error={errors.quantity} placeholder="1000" min="1" onFocus={(e) => e.target.select()} />
                     </div>
 
-                    {/* 6. THỜI GIAN */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian bắt đầu {errors.startDate && <span className="text-red-500">*</span>}</label>
-                            <div className="flex gap-2">
-                                <div className="w-3/5">
-                                    <CustomDatePicker
-                                        selectedDate={parseDateString(getSplitValue(formData.startDate, 'date'))}
-                                        onChange={(date) => handleDateOnlyChange('startDate', date)}
-                                        icon={Calendar}
-                                        error={!!errors.startDate}
-                                        placeholder="dd/MM/yyyy"
-                                    />
-                                </div>
+                            <div className="flex gap-2 items-start">
+                                <div className="w-3/5"><CustomInput type="date" value={getSplitValue(formData.startDate, 'date')} onChange={(e) => handleSplitDateTimeChange('startDate', 'date', e.target.value)} icon={Calendar} error={!!errors.startDate} max="9999-12-31" /></div>
                                 <div className="w-2/5"><TimePicker value={getSplitValue(formData.startDate, 'time')} onChange={(newTime) => handleSplitDateTimeChange('startDate', 'time', newTime)} error={!!errors.startDate} /></div>
                             </div>
                             {errors.startDate && <p className="text-xs text-red-500 flex items-center gap-1 ml-1 mt-1"><AlertCircle size={12}/> {errors.startDate}</p>}
                         </div>
-
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian kết thúc {errors.endDate && <span className="text-red-500">*</span>}</label>
-                            <div className="flex gap-2">
-                                <div className="w-3/5">
-                                    <CustomDatePicker
-                                        selectedDate={parseDateString(getSplitValue(formData.endDate, 'date'))}
-                                        onChange={(date) => handleDateOnlyChange('endDate', date)}
-                                        icon={Calendar}
-                                        error={!!errors.endDate}
-                                        placeholder="dd/MM/yyyy"
-                                    />
-                                </div>
+                            <div className="flex gap-2 items-start">
+                                <div className="w-3/5"><CustomInput type="date" value={getSplitValue(formData.endDate, 'date')} onChange={(e) => handleSplitDateTimeChange('endDate', 'date', e.target.value)} icon={Calendar} error={!!errors.endDate} max="9999-12-31" /></div>
                                 <div className="w-2/5"><TimePicker value={getSplitValue(formData.endDate, 'time')} onChange={(newTime) => handleSplitDateTimeChange('endDate', 'time', newTime)} error={!!errors.endDate} /></div>
                             </div>
                             {errors.endDate && <p className="text-xs text-red-500 flex items-center gap-1 ml-1 mt-1"><AlertCircle size={12}/> {errors.endDate}</p>}
                         </div>
                     </div>
+
                 </div>
 
                 <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
