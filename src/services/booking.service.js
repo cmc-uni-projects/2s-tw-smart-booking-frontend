@@ -4,13 +4,11 @@ const bookingService = {
   // ==========================================
   // 1. TẠO BOOKING MỚI
   // ==========================================
-  // Payload: { userId, propertyId, roomId, checkInDate, checkOutDate, guestCount }
   createBooking: async (bookingData) => {
     try {
       const response = await api.post("/bookings/create", bookingData);
       return response.data;
     } catch (error) {
-      // Ném lỗi ra để component (BookingPage) bắt được và alert
       throw error.response?.data || error.message;
     }
   },
@@ -40,7 +38,7 @@ const bookingService = {
   },
 
   // ==========================================
-  // 4. HỦY ĐẶT PHÒNG
+  // 4. HỦY ĐẶT PHÒNG (USER/OWNER)
   // ==========================================
   cancelBooking: async (bookingId) => {
     try {
@@ -52,7 +50,7 @@ const bookingService = {
   },
 
   // ==========================================
-  // 5. CHECK-IN
+  // 5. CHECK-IN (OWNER/ADMIN)
   // ==========================================
   checkInBooking: async (bookingId) => {
     try {
@@ -64,7 +62,7 @@ const bookingService = {
   },
 
   // ==========================================
-  // 6. LẤY DANH SÁCH BOOKING THEO KHÁCH SẠN (Dành cho Chủ nhà/Admin)
+  // 6. LẤY DANH SÁCH BOOKING THEO KHÁCH SẠN
   // ==========================================
   getBookingsByPropertyId: async (propertyId) => {
     try {
@@ -75,22 +73,11 @@ const bookingService = {
     }
   },
 
-  getBookingsByProperty: async (propertyId) => {
-    try {
-      const response = await api.get(`/bookings/property/${propertyId}`);
-      return response.data; // Trả về mảng BookingResponseDTO
-    } catch (error) {
-      console.error("Error fetching property bookings:", error);
-      throw error;
-    }
-  },
-
   // ==========================================
-  // 7. CHECK-OUT (Trả phòng)
+  // 7. CHECK-OUT (OWNER/ADMIN)
   // ==========================================
   checkOutBooking: async (bookingId) => {
     try {
-      // Gọi đúng đường dẫn đã định nghĩa ở Controller (/checkout/{id})
       const response = await api.put(`/bookings/checkout/${bookingId}`);
       return response.data;
     } catch (error) {
@@ -104,25 +91,62 @@ const bookingService = {
   getRoomAvailability: async (roomId) => {
     try {
       const response = await api.get(`/bookings/room/${roomId}/availability`);
-      return response.data; // Backend trả về { success: true, message: "...", data: [...] }
+      return response.data;
     } catch (error) {
       console.error("Error fetching availability:", error);
-      return { data: [] }; // Trả về mảng rỗng nếu lỗi để không chặn nhầm
+      return { data: [] };
     }
   },
 
   // ==========================================
-  // 9. [MỚI] ÁP DỤNG MÃ KHUYẾN MÃI
+  // 9. ÁP DỤNG MÃ KHUYẾN MÃI
   // ==========================================
-  // Hàm này gọi API để lưu mã vào DB và cập nhật lại giá tiền
   applyPromotion: async (bookingId, code) => {
     try {
-      // Gọi endpoint PUT /api/v1/bookings/{id}/apply-promotion?code=...
       const response = await api.put(`/bookings/${bookingId}/apply-promotion`, null, {
         params: { code }
       });
-      // Backend trả về ApiResponse, ta cần lấy phần data (BookingResponseDTO)
+      // Backend trả về ApiResponse, lấy phần data (BookingResponseDTO)
       return response.data?.data || response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // ==========================================
+  // 10. HỦY/GỠ MÃ KHUYẾN MÃI
+  // ==========================================
+  removePromotion: async (bookingId, code) => {
+    try {
+      const response = await api.put(`/bookings/${bookingId}/remove-promotion`, null, {
+        params: { code }
+      });
+      return response.data?.data || response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // ==========================================
+  // 11. [ADMIN] LẤY TẤT CẢ BOOKING TOÀN HỆ THỐNG
+  // ==========================================
+  getAllBookings: async () => {
+    try {
+      // Backend map là @GetMapping("") tại /api/v1/bookings
+      const response = await api.get("/bookings");
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // ==========================================
+  // 12. [ADMIN] DUYỆT YÊU CẦU HOÀN TIỀN
+  // ==========================================
+  approveRefund: async (bookingId) => {
+    try {
+      const response = await api.put(`/bookings/approve-refund/${bookingId}`);
+      return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }

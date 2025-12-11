@@ -8,7 +8,13 @@ import {
 import promotionService from "../../../../services/promotion.service";
 import toast from "react-hot-toast";
 import Toast from "@/components/common/Notification/Toast";
-import CustomSelect from "@/components/common/Select/CustomSelect"; // ✅ Đảm bảo import CustomSelect
+import CustomSelect from "@/components/common/Select/CustomSelect";
+
+// --- IMPORT DATEPICKER ---
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { vi } from 'date-fns/locale/vi';
+registerLocale('vi', vi); // Đăng ký tiếng Việt
 
 // --- CONFIG ---
 const BE_BASE_URL = "http://127.0.0.1:8386";
@@ -32,31 +38,85 @@ const parseCurrency = (value) => {
 };
 
 // --- COMPONENTS ---
+
+// 1. CustomInput (Giữ nguyên cho các ô nhập text/number)
 const CustomInput = ({ label, name, value, onChange, type = "text", placeholder, icon: Icon, error, disabled, className, ...props }) => {
-    const inputRef = useRef(null);
-    const handleIconClick = () => {
-        if (type === 'date' && inputRef.current) {
-            if (inputRef.current.showPicker) inputRef.current.showPicker();
-            else inputRef.current.focus();
-        }
-    };
-    const isDateInput = type === 'date';
     return (
         <div className={`space-y-1.5 ${className}`}>
             {label && <label className="text-sm font-semibold text-gray-700 ml-1">{label} {error && <span className="text-red-500">*</span>}</label>}
             <div className="relative group">
                 {Icon && (
-                    <div onClick={handleIconClick} className={`absolute left-2 top-1/2 -translate-y-1/2 transition-all duration-200 z-10 pl-2 rounded-lg p-1.5 ${isDateInput ? 'cursor-pointer pointer-events-auto text-[rgb(40,169,224)] hover:bg-blue-50' : 'pointer-events-none text-gray-400 group-focus-within:text-blue-500'}`}>
-                        <Icon size={18} strokeWidth={isDateInput ? 2.5 : 2} />
+                    <div className={`absolute left-2 top-1/2 -translate-y-1/2 transition-all duration-200 z-10 pl-2 rounded-lg p-1.5 pointer-events-none text-gray-400 group-focus-within:text-blue-500`}>
+                        <Icon size={18} strokeWidth={2} />
                     </div>
                 )}
-                <input ref={inputRef} type={type} name={name} value={value} onChange={onChange} disabled={disabled} placeholder={placeholder} {...props} className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-4 py-2.5 bg-gray-50 border rounded-xl outline-none transition-all duration-200 ${error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100 bg-red-50' : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white'} ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''} placeholder-gray-400 selection:bg-blue-100 [&::-webkit-calendar-picker-indicator]:hidden`} />
+                <input
+                    type={type}
+                    name={name}
+                    value={value}
+                    onChange={onChange}
+                    disabled={disabled}
+                    placeholder={placeholder}
+                    {...props}
+                    className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-4 py-2.5 bg-gray-50 border rounded-xl outline-none transition-all duration-200 ${error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100 bg-red-50' : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white'} ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''} placeholder-gray-400 selection:bg-blue-100`}
+                />
             </div>
             {error && typeof error === 'string' && <p className="text-xs text-red-500 flex items-center gap-1 ml-1"><AlertCircle size={12}/> {error}</p>}
         </div>
     );
 };
 
+// 2. CustomDatePicker (ĐÃ CẬP NHẬT: Tự động format dd/MM/yyyy khi nhập)
+const CustomDatePicker = ({ selectedDate, onChange, placeholder, icon: Icon, error, disabled }) => {
+
+    // Hàm xử lý logic format khi nhập tay
+    const handleRawChange = (e) => {
+        let value = e.target.value;
+
+        // 1. Chỉ giữ lại số, loại bỏ mọi ký tự khác
+        const cleanVal = value.replace(/\D/g, '');
+
+        // 2. Xây dựng lại chuỗi theo format dd/MM/yyyy
+        let formattedVal = cleanVal;
+
+        // Nếu đã nhập hơn 2 số (đã nhập ngày), thêm dấu /
+        if (cleanVal.length > 2) {
+            formattedVal = `${cleanVal.slice(0, 2)}/${cleanVal.slice(2)}`;
+        }
+        // Nếu đã nhập hơn 4 số (đã nhập ngày và tháng), thêm dấu / thứ 2
+        if (cleanVal.length > 4) {
+            formattedVal = `${cleanVal.slice(0, 2)}/${cleanVal.slice(2, 4)}/${cleanVal.slice(4, 8)}`; // Giới hạn 8 số (ddMMyyyy)
+        }
+
+        // 3. Gán ngược lại vào ô input
+        e.target.value = formattedVal;
+    };
+
+    return (
+        <div className="relative group w-full">
+            {Icon && (
+                <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10 pl-2 pointer-events-none text-[rgb(40,169,224)]">
+                    <Icon size={18} strokeWidth={2.5} />
+                </div>
+            )}
+            <DatePicker
+                selected={selectedDate}
+                onChange={onChange}
+                dateFormat="dd/MM/yyyy"
+                locale="vi"
+                placeholderText={placeholder || "dd/MM/yyyy"}
+                disabled={disabled}
+                className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-4 py-2.5 bg-gray-50 border rounded-xl outline-none transition-all duration-200 ${error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100 bg-red-50' : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white'} ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''} placeholder-gray-400 cursor-pointer`}
+
+                // Sự kiện quan trọng để format
+                onChangeRaw={handleRawChange}
+                strictParsing
+            />
+        </div>
+    );
+};
+
+// 3. TimePicker (Giữ nguyên)
 const TimePicker = ({ value, onChange, error }) => {
     const [hour, setHour] = useState("00");
     const [minute, setMinute] = useState("00");
@@ -194,6 +254,18 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
         if (errors.value) setErrors(prev => ({ ...prev, value: null }));
     };
 
+    // --- XỬ LÝ DATE PICKER ---
+    const handleDateOnlyChange = (field, dateObj) => {
+        if (!dateObj) return;
+
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const newDateStr = `${year}-${month}-${day}`;
+
+        handleSplitDateTimeChange(field, 'date', newDateStr);
+    };
+
     const handleSplitDateTimeChange = (field, type, value) => {
         setFormData(prev => {
             const currentFull = prev[field] || "";
@@ -203,12 +275,20 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
             if (newDate) return { ...prev, [field]: `${newDate}T${newTime}` };
             return prev;
         });
+        if (errors[field]) setErrors(prev => ({ ...prev, [field]: null }));
     };
 
     const getSplitValue = (str, type) => {
         if (!str) return "";
         const parts = str.split('T');
         return type === 'date' ? parts[0] : (parts[1] || "00:00");
+    };
+
+    const parseDateString = (dateStr) => {
+        if (!dateStr) return null;
+        const [year, month, day] = dateStr.split('-');
+        if (!year || !month || !day) return null;
+        return new Date(year, month - 1, day);
     };
 
     const validateYear = (dateTimeStr) => {
@@ -316,7 +396,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                 </div>
                 <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
 
-                    {/* 1. BANNER (Đã đưa lên đầu) */}
+                    {/* 1. BANNER */}
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700 ml-1">Banner Khuyến Mãi</label>
                         <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50/50 transition-colors relative overflow-hidden group">
@@ -364,15 +444,32 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian bắt đầu {errors.startDate && <span className="text-red-500">*</span>}</label>
                             <div className="flex gap-2">
-                                <div className="w-3/5"><CustomInput type="date" value={getSplitValue(formData.startDate, 'date')} onChange={(e) => handleSplitDateTimeChange('startDate', 'date', e.target.value)} icon={Calendar} error={!!errors.startDate} max="9999-12-31" /></div>
+                                <div className="w-3/5">
+                                    <CustomDatePicker
+                                        selectedDate={parseDateString(getSplitValue(formData.startDate, 'date'))}
+                                        onChange={(date) => handleDateOnlyChange('startDate', date)}
+                                        icon={Calendar}
+                                        error={!!errors.startDate}
+                                        placeholder="dd/MM/yyyy"
+                                    />
+                                </div>
                                 <div className="w-2/5"><TimePicker value={getSplitValue(formData.startDate, 'time')} onChange={(newTime) => handleSplitDateTimeChange('startDate', 'time', newTime)} error={!!errors.startDate} /></div>
                             </div>
                             {errors.startDate && <p className="text-xs text-red-500 flex items-center gap-1 ml-1 mt-1"><AlertCircle size={12}/> {errors.startDate}</p>}
                         </div>
+
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian kết thúc {errors.endDate && <span className="text-red-500">*</span>}</label>
                             <div className="flex gap-2">
-                                <div className="w-3/5"><CustomInput type="date" value={getSplitValue(formData.endDate, 'date')} onChange={(e) => handleSplitDateTimeChange('endDate', 'date', e.target.value)} icon={Calendar} error={!!errors.endDate} max="9999-12-31" /></div>
+                                <div className="w-3/5">
+                                    <CustomDatePicker
+                                        selectedDate={parseDateString(getSplitValue(formData.endDate, 'date'))}
+                                        onChange={(date) => handleDateOnlyChange('endDate', date)}
+                                        icon={Calendar}
+                                        error={!!errors.endDate}
+                                        placeholder="dd/MM/yyyy"
+                                    />
+                                </div>
                                 <div className="w-2/5"><TimePicker value={getSplitValue(formData.endDate, 'time')} onChange={(newTime) => handleSplitDateTimeChange('endDate', 'time', newTime)} error={!!errors.endDate} /></div>
                             </div>
                             {errors.endDate && <p className="text-xs text-red-500 flex items-center gap-1 ml-1 mt-1"><AlertCircle size={12}/> {errors.endDate}</p>}
