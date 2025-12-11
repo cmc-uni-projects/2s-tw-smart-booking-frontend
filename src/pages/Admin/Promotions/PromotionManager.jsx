@@ -1,5 +1,3 @@
-// src/pages/Admin/Promotions/PromotionManager.jsx
-
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import Table from "@/components/common/Table/Table";
@@ -12,7 +10,7 @@ import {
     Plus, Edit, Trash2, Tag, Search,
     Copy, CheckCircle2, AlertCircle, Ticket,
     ChevronLeft, ChevronRight, MoreVertical, PauseCircle, PlayCircle, XCircle,
-    AlertTriangle, Clock, RotateCw, Image as ImageIcon, Building2, MapPin
+    AlertTriangle, Clock, RotateCw, Image as ImageIcon
 } from "lucide-react";
 
 const BE_BASE_URL = "http://localhost:8386";
@@ -255,8 +253,8 @@ const PromotionManager = () => {
             const response = await promotionService.getAllPromotions();
             const rawData = response.data || [];
 
-            // ✅ [CẬP NHẬT] Lọc bỏ mã của Owner (chỉ lấy mã Admin/System)
-            const adminPromotions = rawData.filter(item => !item.property);
+            // ✅ Lọc bỏ mã Owner và mã có trạng thái DELETED
+            const adminPromotions = rawData.filter(item => !item.property && item.status !== 'DELETED');
 
             const mappedData = adminPromotions.map(item => ({
                 id: item.promotionId,
@@ -362,8 +360,27 @@ const PromotionManager = () => {
         { key: "details", label: "Chi tiết giảm" },
         { key: "usageProgress", label: "Lượt sử dụng" },
         { key: "endDateDisplay", label: "Hết hạn" },
-        { key: "statusLabel", label: "Trạng thái" },
-        { key: "actions", label: "Hành động" },
+        {
+            key: "statusLabel",
+            label: "Trạng thái",
+            sortable: false,
+            isSortable: false,
+            disableSorting: true,
+            filterable: false,
+            hideMenu: true,
+            disableColumnMenu: true
+        },
+        // Action column defined by you
+        {
+            key: "actions",
+            label: "",
+            sortable: false,
+            isSortable: false,
+            disableSorting: true,
+            filterable: false,
+            hideMenu: true,
+            disableColumnMenu: true
+        },
     ];
 
     const handleCopy = (text) => showToast("success", `Đã copy mã: ${text}`);
@@ -390,12 +407,14 @@ const PromotionManager = () => {
     const handleConfirmDelete = async () => {
         if (deleteConfirm.promo) {
             try {
+                setPromotions(prev => prev.filter(p => p.id !== deleteConfirm.promo.id));
                 await promotionService.deletePromotion(deleteConfirm.promo.id);
                 await fetchPromotions();
                 showToast("success", "Đã xóa mã khuyến mãi thành công!");
             } catch (error) {
                 console.error(error);
                 showToast("error", error.response?.data?.message || "Lỗi khi xóa mã khuyến mãi");
+                await fetchPromotions();
             }
             setDeleteConfirm({ isOpen: false, promo: null });
         }
@@ -527,7 +546,8 @@ const PromotionManager = () => {
                 </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col relative [&_th:last-child]:hidden [&_td:last-child]:hidden">
+            {/* ✅ [FIX TRIỆT ĐỂ] Dùng CSS Selector để ẩn cột cuối (do Table.jsx sinh ra thừa) mà không sửa file gốc */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col relative [&_th:last-child]:!hidden [&_td:last-child:not(:only-child)]:!hidden">
                 {isLoading && (<div className="absolute inset-0 bg-white/80 z-10 flex items-center justify-center min-h-[400px]"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[rgb(40,169,224)]"></div></div>)}
                 {filteredPromotions.length > 0 ? (
                     <>
