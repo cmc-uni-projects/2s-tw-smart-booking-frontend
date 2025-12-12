@@ -203,7 +203,6 @@ const checkNameAvailability = async (propertyName) => {
 };
 const togglePropertyStatus = async (id) => {
   try {
-    // PATCH /api/v1/properties/{id}/status
     const response = await api.patch(`/properties/${id}/status`);
     return response.data;
   } catch (error) {
