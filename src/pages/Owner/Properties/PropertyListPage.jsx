@@ -8,6 +8,7 @@ import PropertyCard from "./components/PropertyCard";
 // Import Modals & Toast
 import ViewPropertyModal from "./components/ViewPropertyModal";
 import EditPropertyModal from "./components/EditPropertyModal";
+import DeactivateConfirmModal from "./components/DeactivateConfirmModal"; // ✅ Import Modal Xác nhận
 import Toast from "@/components/common/Notification/Toast"; 
 
 const PropertyListPage = () => {
@@ -17,15 +18,20 @@ const PropertyListPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("ALL");
 
-  // --- STATE PHÂN TRANG (Giống PromotionManager) ---
+  // --- STATE PHÂN TRANG ---
   const [currentPage, setCurrentPage] = useState(1);
-  const [jumpPage, setJumpPage] = useState(""); // State cho ô "Đi đến"
-  const ITEMS_PER_PAGE = 8; // Yêu cầu 8 thẻ/trang
+  const [jumpPage, setJumpPage] = useState(""); 
+  const ITEMS_PER_PAGE = 8; 
 
   // Modal & Toast State
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  
+  // ✅ Thêm State cho Modal Xác nhận Tắt
+  const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
+  const [propertyToDeactivate, setPropertyToDeactivate] = useState(null);
+
   const [toastData, setToastData] = useState(null);
 
   const showToast = (message, type = "info") => {
@@ -50,6 +56,56 @@ const PropertyListPage = () => {
     fetchProperties();
   }, []);
 
+  // --- 1. HÀM XỬ LÝ CLICK VÀO SWITCH ---
+  const handleToggleClick = (property) => {
+      // Nếu đang Hoạt động (Approved) mà bấm switch -> Tức là muốn TẮT -> Hiện Modal
+      if (property.propertyStatus === 'APPROVED' || property.propertyStatus === 'APPROVE') {
+          setPropertyToDeactivate(property);
+          setIsDeactivateModalOpen(true);
+      } else {
+          // Nếu đang Tắt mà bấm switch -> Tức là muốn BẬT -> Gọi API luôn
+          executeToggleStatus(property);
+      }
+  };
+
+  // --- 2. HÀM GỌI API THỰC SỰ (Dùng chung cho cả 2 trường hợp) ---
+  const executeToggleStatus = async (property) => {
+    try {
+        await propertyService.togglePropertyStatus(property.propertyId);
+        
+        // Cập nhật State cục bộ (Optimistic Update)
+        setProperties(prevProperties => 
+            prevProperties.map(p => 
+                p.propertyId === property.propertyId 
+                ? { ...p, propertyStatus: (p.propertyStatus === 'APPROVED' || p.propertyStatus === 'APPROVE') ? 'STOP_SELLING' : 'APPROVED' }
+                : p
+            )
+        );
+        
+        // Reload lại cho chắc chắn
+        fetchProperties();
+
+        // Thông báo
+        const isTurningOff = (property.propertyStatus === 'APPROVED' || property.propertyStatus === 'APPROVE');
+        showToast(
+            isTurningOff ? `Đã tạm ngưng hoạt động "${property.propertyName}"` : `Đã kích hoạt lại "${property.propertyName}"`, 
+            "success"
+        );
+    } catch (error) {
+        console.error("Lỗi khi cập nhật trạng thái:", error);
+        showToast("Không thể cập nhật trạng thái. Vui lòng thử lại!", "error");
+    }
+  };
+
+  // --- 3. HÀM XÁC NHẬN TỪ MODAL ---
+  const handleConfirmDeactivate = () => {
+      if (propertyToDeactivate) {
+          executeToggleStatus(propertyToDeactivate); // Gọi API
+          setIsDeactivateModalOpen(false);           // Đóng Modal
+          setPropertyToDeactivate(null);             // Clear state
+      }
+  };
+
   // --- LOGIC LỌC DỮ LIỆU ---
   const filteredProperties = useMemo(() => {
       return properties.filter(p => {
@@ -64,32 +120,27 @@ const PropertyListPage = () => {
       });
   }, [properties, searchTerm, filterStatus]);
 
-  // Reset về trang 1 khi search/filter thay đổi
   useMemo(() => {
     setCurrentPage(1);
   }, [searchTerm, filterStatus]);
 
-  // --- LOGIC PHÂN TRANG (Copy từ PromotionManager) ---
+  // --- LOGIC PHÂN TRANG ---
   const totalPages = Math.ceil(filteredProperties.length / ITEMS_PER_PAGE);
-  
   const paginatedProperties = useMemo(() => {
       const start = (currentPage - 1) * ITEMS_PER_PAGE;
       return filteredProperties.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProperties, currentPage]);
 
-  // Thuật toán hiển thị số trang (có dấu ...)
-  const getPaginationGroup = () => {
+  const getPaginationGroup = () => { /* ... Logic giữ nguyên ... */
       const delta = 1;
       const range = [];
       const rangeWithDots = [];
       let l;
-
       for (let i = 1; i <= totalPages; i++) {
           if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
               range.push(i);
           }
       }
-
       range.forEach(i => {
           if (l) {
               if (i - l === 2) rangeWithDots.push(l + 1);
@@ -98,7 +149,6 @@ const PropertyListPage = () => {
           rangeWithDots.push(i);
           l = i;
       });
-
       return rangeWithDots;
   };
 
@@ -110,17 +160,17 @@ const PropertyListPage = () => {
   };
 
   const handleJumpPage = (e) => {
-      if (e.key === 'Enter') {
-          const page = parseInt(jumpPage);
-          if (!isNaN(page) && page >= 1 && page <= totalPages) {
-              setCurrentPage(page);
-              setJumpPage("");
-              document.getElementById('property-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-      }
+    if (e.key === 'Enter') {
+        const page = parseInt(jumpPage);
+        if (!isNaN(page) && page >= 1 && page <= totalPages) {
+            setCurrentPage(page);
+            setJumpPage("");
+            document.getElementById('property-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
   };
 
-  // Handlers Modal
+  // Handlers Modal Xem/Sửa
   const handleViewProperty = (property) => {
       setSelectedProperty(property);
       setIsViewModalOpen(true);
@@ -139,6 +189,9 @@ const PropertyListPage = () => {
       setIsViewModalOpen(false);
       setIsEditModalOpen(false);
       setSelectedProperty(null);
+      // Đóng modal confirm nếu có
+      setIsDeactivateModalOpen(false);
+      setPropertyToDeactivate(null);
   };
 
   const stats = {
@@ -217,113 +270,64 @@ const PropertyListPage = () => {
         </div>
       ) : filteredProperties.length > 0 ? (
         <>
-            {/* GRID HIỂN THỊ */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                 {paginatedProperties.map((property) => (
                 <PropertyCard 
                     key={property.propertyId} 
                     property={property} 
                     onView={() => handleViewProperty(property)} 
-                    onEdit={() => handleEditProperty(property)} 
+                    onEdit={() => handleEditProperty(property)}
+                    onToggleStatus={() => handleToggleClick(property)} // ✅ Gọi hàm kiểm tra logic
                 />
                 ))}
             </div>
 
-            {/* ✅ THANH PHÂN TRANG (STYLE ADMIN PROMOTIONS) */}
+            {/* THANH PHÂN TRANG */}
             <div className="mt-8 pt-6 border-t border-gray-200 bg-white rounded-xl p-4 shadow-sm border">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    {/* Thông tin số lượng */}
                     <span className="text-sm text-gray-500">
                         Hiển thị <span className="font-semibold text-gray-700">{paginatedProperties.length}</span> / <span className="font-semibold text-gray-700">{filteredProperties.length}</span> kết quả
                     </span>
-
                     <div className="flex items-center gap-2">
-                        {/* Nút Prev */}
-                        <button 
-                            onClick={() => handlePageChange(currentPage - 1)} 
-                            disabled={currentPage === 1} 
-                            className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-                        >
+                        <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center">
                             <ChevronLeft size={18} />
                         </button>
-
-                        {/* Danh sách trang (1 ... 4 5 6 ... 10) */}
                         <div className="flex gap-1">
                             {getPaginationGroup().map((item, index) => (
-                                <button 
-                                    key={index} 
-                                    onClick={() => typeof item === 'number' && handlePageChange(item)} 
-                                    disabled={item === '...'} 
-                                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-all flex items-center justify-center 
-                                        ${item === currentPage 
-                                            ? 'bg-[rgb(40,169,224)] text-white shadow-sm' 
-                                            : item === '...' 
-                                                ? 'bg-transparent text-gray-400 cursor-default' 
-                                                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-                                        }`}
-                                >
-                                    {item}
-                                </button>
+                                <button key={index} onClick={() => typeof item === 'number' && handlePageChange(item)} disabled={item === '...'} className={`w-8 h-8 rounded-lg text-sm font-medium transition-all flex items-center justify-center ${item === currentPage ? 'bg-[rgb(40,169,224)] text-white shadow-sm' : item === '...' ? 'bg-transparent text-gray-400 cursor-default' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>{item}</button>
                             ))}
                         </div>
-
-                        {/* Nút Next */}
-                        <button 
-                            onClick={() => handlePageChange(currentPage + 1)} 
-                            disabled={currentPage === totalPages} 
-                            className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-                        >
+                        <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center">
                             <ChevronRight size={18} />
                         </button>
-
-                        {/* Ô nhập "Đi đến" */}
-                        <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200">
-                            <span className="text-sm text-gray-500 whitespace-nowrap">Đi đến:</span>
-                            <div className="relative">
-                                <input 
-                                    type="text" 
-                                    className="w-12 h-8 pl-2 pr-1 rounded-lg border border-gray-200 text-sm text-center focus:outline-none focus:border-[rgb(40,169,224)] focus:ring-1 focus:ring-[rgb(40,169,224)] transition-all" 
-                                    placeholder={currentPage} 
-                                    value={jumpPage} 
-                                    onChange={(e) => { 
-                                        const val = e.target.value; 
-                                        if (val === '' || /^[0-9]+$/.test(val)) setJumpPage(val); 
-                                    }} 
-                                    onKeyDown={handleJumpPage} 
-                                />
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
         </>
       ) : (
-        // Empty State
         <div className="flex flex-col items-center justify-center h-96 bg-white rounded-3xl border border-dashed border-gray-200 shadow-sm">
             <div className="bg-blue-50 p-6 rounded-full mb-6">
                <Building2 size={64} className="text-blue-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {searchTerm ? "Không tìm thấy kết quả" : "Bạn chưa có cơ sở lưu trú nào"}
-            </h3>
-            <p className="text-gray-500 mb-8 max-w-md text-center leading-relaxed">
-                {searchTerm 
-                    ? `Không tìm thấy khách sạn nào phù hợp với từ khóa "${searchTerm}".` 
-                    : "Hãy bắt đầu hành trình kinh doanh của bạn bằng cách đăng ký cơ sở lưu trú đầu tiên ngay hôm nay!"}
-            </p>
-            {!searchTerm && (
-                <Button onClick={() => navigate("/owner/properties/new")} className="shadow-lg shadow-blue-500/20">
-                    Đăng ký ngay
-                </Button>
-            )}
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{searchTerm ? "Không tìm thấy kết quả" : "Bạn chưa có cơ sở lưu trú nào"}</h3>
+            <p className="text-gray-500 mb-8 max-w-md text-center leading-relaxed">{searchTerm ? `Không tìm thấy khách sạn nào phù hợp.` : "Hãy bắt đầu hành trình kinh doanh của bạn!"}</p>
+            {!searchTerm && (<Button onClick={() => navigate("/owner/properties/new")} className="shadow-lg shadow-blue-500/20">Đăng ký ngay</Button>)}
         </div>
       )}
       </div>
 
       <ViewPropertyModal open={isViewModalOpen} onClose={closeModals} property={selectedProperty} />
       <EditPropertyModal open={isEditModalOpen} onClose={closeModals} property={selectedProperty} onSuccess={handleEditSuccess} showToast={showToast} />
+      
+      {/* ✅ RENDER MODAL XÁC NHẬN */}
+      <DeactivateConfirmModal 
+        isOpen={isDeactivateModalOpen}
+        onClose={() => setIsDeactivateModalOpen(false)}
+        onConfirm={handleConfirmDeactivate}
+        propertyName={propertyToDeactivate?.propertyName} // Giả định Modal nhận prop tên khách sạn
+        isLoading={loading}
+      />
     </div>
   );
 };
-
 export default PropertyListPage;
