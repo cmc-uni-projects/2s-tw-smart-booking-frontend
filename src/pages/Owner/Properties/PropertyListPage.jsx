@@ -8,6 +8,7 @@ import PropertyCard from "./components/PropertyCard";
 // Import Modals & Toast
 import ViewPropertyModal from "./components/ViewPropertyModal";
 import EditPropertyModal from "./components/EditPropertyModal";
+import DeactivateConfirmModal from "./components/DeactivateConfirmModal"; // ✅ Import Modal mới
 import Toast from "@/components/common/Notification/Toast"; 
 
 const PropertyListPage = () => {
@@ -19,14 +20,19 @@ const PropertyListPage = () => {
 
   // --- STATE PHÂN TRANG (Giống PromotionManager) ---
   const [currentPage, setCurrentPage] = useState(1);
-  const [jumpPage, setJumpPage] = useState(""); // State cho ô "Đi đến"
-  const ITEMS_PER_PAGE = 8; // Yêu cầu 8 thẻ/trang
+  const [jumpPage, setJumpPage] = useState(""); 
+  const ITEMS_PER_PAGE = 8; 
 
   // Modal & Toast State
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [toastData, setToastData] = useState(null);
+
+  // --- STATE MỚI CHO TÍNH NĂNG TẠM NGƯNG ---
+  const [deactivateModalOpen, setDeactivateModalOpen] = useState(false);
+  const [propertyToDeactivate, setPropertyToDeactivate] = useState(null);
+  const [isProcessingStatus, setIsProcessingStatus] = useState(false);
 
   const showToast = (message, type = "info") => {
       setToastData({ message, type });
@@ -69,7 +75,7 @@ const PropertyListPage = () => {
     setCurrentPage(1);
   }, [searchTerm, filterStatus]);
 
-  // --- LOGIC PHÂN TRANG (Copy từ PromotionManager) ---
+  // --- LOGIC PHÂN TRANG ---
   const totalPages = Math.ceil(filteredProperties.length / ITEMS_PER_PAGE);
   
   const paginatedProperties = useMemo(() => {
@@ -77,7 +83,6 @@ const PropertyListPage = () => {
       return filteredProperties.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProperties, currentPage]);
 
-  // Thuật toán hiển thị số trang (có dấu ...)
   const getPaginationGroup = () => {
       const delta = 1;
       const range = [];
@@ -120,7 +125,61 @@ const PropertyListPage = () => {
       }
   };
 
-  // Handlers Modal
+  // --- LOGIC BẬT/TẮT TRẠNG THÁI (MỚI) ---
+  const handleToggleStatusRequest = async (property) => {
+    if (property.active) {
+      // Đang bật -> Muốn tắt: Mở modal xác nhận
+      setPropertyToDeactivate(property);
+      setDeactivateModalOpen(true);
+    } else {
+      // Đang tắt -> Muốn bật: Gọi API luôn
+      await updatePropertyStatus(property.propertyId, true);
+    }
+  };
+
+  const updatePropertyStatus = async (id, isTurningOn) => {
+    try {
+      setIsProcessingStatus(true);
+      const res = await propertyService.togglePropertyStatus(id);
+      
+      // Cập nhật lại state properties
+      setProperties(prevProperties => 
+        prevProperties.map(p => {
+          if (p.propertyId === id) {
+            return { ...p, active: res.data }; 
+          }
+          return p;
+        })
+      );
+
+      showToast(isTurningOn 
+        ? "Đã mở lại kinh doanh cơ sở lưu trú!" 
+        : "Đã tạm ngưng kinh doanh thành công.", 
+        "success"
+      );
+
+      if (deactivateModalOpen) handleCloseDeactivateModal();
+
+    } catch (error) {
+      console.error(error);
+      showToast(error.message || "Lỗi khi cập nhật trạng thái", "error");
+    } finally {
+      setIsProcessingStatus(false);
+    }
+  };
+
+  const handleConfirmDeactivate = () => {
+    if (propertyToDeactivate) {
+      updatePropertyStatus(propertyToDeactivate.propertyId, false);
+    }
+  };
+
+  const handleCloseDeactivateModal = () => {
+    setDeactivateModalOpen(false);
+    setPropertyToDeactivate(null);
+  };
+
+  // Handlers Modal Edit/View cũ
   const handleViewProperty = (property) => {
       setSelectedProperty(property);
       setIsViewModalOpen(true);
@@ -224,21 +283,20 @@ const PropertyListPage = () => {
                     key={property.propertyId} 
                     property={property} 
                     onView={() => handleViewProperty(property)} 
-                    onEdit={() => handleEditProperty(property)} 
+                    onEdit={() => handleEditProperty(property)}
+                    onToggleStatus={handleToggleStatusRequest} // ✅ Truyền hàm toggle
                 />
                 ))}
             </div>
 
-            {/* ✅ THANH PHÂN TRANG (STYLE ADMIN PROMOTIONS) */}
+            {/* THANH PHÂN TRANG */}
             <div className="mt-8 pt-6 border-t border-gray-200 bg-white rounded-xl p-4 shadow-sm border">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    {/* Thông tin số lượng */}
                     <span className="text-sm text-gray-500">
                         Hiển thị <span className="font-semibold text-gray-700">{paginatedProperties.length}</span> / <span className="font-semibold text-gray-700">{filteredProperties.length}</span> kết quả
                     </span>
 
                     <div className="flex items-center gap-2">
-                        {/* Nút Prev */}
                         <button 
                             onClick={() => handlePageChange(currentPage - 1)} 
                             disabled={currentPage === 1} 
@@ -247,7 +305,6 @@ const PropertyListPage = () => {
                             <ChevronLeft size={18} />
                         </button>
 
-                        {/* Danh sách trang (1 ... 4 5 6 ... 10) */}
                         <div className="flex gap-1">
                             {getPaginationGroup().map((item, index) => (
                                 <button 
@@ -260,14 +317,13 @@ const PropertyListPage = () => {
                                             : item === '...' 
                                                 ? 'bg-transparent text-gray-400 cursor-default' 
                                                 : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-                                        }`}
+                                    }`}
                                 >
                                     {item}
                                 </button>
                             ))}
                         </div>
 
-                        {/* Nút Next */}
                         <button 
                             onClick={() => handlePageChange(currentPage + 1)} 
                             disabled={currentPage === totalPages} 
@@ -276,7 +332,6 @@ const PropertyListPage = () => {
                             <ChevronRight size={18} />
                         </button>
 
-                        {/* Ô nhập "Đi đến" */}
                         <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200">
                             <span className="text-sm text-gray-500 whitespace-nowrap">Đi đến:</span>
                             <div className="relative">
@@ -322,6 +377,15 @@ const PropertyListPage = () => {
 
       <ViewPropertyModal open={isViewModalOpen} onClose={closeModals} property={selectedProperty} />
       <EditPropertyModal open={isEditModalOpen} onClose={closeModals} property={selectedProperty} onSuccess={handleEditSuccess} showToast={showToast} />
+      
+      {/* ✅ Thêm Modal xác nhận ở cuối */}
+      <DeactivateConfirmModal 
+        isOpen={deactivateModalOpen}
+        onClose={handleCloseDeactivateModal}
+        onConfirm={handleConfirmDeactivate}
+        propertyName={propertyToDeactivate?.propertyName}
+        isLoading={isProcessingStatus}
+      />
     </div>
   );
 };
