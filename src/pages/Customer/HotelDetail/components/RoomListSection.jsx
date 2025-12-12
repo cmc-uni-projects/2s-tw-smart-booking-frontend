@@ -49,4 +49,5 @@ const RoomListSection = ({ rooms, onRoomInfoClick, onBookNow }) => {
     );
 };
 
+
 export default RoomListSection;
