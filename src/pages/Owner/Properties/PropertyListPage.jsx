@@ -58,12 +58,13 @@ const PropertyListPage = () => {
 
   // --- 1. HÀM XỬ LÝ CLICK VÀO SWITCH ---
   const handleToggleClick = (property) => {
-      // Nếu đang Hoạt động (Approved) mà bấm switch -> Tức là muốn TẮT -> Hiện Modal
-      if (property.propertyStatus === 'APPROVED' || property.propertyStatus === 'APPROVE') {
+      // ✅ SỬA LOGIC: Kiểm tra active
+      // Chỉ mở Modal khi đang HOẠT ĐỘNG (Approved + Active) và muốn tắt đi
+      // Nếu đang TẮT (Approved + Inactive) -> Bật lại luôn, không cần hỏi
+      if ((property.propertyStatus === 'APPROVED' || property.propertyStatus === 'APPROVE') && property.active) {
           setPropertyToDeactivate(property);
           setIsDeactivateModalOpen(true);
       } else {
-          // Nếu đang Tắt mà bấm switch -> Tức là muốn BẬT -> Gọi API luôn
           executeToggleStatus(property);
       }
   };
@@ -73,11 +74,11 @@ const PropertyListPage = () => {
     try {
         await propertyService.togglePropertyStatus(property.propertyId);
         
-        // Cập nhật State cục bộ (Optimistic Update)
+        // ✅ SỬA LOGIC: Cập nhật active thay vì propertyStatus
         setProperties(prevProperties => 
             prevProperties.map(p => 
                 p.propertyId === property.propertyId 
-                ? { ...p, propertyStatus: (p.propertyStatus === 'APPROVED' || p.propertyStatus === 'APPROVE') ? 'STOP_SELLING' : 'APPROVED' }
+                ? { ...p, active: !p.active } // Đảo ngược trạng thái active
                 : p
             )
         );
@@ -85,8 +86,10 @@ const PropertyListPage = () => {
         // Reload lại cho chắc chắn
         fetchProperties();
 
-        // Thông báo
-        const isTurningOff = (property.propertyStatus === 'APPROVED' || property.propertyStatus === 'APPROVE');
+        // ✅ SỬA LOGIC: Thông báo dựa trên trạng thái active CŨ
+        // Nếu active = true -> đang Tắt -> "Đã tạm ngưng"
+        // Nếu active = false -> đang Bật -> "Đã kích hoạt"
+        const isTurningOff = property.active; 
         showToast(
             isTurningOff ? `Đã tạm ngưng hoạt động "${property.propertyName}"` : `Đã kích hoạt lại "${property.propertyName}"`, 
             "success"
@@ -131,7 +134,7 @@ const PropertyListPage = () => {
       return filteredProperties.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProperties, currentPage]);
 
-  const getPaginationGroup = () => { /* ... Logic giữ nguyên ... */
+  const getPaginationGroup = () => {
       const delta = 1;
       const range = [];
       const rangeWithDots = [];
@@ -277,7 +280,7 @@ const PropertyListPage = () => {
                     property={property} 
                     onView={() => handleViewProperty(property)} 
                     onEdit={() => handleEditProperty(property)}
-                    onToggleStatus={() => handleToggleClick(property)} // ✅ Gọi hàm kiểm tra logic
+                    onToggleStatus={() => handleToggleClick(property)} // ✅ Kết nối sự kiện toggle
                 />
                 ))}
             </div>
@@ -319,12 +322,13 @@ const PropertyListPage = () => {
       <ViewPropertyModal open={isViewModalOpen} onClose={closeModals} property={selectedProperty} />
       <EditPropertyModal open={isEditModalOpen} onClose={closeModals} property={selectedProperty} onSuccess={handleEditSuccess} showToast={showToast} />
       
-      {/* ✅ RENDER MODAL XÁC NHẬN */}
+      {/* ✅ RENDER MODAL XÁC NHẬN - Sử dụng 'isOpen' */}
       <DeactivateConfirmModal 
-        open={isDeactivateModalOpen}
+        isOpen={isDeactivateModalOpen}
         onClose={() => setIsDeactivateModalOpen(false)}
         onConfirm={handleConfirmDeactivate}
-        propertyName={propertyToDeactivate?.propertyName} // Giả định Modal nhận prop tên khách sạn
+        propertyName={propertyToDeactivate?.propertyName}
+        isLoading={loading}
       />
     </div>
   );

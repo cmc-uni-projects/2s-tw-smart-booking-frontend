@@ -14,7 +14,6 @@ const getFullImageUrl = (url) => {
   return `${API_BASE_URL}${path}`;
 };
 
-// ✅ SỬA 1: Nhận thêm prop 'onToggleStatus'
 const PropertyCard = ({ property, onView, onEdit, onToggleStatus }) => {
   
   const isPending = property.propertyStatus === "PENDING";
@@ -22,15 +21,28 @@ const PropertyCard = ({ property, onView, onEdit, onToggleStatus }) => {
   const isApproved = property.propertyStatus === "APPROVED" || property.propertyStatus === "APPROVE";
   const isRejected = property.propertyStatus === "REJECTED";
   
-  // Trạng thái hiển thị trên Switch: Chỉ bật khi status là APPROVED hoặc APPROVE
-  const isSwitchOn = isApproved;
+  // ✅ SỬA 1: Switch chỉ bật khi đã duyệt (Approved) VÀ đang Active
+  const isSwitchOn = isApproved && property.active;
 
   // Logic click Edit
   const handleEditClick = () => {
-    // Cho phép sửa nếu không phải rejected (tùy logic bạn)
-    // Ở đây giữ logic cũ: chỉ Approved mới sửa, hoặc bạn có thể mở cho cả Pending
     if ((isApproved || isPending) && onEdit) {
       onEdit();
+    }
+  };
+
+  // Logic xử lý khi bấm vào Switch
+  const handleSwitchClick = (e) => {
+    e.preventDefault();   // Ngăn chặn hành vi mặc định
+    e.stopPropagation();  // Ngăn sự kiện lan ra thẻ cha (tránh mở trang detail)
+    
+    // Nếu đang Pending hoặc Rejected thì không cho bấm
+    if (isPending || isRejected) return;
+
+    // Gọi hàm toggle từ cha
+    if (onToggleStatus) {
+        console.log("Switch clicked for:", property.propertyName); // Log kiểm tra
+        onToggleStatus();
     }
   };
 
@@ -44,7 +56,7 @@ const PropertyCard = ({ property, onView, onEdit, onToggleStatus }) => {
       exit={{ opacity: 0, scale: 0.9 }}
       className="group bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
     >
-      {/* --- PHẦN 1: ẢNH BÌA (Giữ nguyên) --- */}
+      {/* --- PHẦN 1: ẢNH BÌA --- */}
       <div className="relative h-52 overflow-hidden bg-gray-100">
         {imageUrl ? (
           <img
@@ -62,23 +74,28 @@ const PropertyCard = ({ property, onView, onEdit, onToggleStatus }) => {
             <span className="text-xs font-medium">Không có ảnh bìa</span>
         </div>
         
-        {/* Badge trạng thái (Góc phải trên) */}
+        {/* Badge trạng thái */}
         <div className="absolute top-3 right-3 z-10">
             {isPending && (
                 <span className="bg-yellow-500/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center shadow-sm">
                     <Clock size={14} className="mr-1.5" /> Chờ duyệt
                 </span>
             )}
-            {/* Nếu đã duyệt thì trạng thái phụ thuộc vào switch (Hoạt động/Tạm ẩn) */}
-            {isApproved ? (
+            
+            {/* ✅ SỬA 2: Nếu Active = true -> Hiện "Đang hoạt động" */}
+            {isApproved && property.active && (
                 <span className="bg-green-500/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center shadow-sm">
                     <CheckCircle2 size={14} className="mr-1.5" /> Đang hoạt động
                 </span>
-            ) : property.propertyStatus === "STOP_SELLING" || property.propertyStatus === "INACTIVE" ? (
+            )}
+
+            {/* ✅ SỬA 3: Nếu Active = false -> Hiện "Tạm đóng" (Dù status vẫn là APPROVE) */}
+            {isApproved && !property.active && (
                  <span className="bg-gray-500/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center shadow-sm">
                     <AlertCircle size={14} className="mr-1.5" /> Tạm đóng
                 </span>
-            ) : null}
+            )}
+
              {isRejected && (
                 <span className="bg-red-500/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center shadow-sm">
                     <AlertCircle size={14} className="mr-1.5" /> Từ chối
@@ -86,7 +103,6 @@ const PropertyCard = ({ property, onView, onEdit, onToggleStatus }) => {
             )}
         </div>
         
-        {/* Rating (Góc trái dưới) */}
         <div className="absolute bottom-3 left-3 z-10">
              <div className="flex items-center bg-white/90 backdrop-blur-md text-gray-800 text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm">
                 <Star size={14} className="fill-yellow-400 text-yellow-400 mr-1" />
@@ -107,7 +123,7 @@ const PropertyCard = ({ property, onView, onEdit, onToggleStatus }) => {
           <span className="truncate">{property.address}, {property.city}</span>
         </div>
 
-        {/* ✅ UPDATE: Layout mới cho Type và Switch */}
+        {/* --- GRID THÔNG TIN VÀ SWITCH --- */}
         <div className="grid grid-cols-2 gap-px bg-gray-100 rounded-lg overflow-hidden mb-5 border border-gray-100">
              
              {/* Cột 1: Loại hình */}
@@ -118,28 +134,31 @@ const PropertyCard = ({ property, onView, onEdit, onToggleStatus }) => {
                 </p>
              </div>
 
-             {/* Cột 2: Switch Trạng thái (Thay thế cột Đánh giá) */}
-             <div className="bg-gray-50 p-2.5 flex flex-col justify-center items-center group-hover:bg-blue-50/30 transition-colors relative">
-                <p className="text-xs text-gray-500 mb-1.5">Trạng thái KS</p>
+             {/* Cột 2: Switch Trạng thái */}
+             <div 
+                className={`relative z-50 bg-gray-50 p-2.5 flex flex-col justify-center items-center transition-colors 
+                  ${(!isPending && !isRejected) ? 'cursor-pointer hover:bg-blue-50/30' : ''}`}
+                onClick={handleSwitchClick} // Bắt sự kiện click ngay tại ô này
+             >
+                <p className="text-xs text-gray-500 mb-1.5 select-none">Trạng thái KS</p>
                 
-                {/* --- Custom Compact Switch --- */}
                 {isPending || isRejected ? (
                    <span className="text-xs font-semibold text-gray-400 italic">
                       {isPending ? "Chờ duyệt" : "Bị từ chối"}
                    </span>
                 ) : (
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="sr-only peer" 
-                      checked={isSwitchOn}
-                      onChange={(e) => {
-                        e.stopPropagation(); // Ngăn click lan ra thẻ Card
-                        onToggleStatus && onToggleStatus(); 
-                      }}
+                  // Switch vẽ bằng div thuần túy
+                  <div className="relative inline-flex items-center pointer-events-none">
+                    {/* Phần nền (Track) */}
+                    <div className={`w-9 h-5 rounded-full transition-colors duration-200 ease-in-out border border-transparent
+                        ${isSwitchOn ? 'bg-[rgb(40,169,224)]' : 'bg-gray-300'}`} 
                     />
-                    <div className="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[rgb(40,169,224)]"></div>
-                  </label>
+                    
+                    {/* Phần nút tròn (Knob) */}
+                    <div className={`absolute left-[2px] top-[2px] bg-white h-4 w-4 rounded-full shadow-sm ring-0 transition-transform duration-200 ease-in-out
+                        ${isSwitchOn ? 'translate-x-4' : 'translate-x-0'}`} 
+                    />
+                  </div>
                 )}
              </div>
         </div>

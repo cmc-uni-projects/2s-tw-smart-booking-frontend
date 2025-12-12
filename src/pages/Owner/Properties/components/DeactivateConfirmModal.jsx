@@ -16,7 +16,7 @@ const DeactivateConfirmModal = ({ isOpen, onClose, onConfirm, propertyName, isLo
 
   return (
     <Modal
-      isOpen={isOpen}
+      open={isOpen}
       onClose={onClose}
       title="Xác nhận tạm ngưng kinh doanh"
       maxWidth="max-w-md"
