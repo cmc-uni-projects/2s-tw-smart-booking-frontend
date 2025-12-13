@@ -32,15 +32,16 @@ const PromoSlotDisplay = ({ promo, icon: Icon, colorClass, emptyText, onClick, i
 
     // 1. TRƯỜNG HỢP: ĐÃ CÓ MÃ
     if (promo) {
-        const DisplayIcon = isAdminPromo ? (
-            <div className={`${ICON_SIZE_CLASS} rounded-full flex items-center justify-center shrink-0 overflow-hidden bg-white border border-gray-100`}>
-                <img src={logoUrl} alt="Logo" className="w-full h-full object-contain p-0.5" />
-            </div>
-        ) : (
+        const DisplayIcon = (
             <div className={`${ICON_SIZE_CLASS} rounded-full ${colorClass} bg-opacity-20 flex items-center justify-center shrink-0`}>
-                <TicketPercent size={24} className={colorClass.replace('bg-', 'text-')} />
+                {isAdminPromo ? (
+                    <ShieldCheck size={24} className={colorClass.replace('bg-', 'text-')} />
+                ) : (
+                    <Store size={24} className={colorClass.replace('bg-', 'text-')} />
+                )}
             </div>
         );
+
 
         return (
             <div className={`border bg-opacity-5 rounded-xl p-3 flex items-center justify-between ${colorClass.replace('bg-', 'border-').replace('text-', 'border-')} bg-white shadow-sm`}>
