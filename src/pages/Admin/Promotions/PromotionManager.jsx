@@ -13,15 +13,21 @@ import {
     AlertTriangle, Clock, RotateCw, Image as ImageIcon
 } from "lucide-react";
 
-const BE_BASE_URL = "http://localhost:8386";
-const UPLOAD_DIR = "/uploads/";
+// ✅ R2 public base URL (đúng theo ảnh mày gửi)
+const R2_PUBLIC_BASE_URL = "https://pub-fed047aa2ebd4dcaad827464c190ea28.r2.dev";
 
 const getFullImageUrl = (path) => {
     if (!path) return null;
+
+    // Nếu BE đã trả full URL thì dùng luôn
     if (path.startsWith("http")) return path;
-    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-    return `${BE_BASE_URL}${UPLOAD_DIR}${cleanPath}`;
+
+    // BE trả relative path: campaign-images/xxx.webp
+    const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+
+    return `${R2_PUBLIC_BASE_URL}/${cleanPath}`;
 };
+
 
 const BannerImage = ({ url }) => {
     const [error, setError] = useState(false);
