@@ -5,11 +5,12 @@ import {
     Layers, Hash, CheckCircle2, AlertCircle, Clock, Calendar, Upload, Image as ImageIcon,
     Crown
 } from "lucide-react";
+import { format } from "date-fns"; // [NEW]
 import promotionService from "../../../../services/promotion.service";
 import toast from "react-hot-toast";
 import Toast from "@/components/common/Notification/Toast";
 import CustomSelect from "@/components/common/Select/CustomSelect";
-
+import DatePickerInput from "@/components/common/Input/DatePickerInput"; // [NEW]
 
 const BE_BASE_URL = "http://127.0.0.1:8386";
 const UPLOAD_DIR = "/uploads/";
@@ -31,6 +32,14 @@ const parseCurrency = (value) => {
     return value.replace(/\./g, "").replace(/\D/g, "");
 };
 
+// [NEW] Helper xử lý ngày giờ địa phương
+const parseDateLocal = (dateStr) => {
+    if (!dateStr) return null;
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return null;
+    const [y, m, d] = parts.map(Number);
+    return new Date(y, m - 1, d);
+};
 
 const CustomInput = ({ label, name, value, onChange, type = "text", placeholder, icon: Icon, error, disabled, className, ...props }) => {
     const inputRef = useRef(null);
@@ -50,7 +59,6 @@ const CustomInput = ({ label, name, value, onChange, type = "text", placeholder,
                         <Icon size={18} strokeWidth={isDateInput ? 2.5 : 2} />
                     </div>
                 )}
-                {/* SỬA: h-[42px] thay vì h-[46px] hay py-2.5 */}
                 <input ref={inputRef} type={type} name={name} value={value} onChange={onChange} disabled={disabled} placeholder={placeholder} {...props}
                        className={`w-full ${Icon ? 'pl-11' : 'px-4'} pr-4 h-[42px] bg-gray-50 border rounded-xl outline-none transition-all duration-200 ${error ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100 bg-red-50' : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white'} ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''} placeholder-gray-400 selection:bg-blue-100 [&::-webkit-calendar-picker-indicator]:hidden`} />
             </div>
@@ -136,6 +144,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                 setPromotionTypeOption(uiType);
                 setFormData({
                     ...rest,
+                    value: rest.value,
                     maxDiscount: (uiType === "PERCENTAGE_CAPPED") ? rest.maxDiscount : "",
                     startDate: normalizeDateTime(rest.startDate),
                     endDate: normalizeDateTime(rest.endDate),
@@ -366,7 +375,14 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian bắt đầu {errors.startDate && <span className="text-red-500">*</span>}</label>
                             <div className="flex gap-2 items-start">
-                                <div className="w-3/5"><CustomInput type="date" value={getSplitValue(formData.startDate, 'date')} onChange={(e) => handleSplitDateTimeChange('startDate', 'date', e.target.value)} icon={Calendar} error={!!errors.startDate} max="9999-12-31" /></div>
+                                {/* [FIX] DatePickerInput + minDate */}
+                                <div className="w-3/5">
+                                    <DatePickerInput 
+                                        value={parseDateLocal(getSplitValue(formData.startDate, 'date'))}
+                                        onChange={(date) => handleSplitDateTimeChange('startDate', 'date', format(date, 'yyyy-MM-dd'))}
+                                        minDate={new Date()} // Chặn quá khứ
+                                    />
+                                </div>
                                 <div className="w-2/5"><TimePicker value={getSplitValue(formData.startDate, 'time')} onChange={(newTime) => handleSplitDateTimeChange('startDate', 'time', newTime)} error={!!errors.startDate} /></div>
                             </div>
                             {errors.startDate && <p className="text-xs text-red-500 flex items-center gap-1 ml-1 mt-1"><AlertCircle size={12}/> {errors.startDate}</p>}
@@ -374,7 +390,14 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian kết thúc {errors.endDate && <span className="text-red-500">*</span>}</label>
                             <div className="flex gap-2 items-start">
-                                <div className="w-3/5"><CustomInput type="date" value={getSplitValue(formData.endDate, 'date')} onChange={(e) => handleSplitDateTimeChange('endDate', 'date', e.target.value)} icon={Calendar} error={!!errors.endDate} max="9999-12-31" /></div>
+                                {/* [FIX] DatePickerInput + minDate dynamic */}
+                                <div className="w-3/5">
+                                    <DatePickerInput 
+                                        value={parseDateLocal(getSplitValue(formData.endDate, 'date'))}
+                                        onChange={(date) => handleSplitDateTimeChange('endDate', 'date', format(date, 'yyyy-MM-dd'))}
+                                        minDate={parseDateLocal(getSplitValue(formData.startDate, 'date')) || new Date()} 
+                                    />
+                                </div>
                                 <div className="w-2/5"><TimePicker value={getSplitValue(formData.endDate, 'time')} onChange={(newTime) => handleSplitDateTimeChange('endDate', 'time', newTime)} error={!!errors.endDate} /></div>
                             </div>
                             {errors.endDate && <p className="text-xs text-red-500 flex items-center gap-1 ml-1 mt-1"><AlertCircle size={12}/> {errors.endDate}</p>}
