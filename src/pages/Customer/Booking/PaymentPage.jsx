@@ -7,7 +7,7 @@ import Card from '@/components/common/Card/Card';
 import Button from '@/components/common/Button/Button';
 import Divider from '@/components/common/Divider/Divider';
 import Spinner from '@/components/common/Loading/Spinner';
-import LoadingOverlay from '@/components/common/Loading/LoadingOverlay'; 
+import LoadingOverlay from '@/components/common/Loading/LoadingOverlay';
 import Modal from '@/components/common/Modal/Modal';
 import Toast from "@/components/common/Notification/Toast";
 import ToastPortal from "@/components/common/Notification/ToastPortal";
@@ -127,10 +127,12 @@ export default function PaymentPage() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // --- STATES ---
+    // ✅ [MỚI] Lấy giá chuẩn từ BookingPage (650k)
+    const { finalTotalPrice } = location.state || {};
+
     const [booking, setBooking] = useState(location.state?.booking || null);
-    
-    // [SỬA] Khởi tạo state code từ booking nếu có
+
+    // Khởi tạo state code từ booking nếu có
     const [adminPromoCode, setAdminPromoCode] = useState(booking?.adminPromotionCode || null);
     const [ownerPromoCode, setOwnerPromoCode] = useState(booking?.ownerPromotionCode || null);
 
@@ -151,13 +153,11 @@ export default function PaymentPage() {
         setTimeout(() => setToast({ show: false, msg: "", type: "info" }), 3000);
     };
 
-    // [MỚI] Đồng bộ state khi booking thay đổi (để cập nhật giao diện sau khi gọi API)
+    // Đồng bộ state khi booking thay đổi
     useEffect(() => {
         if (booking) {
             setAdminPromoCode(booking.adminPromotionCode || null);
             setOwnerPromoCode(booking.ownerPromotionCode || null);
-            // Lưu ý: adminDiscount/ownerDiscount hiển thị có thể = 0 nếu load lại trang,
-            // nhưng Tổng tiền (finalPrice) sẽ luôn đúng vì lấy từ server.
         }
     }, [booking]);
 
@@ -222,6 +222,16 @@ export default function PaymentPage() {
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
+    // ✅ Tính toán giá dựa trên logic mới
+    // Nếu có finalTotalPrice (650k) thì dùng nó làm gốc, nếu không thì dùng booking.totalPrice (150k)
+    // Tổng giá cuối cùng = Giá gốc - Giảm giá
+    // Lưu ý: booking.totalPrice trong DB có thể chưa bao gồm giá cuối tuần do BE chưa update
+    const basePrice = finalTotalPrice || (booking ? booking.totalPrice : 0);
+
+    // Tính lại giá sau khi trừ khuyến mãi (nếu có)
+    const finalPrice = Math.max(0, basePrice - adminDiscount - ownerDiscount);
+    const originalPrice = basePrice; // Tạm tính ban đầu
+
     const calculateDiscountValue = (promo, priceBasis) => {
         if (!promo) return 0;
         let amount = 0;
@@ -236,23 +246,14 @@ export default function PaymentPage() {
         return Math.round(amount);
     };
 
-    const finalPrice = booking ? booking.totalPrice : 0;
-    const totalDiscountAmount = booking ? (booking.discountAmount || 0) : 0;
-    const originalPrice = finalPrice + totalDiscountAmount;
-
-    // --- HANDLE APPLY ADMIN PROMO (SỬA LOGIC HỦY) ---
+    // --- HANDLE APPLY ADMIN PROMO ---
     const handleApplyAdmin = async (promo) => {
-        // [CASE HỦY MÃ] Khi ấn X hoặc chọn không dùng mã
         if (!promo) {
-            if (!adminPromoCode) return; // Nếu chưa có mã thì không cần hủy
-
+            if (!adminPromoCode) return;
             try {
                 setIsProcessing(true);
-                // Gọi API hủy mã
                 const updatedBooking = await bookingService.cancelPromotion(booking.bookingId, adminPromoCode);
                 setBooking(updatedBooking);
-
-                // Reset state hiển thị
                 setAdminPromoCode(null);
                 setAdminDiscount(0);
                 showToast("Đã hủy mã giảm giá TravelMate", "success");
@@ -265,13 +266,13 @@ export default function PaymentPage() {
             return;
         }
 
-        // [CASE ÁP DỤNG MÃ]
         try {
             setIsProcessing(true);
             const updatedBooking = await bookingService.applyPromotion(booking.bookingId, promo.code);
             setBooking(updatedBooking);
 
             setAdminPromoCode(promo.code);
+            // Tính discount dựa trên giá đã có cuối tuần
             const baseForAdmin = originalPrice - ownerDiscount;
             const discount = calculateDiscountValue(promo, baseForAdmin);
             setAdminDiscount(discount);
@@ -287,17 +288,14 @@ export default function PaymentPage() {
         }
     };
 
-    // --- HANDLE APPLY OWNER PROMO (SỬA LOGIC HỦY) ---
+    // --- HANDLE APPLY OWNER PROMO ---
     const handleApplyOwner = async (promo) => {
-        // [CASE HỦY MÃ]
         if (!promo) {
             if (!ownerPromoCode) return;
-
             try {
                 setIsProcessing(true);
                 const updatedBooking = await bookingService.cancelPromotion(booking.bookingId, ownerPromoCode);
                 setBooking(updatedBooking);
-
                 setOwnerPromoCode(null);
                 setOwnerDiscount(0);
                 showToast("Đã hủy voucher khách sạn", "success");
@@ -310,7 +308,6 @@ export default function PaymentPage() {
             return;
         }
 
-        // [CASE ÁP DỤNG MÃ]
         try {
             setIsProcessing(true);
             const updatedBooking = await bookingService.applyPromotion(booking.bookingId, promo.code);
@@ -326,6 +323,22 @@ export default function PaymentPage() {
             showToast(error.message || "Không thể áp dụng mã giảm giá này.", "error");
             setOwnerPromoCode(null);
             setOwnerDiscount(0);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    // ✅ Xử lý nút quay lại: Hủy booking để tránh lỗi trùng lịch
+    const handleGoBack = async () => {
+        if (!window.confirm("Bạn có chắc muốn quay lại? Đơn hàng hiện tại sẽ bị hủy để bạn đặt lại.")) return;
+
+        try {
+            setIsProcessing(true);
+            await bookingService.cancelBooking(bookingId, "Khách hàng quay lại sửa thông tin");
+            navigate(-1);
+        } catch (error) {
+            console.error("Lỗi hủy booking:", error);
+            navigate(-1);
         } finally {
             setIsProcessing(false);
         }
@@ -388,7 +401,9 @@ export default function PaymentPage() {
 
     if (loading) return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>;
     if (!booking) return null;
-    const finalAmountQR = booking.totalPrice;
+
+    // Dùng finalPrice (giá đã trừ KM) cho QR Code
+    const finalAmountQR = finalPrice;
 
     return (
         <main className="max-w-7xl mx-auto px-4 md:px-6 py-8 bg-gray-50 min-h-screen relative">
@@ -396,7 +411,8 @@ export default function PaymentPage() {
             <PaymentTimeoutModal open={isTimeoutOpen} onConfirm={handleTimeoutConfirm} />
 
             <div className="mb-6">
-                <Button variant="ghost" onClick={() => navigate(-1)} leftIcon={<ArrowLeft size={18} />} className="mb-2 pl-0 hover:bg-transparent text-gray-500 hover:text-blue-600">Quay lại</Button>
+                {/* ✅ Gọi hàm handleGoBack khi bấm quay lại */}
+                <Button variant="ghost" onClick={handleGoBack} leftIcon={<ArrowLeft size={18} />} className="mb-2 pl-0 hover:bg-transparent text-gray-500 hover:text-blue-600">Quay lại</Button>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Thanh toán đơn hàng</h1>
             </div>
 
@@ -428,6 +444,7 @@ export default function PaymentPage() {
                         ownerDiscount={ownerDiscount}
                     />
 
+                    {/* ✅ Hiển thị giá đã tính toán chính xác */}
                     <TotalPriceSection
                         originalPrice={originalPrice}
                         totalPrice={finalPrice}
