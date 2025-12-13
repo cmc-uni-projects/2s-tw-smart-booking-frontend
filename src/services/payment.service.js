@@ -8,7 +8,6 @@ const paymentService = {
   // ============================================================
 
   // 1. Khách hàng thanh toán
-  // [CẬP NHẬT] Thêm tham số promotionCode
   submitPayment: async (bookingId, note = "", promotionCode = null, method = "Online Banking") => {
     try {
       // Tạo object params cơ bản
@@ -31,10 +30,12 @@ const paymentService = {
     }
   },
 
-  // 2. Lịch sử giao dịch của User
-  getHistoryByUser: async (userId) => {
+  // 2. Lịch sử giao dịch của User (Bao gồm cả Refund)
+  // ✅ SỬA: Đổi tên hàm và Endpoint để khớp với Refunds.jsx và Backend
+  getMyTransactionHistory: async () => {
     try {
-      const response = await api.get(`/payments/user/${userId}`);
+      // Backend endpoint: /payments/my-history (Lấy user từ token)
+      const response = await api.get("/payments/my-history");
       return response.data;
     } catch (error) {
       console.error("Lỗi lấy lịch sử giao dịch:", error);

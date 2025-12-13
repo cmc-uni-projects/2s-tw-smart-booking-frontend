@@ -9,8 +9,6 @@ import ToastPortal from "@/components/common/Notification/ToastPortal";
 import TabsComponent from "@/components/common/Tabs/TabsComponent";
 import EmptyState from "@/components/common/EmptyState/EmptyState";
 import AccountMenu from "./AccountMenu";
-// Import BookingList (nếu bạn đã tách component này, hãy dùng đường dẫn đúng)
-// import BookingList from "./components/BookingList"; 
 
 // Modals
 import BookingDetailModal from "./BookingDetailModal";
@@ -21,11 +19,10 @@ import ReviewBookingModal from "./ReviewBookingModal";
 // Services & Context
 import bookingService from "@/services/booking.service";
 import paymentService from "@/services/payment.service";
-// Import đầy đủ các service rating
 import { createRating, getRatingByBooking, updateRating } from "@/services/rating.service";
 import { useAuth } from "@/context/AuthContext";
 
-// Component BookingCard (Giữ nguyên hoặc dùng từ file tách nếu có)
+// Component BookingCard
 import BookingCard from "./components/BookingCard"; 
 
 const TABS = [
@@ -44,7 +41,7 @@ export default function MyBookings() {
   const [toast, setToast] = useState({ show: false, msg: "", type: "info" });
   const [activeTab, setActiveTab] = useState("upcoming");
 
-  // ⭐ States cho Review
+  // States cho Review
   const [reviewMode, setReviewMode] = useState("create"); // 'create' | 'view'
   const [existingReview, setExistingReview] = useState(null);
 
@@ -107,18 +104,40 @@ export default function MyBookings() {
     setTimeout(() => setIsCancelModalOpen(true), 200);
   };
 
+  // ✅ SỬA LOGIC HỦY & CHUYỂN HOÀN TIỀN
   const handleConfirmCancel = async (booking, reason) => {
+    const targetBooking = booking || selectedBooking;
+    if (!targetBooking) return;
+
     try {
-      await bookingService.cancelBooking(booking.bookingId);
-      showToast("Hủy đặt phòng thành công!", "success");
-      fetchBookings();
+        // 1. Gọi API
+        await bookingService.cancelBooking(targetBooking.bookingId, reason);
+        showToast("Hủy đặt phòng thành công!", "success");
+
+        // 2. Refresh dữ liệu (Loading spinner sẽ hiện ra ở đây, chặn user click lung tung)
+        await fetchBookings();
+
+        // 3. Đóng modal hủy
+        setIsCancelModalOpen(false);
+
+        // 4. Xử lý hoàn tiền
+        const pStatus = targetBooking.paymentStatus;
+        // Kiểm tra kỹ các trạng thái có thể coi là đã thanh toán
+        const isPaid = pStatus === "APPROVED" || pStatus === "PAID" || pStatus === "COMPLETED";
+
+        if (isPaid) {
+            // Delay để modal hủy đóng hẳn rồi mới mở modal hoàn tiền
+            setTimeout(() => setIsRefundModalOpen(true), 500);
+        } else {
+            // ✅ NÊN DÙNG: Delay việc clear data để tránh modal bị giật cục khi đóng
+            setTimeout(() => setSelectedBooking(null), 300); 
+        }
+
     } catch (err) {
-      showToast(err.message || "Lỗi khi hủy đơn.", "error");
-    } finally {
-      setIsCancelModalOpen(false);
-      setSelectedBooking(null);
+        console.error("Cancel Error:", err);
+        showToast(err.response?.data?.message || err.message || "Lỗi khi hủy đơn.", "error");
     }
-  };
+};
 
   const handleOpenRefundModal = (booking) => {
     setSelectedBooking(booking);
@@ -126,37 +145,38 @@ export default function MyBookings() {
     setIsDetailModalOpen(false);
   };
 
+  // ✅ SỬA LOGIC GỬI YÊU CẦU HOÀN TIỀN
   const handleConfirmRefundRequest = async (bookingId, refundData) => {
+    if (!bookingId) return;
+
     try {
       await paymentService.requestRefund(bookingId, refundData);
       showToast("Đã gửi yêu cầu hoàn tiền thành công!", "success");
-      fetchBookings();
-    } catch (err) {
-      showToast(err.message || "Lỗi khi gửi yêu cầu.", "error");
-    } finally {
+      
+      await fetchBookings();
+      
+      // Xong xuôi thì mới đóng modal và reset booking
       setIsRefundModalOpen(false);
       setSelectedBooking(null);
+
+    } catch (err) {
+      showToast(err.response?.data?.message || err.message || "Lỗi khi gửi yêu cầu.", "error");
     }
   };
 
-  // ⭐ UPDATE: Hàm mở modal review, xử lý cả Create và View
+  // --- REVIEW HANDLERS ---
   const handleOpenReviewModal = async (booking) => {
     setSelectedBooking(booking);
     
-    // SỬA LẠI TÊN BIẾN: booking.reviewed
     const mode = booking.reviewed ? "view" : "create";
     setReviewMode(mode);
 
     if (mode === "view") {
       try {
-        // Gọi API lấy review cũ
         const res = await getRatingByBooking(booking.bookingId);
-        // Nếu API trả về Page/List thì lấy phần tử đầu tiên
-        // Đảm bảo lấy đúng object review từ response
         const reviewData = res.content ? res.content[0] : (Array.isArray(res) ? res[0] : res);
         
         if (!reviewData) {
-             // Nếu backend báo đã review nhưng ko tìm thấy data -> fallback về create
              console.warn("Backend says reviewed but no data found.");
              setReviewMode("create");
              setExistingReview(null);
@@ -166,17 +186,16 @@ export default function MyBookings() {
       } catch (err) {
         console.error("Lỗi tải đánh giá:", err);
         showToast("Không thể tải đánh giá cũ.", "error");
-        return; // Dừng nếu lỗi
+        return; 
       }
     } else {
       setExistingReview(null);
     }
 
-    setIsDetailModalOpen(false); // Nếu đang mở detail thì đóng lại
+    setIsDetailModalOpen(false); 
     setIsReviewModalOpen(true);
   };
 
-  // --- SUBMIT REVIEW (CREATE) ---
   const handleSubmitReview = async ({ rating, comment, files }) => {
     try {
       if (!selectedBooking || !currentUser) throw new Error("Thiếu thông tin.");
@@ -189,14 +208,13 @@ export default function MyBookings() {
       showToast("Cảm ơn bạn! Đánh giá đã được gửi thành công.", "success");
       setIsReviewModalOpen(false);
       setSelectedBooking(null);
-      fetchBookings(); // Tải lại để cập nhật reviewed = true
+      fetchBookings(); 
     } catch (err) {
       const uiMessage = err.response?.data?.message || err.message || "Gửi đánh giá thất bại.";
       throw new Error(uiMessage);
     }
   };
 
-  // ⭐ UPDATE: Hàm xử lý Update Review
   const handleUpdateReview = async (ratingId, { rating, comment, files }) => {
     try {
       await updateRating(ratingId, {
@@ -222,7 +240,6 @@ export default function MyBookings() {
         <div className="lg:col-span-3">
           <AccountMenu
             activeSection="my-bookings"
-            onSelect={(path) => navigate(`/customer/${path}`)}
             userData={currentUser}
           />
         </div>
@@ -263,14 +280,13 @@ export default function MyBookings() {
               </div>
             </div>
           ) : (
-            // Nếu bạn chưa tách component BookingList, dùng đoạn map này
             <div className="space-y-4">
               {filteredBookings.map((b) => (
                 <BookingCard
                   key={b.bookingId}
                   booking={b}
                   onClick={() => handleViewDetails(b)}
-                  onReviewClick={() => handleOpenReviewModal(b)} // Truyền trực tiếp booking, hàm handleOpen sẽ tự check mode
+                  onReviewClick={() => handleOpenReviewModal(b)} 
                 />
               ))}
             </div>
@@ -278,7 +294,7 @@ export default function MyBookings() {
         </div>
       </div>
 
-      {/* --- TOAST & MODALS --- */}
+      {/* --- TOAST --- */}
       <ToastPortal>
         {toast.show && (
           <div className="fixed bottom-6 left-1/2 z-[9999] -translate-x-1/2">
@@ -287,39 +303,53 @@ export default function MyBookings() {
         )}
       </ToastPortal>
 
+      {/* --- DETAIL MODAL --- */}
       <BookingDetailModal
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         booking={selectedBooking}
         onCancelClick={() => handleStartCancel(selectedBooking)}
         onRefundClick={() => handleOpenRefundModal(selectedBooking)}
-        // ⭐ SỬA: Không cần truyền tham số, để hàm handleOpenReviewModal tự check
         onReviewClick={() => handleOpenReviewModal(selectedBooking)} 
       />
 
+      {/* --- CANCEL MODAL --- */}
       <CancelBookingModal
         open={isCancelModalOpen}
-        onClose={() => setIsCancelModalOpen(false)}
-        onConfirm={(reason) => handleConfirmCancel(selectedBooking, reason)}
+        onClose={() => {
+            setIsCancelModalOpen(false);
+            // Chỉ reset khi đóng tay (không phải đang chuyển sang hoàn tiền)
+            if (!isRefundModalOpen) setSelectedBooking(null); 
+        }}
+        // Wrapper xử lý gộp lý do
+        onConfirm={async (reason, otherReason) => {
+            const finalReason = otherReason ? `${reason}: ${otherReason}` : reason;
+            await handleConfirmCancel(selectedBooking, finalReason);
+        }}
         booking={selectedBooking}
       />
 
+      {/* --- REFUND MODAL --- */}
       <RequestRefundModal
         isOpen={isRefundModalOpen}
-        onClose={() => setIsRefundModalOpen(false)}
-        onConfirm={(data) => handleConfirmRefundRequest(selectedBooking.bookingId, data)}
+        onClose={() => {
+            setIsRefundModalOpen(false);
+            setSelectedBooking(null); // Đóng xong mới reset
+        }}
+        // Gọi hàm với đúng 2 tham số: ID và Data
+        onConfirm={(data) => handleConfirmRefundRequest(selectedBooking?.bookingId, data)}
         booking={selectedBooking}
       />
 
-      {/* ⭐ REVIEW MODAL: Truyền đủ props mới */}
+      {/* --- REVIEW MODAL --- */}
       <ReviewBookingModal
         isOpen={isReviewModalOpen}
         onClose={() => setIsReviewModalOpen(false)}
         booking={selectedBooking}
-        onSubmit={handleSubmitReview} // Hàm tạo mới
-        onUpdate={handleUpdateReview} // Hàm cập nhật
-        mode={reviewMode}             // 'create' hoặc 'view'
-        initialData={existingReview}  // Dữ liệu cũ
+        onSubmit={handleSubmitReview} 
+        onUpdate={handleUpdateReview} 
+        mode={reviewMode}             
+        initialData={existingReview}  
       />
     </div>
   );

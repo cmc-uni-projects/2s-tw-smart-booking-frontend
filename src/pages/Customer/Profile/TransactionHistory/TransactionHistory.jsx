@@ -78,7 +78,6 @@ export default function TransactionHistory() {
                 <div className="lg:col-span-3">
                     <AccountMenu
                         activeSection="transactions" // Highlight menu item
-                        onSelect={(path) => navigate(`/customer/${path}`)}
                         userData={currentUser}
                     />
                 </div>
