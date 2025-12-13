@@ -107,7 +107,7 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
           ]);
 
           const data = detailRes.data;
-          setCurrentImages(imagesRes || []);
+          setCurrentImages(imagesRes?.data || []);
           setHasExistingPolicy(!!policyRes); // Nếu policyRes trả về data -> đã có policy
 
           // Map Amenities
@@ -364,10 +364,13 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
                  <Button 
                     type="button" 
                     size="sm" 
-                    variant="ghost" 
+                    variant="ghost"
                     onClick={() => {
-                        propertyService.getPropertyImages(property.propertyId).then(setCurrentImages);
+                        propertyService
+                            .getPropertyImages(property.propertyId)
+                            .then(res => setCurrentImages(res?.data || []));
                     }}
+
                  >
                     <RefreshCw size={16} />
                  </Button>
@@ -385,7 +388,7 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
                              className={`relative aspect-square w-full overflow-hidden rounded-xl shadow-sm group border-2 transition-all duration-200
                              ${img.isCover ? 'border-yellow-400 ring-2 ring-yellow-100' : 'border-gray-200 hover:border-blue-300'}`}>
                              
-                            <img src={getFullImageUrl(img.imageUrl)} alt="Property" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                            <img src={img.imageUrl} alt="Property" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                             
                             {img.isCover && (
                                 <div className="absolute top-2 left-2 bg-yellow-400 text-white p-1.5 rounded-full shadow-md z-10">

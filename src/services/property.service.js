@@ -1,7 +1,5 @@
 import api from "./axios.config.js";
 
-
-
 // ============================
 // 📤 SUBMIT PROPERTY APPLICATION
 // ============================
@@ -15,7 +13,6 @@ const submitPropertyApplication = async (formData) => {
     throw error.response?.data || error.message;
   }
 };
-
 
 const getOwnerActiveProperties = async () => {
   try {
@@ -31,13 +28,12 @@ const getOwnerActiveProperties = async () => {
 // ============================
 const searchProperties = async (keyword, guests, checkIn, checkOut) => {
   try {
-    // ✅ SỬA: Gửi thêm checkIn và checkOut
     const response = await api.get(`/properties/search`, {
-      params: { 
-        keyword: keyword || "", 
+      params: {
+        keyword: keyword || "",
         guests: guests || 1,
-        checkIn: checkIn || null,   // Thêm dòng này
-        checkOut: checkOut || null  // Thêm dòng này
+        checkIn: checkIn || null,
+        checkOut: checkOut || null
       },
     });
     return response.data;
@@ -72,15 +68,15 @@ const updateProperty = async (id, updatedData) => {
 };
 
 // ==========================================================
-// 🖼️ QUẢN LÝ HÌNH ẢNH (THEO CONTROLLER MỚI)
+// 🖼️ QUẢN LÝ HÌNH ẢNH (ĐÃ FIX THEO CONTROLLER MỚI)
 // ==========================================================
 
 // 1. Lấy danh sách ảnh
 const getPropertyImages = async (propertyId) => {
   try {
-    // GET /api/v1/propertyImage/{propertyId}
-    const response = await api.get(`/propertyImage/${propertyId}`);
-    return response.data; // Trả về List<PropertyImageResponseDTO>
+    // GET /api/v1/property-images/{propertyId}
+    const response = await api.get(`/property-images/${propertyId}`);
+    return response.data;
   } catch (error) {
     console.error("Error fetching images:", error);
     throw error;
@@ -90,13 +86,13 @@ const getPropertyImages = async (propertyId) => {
 // 2. Upload nhiều ảnh
 const uploadPropertyImages = async (propertyId, formData) => {
   try {
-    // POST /api/v1/propertyImage/upload-multiple/{propertyId}
+    // POST /api/v1/property-images/{propertyId}/upload
     const response = await api.post(
-      `/propertyImage/upload-multiple/${propertyId}`,
-      formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      }
+        `/property-images/${propertyId}/upload`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
     );
     return response.data;
   } catch (error) {
@@ -108,8 +104,8 @@ const uploadPropertyImages = async (propertyId, formData) => {
 // 3. Xóa ảnh
 const deletePropertyImage = async (propertyId, imageId) => {
   try {
-    // DELETE /api/v1/propertyImage/delete/{propertyId}/{imageId}
-    const response = await api.delete(`/propertyImage/delete/${propertyId}/${imageId}`);
+    // DELETE /api/v1/property-images/{propertyId}/{imageId}
+    const response = await api.delete(`/property-images/${propertyId}/${imageId}`);
     return response.data;
   } catch (error) {
     console.error("Error deleting image:", error);
@@ -120,11 +116,10 @@ const deletePropertyImage = async (propertyId, imageId) => {
 // 4. Đặt ảnh bìa
 const setCoverImage = async (propertyId, imageId) => {
   try {
-    // ⚠️ Lưu ý: Controller của bạn đang là @PutMapping("/{imageId}/set-cover")
-    // nhưng lại yêu cầu @PathVariable propertyId. 
-    // Code dưới đây giả định bạn sẽ sửa backend thành @PutMapping("/{propertyId}/{imageId}/set-cover")
-    // Nếu không sửa backend, code này sẽ lỗi 404 hoặc 400.
-    const response = await api.put(`/propertyImage/${propertyId}/${imageId}/set-cover`);
+    // PUT /api/v1/property-images/{propertyId}/{imageId}/cover
+    const response = await api.put(
+        `/property-images/${propertyId}/${imageId}/cover`
+    );
     return response.data;
   } catch (error) {
     console.error("Error setting cover image:", error);
@@ -132,7 +127,9 @@ const setCoverImage = async (propertyId, imageId) => {
   }
 };
 
-//Lấy chi tiết thông tin cơ sở
+// ============================
+// 🏨 LẤY CHI TIẾT PROPERTY
+// ============================
 const getPropertyDetail = async (id, checkIn, checkOut) => {
   try {
     const response = await api.get(`/properties/${id}`, {
@@ -146,8 +143,9 @@ const getPropertyDetail = async (id, checkIn, checkOut) => {
     throw error.response?.data || error.message;
   }
 };
+
 // ============================
-// 🗺️ TÌM KHÁCH SẠN QUANH ĐÂY (MAP EXPLORE) -> [MỚI THÊM]
+// 🗺️ TÌM KHÁCH SẠN GẦN ĐÂY
 // ============================
 const findNearbyProperties = async (lat, lng, radius = 10) => {
   try {
@@ -160,7 +158,10 @@ const findNearbyProperties = async (lat, lng, radius = 10) => {
     return [];
   }
 };
-//Thêm chính sách cho property
+
+// ============================
+// 📜 POLICY
+// ============================
 const addPropertyPolicies = async (propertyId, policyData) => {
   try {
     const response = await api.post(`/properties/${propertyId}/policies`, policyData);
@@ -169,21 +170,21 @@ const addPropertyPolicies = async (propertyId, policyData) => {
     throw error.response?.data || error.message;
   }
 };
+
 const getPropertyPolicies = async (propertyId) => {
   try {
     const response = await api.get(`/properties/${propertyId}/policies`);
     return response.data;
   } catch (error) {
-    // Nếu chưa có policy (404), trả về null thay vì throw lỗi để UI không bị crash
     if (error.response && error.response.status === 404) {
       return null;
     }
     throw error;
   }
 };
+
 const updatePropertyPolicies = async (propertyId, policyData) => {
   try {
-    // PUT /api/v1/properties/{propertyId}/policies
     const response = await api.put(`/properties/${propertyId}/policies`, policyData);
     return response.data;
   } catch (error) {
@@ -201,6 +202,7 @@ const checkNameAvailability = async (propertyName) => {
     throw error;
   }
 };
+
 const togglePropertyStatus = async (id) => {
   try {
     const response = await api.patch(`/properties/${id}/status`);
@@ -210,7 +212,6 @@ const togglePropertyStatus = async (id) => {
   }
 };
 
-
 // ==========================================================
 // 📦 EXPORT
 // ==========================================================
@@ -219,18 +220,18 @@ const propertyService = {
   getOwnerProperties,
   getPropertyDetail,
   updateProperty,
-  getPropertyImages,   
+  getPropertyImages,
   uploadPropertyImages,
-  deletePropertyImage,  
+  deletePropertyImage,
   setCoverImage,
   getOwnerActiveProperties,
   submitPropertyApplication,
   findNearbyProperties,
   addPropertyPolicies,
-  getPropertyPolicies,  
+  getPropertyPolicies,
   updatePropertyPolicies,
   checkNameAvailability,
-  togglePropertyStatus,   
+  togglePropertyStatus,
 };
 
 export default propertyService;
