@@ -14,12 +14,23 @@ const formatCurrency = (val, type) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 };
 
+const R2_PUBLIC_URL = "https://pub-fed047aa2ebd4dcaad827464c190ea28.r2.dev";
+
 const getImageUrl = (path) => {
-    if (!path) return "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=80";
-    if (path.startsWith("http")) return path;
-    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-    return `${BE_BASE_URL}${UPLOAD_DIR}${cleanPath}`;
+    if (!path) {
+        return "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=80";
+    }
+
+    // Nếu BE đã trả full URL (chuẩn REST)
+    if (path.startsWith("http")) {
+        return path;
+    }
+
+    // Path tương đối -> ảnh nằm trên Cloudflare R2
+    const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+    return `${R2_PUBLIC_URL}/${cleanPath}`;
 };
+
 
 // ==========================================
 // COMPONENT 1: Countdown Timer (Minimalist)
@@ -63,7 +74,7 @@ const PromoListItem = memo(({ promo, isActive, onClick }) => {
     return (
         <div
             onClick={onClick}
-            className={`group relative p-4 cursor-pointer transition-all duration-300 rounded-2xl border flex gap-4 items-center overflow-hidden
+            className={`group relative p-4 cursor-pointer transition-all duration-300 rounded-md border flex gap-4 items-center overflow-hidden
                 ${isActive
                     ? 'bg-white border-blue-500/30 shadow-[0_8px_30px_rgb(0,0,0,0.06)] scale-[1.02]'
                     : 'bg-white/40 hover:bg-white border-transparent hover:border-blue-100 hover:shadow-md'
@@ -121,7 +132,7 @@ const HeroBanner = ({ promo, onAction }) => {
     useEffect(() => setAnimKey(prev => prev + 1), [promo.id]);
 
     return (
-        <div className="relative h-full w-full rounded-[2.5rem] overflow-hidden shadow-2xl group cursor-pointer" onClick={() => onAction(promo)}>
+        <div className="relative h-full w-full rounded-xl overflow-hidden shadow-2xl group cursor-pointer" onClick={() => onAction(promo)}>
             {/* Background Image with Ken Burns Effect */}
             <div key={`bg-${animKey}`} className="absolute inset-0 animate-fade-zoom">
                 <img
@@ -272,12 +283,12 @@ const PromotionBanner = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:h-[580px]">
 
                 {/* LEFT: Hero (7 columns) */}
-                <div className="lg:col-span-8 h-[450px] lg:h-full order-1">
+                <div className="lg:col-span-8 h-[380px] lg:h-[520px] order-1">
                     <HeroBanner promo={promotions[activeIndex]} onAction={handleExplore} />
                 </div>
 
                 {/* RIGHT: List (5 columns) */}
-                <div className="lg:col-span-4 h-full flex flex-col gap-3 order-2 overflow-y-auto pr-1">
+                <div className="lg:col-span-4 flex flex-col gap-4 order-2 pr-1">
                     <div className="flex items-center justify-between mb-2 px-1">
                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Danh sách ưu đãi</h3>
                         <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
