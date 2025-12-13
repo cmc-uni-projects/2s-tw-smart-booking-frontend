@@ -21,13 +21,17 @@ import bookingService from "@/services/booking.service";
 import paymentService from "@/services/payment.service";
 import './PaymentPage.css';
 
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
+const R2_PUBLIC_URL = "https://pub-fed047aa2ebd4dcaad827464c190ea28.r2.dev";
+
 const getFullImageUrl = (path) => {
-    if (!path) return "https://via.placeholder.com/300x200?text=No+Image";
+    if (!path) return "https://via.placeholder.com/150x100?text=No+Image";
+
+    // Backend đã trả full URL (Cloudinary / R2)
     if (path.startsWith("http")) return path;
-    let cleanPath = path.startsWith('/') ? path : `/${path}`;
-    if (!cleanPath.startsWith('/uploads')) cleanPath = `/uploads${cleanPath}`;
-    return `${BASE_URL}${cleanPath}`;
+
+    // Path tương đối → Cloudflare R2
+    const cleanPath = path.replace(/^\/+/, "");
+    return `${R2_PUBLIC_URL}/${cleanPath}`;
 };
 
 const PaymentSummary = ({ booking }) => {
@@ -39,8 +43,8 @@ const PaymentSummary = ({ booking }) => {
 
     return (
         <Card className="p-0 overflow-hidden border border-gray-200 shadow-xl sticky top-24">
-            <div className="relative h-48 w-full group overflow-hidden">
-                <img src={getFullImageUrl(propertyImage)} alt={propertyName} className="w-full h-full object-cover" />
+            <div className="relative h-48 w-full group overflow-hidden rounded-md">
+                <img src={getFullImageUrl(propertyImage)} alt={propertyName} className="w-full h-full object-cover rounded-md" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
                 <div className="absolute bottom-0 left-0 p-4 text-white w-full">
                     <h4 className="font-bold text-xl leading-tight shadow-black drop-shadow-md">{propertyName}</h4>
