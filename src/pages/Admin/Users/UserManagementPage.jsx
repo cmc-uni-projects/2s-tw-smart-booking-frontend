@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
-// ✅ SỬA: Dùng react-hot-toast thay vì react-toastify
-import toast from "react-hot-toast";
+// ✅ IMPORT CHÍNH XÁC file notification.jsx vừa tạo
+import { notify } from "./components/notification";
+
 import UserStats from "./components/UserStats";
 import UserFilterBar from "./components/UserFilterBar";
 import UserTable from "./components/UserTable";
@@ -49,7 +50,8 @@ export default function UserManagementPage() {
             }
         } catch (error) {
             console.error("Failed to fetch users:", error);
-            toast.error("Không thể tải danh sách người dùng");
+            // ✅ Gọi notify lỗi
+            notify.error("Không thể tải danh sách người dùng", "Lỗi kết nối");
         } finally {
             setIsLoading(false);
         }
@@ -81,11 +83,12 @@ export default function UserManagementPage() {
 
         try {
             await adminService.updateUserStatus(userId, newStatus);
-            toast.success(`Đã ${actionName} tài khoản thành công`);
+            // ✅ Gọi notify thành công
+            notify.success(`Tài khoản đã được ${actionName}`, "Cập nhật thành công");
             fetchUsers();
         } catch (error) {
             console.error("Error updating status:", error);
-            toast.error("Lỗi cập nhật trạng thái");
+            notify.error("Vui lòng thử lại sau", "Lỗi cập nhật trạng thái");
         }
     };
 
@@ -93,11 +96,11 @@ export default function UserManagementPage() {
         if(!window.confirm("Hành động này không thể hoàn tác. Bạn chắc chắn muốn xóa user này?")) return;
         try {
             await adminService.deleteUser(userId);
-            toast.success("Đã xóa người dùng");
+            notify.success("Dữ liệu người dùng đã được xóa", "Đã xóa thành công");
             fetchUsers();
         } catch (error) {
             console.error("Error deleting user:", error);
-            toast.error("Không thể xóa người dùng này");
+            notify.error("User này có thể đang có dữ liệu ràng buộc", "Không thể xóa");
         }
     };
 
@@ -119,7 +122,7 @@ export default function UserManagementPage() {
                 onSearchChange={handleSearchChange}
                 roleFilter={roleFilter}
                 onRoleFilterChange={handleRoleChange}
-                onAddUser={() => toast("Tính năng đang phát triển", { icon: 'ℹ️' })}
+                onAddUser={() => notify.info("Tính năng thêm user đang được phát triển", "Thông báo")}
             />
 
             <UserTable

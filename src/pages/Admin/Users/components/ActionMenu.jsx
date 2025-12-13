@@ -1,41 +1,45 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { Edit, Lock, Unlock, Trash2 } from "lucide-react";
 
-// ✅ Thêm prop 'isLocked' để biết trạng thái hiện tại
 export default function ActionMenu({ onEdit, onLock, onDelete, isLocked }) {
     return (
-        <div className="flex justify-end gap-2">
-            {/* Nút Sửa */}
+        // ✅ SỬA: justify-end -> justify-center để căn giữa
+        <div className="flex justify-center gap-2">
             <button
                 onClick={onEdit}
                 className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                title="Chỉnh sửa thông tin"
+                title="Sửa thông tin"
             >
                 <Edit size={16} />
             </button>
 
-            {/* Nút Khóa / Mở khóa (Logic động) */}
             <button
                 onClick={onLock}
                 className={`p-2 rounded-lg transition-colors ${
                     isLocked
-                        ? "text-orange-500 hover:text-orange-600 hover:bg-orange-50" // Đã khóa -> Hiện màu cam
-                        : "text-gray-400 hover:text-red-500 hover:bg-red-50"         // Chưa khóa -> Hover màu đỏ
+                        ? "text-orange-500 hover:bg-orange-50"
+                        : "text-gray-400 hover:text-orange-600 hover:bg-orange-50"
                 }`}
-                title={isLocked ? "Mở khóa tài khoản" : "Khóa tài khoản"}
+                title={isLocked ? "Mở khóa" : "Khóa"}
             >
-                {/* Nếu đã khóa thì hiện icon Mở, ngược lại hiện icon Khóa */}
                 {isLocked ? <Unlock size={16} /> : <Lock size={16} />}
             </button>
 
-            {/* Nút Xóa */}
             <button
                 onClick={onDelete}
                 className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                title="Xóa vĩnh viễn"
+                title="Xóa user"
             >
                 <Trash2 size={16} />
             </button>
         </div>
     );
 }
+
+ActionMenu.propTypes = {
+    onEdit: PropTypes.func,
+    onLock: PropTypes.func,
+    onDelete: PropTypes.func,
+    isLocked: PropTypes.bool
+};
