@@ -16,13 +16,14 @@ import {
 import Button from "@/components/common/Button/Button";
 
 // Helper lấy ảnh
-const API_BASE_URL = "http://localhost:8386";
-const getImageUrl = (path) => {
-  if (!path) return "https://via.placeholder.com/300x200?text=No+Image";
-  if (path.startsWith("http")) return path;
-  return `${API_BASE_URL}/${path}`;
-};
+const R2_PUBLIC_URL = "https://pub-fed047aa2ebd4dcaad827464c190ea28.r2.dev";
+const FALLBACK_IMAGE = "https://via.placeholder.com/300x200?text=Hotel";
 
+const getImageUrl = (path) => {
+  if (!path) return FALLBACK_IMAGE;
+  if (path.startsWith("http")) return path;
+  return `${R2_PUBLIC_URL}/${path.replace(/^\/+/, "")}`;
+};
 const BookingCard = ({ booking, onClick, onReviewClick }) => {
 
   // ==================================================================
