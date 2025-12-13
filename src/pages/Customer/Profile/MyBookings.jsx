@@ -107,40 +107,37 @@ export default function MyBookings() {
   // ✅ SỬA LOGIC HỦY & CHUYỂN HOÀN TIỀN
   const handleConfirmCancel = async (booking, reason) => {
     const targetBooking = booking || selectedBooking;
-
     if (!targetBooking) return;
 
     try {
-      // 1. Gọi API với lý do hủy
-      await bookingService.cancelBooking(targetBooking.bookingId, reason);
-      
-      showToast("Hủy đặt phòng thành công!", "success");
-      
-      // 2. Refresh dữ liệu để cập nhật trạng thái
-      await fetchBookings();
+        // 1. Gọi API
+        await bookingService.cancelBooking(targetBooking.bookingId, reason);
+        showToast("Hủy đặt phòng thành công!", "success");
 
-      // 3. Đóng modal hủy
-      setIsCancelModalOpen(false);
+        // 2. Refresh dữ liệu (Loading spinner sẽ hiện ra ở đây, chặn user click lung tung)
+        await fetchBookings();
 
-      // 4. Kiểm tra xem có cần hoàn tiền không (PaymentStatus = APPROVED)
-      // Lưu ý: Backend trả về "APPROVED" khi đã thanh toán thành công
-      const pStatus = targetBooking.paymentStatus;
-      const isPaid = pStatus === "APPROVED" || pStatus === "PAID" || pStatus === "COMPLETED";
-      
-      if (isPaid) {
-          // Nếu đã thanh toán: Mở modal hoàn tiền sau 0.5s
-          // QUAN TRỌNG: Không set selectedBooking = null ở đây để modal sau dùng lại
-          setTimeout(() => setIsRefundModalOpen(true), 500);
-      } else {
-          // Nếu chưa thanh toán: Reset dữ liệu luôn
-          setSelectedBooking(null);
-      }
+        // 3. Đóng modal hủy
+        setIsCancelModalOpen(false);
+
+        // 4. Xử lý hoàn tiền
+        const pStatus = targetBooking.paymentStatus;
+        // Kiểm tra kỹ các trạng thái có thể coi là đã thanh toán
+        const isPaid = pStatus === "APPROVED" || pStatus === "PAID" || pStatus === "COMPLETED";
+
+        if (isPaid) {
+            // Delay để modal hủy đóng hẳn rồi mới mở modal hoàn tiền
+            setTimeout(() => setIsRefundModalOpen(true), 500);
+        } else {
+            // ✅ NÊN DÙNG: Delay việc clear data để tránh modal bị giật cục khi đóng
+            setTimeout(() => setSelectedBooking(null), 300); 
+        }
+
     } catch (err) {
-      console.error("Cancel Error:", err);
-      showToast(err.response?.data?.message || err.message || "Lỗi khi hủy đơn.", "error");
-      // Giữ modal mở để user biết lỗi (hoặc đóng tùy logic của bạn)
+        console.error("Cancel Error:", err);
+        showToast(err.response?.data?.message || err.message || "Lỗi khi hủy đơn.", "error");
     }
-  };
+};
 
   const handleOpenRefundModal = (booking) => {
     setSelectedBooking(booking);
