@@ -8,12 +8,15 @@ import {
 import Button from "@/components/common/Button/Button"; // Đảm bảo đường dẫn import đúng
 
 // --- HELPER XỬ LÝ ẢNH ---
-const API_BASE_URL = "http://localhost:8386";
+const R2_PUBLIC_URL = "https://pub-fed047aa2ebd4dcaad827464c190ea28.r2.dev";
+const FALLBACK_IMAGE = "https://via.placeholder.com/800x400?text=Hotel";
+
 const getImageUrl = (path) => {
-  if (!path) return "https://via.placeholder.com/800x400?text=No+Image";
+  if (!path) return FALLBACK_IMAGE;
   if (path.startsWith("http")) return path;
-  return `${API_BASE_URL}/${path}`;
+  return `${R2_PUBLIC_URL}/${path.replace(/^\/+/, "")}`;
 };
+
 
 const BookingDetailModal = ({
   isOpen,
