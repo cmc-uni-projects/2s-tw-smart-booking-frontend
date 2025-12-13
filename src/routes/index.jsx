@@ -8,7 +8,7 @@ import customerRoutes from "./CustomerRoutes";
 import adminRoutes from "./AdminRoutes";
 import ownerRoutes from "./OwnerRoutes";
 
-// AUTH SCREENS
+// AUTH SCREENS (Sử dụng alias @)
 import Login from "@/pages/Auth/Login";
 import Register from "@/pages/Auth/Register";
 import ForgotPassword from "@/pages/Auth/ForgotPassword";
@@ -26,8 +26,8 @@ const AppRoutes = () => {
     return (
         <Routes>
             {/* =========================================================
-          AUTHENTICATION ROUTES
-      ========================================================= */}
+                AUTHENTICATION ROUTES
+            ========================================================= */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -35,17 +35,16 @@ const AppRoutes = () => {
             <Route path="/verify-email" element={<VerifyEmail />} />
 
             {/* =========================================================
-          DEV TOOLS & POLICY
-      ========================================================= */}
+                DEV TOOLS & POLICY
+            ========================================================= */}
             <Route path="/components" element={<ComponentsPreview />} />
             <Route path="/owner/terms-of-service" element={<TermsOfService />} />
             <Route path="/owner/partner-policy" element={<PartnerPolicy />} />
 
             {/* =========================================================
-          CUSTOMER ROUTES
-          (Bao gồm: Trang chủ, Tìm kiếm, Đặt phòng, Profile,
-           và tính năng KHUYẾN MÃI mới thêm)
-      ========================================================= */}
+                CUSTOMER ROUTES
+                (Map qua mảng customerRoutes để render)
+            ========================================================= */}
             {customerRoutes.map((route, index) => (
                 <Route
                     key={`customer-${index}`}
@@ -55,10 +54,9 @@ const AppRoutes = () => {
             ))}
 
             {/* =========================================================
-          ADMIN ROUTES
-          (Bao gồm: Dashboard, Duyệt khách sạn, Quản lý giao dịch,
-           Quản lý khuyến mãi)
-      ========================================================= */}
+                ADMIN ROUTES
+                (Đã bao gồm UserManagementPage vừa thêm trong AdminRoutes.jsx)
+            ========================================================= */}
             {adminRoutes.map((route, index) => (
                 <Route
                     key={`admin-${index}`}
@@ -68,9 +66,8 @@ const AppRoutes = () => {
             ))}
 
             {/* =========================================================
-          OWNER ROUTES
-          (Bao gồm: Dashboard, Quản lý tài sản, Phòng, Booking)
-      ========================================================= */}
+                OWNER ROUTES
+            ========================================================= */}
             {ownerRoutes.map((route, index) => (
                 <Route
                     key={`owner-${index}`}
@@ -80,9 +77,9 @@ const AppRoutes = () => {
             ))}
 
             {/* =========================================================
-          FALLBACK (404)
-          Chuyển hướng về trang chủ nếu không tìm thấy route
-      ========================================================= */}
+                FALLBACK (404)
+                Chuyển hướng về trang chủ nếu không tìm thấy route
+            ========================================================= */}
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     );

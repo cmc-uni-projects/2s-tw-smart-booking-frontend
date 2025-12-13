@@ -1,18 +1,18 @@
-// ❌ Không cần import { Routes, Route, Navigate } ở đây
+import React from "react";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminLayout from "../layouts/AdminLayout/AdminLayout";
 import AdminDashboard from "../pages/Admin/Dashboard/AdminDashboard";
 import PendingApprovalsPage from "../pages/Admin/Hotels/PendingApprovalsPage";
 import HotelSubmissionsPage from "../pages/Admin/Hotels/HotelSubmissionsPage";
-import RefundManagementPage from "../pages/Admin/Transactions/RefundManagementPage"; 
-
-// 👇 (Mới từ nhánh của bạn) Import Component Quản lý Khuyến mãi
+import RefundManagementPage from "../pages/Admin/Transactions/RefundManagementPage";
 import PromotionManager from "../pages/Admin/Promotions/PromotionManager";
 
-// 👇 (Mới từ nhánh develop) Import Component Quản lý Giao dịch
-import TransactionManagementPage from "@/pages/Admin/Transactions/TransactionManagementPage";
+// 👇 (Mới) Import trang Quản lý Người dùng
+import UserManagementPage from "../pages/Admin/Users/UserManagementPage";
 
-// ✅ Chuyển đổi const AdminRoutes = () => { ... } thành một mảng:
+// 👇 Import Component Quản lý Giao dịch (đảm bảo đường dẫn đúng với alias @ hoặc tương đối)
+import TransactionManagementPage from "../pages/Admin/Transactions/TransactionManagementPage";
+
 const adminRoutes = [
     {
         path: "/admin",
@@ -44,11 +44,24 @@ const adminRoutes = [
             </AdminLayout>
         ),
     },
+    // 👇 ROUTE MỚI CHO QUẢN LÝ NGƯỜI DÙNG
+    {
+        path: "/admin/users",
+        element: (
+            <AdminLayout>
+                <ProtectedRoute requiredRole="ADMIN">
+                    <UserManagementPage />
+                </ProtectedRoute>
+            </AdminLayout>
+        ),
+    },
     {
         path: "/admin/transactions",
         element: (
             <AdminLayout>
-                <TransactionManagementPage />
+                <ProtectedRoute requiredRole="ADMIN">
+                    <TransactionManagementPage />
+                </ProtectedRoute>
             </AdminLayout>
         ),
     },
@@ -62,16 +75,16 @@ const adminRoutes = [
             </AdminLayout>
         ),
     },
-  {
-    path: "/admin/refunds",
-    element: (
-      <AdminLayout>
-        <ProtectedRoute requiredRole="ADMIN">
-          <RefundManagementPage /> {/* Trang xử lý hoàn tiền */}
-        </ProtectedRoute>
-      </AdminLayout>
-    ),
-  },
+    {
+        path: "/admin/refunds",
+        element: (
+            <AdminLayout>
+                <ProtectedRoute requiredRole="ADMIN">
+                    <RefundManagementPage />
+                </ProtectedRoute>
+            </AdminLayout>
+        ),
+    },
 ];
 
-export default adminRoutes; // ✅ Export mảng
+export default adminRoutes;
