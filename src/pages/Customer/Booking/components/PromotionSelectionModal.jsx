@@ -8,16 +8,19 @@ import { TicketPercent, Calendar, CheckCircle2 } from 'lucide-react';
 // ====================================================================
 // CẤU HÌNH & UTILS
 // ====================================================================
-const TRAVEL_MATE_LOGO_PUBLIC_PATH = "/assets/logo_promption/1.jpg";
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
+const R2_PUBLIC_URL = "https://pub-fed047aa2ebd4dcaad827464c190ea28.r2.dev";
 
 const getFullImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/150x100?text=No+Image";
+
+    // Backend đã trả full URL (Cloudinary / R2)
     if (path.startsWith("http")) return path;
-    let cleanPath = path.startsWith('/') ? path : `/${path}`;
-    if (!cleanPath.startsWith('/uploads')) cleanPath = `/uploads${cleanPath}`;
-    return `${BASE_URL}${cleanPath}`;
+
+    // Path tương đối → Cloudflare R2
+    const cleanPath = path.replace(/^\/+/, "");
+    return `${R2_PUBLIC_URL}/${cleanPath}`;
 };
+
 
 // ====================================================================
 // SUB-COMPONENT: MỘT DÒNG KHUYẾN MÃI
