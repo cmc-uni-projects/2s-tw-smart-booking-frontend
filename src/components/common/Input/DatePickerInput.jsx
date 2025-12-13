@@ -1,3 +1,4 @@
+// src/components/common/Input/DatePickerInput.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { Calendar as CalendarIcon, ChevronDown } from 'lucide-react';
 import { Calendar } from 'react-date-range';
@@ -6,10 +7,8 @@ import { format } from 'date-fns';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 
-/**
- * DatePickerInput (đã fix icon + bold + z-index + disabled)
- */
-const DatePickerInput = ({ label, value, onChange, error, disabled = false }) => {
+// [CẬP NHẬT] Thêm props minDate, maxDate để nhận từ cha
+const DatePickerInput = ({ label, value, onChange, error, disabled = false, minDate, maxDate }) => {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef(null);
 
@@ -30,7 +29,7 @@ const DatePickerInput = ({ label, value, onChange, error, disabled = false }) =>
     "border border-gray-300 shadow-sm",
     "focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
     "sm:text-sm",
-    "pl-12 pr-10", // icon spacing chuẩn
+    "pl-12 pr-10", 
     disabled
       ? "bg-gray-100 cursor-not-allowed text-gray-500"
       : "cursor-pointer hover:border-blue-400 transition"
@@ -45,8 +44,7 @@ const DatePickerInput = ({ label, value, onChange, error, disabled = false }) =>
       )}
 
       <div className="relative" ref={ref}>
-
-        {/* ICON LỊCH - fix che khuất bằng z-20 */}
+        {/* ICON LỊCH */}
         <div className="absolute inset-y-0 left-0 flex items-center pl-3 z-20 pointer-events-none">
           <CalendarIcon size={18} className="text-gray-400" />
         </div>
@@ -83,7 +81,10 @@ const DatePickerInput = ({ label, value, onChange, error, disabled = false }) =>
               }}
               color="#006494"
               dateDisplayFormat="dd/MM/yyyy"
-              maxDate={new Date()}
+              // [QUAN TRỌNG] Bỏ maxDate={new Date()} cố định
+              // Sử dụng props truyền vào (nếu có)
+              minDate={minDate} 
+              maxDate={maxDate} 
             />
           </div>
         )}
