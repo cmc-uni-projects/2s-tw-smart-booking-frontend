@@ -13,18 +13,21 @@ const OwnerNotificationDropdown = () => {
     
     const dropdownRef = useRef(null);
 
-    // --- 1. Gọi API lấy dữ liệu ---
+    // --- 1. Gọi API lấy dữ liệu (Scope: OWNER) ---
     const fetchNotifications = async () => {
-        // Chỉ hiện loading lần đầu nếu chưa có dữ liệu
+        // Chỉ hiện loading lần đầu nếu chưa có dữ liệu để tránh flicker khi polling
         if (notifications.length === 0) setLoading(true);
         
         try {
-            const data = await notificationService.getNotifications(0, 5); // Lấy 5 tin mới nhất
+            // [QUAN TRỌNG] Thêm tham số 'OWNER' vào đây
+            const data = await notificationService.getNotifications(0, 5, 'OWNER'); 
             
             // Backend trả về map: { content: [], unreadCount: ... }
             if (data) {
                 setNotifications(data.content || []);
-                setUnreadCount(data.unreadCount || 0);
+                // Nếu API trả về unreadCount thì dùng, không thì tính thủ công từ list (tạm thời)
+                // Tuy nhiên tốt nhất là nên có API getUnreadCount('OWNER') riêng để chính xác
+                setUnreadCount(data.unreadCount !== undefined ? data.unreadCount : (data.content || []).filter(n => !n.read && !n.isRead).length);
             }
         } catch (error) {
             console.error("Failed to load notifications");
@@ -36,7 +39,19 @@ const OwnerNotificationDropdown = () => {
     // --- 2. Polling: Tự động cập nhật mỗi 60s ---
     useEffect(() => {
         fetchNotifications();
-        const interval = setInterval(fetchNotifications, 60000); 
+        // Cập nhật số lượng chưa đọc riêng biệt để icon chuông luôn đúng
+        const fetchCount = async () => {
+            try {
+                const count = await notificationService.getUnreadCount('OWNER');
+                setUnreadCount(count);
+            } catch (e) {}
+        };
+        fetchCount();
+
+        const interval = setInterval(() => {
+            fetchNotifications();
+            fetchCount();
+        }, 60000); 
         return () => clearInterval(interval);
     }, []);
 
@@ -57,32 +72,41 @@ const OwnerNotificationDropdown = () => {
         
         // Cập nhật UI trước cho mượt (Optimistic UI)
         setUnreadCount(0);
-        setNotifications(prev => prev.map(n => ({ ...n, read: true }))); // Lưu ý field 'read' hoặc 'isRead' tùy JSON
+        setNotifications(prev => prev.map(n => ({ ...n, read: true, isRead: true })));
 
-        // Gọi API sau
-        await notificationService.markAllAsRead();
-        fetchNotifications(); // Refresh lại cho chắc
+        // [QUAN TRỌNG] Gọi API với scope OWNER
+        await notificationService.markAllAsRead('OWNER');
+        
+        // Refresh lại dữ liệu thật từ server
+        setTimeout(fetchNotifications, 500); 
     };
 
     const handleNotificationClick = async (notification) => {
         // Nếu chưa đọc thì đánh dấu đã đọc
-        if (!notification.read && !notification.isRead) {
+        const isRead = notification.read || notification.isRead;
+        if (!isRead) {
             await notificationService.markAsRead(notification.id);
             setUnreadCount(prev => Math.max(0, prev - 1));
             setNotifications(prev => 
                 prev.map(n => n.id === notification.id ? { ...n, read: true, isRead: true } : n)
             );
         }
-        // Đóng dropdown (hoặc điều hướng nếu cần)
-        // setOpen(false); 
     };
 
     // --- 4. Helper hiển thị ---
     const getIcon = (type) => {
         switch (type) {
+            case 'BOOKING_RECEIVED': 
+            case 'PAYOUT_SUCCESS': 
             case 'SUCCESS': return <CheckCircle size={18} className="text-green-500" />;
-            case 'WARNING': return <AlertTriangle size={18} className="text-orange-500" />;
-            case 'ERROR': return <XCircle size={18} className="text-red-500" />;
+            
+            case 'BOOKING_CANCELLED_BY_GUEST': 
+            case 'ERROR': 
+            case 'REJECTION': return <XCircle size={18} className="text-red-500" />;
+            
+            case 'WARNING': 
+            case 'PROPERTY_SUSPENDED': return <AlertTriangle size={18} className="text-orange-500" />;
+            
             default: return <Info size={18} className="text-blue-500" />;
         }
     };
@@ -123,7 +147,7 @@ const OwnerNotificationDropdown = () => {
                     
                     {/* Header */}
                     <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between bg-white sticky top-0 z-10">
-                        <h3 className="font-bold text-gray-800">Thông báo</h3>
+                        <h3 className="font-bold text-gray-800">Thông báo kinh doanh</h3>
                         {unreadCount > 0 && (
                             <button 
                                 onClick={handleMarkAllRead}

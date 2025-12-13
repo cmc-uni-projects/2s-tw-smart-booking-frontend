@@ -5,12 +5,13 @@ import {
     Layers, Hash, CheckCircle2, AlertCircle, Clock, Calendar, Upload, Image as ImageIcon,
     Building, Home
 } from "lucide-react";
+import { format } from "date-fns"; // [NEW] Import format date
 import promotionService from "@/services/promotion.service";
 import propertyService from "@/services/property.service";
 import toast from "react-hot-toast";
 import Toast from "@/components/common/Notification/Toast";
 import CustomSelect from "@/components/common/Select/CustomSelect";
-
+import DatePickerInput from "@/components/common/Input/DatePickerInput"; // [NEW] Import DatePickerInput
 
 const BE_BASE_URL = "http://localhost:8386";
 const UPLOAD_DIR = "/uploads/";
@@ -32,6 +33,14 @@ const parseCurrency = (value) => {
     return value.replace(/\./g, "").replace(/\D/g, "");
 };
 
+// [NEW] Hàm helper để parse string yyyy-MM-dd thành Date object theo giờ địa phương
+const parseDateLocal = (dateStr) => {
+    if (!dateStr) return null;
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return null;
+    const [y, m, d] = parts.map(Number);
+    return new Date(y, m - 1, d);
+};
 
 const CustomInput = ({ label, name, value, onChange, type = "text", placeholder, icon: Icon, error, disabled, className, ...props }) => {
     const inputRef = useRef(null);
@@ -166,7 +175,6 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                     startDate: normalizeDateTime(startDate),
                     endDate: normalizeDateTime(endDate),
                     isActive: isActive !== undefined ? isActive : true,
-                    // măặc dinhj bronze
                     minMembershipRank: minMembershipRank || "BRONZE"
                 });
 
@@ -179,7 +187,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                 setFormData({
                     code: "", name: "", value: "", quantity: 100, minOrder: 0, maxDiscount: "",
                     startDate: "", endDate: "", isActive: true,
-                    minMembershipRank: "BRONZE" // Mặc định Bronze
+                    minMembershipRank: "BRONZE" 
                 });
                 setPreviewUrl(null);
                 setSelectedProperty("ALL");
@@ -529,7 +537,14 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian bắt đầu {errors.startDate && <span className="text-red-500">*</span>}</label>
                             <div className="flex gap-2 items-start">
-                                <div className="w-3/5"><CustomInput type="date" value={getSplitValue(formData.startDate, 'date')} onChange={(e) => handleSplitDateTimeChange('startDate', 'date', e.target.value)} icon={Calendar} error={!!errors.startDate} max="9999-12-31" /></div>
+                                {/* [FIX] Dùng DatePickerInput cho trải nghiệm tốt hơn & chặn quá khứ */}
+                                <div className="w-3/5">
+                                    <DatePickerInput 
+                                        value={parseDateLocal(getSplitValue(formData.startDate, 'date'))}
+                                        onChange={(date) => handleSplitDateTimeChange('startDate', 'date', format(date, 'yyyy-MM-dd'))}
+                                        minDate={new Date()} // Chặn chọn quá khứ
+                                    />
+                                </div>
                                 <div className="w-2/5"><TimePicker value={getSplitValue(formData.startDate, 'time')} onChange={(newTime) => handleSplitDateTimeChange('startDate', 'time', newTime)} error={!!errors.startDate} /></div>
                             </div>
                             {errors.startDate && <p className="text-xs text-red-500 mt-1 ml-1">{errors.startDate}</p>}
@@ -537,7 +552,14 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian kết thúc {errors.endDate && <span className="text-red-500">*</span>}</label>
                             <div className="flex gap-2 items-start">
-                                <div className="w-3/5"><CustomInput type="date" value={getSplitValue(formData.endDate, 'date')} onChange={(e) => handleSplitDateTimeChange('endDate', 'date', e.target.value)} icon={Calendar} error={!!errors.endDate} max="9999-12-31" /></div>
+                                {/* [FIX] Dùng DatePickerInput & logic chặn ngày kết thúc < ngày bắt đầu */}
+                                <div className="w-3/5">
+                                    <DatePickerInput 
+                                        value={parseDateLocal(getSplitValue(formData.endDate, 'date'))}
+                                        onChange={(date) => handleSplitDateTimeChange('endDate', 'date', format(date, 'yyyy-MM-dd'))}
+                                        minDate={parseDateLocal(getSplitValue(formData.startDate, 'date')) || new Date()} 
+                                    />
+                                </div>
                                 <div className="w-2/5"><TimePicker value={getSplitValue(formData.endDate, 'time')} onChange={(newTime) => handleSplitDateTimeChange('endDate', 'time', newTime)} error={!!errors.endDate} /></div>
                             </div>
                             {errors.endDate && <p className="text-xs text-red-500 mt-1 ml-1">{errors.endDate}</p>}

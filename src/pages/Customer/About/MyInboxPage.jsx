@@ -4,37 +4,40 @@ import { useAuth } from '../../../context/AuthContext';
 import { 
   CheckCircle2, XCircle, Bell, X, Search, 
   MoreVertical, Mail, Trash2,
-  AlertTriangle 
-} from 'lucide-react';
+  AlertTriangle, CreditCard, RefreshCw, Star 
+} from 'lucide-react'; // Import thêm icon phù hợp
 import inboxIllustration from '../../../assets/logo/inbox-illustration.png';
 import { useNavigate } from 'react-router-dom';
 import { authService } from "@/services/auth.service";
+import notificationService from "@/services/notification.service"; 
 import Button from "@/components/common/Button/Button";
+import Toast from "@/components/common/Notification/Toast";
+import ToastPortal from "@/components/common/Notification/ToastPortal";
 
-const DUMMY_NOTIFICATIONS = [
-  { id: 1, type: 'APPVAL', title: 'Yêu cầu được duyệt', message: "Yêu cầu 'Trở thành chủ khách sạn' của bạn đã được phê duyệt.", createdAt: '2025-11-13T09:30:00Z', isRead: false },
-  { id: 2, type: 'REJECTION', title: 'Yêu cầu bị từ chối', message: "Yêu cầu thêm khách sạn 'Khách sạn Sông Hàn' đã bị từ chối.", createdAt: '2025-11-12T15:00:00Z', isRead: true },
-  { id: 3, type: 'GENERAL', title: 'Chào mừng đến với TravelMate', message: 'Cảm ơn bạn đã đăng ký tài khoản.', createdAt: '2025-11-11T10:00:00Z', isRead: true },
-  ...Array.from({ length: 20 }, (_, i) => ({
-    id: i + 4,
-    type: ['APPROVAL', 'REJECTION', 'GENERAL'][i % 3],
-    title: `Thông báo số ${i + 4}`,
-    message: `Nội dung chi tiết của thông báo số ${i + 4}.`,
-    createdAt: '2025-11-06T09:00:00Z',
-    isRead: i % 2 === 0
-  }))
-];
-
+// [CẬP NHẬT] Mapping các Enum mới của Customer
 const typeToVietnamese = {
-  'APPROVAL': 'duyệt',
-  'REJECTION': 'từ chối',
-  'GENERAL': 'chung'
+  'GENERAL': 'Thông báo chung',
+  'ACCOUNT_UPDATE': 'Tài khoản',
+  'SECURITY_ALERT': 'Bảo mật',
+  'BOOKING_SUCCESS': 'Đặt phòng thành công',
+  'BOOKING_CANCELLED': 'Đã hủy phòng',
+  'BOOKING_FAILED': 'Đặt phòng thất bại',
+  'PAYMENT_SUCCESS': 'Thanh toán thành công',
+  'REFUND_PROCESSED': 'Hoàn tiền',
+  'PROMOTION': 'Khuyến mãi',
+  'REMINDER_CHECKIN': 'Nhắc nhở',
+  'APPROVAL': 'Đơn được duyệt',
+  'REJECTION': 'Đơn bị từ chối'
 };
 
 const formatTimeAgo = (dateString) => {
+  if (!dateString) return "";
   const date = new Date(dateString);
   const now = new Date();
   const seconds = Math.floor((now - date) / 1000);
+  
+  if (seconds < 0) return "Vừa xong";
+  
   let interval = seconds / 31536000;
   if (interval > 1) return Math.floor(interval) + " năm trước";
   interval = seconds / 2592000;
@@ -48,10 +51,28 @@ const formatTimeAgo = (dateString) => {
   return "Vài giây trước";
 };
 
+// [CẬP NHẬT] Icon tương ứng với từng loại thông báo
 const getNotificationIcon = (type) => {
   switch (type) {
-    case 'APPROVAL': return { icon: <CheckCircle2 size={18} />, class: "text-green-500" };
-    case 'REJECTION': return { icon: <XCircle size={18} />, class: "text-red-500" };
+    case 'APPROVAL': 
+    case 'BOOKING_SUCCESS':
+    case 'PAYMENT_SUCCESS':
+      return { icon: <CheckCircle2 size={18} />, class: "text-green-500" };
+    
+    case 'REJECTION': 
+    case 'BOOKING_CANCELLED':
+    case 'BOOKING_FAILED':
+      return { icon: <XCircle size={18} />, class: "text-red-500" };
+      
+    case 'REFUND_PROCESSED':
+      return { icon: <RefreshCw size={18} />, class: "text-purple-500" };
+
+    case 'PROMOTION':
+      return { icon: <Star size={18} />, class: "text-yellow-500" };
+
+    case 'SECURITY_ALERT':
+      return { icon: <AlertTriangle size={18} />, class: "text-orange-500" };
+
     default: return { icon: <Bell size={18} />, class: "text-blue-500" };
   }
 };
@@ -63,36 +84,83 @@ const MyInboxPage = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [totalPages, setTotalPages] = useState(1);
+  
   const [selectedNoti, setSelectedNoti] = useState(null);
   const [filter, setFilter] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState(''); 
   const [currentSearchTerm, setCurrentSearchTerm] = useState(''); 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const itemsPerPage = 10; 
+  
   const [openMenuId, setOpenMenuId] = useState(null);
   const [notificationToDelete, setNotificationToDelete] = useState(null);
   const [isRefreshingRole, setIsRefreshingRole] = useState(false);
 
+  const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+
   const activeFilterClass = "bg-[rgb(40,169,224)] text-white hover:bg-[#1b98d6]";
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filter, searchTerm]); 
+  const showToast = (message, type = 'info') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, show: false }));
+    }, 3000);
+  };
 
+  // --- 1. CALL API LẤY DANH SÁCH ---
   useEffect(() => {
-    const fetchNotifications = () => {
+    const fetchNotifications = async () => {
       if (!currentUser) return;
       setLoading(true);
+      setError(null);
       try {
-        setNotifications(DUMMY_NOTIFICATIONS);
+        // [QUAN TRỌNG] Thêm tham số 'CUSTOMER' vào hàm getNotifications
+        const data = await notificationService.getNotifications(currentPage - 1, itemsPerPage, 'CUSTOMER');
+        
+        if (data && data.content) {
+            setNotifications(data.content);
+            setTotalPages(data.totalPages || 1);
+        } else {
+            setNotifications([]);
+        }
       } catch (err) {
+        console.error("Lỗi tải thông báo:", err);
         setError("Không thể tải thông báo. Vui lòng thử lại sau.");
       } finally {
         setLoading(false);
       }
     };
     fetchNotifications();
-  }, [currentUser]);
+  }, [currentUser, currentPage]); 
+
+  // --- 2. XỬ LÝ ACTION ---
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      // [QUAN TRỌNG] Chỉ đánh dấu đã đọc cho Customer Scope
+      await notificationService.markAllAsRead('CUSTOMER');
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true, read: true })));
+      showToast("Đã đánh dấu tất cả là đã đọc", "success");
+    } catch (error) {
+      showToast("Có lỗi xảy ra khi cập nhật", "error");
+    }
+  };
+
+  const handleMarkAsReadSingle = async (noti) => {
+    const isRead = noti.isRead !== undefined ? noti.isRead : noti.read;
+    if (isRead) return; 
+
+    try {
+        // Đánh dấu lẻ thì không cần scope, chỉ cần ID
+        await notificationService.markAsRead(noti.id);
+        setNotifications(prev => prev.map(n => 
+            n.id === noti.id ? { ...n, isRead: true, read: true } : n
+        ));
+    } catch (error) {
+        console.error("Lỗi đánh dấu đã đọc", error);
+    }
+  };
 
   const handleAccessOwnerChannel = async () => {
     setIsRefreshingRole(true);
@@ -110,21 +178,16 @@ const MyInboxPage = () => {
           const userForContext = {
             ...currentUser,
             userId: backendUser.userId,
-            fullName: backendUser.fullName,
-            email: backendUser.email,
-            isEmailVerified: backendUser.emailVerified,
-            status: backendUser.status,
             roles: newRoles,
           };
           updateUser(userForContext);
           navigate("/owner");
         } else {
-          alert("Đơn của bạn vẫn đang chờ. Vui lòng thử lại sau.");
+          showToast("Đơn của bạn vẫn đang chờ hoặc chưa được duyệt.", "info");
         }
       }
     } catch (error) {
-      console.error("Lỗi khi làm mới quyền:", error);
-      alert("Có lỗi xảy ra, vui lòng đăng nhập lại.");
+      showToast("Có lỗi xảy ra, vui lòng đăng nhập lại.", "error");
       logout();
     } finally {
       setIsRefreshingRole(false);
@@ -132,152 +195,134 @@ const MyInboxPage = () => {
     }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-  };
-  const handleMarkAsUnread = (e, id) => {
-    e.stopPropagation(); 
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: false } : n));
-    setOpenMenuId(null); 
-  };
   const promptDelete = (e, id) => {
     e.stopPropagation(); 
     setOpenMenuId(null); 
     setNotificationToDelete(id); 
   };
+
   const handleDeleteConfirm = () => {
     if (!notificationToDelete) return;
     setNotifications(prev => prev.filter(n => n.id !== notificationToDelete));
+    showToast("Đã ẩn thông báo", "success");
     setNotificationToDelete(null); 
   };
-  const handleDeleteCancel = () => {
-    setNotificationToDelete(null); 
-  };
+
   const handleMenuToggle = (e, id) => {
     e.stopPropagation(); 
     setOpenMenuId(prevId => (prevId === id ? null : id)); 
   };
 
+  // --- 3. FILTER CLIENT-SIDE ---
   const filteredNotifications = notifications
     .filter(n => {
-      if (filter === 'UNREAD') return !n.isRead;
-      if (filter === 'READ') return n.isRead;
-      if (['APPROVAL', 'REJECTION', 'GENERAL'].includes(filter)) return n.type === filter;
+      const isRead = n.isRead !== undefined ? n.isRead : n.read;
+      if (filter === 'UNREAD') return !isRead;
+      if (filter === 'READ') return isRead;
       return true;
     })
     .filter(n => {
       const term = searchTerm.trim().toLowerCase(); 
       if (!term) return true;
-      const vietnameseType = (typeToVietnamese[n.type] || '').toLowerCase();
-      return (
-        n.title.toLowerCase().includes(term) ||
-        n.message.toLowerCase().includes(term) ||
-        n.type.toLowerCase().includes(term) ||
-        vietnameseType.includes(term)
-      );
+      const title = (n.title || '').toLowerCase();
+      const msg = (n.message || '').toLowerCase();
+      const typeVN = (typeToVietnamese[n.type] || '').toLowerCase();
+      
+      return title.includes(term) || msg.includes(term) || typeVN.includes(term);
     });
-
-  const totalPages = Math.ceil(filteredNotifications.length / itemsPerPage);
-  const paginatedNotifications = filteredNotifications.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const renderContent = () => {
     if (loading) return <div className="p-16 text-center text-gray-500">Đang tải thông báo...</div>;
     if (error) return <div className="p-16 text-center text-red-600">{error}</div>;
-    if (!loading && !error && filteredNotifications.length === 0) {
+    
+    if (!loading && !error && notifications.length === 0) {
       return (
         <div className="p-8 md:p-16 flex flex-col items-center text-center animate-fadeIn">
           <img src={inboxIllustration} alt="Hộp thư trống" className="w-full max-w-xs h-auto mb-8" />
-          <h2 className="text-xl md:text-2xl font-semibold mb-2">Không tìm thấy thông báo</h2>
-          <p className="text-gray-500">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.</p>
+          <h2 className="text-xl md:text-2xl font-semibold mb-2">Hộp thư trống</h2>
+          <p className="text-gray-500">Bạn chưa có thông báo nào.</p>
         </div>
       );
     }
+
+    if (filteredNotifications.length === 0) {
+        return <div className="p-16 text-center text-gray-500">Không tìm thấy thông báo nào trong trang này.</div>;
+    }
+
     return (
       <>
         <div className="flex flex-col md:flex-row justify-between items-center p-4 border-b gap-4">
-          <button onClick={markAllAsRead} className="text-sm text-blue-600 hover:underline">
+          <button onClick={handleMarkAllAsRead} className="text-sm text-blue-600 hover:underline">
             Đánh dấu tất cả là đã đọc
           </button>
           <div className="relative w-full md:w-auto">
             <Search size={18} className="text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Tìm kiếm và nhấn Enter..."
+              placeholder="Tìm trong trang này..."
               value={currentSearchTerm} 
               onChange={(e) => setCurrentSearchTerm(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  setSearchTerm(e.target.value); 
-                }
-              }}
-              className="border rounded px-2 py-1 text-sm w-full md:w-64 pl-10" 
+              onKeyDown={(e) => { if (e.key === 'Enter') setSearchTerm(e.target.value); }}
+              className="border rounded px-2 py-1 text-sm w-full md:w-64 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-100" 
             />
           </div>
         </div>
 
         <ul className="divide-y divide-gray-200 animate-fadeIn">
-          {paginatedNotifications.map((noti) => {
+          {filteredNotifications.map((noti) => {
             const iconInfo = getNotificationIcon(noti.type);
+            const isRead = noti.isRead !== undefined ? noti.isRead : noti.read;
+
             return (
               <li
                 key={noti.id}
                 onClick={() => {
                   setSelectedNoti(noti);
                   setOpenMenuId(null); 
-                  if (!noti.isRead) {
-                    setNotifications(prev => prev.map(n => n.id === noti.id ? { ...n, isRead: true } : n));
-                  }
+                  if (!isRead) handleMarkAsReadSingle(noti);
                 }}
-                className={`relative flex items-start gap-4 p-4 md:p-6 cursor-pointer ${
-                  !noti.isRead ? 'bg-blue-50' : 'bg-white'
+                className={`relative flex items-start gap-4 p-4 md:p-6 cursor-pointer transition-colors ${
+                  !isRead ? 'bg-blue-50/60' : 'bg-white'
                 } hover:bg-gray-50`}
               >
                 <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-gray-100`}>
                   {iconInfo.icon}
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-base font-semibold">{noti.title}</h3>
-                  <p className="text-sm text-gray-600 mt-1 truncate">{noti.message}</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className={`text-base ${!isRead ? 'font-bold text-gray-900' : 'font-semibold text-gray-700'}`}>
+                    {noti.title}
+                  </h3>
+                  <p className={`text-sm mt-1 truncate ${!isRead ? 'text-gray-800' : 'text-gray-500'}`}>
+                    {noti.message}
+                  </p>
                   <p className="text-xs text-gray-400 mt-2">{formatTimeAgo(noti.createdAt)}</p>
                 </div>
                 
-                <div className="w-2.5 flex-shrink-0 mt-1.5">
-                    {!noti.isRead && (
-                        <div className="w-2.5 h-2.5 bg-blue-500 rounded-full" title="Chưa đọc" />
+                <div className="w-2.5 flex-shrink-0 mt-1.5 flex items-center justify-center">
+                    {!isRead && (
+                        <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-sm" title="Chưa đọc" />
                     )}
                 </div>
                 
                 <div className="relative z-20 flex-shrink-0 ml-2">
                   <button
                     onClick={(e) => handleMenuToggle(e, noti.id)}
-                    className="p-2 rounded-full text-gray-500 hover:bg-gray-200"
-                    aria-label="Tùy chọn"
+                    className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition"
                   >
                     <MoreVertical size={18} />
                   </button>
 
                   {openMenuId === noti.id && (
                     <div 
-                      className="absolute top-full right-0 mt-1 bg-white shadow-lg rounded-lg border w-56"
+                      className="absolute top-full right-0 mt-1 bg-white shadow-xl rounded-lg border w-48 py-1 z-30"
                       onClick={(e) => e.stopPropagation()} 
                     >
-                      <ul className="py-2">
-                        {noti.isRead && (
-                          <li 
-                            onClick={(e) => handleMarkAsUnread(e, noti.id)} 
-                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                          >
-                            <Mail size={16} /> Đánh dấu là chưa đọc
-                          </li>
-                        )}
-
-                        <li 
-                          onClick={(e) => promptDelete(e, noti.id)} 
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer"
-                        >
-                          <Trash2 size={16} /> Xoá thông báo
-                        </li>
-                      </ul>
+                      <button 
+                        onClick={(e) => promptDelete(e, noti.id)} 
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 text-left"
+                      >
+                        <Trash2 size={16} /> Ẩn thông báo
+                      </button>
                     </div>
                   )}
                 </div>
@@ -287,10 +332,22 @@ const MyInboxPage = () => {
         </ul>
         
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 p-4">
-            <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="px-3 py-1 border rounded disabled:opacity-50">Trước</button>
-            <span className="text-sm">Trang {currentPage}/{totalPages}</span>
-            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="px-3 py-1 border rounded disabled:opacity-50">Sau</button>
+          <div className="flex justify-center items-center gap-2 p-4 border-t">
+            <button 
+                disabled={currentPage === 1} 
+                onClick={() => setCurrentPage(p => p - 1)} 
+                className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+                Trước
+            </button>
+            <span className="text-sm font-medium">Trang {currentPage} / {totalPages}</span>
+            <button 
+                disabled={currentPage === totalPages} 
+                onClick={() => setCurrentPage(p => p + 1)} 
+                className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+                Sau
+            </button>
           </div>
         )}
       </>
@@ -299,123 +356,123 @@ const MyInboxPage = () => {
 
   return (
     <>
-      {openMenuId && (
-        <div 
-          className="fixed inset-0 z-10" 
-          onClick={() => setOpenMenuId(null)} 
-        />
-      )}
+      <ToastPortal>
+        {toast.show && <Toast message={toast.message} type={toast.type} />}
+      </ToastPortal>
+
+      {openMenuId && <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />}
 
       <div className="bg-gray-50 min-h-screen pt-6">
         <div className="max-w-7xl mx-auto py-8 px-4 md:px-8 flex flex-col md:flex-row gap-8">
           
-          {/* SIDEBAR */}
           <aside className="w-full md:w-64 bg-white shadow-lg rounded-lg p-6 h-fit flex-shrink-0 animate-fadeIn">
             <div className="mb-6">
-              <h2 className="text-lg font-bold mb-3">Trạng thái</h2>
+              <h2 className="text-lg font-bold mb-3">Hộp thư</h2>
               <ul className="space-y-2">
                 <li>
-                  <button 
-                    onClick={() => { 
-                      setFilter('ALL'); 
-                      setSearchTerm('');
-                      setCurrentSearchTerm(''); 
-                    }} 
-                    className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition ${filter === 'ALL' ? activeFilterClass : 'hover:bg-gray-100'}`}
+                  <button onClick={() => { setFilter('ALL'); setSearchTerm(''); }} 
+                    className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition font-medium ${filter === 'ALL' ? activeFilterClass : 'text-gray-600 hover:bg-gray-100'}`}
                   >
                     <Bell size={18} /> Tất cả
                   </button>
                 </li>
                 <li>
-                  <button 
-                    onClick={() => setFilter('UNREAD')} 
-                    className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition ${filter === 'UNREAD' ? activeFilterClass : 'hover:bg-gray-100'}`}
+                  <button onClick={() => setFilter('UNREAD')} 
+                    className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition font-medium ${filter === 'UNREAD' ? activeFilterClass : 'text-gray-600 hover:bg-gray-100'}`}
                   >
-                    <span className="w-2.5 h-2.5 bg-blue-500 rounded-full ml-1 mr-0.5"></span> Chưa đọc
+                    <span className={`w-2.5 h-2.5 rounded-full ml-1 mr-0.5 ${filter === 'UNREAD' ? 'bg-white' : 'bg-blue-500'}`}></span> Chưa đọc
                   </button>
                 </li>
                 <li>
-                  <button 
-                    onClick={() => setFilter('READ')} 
-                    className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition ${filter === 'READ' ? activeFilterClass : 'hover:bg-gray-100'}`}
+                  <button onClick={() => setFilter('READ')} 
+                    className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition font-medium ${filter === 'READ' ? activeFilterClass : 'text-gray-600 hover:bg-gray-100'}`}
                   >
                     <CheckCircle2 size={18} /> Đã đọc
                   </button>
                 </li>
               </ul>
+              <div className="mt-4 p-3 bg-blue-50 rounded text-xs text-blue-600">
+                * Bộ lọc và tìm kiếm hiện chỉ áp dụng trên danh sách hiển thị.
+              </div>
             </div>
           </aside>
 
-          {/* MAIN CONTENT */}
           <div className="flex-1">
-            <h1 className="text-3xl font-bold mb-6 text-gray-800">Hộp thư của tôi</h1>
-            <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+            <h1 className="text-3xl font-bold mb-6 text-gray-800">Thông báo của tôi</h1>
+            <div className="bg-white rounded-lg shadow-xl overflow-hidden border border-gray-100">
               {renderContent()}
             </div>
           </div>
         </div>
       </div>
 
-      {/* MODAL Xem chi tiết */}
       {selectedNoti && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
-            <button onClick={() => setSelectedNoti(null)} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 relative">
+            <button 
+                onClick={() => setSelectedNoti(null)} 
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1 transition"
+            >
               <X size={20} />
             </button>
-            <h2 className="text-xl font-bold mb-2">{selectedNoti.title}</h2>
-            <p className="text-gray-600 mb-4">{selectedNoti.message}</p>
-            <p className="text-xs text-gray-400 mb-6">Thời gian: {new Date(selectedNoti.createdAt).toLocaleString()}</p>
+
+            <div className="mb-4">
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                    selectedNoti.type === 'REJECTION' || selectedNoti.type === 'BOOKING_CANCELLED' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                }`}>
+                    {typeToVietnamese[selectedNoti.type] || 'Thông báo'}
+                </span>
+            </div>
+
+            <h2 className="text-xl font-bold mb-3 text-gray-900">{selectedNoti.title}</h2>
+            <div className="max-h-[60vh] overflow-y-auto pr-1">
+                <p className="text-gray-600 mb-6 whitespace-pre-line leading-relaxed">{selectedNoti.message}</p>
+            </div>
+            
+            <div className="flex items-center justify-between pt-4 border-t mt-2">
+                <p className="text-xs text-gray-400">
+                    {new Date(selectedNoti.createdAt).toLocaleString('vi-VN')}
+                </p>
+            </div>
 
             {selectedNoti.type === 'APPROVAL' && (
-              <Button
-                fullWidth
-                onClick={handleAccessOwnerChannel}
-                isLoading={isRefreshingRole}
-                disabled={isRefreshingRole}
-              >
-                {isRefreshingRole ? "Đang kiểm tra..." : "Đến Kênh Chủ nhà"}
-              </Button>
+              <div className="mt-6">
+                <Button fullWidth onClick={handleAccessOwnerChannel} isLoading={isRefreshingRole} disabled={isRefreshingRole}>
+                    {isRefreshingRole ? "Đang xử lý..." : "Truy cập Kênh Chủ nhà"}
+                </Button>
+              </div>
             )}
           </div>
         </div>
       )}
 
-      {/* MODAL Xác nhận xóa */}
       {notificationToDelete && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn"
-          onClick={handleDeleteCancel} 
-        >
-          <div 
-            className="bg-white rounded-lg shadow-lg max-w-sm w-full p-6 relative"
-            onClick={(e) => e.stopPropagation()} 
-          >
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn p-4" onClick={() => setNotificationToDelete(null)}>
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 relative" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-col items-center text-center">
               <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
                 <AlertTriangle size={24} className="text-red-600" />
               </div>
-              <h2 className="text-xl font-bold mb-2">Xác nhận xoá</h2>
-              <p className="text-gray-600 mb-6">Bạn có chắc chắn muốn xoá thông báo này không?</p>
-              <div className="flex justify-center gap-4 w-full">
-                <button
-                  onClick={handleDeleteCancel}
-                  className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              <h2 className="text-xl font-bold mb-2 text-gray-900">Ẩn thông báo này?</h2>
+              <p className="text-gray-500 mb-6 text-sm">Thông báo sẽ bị ẩn khỏi danh sách hiển thị tạm thời.</p>
+              <div className="flex justify-center gap-3 w-full">
+                <button 
+                  onClick={() => setNotificationToDelete(null)} 
+                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition"
                 >
                   Huỷ
                 </button>
-                <button
-                  onClick={handleDeleteConfirm}
-                  className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                <button 
+                  onClick={handleDeleteConfirm} 
+                  className="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition"
                 >
-                  Xoá
+                  Ẩn
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
-
     </>
   );
 };
