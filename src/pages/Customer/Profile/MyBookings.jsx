@@ -240,7 +240,6 @@ export default function MyBookings() {
         <div className="lg:col-span-3">
           <AccountMenu
             activeSection="my-bookings"
-            onSelect={(path) => navigate(`/customer/${path}`)}
             userData={currentUser}
           />
         </div>

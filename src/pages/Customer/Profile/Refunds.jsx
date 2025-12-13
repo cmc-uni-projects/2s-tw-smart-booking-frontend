@@ -108,7 +108,6 @@ export default function Refunds() {
                 <div className="lg:col-span-3">
                     <AccountMenu
                         activeSection="refunds"
-                        onSelect={(path) => navigate(`/customer/${path}`)}
                         userData={currentUser}
                     />
                 </div>

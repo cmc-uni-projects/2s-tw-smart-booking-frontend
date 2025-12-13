@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    AlertCircle, CreditCard, User, Hash, Building2, X, CheckCircle2 
+    AlertCircle, CreditCard, User, Hash, Building2, X 
 } from 'lucide-react';
 import Button from '@/components/common/Button/Button';
 
@@ -31,30 +31,54 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
         if (error) setError('');
     };
 
-    const handleSubmit = async () => {
+    // Hàm Validate riêng biệt
+    const validateForm = () => {
         const { reason, bankName, accountNumber, accountHolder } = formData;
 
-        // 1. Validate
+        // 1. Kiểm tra trống
         if (!reason.trim() || !bankName.trim() || !accountNumber.trim() || !accountHolder.trim()) {
-            setError('Vui lòng điền đầy đủ thông tin hoàn tiền.');
-            return;
+            return 'Vui lòng điền đầy đủ thông tin các trường bắt buộc.';
         }
-        if (reason.trim().length < 5) {
-            setError('Lý do hoàn tiền cần chi tiết hơn.');
+
+        // 2. Lý do phải rõ ràng
+        if (reason.trim().length < 10) {
+            return 'Lý do hoàn tiền cần chi tiết hơn (tối thiểu 10 ký tự).';
+        }
+
+        // 3. Số tài khoản chỉ chứa số
+        const accNumRegex = /^[0-9]{6,25}$/;
+        if (!accNumRegex.test(accountNumber.trim())) {
+            return 'Số tài khoản không hợp lệ (chỉ gồm số, từ 6-25 ký tự).';
+        }
+
+        // 4. Tên chủ tài khoản không chứa số (cho phép Tiếng Việt)
+        // Regex này loại trừ số và các ký tự đặc biệt thông thường
+        const nameRegex = /^[^\d!@#$%^&*()_+={}[\]|\\:;"'<>,.?/]+$/;
+        if (!nameRegex.test(accountHolder.trim())) {
+            return 'Tên chủ tài khoản không được chứa số hoặc ký tự đặc biệt.';
+        }
+
+        return null; // Không có lỗi
+    };
+
+    const handleSubmit = async () => {
+        // Gọi validate
+        const validationError = validateForm();
+        if (validationError) {
+            setError(validationError);
             return;
         }
 
         setSubmitting(true);
 
-        // 2. Gọi callback onConfirm
         try {
             await onConfirm({
-                reason: reason.trim(),
-                bankName: bankName.trim(),
-                accountNumber: accountNumber.trim(),
-                accountHolder: accountHolder.toUpperCase().trim()
+                reason: formData.reason.trim(),
+                bankName: formData.bankName.trim(),
+                accountNumber: formData.accountNumber.trim(),
+                accountHolder: formData.accountHolder.toUpperCase().trim()
             });
-            // onClose(); // Thường parent sẽ đóng sau khi xong
+            // Lưu ý: Không đóng modal ở đây, để component cha xử lý (hoặc đóng khi success)
         } catch (err) {
             setError("Có lỗi xảy ra, vui lòng thử lại.");
             setSubmitting(false);
@@ -81,6 +105,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                     <button 
                         onClick={onClose}
                         className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                        disabled={submitting}
                     >
                         <X size={20} />
                     </button>
@@ -89,7 +114,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                 {/* --- BODY --- */}
                 <div className="p-6 space-y-5 overflow-y-auto custom-scrollbar max-h-[70vh]">
                     
-                    {/* Info Box: Số tiền hoàn */}
+                    {/* Info Box */}
                     <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 flex gap-3">
                         <div className="bg-white p-2 rounded-full text-orange-500 h-fit shadow-sm">
                             <AlertCircle size={20} />
@@ -98,7 +123,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                             <p className="text-sm text-orange-800 font-medium">Số tiền dự kiến hoàn lại</p>
                             <p className="text-2xl font-bold text-orange-600 mt-1">{refundAmount}</p>
                             <p className="text-xs text-orange-700/80 mt-1 leading-relaxed">
-                                Vui lòng cung cấp chính xác thông tin tài khoản chính chủ để Admin thực hiện chuyển khoản.
+                                Vui lòng cung cấp chính xác thông tin tài khoản chính chủ.
                             </p>
                         </div>
                     </div>
@@ -115,7 +140,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                                 name="reason"
                                 rows="3"
                                 className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none text-sm transition-all placeholder:text-slate-400"
-                                placeholder="VD: Tôi bận việc đột xuất, chuyến bay bị hủy..."
+                                placeholder="VD: Tôi bận việc đột xuất, chuyến bay bị hủy... (Ít nhất 10 ký tự)"
                                 value={formData.reason}
                                 onChange={handleChange}
                             />
@@ -151,9 +176,15 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                                         type="text"
                                         name="accountNumber"
                                         className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none text-sm font-mono"
-                                        placeholder="VD: 0338..."
+                                        placeholder="Chỉ nhập số"
                                         value={formData.accountNumber}
-                                        onChange={handleChange}
+                                        onChange={(e) => {
+                                            // Chỉ cho phép nhập số
+                                            const val = e.target.value.replace(/\D/g, '');
+                                            setFormData(prev => ({ ...prev, accountNumber: val }));
+                                            if(error) setError('');
+                                        }}
+                                        maxLength={25}
                                     />
                                 </div>
                             </div>
@@ -171,9 +202,9 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                                     placeholder="VD: NGUYEN VAN A"
                                     value={formData.accountHolder}
                                     onChange={(e) => {
-                                        // Auto uppercase
                                         const val = e.target.value.toUpperCase();
                                         setFormData(prev => ({...prev, accountHolder: val}));
+                                        if(error) setError('');
                                     }}
                                 />
                             </div>
@@ -182,8 +213,8 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
 
                     {/* Error Alert */}
                     {error && (
-                        <div className="bg-rose-50 text-rose-600 text-xs font-medium p-3 rounded-lg border border-rose-100 text-center animate-pulse">
-                            {error}
+                        <div className="bg-rose-50 text-rose-600 text-xs font-medium p-3 rounded-lg border border-rose-100 text-center animate-pulse flex items-center justify-center gap-2">
+                            <AlertCircle size={14} /> {error}
                         </div>
                     )}
                 </div>
@@ -197,6 +228,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                         className="bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-200 px-6 border-none"
                         onClick={handleSubmit}
                         disabled={submitting}
+                        isLoading={submitting}
                     >
                         {submitting ? 'Đang gửi...' : 'Gửi yêu cầu'}
                     </Button>
