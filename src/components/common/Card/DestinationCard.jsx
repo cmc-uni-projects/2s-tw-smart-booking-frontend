@@ -1,52 +1,46 @@
-// src/components/common/Card/DestinationCard.jsx
 import React from "react";
-import { Link } from "react-router-dom";
-import Card from "@/components/common/Card/Card";
-import Button from "@/components/common/Button/Button";
+import { MapPin, ArrowUpRight } from "lucide-react";
 
-// Component này nhận 'item' (một điểm đến) làm prop
-export default function DestinationCard({ item }) {
-  
-  const cardClassName = "group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-xl border border-gray-100 transition-all bg-white";
-
+const DestinationCard = ({ data, onClick, className }) => {
   return (
-    <Card className={cardClassName}>
-      {/* Hình ảnh điểm đến */}
-      <div className="relative w-full h-56 overflow-hidden">
-        <img
-          src={item.image}
-          alt={item.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-        />
-        {/* Overlay nhẹ dưới để dễ đọc chữ */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent group-hover:opacity-70 transition-all"></div>
+    <div 
+      onClick={onClick}
+      className={`group relative overflow-hidden rounded-[1.5rem] cursor-pointer shadow-sm hover:shadow-xl transition-all duration-500 ${className}`}
+    >
+      {/* 1. Background Image */}
+      <img
+        src={data.image}
+        alt={data.name}
+        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+      />
 
-        {/* Tên điểm đến */}
-        <div className="absolute bottom-4 left-4 text-left">
-          <h3 className="text-xl font-bold text-white drop-shadow">
-            {item.name}
+      {/* 2. Gradient Overlay (Tối ở dưới để làm nổi chữ) */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
+
+      {/* 3. Content */}
+      <div className="absolute bottom-0 left-0 w-full p-6 flex flex-col justify-end">
+        
+        {/* Location Tag - Hiệu ứng trượt lên nhẹ nhàng */}
+        <div className="flex items-center gap-2 mb-2 opacity-0 transform translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out">
+          <span className="bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full text-white text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 border border-white/10">
+            <MapPin size={10} /> {data.region || "Việt Nam"}
+          </span>
+        </div>
+
+        {/* City Name & Arrow Row */}
+        <div className="flex justify-between items-end transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
+          <h3 className="text-2xl font-extrabold text-white tracking-tight leading-none">
+            {data.name}
           </h3>
-          <p className="text-gray-200 text-sm">
-            {item.hotels.toLocaleString("vi-VN")} khách sạn
-          </p>
+          
+          {/* Arrow Button */}
+          <div className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-300">
+            <ArrowUpRight size={18} />
+          </div>
         </div>
       </div>
-
-      {/* ✅ Yêu cầu: Phần dưới card (ĐÃ CẬP NHẬT) */}
-      {/* Bỏ flex-justify-end để nút có thể full-width */}
-      <div className="p-4">
-        
-        {/* ✅ Bọc Link full-width */}
-        <Link to={`/destinations/${item.id}`} className="block w-full">
-          <Button 
-            size="sm" 
-            fullWidth // ✅ Thêm prop 'fullWidth'
-            className="bg-[rgb(40,169,224)] text-white hover:bg-[#1b98d6] transition"
-          >
-            Xem ngay
-          </Button>
-        </Link>
-      </div>
-    </Card>
+    </div>
   );
-}
+};
+
+export default DestinationCard;
