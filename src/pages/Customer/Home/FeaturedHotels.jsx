@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
     ArrowRight, MapPin, Star, Heart, 
-    Sparkles, Zap 
+    Sparkles // Đã xóa Zap khỏi import
 } from "lucide-react";
 
 // Components & Services
@@ -10,7 +10,7 @@ import Skeleton from "@/components/common/Loading/Skeleton";
 import propertyService from "@/services/property.service";
 import placeholderImg from "@/assets/images/placeholder.png";
 
-// ✅ CẤU HÌNH ĐƯỜNG DẪN ẢNH (Tùy chỉnh theo port backend của bạn)
+// Cấu hình đường dẫn ảnh
 const BASE_IMAGE_URL = "http://localhost:8386/images/"; 
 
 // ====================================================================
@@ -108,8 +108,10 @@ const ModernHotelCard = ({ hotel }) => {
                             <span className="text-sm text-gray-400 font-medium">₫/đêm</span>
                         </div>
                     </div>
+                    
+                    {/* ✅ ĐÃ THAY THẾ ICON TẠI ĐÂY */}
                     <button className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
-                        <Zap size={20} className="fill-current" />
+                        <ArrowRight size={20} />
                     </button>
                 </div>
             </div>
@@ -118,24 +120,20 @@ const ModernHotelCard = ({ hotel }) => {
 };
 
 // ====================================================================
-// 3. MAIN COMPONENT (Đã Fix Logic Lấy Ảnh & Giá)
+// 3. MAIN COMPONENT
 // ====================================================================
 const FeaturedHotels = () => {
     const navigate = useNavigate();
     const [hotels, setHotels] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // ✅ HELPER MỚI: Xử lý URL ảnh chính xác
     const getCoverImage = (item) => {
-        // 1. Ưu tiên lấy coverImage từ API
         if (item.coverImage) {
-            // Nếu đã là link http full thì dùng luôn, không thì nối thêm base url
             return item.coverImage.startsWith("http") 
                 ? item.coverImage 
                 : `${BASE_IMAGE_URL}${item.coverImage}`;
         }
 
-        // 2. Nếu không có coverImage, thử lấy từ mảng images (String Array)
         if (item.images && item.images.length > 0) {
             const firstImg = item.images[0];
             return firstImg.startsWith("http") 
@@ -151,21 +149,15 @@ const FeaturedHotels = () => {
             try {
                 setLoading(true);
                 const res = await propertyService.searchProperties("", 1, null, null);
-                
                 const rawData = Array.isArray(res) ? res : (res.content || res.data || []);
 
                 const mapped = rawData.map(item => ({
                     id: item.propertyId,
                     name: item.propertyName,
                     location: item.address || item.city || "Việt Nam",
-                    
-                    // ✅ FIX: Dùng minPrice thay vì basePrice
                     price: item.minPrice || 0,
                     formattedPrice: new Intl.NumberFormat('vi-VN').format(item.minPrice || 0),
-                    
-                    // ✅ FIX: Gọi hàm helper xử lý ảnh
                     image: getCoverImage(item),
-                    
                     rating: item.rating || 5.0,
                     reviews: item.reviewCount || 0,
                     isPopular: (item.rating || 0) >= 4.5
