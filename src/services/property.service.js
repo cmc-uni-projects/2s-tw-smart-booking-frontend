@@ -201,6 +201,14 @@ const checkNameAvailability = async (propertyName) => {
     throw error;
   }
 };
+const togglePropertyStatus = async (id) => {
+  try {
+    const response = await api.patch(`/properties/${id}/status`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || new Error("Failed to update property status");
+  }
+};
 
 
 // ==========================================================
@@ -221,7 +229,8 @@ const propertyService = {
   addPropertyPolicies,
   getPropertyPolicies,  
   updatePropertyPolicies,
-  checkNameAvailability,   
+  checkNameAvailability,
+  togglePropertyStatus,   
 };
 
 export default propertyService;
