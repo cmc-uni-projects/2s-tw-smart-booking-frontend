@@ -1,16 +1,15 @@
 // src/layouts/CustomerLayout/Header.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { ChevronDown, HelpCircle, Phone } from "lucide-react"; // Bỏ import Bell ở đây
+import { ChevronDown, HelpCircle, Phone, Menu } from "lucide-react"; 
 
 import { useAuth } from "../../context/AuthContext";
 import { userService } from "../../services/user.service";
-// Không cần import notificationService ở đây nữa vì Dropdown lo rồi
 import Button from "../../components/common/Button/Button";
 import ConfirmModal from "../../components/common/Modal/ConfirmModal";
 import Avatar from "../../components/common/Avatar/Avatar";
 import CustomerProfileDropdown from "./CustomerProfileDropdown";
-import CustomerNotificationDropdown from "./CustomerNotificationDropdown"; // [1] IMPORT MỚI
+import CustomerNotificationDropdown from "./CustomerNotificationDropdown"; 
 
 const Header = () => {
   const navigate = useNavigate();
@@ -23,12 +22,11 @@ const Header = () => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const [headerAvatar, setHeaderAvatar] = useState(currentUser?.profilePhotoUrl);
-  // [2] Bỏ state unreadCount cũ đi
 
   const supportRef = useRef(null);
   const profileRef = useRef(null);
 
-  // --- 1. LẤY AVATAR (Giữ nguyên) ---
+  // --- 1. LẤY AVATAR (GIỮ NGUYÊN) ---
   useEffect(() => {
     const fetchFreshAvatar = async () => {
       if (currentUser) {
@@ -52,9 +50,7 @@ const Header = () => {
     setHeaderAvatar(currentUser?.profilePhotoUrl);
   }, [currentUser?.profilePhotoUrl]);
 
-  // [3] Bỏ đoạn useEffect polling unreadCount cũ đi để tránh dư thừa
-
-  // --- CLICK OUTSIDE (Giữ nguyên) ---
+  // --- CLICK OUTSIDE (GIỮ NGUYÊN) ---
   useEffect(() => {
     const handler = (e) => {
       if (
@@ -69,13 +65,23 @@ const Header = () => {
     return () => document.removeEventListener("click", handler);
   }, []);
 
-  // --- SCROLL (Giữ nguyên) ---
+  // --- ✅ TỐI ƯU SCROLL (FIX LAG) ---
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    const handleScroll = () => {
+      const offset = window.scrollY;
+      // Dùng ngưỡng 50px để chắc chắn qua khỏi vùng Hero text một chút mới đổi màu
+      if (offset > 50) { 
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // --- LOGIC XỬ LÝ (GIỮ NGUYÊN) ---
   const handleConfirmLogout = () => {
     logout();
     setProfileOpen(false);
@@ -102,97 +108,175 @@ const Header = () => {
     }
   };
 
-  const navLinkClass = "flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-[rgb(40,169,224)] transition-colors";
-  const dropdownLinkClass = "flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors";
+  // --- STYLE CONFIGURATION (TÍNH TOÁN) ---
+  const isHomePage = location.pathname === "/";
+  const isTransparent = isHomePage && !scrolled;
+
+  // Class màu sắc (Dùng useMemo để tránh tính toán lại không cần thiết)
+  const headerStyles = useMemo(() => {
+    if (isTransparent) {
+      return {
+        container: "bg-transparent border-transparent",
+        text: "text-white hover:text-blue-100",
+        icon: "text-white",
+        logo: "brightness-0 invert drop-shadow-md", // Logo trắng
+        buttonGhost: "text-white hover:bg-white/20 border-white/40",
+        profileBtn: "bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-md"
+      };
+    } else {
+      return {
+        container: "bg-white/95 backdrop-blur-md shadow-sm border-gray-100",
+        text: "text-slate-700 hover:text-blue-600",
+        icon: "text-slate-600",
+        logo: "", // Logo gốc
+        buttonGhost: "text-slate-600 hover:bg-slate-100 border-slate-200",
+        profileBtn: "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-blue-200"
+      };
+    }
+  }, [isTransparent]);
 
   return (
     <>
       <header
-        className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/95 backdrop-blur-lg shadow-md" : "bg-white/90 backdrop-blur-lg"}`}
+        // ✅ FIX LAG: Bỏ transition padding (luôn py-4), chỉ transition màu nền
+        className={`fixed top-0 w-full z-50 py-4 border-b transition-colors duration-300 ease-in-out ${headerStyles.container}`}
       >
-        <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
 
-          {/* LOGO */}
-          <Link to="/" className="flex items-center gap-2">
+          {/* 1. LOGO */}
+          <Link to="/" className="flex items-center gap-2 group relative z-10">
             <img
               src="/assets/logo/logo_travelmate_xoafont.png"
               alt="TravelMate"
-              style={{ width: "135px", height: "43px" }}
-              className="object-contain"
+              style={{ width: "135px", height: "auto" }}
+              className={`object-contain transition-all duration-300 ${headerStyles.logo}`}
             />
           </Link>
 
-          {/* MID NAV */}
-          <nav className="hidden lg:flex items-center gap-6">
-            <Link to="/" className={navLinkClass}>Trang chủ</Link>
-            <Link to="/promotions" className={navLinkClass}>Khuyến mãi</Link>
+          {/* 2. MID NAV (Desktop) */}
+          <nav className="hidden lg:flex items-center gap-8">
+            <Link 
+              to="/" 
+              className={`text-[15px] font-bold tracking-wide transition-colors ${headerStyles.text} ${location.pathname === '/' ? 'opacity-100' : 'opacity-90'}`}
+            >
+              Trang chủ
+            </Link>
+            <Link 
+              to="/promotions" 
+              className={`text-[15px] font-bold tracking-wide transition-colors ${headerStyles.text} ${location.pathname === '/promotions' ? 'opacity-100' : 'opacity-90'}`}
+            >
+              Khuyến mãi
+            </Link>
 
             <div className="relative" ref={supportRef}>
-              <button onClick={() => setSupportOpen(!supportOpen)} className={navLinkClass}>
-                Hỗ trợ <ChevronDown size={16} />
+              <button 
+                onClick={() => setSupportOpen(!supportOpen)} 
+                className={`flex items-center gap-1.5 text-[15px] font-bold tracking-wide transition-colors ${headerStyles.text} opacity-90 hover:opacity-100`}
+              >
+                Hỗ trợ <ChevronDown size={14} strokeWidth={3} className={`transition-transform duration-300 ${supportOpen ? "rotate-180" : ""}`} />
               </button>
+              
+              {/* Support Dropdown */}
               {supportOpen && (
-                <div className="absolute mt-2 bg-white border border-gray-100 shadow-xl rounded-xl w-56 py-2 z-50 overflow-hidden">
-                  <Link to="/help" className={dropdownLinkClass} onClick={() => setSupportOpen(false)}>
-                    <HelpCircle size={18} className="text-gray-400" /> Trợ giúp
+                <div className="absolute top-full left-0 mt-4 w-56 bg-white rounded-xl shadow-xl border border-gray-100 p-1.5 animate-fade-in-up origin-top-left">
+                  <Link 
+                    to="/help" 
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50/50 rounded-lg transition-all"
+                    onClick={() => setSupportOpen(false)}
+                  >
+                    <HelpCircle size={18} /> Trung tâm trợ giúp
                   </Link>
-                  <Link to="/about#contact" className={dropdownLinkClass} onClick={() => setSupportOpen(false)}>
-                    <Phone size={18} className="text-gray-400" /> Liên hệ
+                  <Link 
+                    to="/about#contact" 
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50/50 rounded-lg transition-all"
+                    onClick={() => setSupportOpen(false)}
+                  >
+                    <Phone size={18} /> Liên hệ hỗ trợ
                   </Link>
                 </div>
               )}
             </div>
           </nav>
 
-          {/* RIGHT SIDE */}
-          <div className="hidden lg:flex items-center gap-3">
-            <Button
-              variant={currentUser ? "primary-outline" : "ghost"}
-              onClick={handleAccessOwnerChannel}
-              className="text-sm font-medium text-gray-600 hover:text-[rgb(40,169,224)]"
-            >
-              {getPartnerNavigation().label}
-            </Button>
+          {/* 3. RIGHT SIDE ACTIONS */}
+          <div className="flex items-center gap-3 md:gap-5">
+            
+            {/* Partner Button */}
+            <div className="hidden lg:block">
+                <Button
+                  variant="ghost"
+                  onClick={handleAccessOwnerChannel}
+                  className={`text-sm font-bold px-5 py-2.5 rounded-full border transition-all hover:shadow-sm ${headerStyles.buttonGhost}`}
+                >
+                  {getPartnerNavigation().label}
+                </Button>
+            </div>
 
             {!currentUser ? (
-              <>
-                <div className="h-6 w-[1px] bg-gray-300 mx-1"></div>
-                <Button variant="ghost" onClick={() => navigate("/register")} className="text-gray-700 font-medium">
+              <div className="flex items-center gap-3">
+                <div className={`h-6 w-[1px] mx-1 hidden lg:block ${isTransparent ? "bg-white/30" : "bg-slate-200"}`}></div>
+                
+                <Button 
+                    variant="ghost" 
+                    onClick={() => navigate("/register")} 
+                    className={`hidden lg:flex text-sm font-bold transition-all ${isTransparent ? "text-white hover:bg-white/10" : "text-slate-600 hover:bg-slate-50"}`}
+                >
                   Đăng ký
                 </Button>
-                <Button onClick={() => navigate("/login")} className="bg-[rgb(40,169,224)] hover:bg-[#1b98d6] shadow-md shadow-blue-200">
+                
+                <Button 
+                    onClick={() => navigate("/login")} 
+                    className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/20 px-6 py-2.5 rounded-full font-bold text-sm transition-all hover:scale-105 active:scale-95 border-none"
+                >
                   Đăng nhập
                 </Button>
-              </>
+              </div>
             ) : (
-              <>
-                {/* [4] THAY THẾ LINK CŨ BẰNG DROPDOWN MỚI */}
-                <div className="mr-1">
-                    <CustomerNotificationDropdown />
+              <div className="flex items-center gap-3">
+                
+                {/* ✅ FIX ICON ẨN: Wrapper này dùng CSS selector cực mạnh [&_*] và !important 
+                   để ép màu cho icon chuông bên trong Dropdown
+                */}
+                <div 
+                  className={`relative transition-colors duration-300 
+                    [&_button]:!text-current 
+                    [&_svg]:!text-current 
+                    ${headerStyles.icon}`}
+                >
+                   <CustomerNotificationDropdown />
                 </div>
 
+                {/* Profile Dropdown */}
                 <div className="relative" ref={profileRef}>
                   <button
                     onClick={() => setProfileOpen(!profileOpen)}
-                    className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-all"
+                    className={`flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border transition-all duration-300 shadow-sm ${headerStyles.profileBtn}`}
                   >
                     <Avatar
                       src={headerAvatar}
                       name={currentUser.fullName}
-                      size={36}
+                      size={34}
+                      className="border-2 border-white ring-1 ring-black/5"
                     />
-                    <span className="text-sm font-semibold text-gray-700 max-w-[100px] truncate">
+                    <span className="text-sm font-bold max-w-[100px] truncate hidden md:block">
                       {currentUser.fullName?.split(" ").pop()}
                     </span>
-                    <ChevronDown size={16} className="text-gray-400" />
+                    <ChevronDown size={14} strokeWidth={3} className={`opacity-80 transition-transform duration-300 ${profileOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {profileOpen && (
-                    <CustomerProfileDropdown onClose={handleDropdownClose} />
+                    <div className="absolute top-full right-0 mt-4 w-72 animate-fade-in-up origin-top-right z-50">
+                        <CustomerProfileDropdown onClose={handleDropdownClose} />
+                    </div>
                   )}
                 </div>
-              </>
+              </div>
             )}
+
+            {/* Mobile Menu Toggle */}
+            <button className={`lg:hidden p-2 rounded-lg transition-colors ${isTransparent ? "text-white hover:bg-white/10" : "text-slate-700 hover:bg-slate-100"}`}>
+                <Menu size={24} />
+            </button>
           </div>
         </div>
       </header>
