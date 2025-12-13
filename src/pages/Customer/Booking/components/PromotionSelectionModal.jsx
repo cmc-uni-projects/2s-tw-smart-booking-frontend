@@ -39,9 +39,10 @@ const PromotionListItem = ({ promo, isSelected, accentColor, onSelect }) => {
         : '';
 
     // Chọn ảnh: Mã hệ thống dùng ảnh tĩnh, Mã khách sạn dùng ảnh từ API
-    const imageUrl = isSystemPromo
-        ? TRAVEL_MATE_LOGO_PUBLIC_PATH
-        : getFullImageUrl(promo.bannerUrl);
+    const imageUrl = promo.bannerUrl
+        ? getFullImageUrl(promo.bannerUrl)
+        : "https://via.placeholder.com/64x48?text=Promo";
+
 
     return (
         <li
