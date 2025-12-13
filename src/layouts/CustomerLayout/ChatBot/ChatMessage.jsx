@@ -1,13 +1,14 @@
 // src/layouts/CustomerLayout/ChatBot/ChatMessage.jsx
 import React from "react";
 import { Bot } from "lucide-react";
+import AIPayloadCard from "./AIPayloadCard";
 
-// Icon bullet đẹp
+// Icon bullet
 const BulletIcon = () => (
     <span className="inline-block w-2 h-2 bg-gray-500 rounded-full mr-2 mt-[0.4rem] shrink-0"></span>
 );
 
-// Hàm format text nâng cấp
+// Format text
 const formatMessage = (text, isBot) => {
     if (!text) return null;
 
@@ -18,7 +19,7 @@ const formatMessage = (text, isBot) => {
             {lines.map((line, index) => {
                 const trimmed = line.trim();
 
-                // 📌 1) DÒNG LÀ TIÊU ĐỀ (ví dụ: "Miền Bắc:")
+                // Tiêu đề
                 if (trimmed.endsWith(":") && !trimmed.startsWith("-")) {
                     return (
                         <div
@@ -30,7 +31,7 @@ const formatMessage = (text, isBot) => {
                     );
                 }
 
-                // 📌 2) DÒNG BULLET (bắt đầu bằng "- ")
+                // Bullet
                 if (trimmed.startsWith("- ")) {
                     return (
                         <div key={index} className="flex items-start ml-3 text-gray-800">
@@ -40,12 +41,9 @@ const formatMessage = (text, isBot) => {
                     );
                 }
 
-                // 📌 3) DÒNG BÌNH THƯỜNG
+                // Dòng bình thường
                 return (
-                    <p
-                        key={index}
-                        className={`${isBot ? "text-gray-800" : "text-white"}`}
-                    >
+                    <p key={index} className={`${isBot ? "text-gray-800" : "text-white"}`}>
                         {trimmed}
                     </p>
                 );
@@ -55,13 +53,13 @@ const formatMessage = (text, isBot) => {
 };
 
 const ChatMessage = ({ message }) => {
-    const { text, sender } = message;
+    const { text, sender, payload } = message;
     const isBot = sender === "ai" || sender === "bot";
 
     return (
         <div className={`flex w-full ${isBot ? "justify-start" : "justify-end"} mb-4`}>
 
-            {/* Avatar bot */}
+            {/* Bot avatar */}
             {isBot && (
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white mr-2 shadow-sm shrink-0 mt-1">
                     <Bot size={16} />
@@ -71,17 +69,22 @@ const ChatMessage = ({ message }) => {
             {/* Bubble */}
             <div
                 className={`p-3 rounded-2xl max-w-[75%] break-words shadow-sm text-sm leading-relaxed
-        ${isBot
-                    ? "bg-white text-gray-800 border border-gray-100 rounded-tl-none shadow-md"
-                    : "bg-[#28A9E0] text-white rounded-tr-none shadow-md"
+                ${
+                    isBot
+                        ? "bg-white text-gray-800 border border-gray-100 rounded-tl-none shadow-md"
+                        : "bg-[#28A9E0] text-white rounded-tr-none shadow-md"
                 }`}
             >
+                {/* Nội dung text */}
                 {formatMessage(text, isBot)}
+
+                {/* ========== PAYLOAD ========== */}
+                {isBot && payload && (
+                    <AIPayloadCard payload={payload} />
+                )}
             </div>
         </div>
     );
 };
 
 export default ChatMessage;
-
-

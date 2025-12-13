@@ -10,14 +10,24 @@ import TabsComponent from "@/components/common/Tabs/TabsComponent";
 import { Tag, ChevronLeft, ChevronRight, Crown, Sparkles, Gift } from "lucide-react";
 
 // Config URL ảnh
-const BE_BASE_URL = "http://localhost:8386";
-const UPLOAD_DIR = "/uploads/";
+// ✅ R2 public base URL
+const R2_PUBLIC_BASE_URL = "https://pub-fed047aa2ebd4dcaad827464c190ea28.r2.dev";
+
 const getFullImageUrl = (path) => {
-    if (!path) return "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400&q=80";
+    // fallback khi không có banner
+    if (!path) {
+        return "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400&q=80";
+    }
+
+    // nếu BE trả full URL thì dùng luôn
     if (path.startsWith("http")) return path;
-    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-    return `${BE_BASE_URL}${UPLOAD_DIR}${cleanPath}`;
+
+    // BE trả relative path: campaign-images/xxx.webp
+    const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+
+    return `${R2_PUBLIC_BASE_URL}/${cleanPath}`;
 };
+
 
 const PromotionPage = () => {
     const location = useLocation();

@@ -15,16 +15,21 @@ import {
 } from "lucide-react";
 
 // --- CONFIG ---
-const BE_BASE_URL = "http://localhost:8386";
-const UPLOAD_DIR = "/uploads/";
+const R2_PUBLIC_URL = "https://pub-fed047aa2ebd4dcaad827464c190ea28.r2.dev";
+
 
 // --- HELPER FUNCTIONS ---
 const getFullImageUrl = (path) => {
     if (!path) return null;
+
+    // Backend đã trả full URL
     if (path.startsWith("http")) return path;
-    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-    return `${BE_BASE_URL}${UPLOAD_DIR}${cleanPath}`;
+
+    // Path tương đối → Cloudflare R2
+    const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+    return `${R2_PUBLIC_URL}/${cleanPath}`;
 };
+
 
 const showToast = (type, message) => {
     toast.custom((t) => (
