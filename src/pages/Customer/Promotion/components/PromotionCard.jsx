@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Button from "@/components/common/Button/Button";
 import Card from "@/components/common/Card/Card";
-import { Bookmark, Flame, Crown, Clock, TicketPercent } from "lucide-react";
+import { Bookmark, Flame, Crown, Clock, TicketPercent, ThumbsUp } from "lucide-react";
 import placeholderImg from "@/assets/images/placeholder.png";
 
 export default function PromotionCard({ promo, onClick, isSaved, onToggleSave }) {
@@ -21,6 +21,22 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
         promo.code?.toLowerCase().includes("hot") ||
         promo.description?.toLowerCase().includes("hot") ||
         usagePercent > 80;
+
+    // Logic Deal tốt (Giảm >= 10% hoặc >= 100k)
+    const getDiscountValue = () => {
+        if (promo.discountPercent && promo.discountPercent > 0) return { val: promo.discountPercent, type: '%' };
+        if (promo.discountAmount && promo.discountAmount > 0) return { val: promo.discountAmount, type: 'vnd' };
+        if (promo.discountValue) {
+            return promo.discountValue > 100
+                ? { val: promo.discountValue, type: 'vnd' }
+                : { val: promo.discountValue, type: '%' };
+        }
+        return { val: 0, type: '' };
+    };
+
+    const discount = getDiscountValue();
+    const isGoodDeal = (discount.type === '%' && discount.val >= 10) ||
+        (discount.type === 'vnd' && discount.val >= 100000);
 
     const getRankConfig = (rank) => {
         if (!rank) return { show: false };
@@ -69,7 +85,17 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 opacity-60 transition-opacity group-hover:opacity-50" />
 
-                    {/* Badge HOT & Rank */}
+                    {/* ✅ VỊ TRÍ MỚI: GÓC TRÁI TRÊN (DEAL TỐT) */}
+                    {isGoodDeal && (
+                        <div className="absolute top-3 left-3 z-10">
+                            <div className="bg-emerald-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-lg flex items-center gap-1 border border-emerald-400/50 animate-bounce">
+                                <ThumbsUp size={12} fill="currentColor" />
+                                TỐT
+                            </div>
+                        </div>
+                    )}
+
+                    {/* VỊ TRÍ CŨ: GÓC PHẢI TRÊN (HOT & RANK) */}
                     <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
                         {isHot && (
                             <div className="bg-red-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-lg flex items-center gap-1 animate-pulse">
@@ -85,7 +111,7 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
                         )}
                     </div>
 
-                    {/* Mã Code */}
+                    {/* VỊ TRÍ GÓC TRÁI DƯỚI (MÃ CODE) */}
                     <div className="absolute bottom-3 left-3 z-10">
                         <div className="bg-white/90 backdrop-blur-md text-blue-700 text-xs font-bold px-3 py-1 rounded-full shadow-md flex items-center gap-1.5 border border-white/50">
                             <TicketPercent size={14} strokeWidth={2} />
@@ -97,9 +123,7 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
                 {/* --- BODY CONTENT --- */}
                 <div className="p-4 flex flex-col flex-grow bg-white relative z-10">
                     <div className="mb-2">
-                        {/* Flex container: Tên + Nút Lưu */}
                         <div className="flex justify-between items-start gap-2 min-h-[28px]">
-                            {/* 1. TÊN KHUYẾN MÃI */}
                             <h3
                                 className="font-bold text-gray-900 text-base line-clamp-1 cursor-pointer hover:text-blue-600 transition-colors flex-1"
                                 title={promo.name || promo.title}
@@ -108,25 +132,23 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
                                 {promo.name || promo.title || "Chương trình khuyến mãi"}
                             </h3>
 
-                            {/* 2. NÚT LƯU (Icon Bookmark) - Cập nhật màu vàng */}
                             <button
                                 onClick={handleSaveClick}
                                 className={`flex-shrink-0 -mt-1 p-1.5 rounded-full transition-all duration-300
                                     ${isSaved
-                                    ? "text-yellow-500 bg-yellow-50 hover:bg-yellow-100" // ĐÃ LƯU: Màu vàng
-                                    : "text-gray-400 hover:text-yellow-500 hover:bg-yellow-50" // CHƯA LƯU: Hover ra màu vàng
+                                    ? "text-yellow-500 bg-yellow-50 hover:bg-yellow-100"
+                                    : "text-gray-400 hover:text-yellow-500 hover:bg-yellow-50"
                                 }`}
                                 title={isSaved ? "Bỏ lưu" : "Lưu ưu đãi"}
                             >
                                 <Bookmark
                                     size={20}
                                     strokeWidth={2}
-                                    fill={isSaved ? "currentColor" : "none"} // Tô màu vàng khi đã lưu
+                                    fill={isSaved ? "currentColor" : "none"}
                                 />
                             </button>
                         </div>
 
-                        {/* 3. CHI TIẾT ƯU ĐÃI */}
                         <p
                             className="text-sm text-gray-500 font-medium line-clamp-2 leading-snug min-h-[40px]"
                             title={promo.description}
