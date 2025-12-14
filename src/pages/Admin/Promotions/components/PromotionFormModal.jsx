@@ -5,12 +5,12 @@ import {
     Layers, Hash, CheckCircle2, AlertCircle, Clock, Calendar, Upload, Image as ImageIcon,
     Crown
 } from "lucide-react";
-import { format } from "date-fns"; // [NEW]
+import { format } from "date-fns";
 import promotionService from "../../../../services/promotion.service";
 import toast from "react-hot-toast";
 import Toast from "@/components/common/Notification/Toast";
 import CustomSelect from "@/components/common/Select/CustomSelect";
-import DatePickerInput from "@/components/common/Input/DatePickerInput"; // [NEW]
+import DatePickerInput from "@/components/common/Input/DatePickerInput";
 
 const BE_BASE_URL = "http://127.0.0.1:8386";
 const UPLOAD_DIR = "/uploads/";
@@ -43,13 +43,15 @@ const parseDateLocal = (dateStr) => {
 
 const CustomInput = ({ label, name, value, onChange, type = "text", placeholder, icon: Icon, error, disabled, className, ...props }) => {
     const inputRef = useRef(null);
+    const isDateInput = type === 'date';
+
     const handleIconClick = () => {
-        if (type === 'date' && inputRef.current) {
+        if (isDateInput && inputRef.current) {
             if (inputRef.current.showPicker) inputRef.current.showPicker();
             else inputRef.current.focus();
         }
     };
-    const isDateInput = type === 'date';
+
     return (
         <div className={`flex flex-col gap-1.5 ${className}`}>
             {label && <label className="text-sm font-semibold text-gray-700 ml-1">{label} {error && <span className="text-red-500">*</span>}</label>}
@@ -327,7 +329,6 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                 </div>
                 <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
 
-
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700 ml-1">Banner Khuyến Mãi</label>
                         <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50/50 transition-colors relative overflow-hidden group">
@@ -337,12 +338,10 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         </div>
                     </div>
 
-
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-start">
                         <div className="sm:col-span-1"><CustomInput label="Mã Code" name="code" value={formData.code} onChange={handleChange} placeholder="VD: SALE50" icon={Tag} error={errors.code} /></div>
                         <div className="sm:col-span-2"><CustomInput label="Tên chương trình" name="name" value={formData.name} onChange={handleChange} placeholder="VD: Siêu sale tháng 11" icon={CheckCircle2} error={errors.name} /></div>
                     </div>
-
 
                     <div className="bg-orange-50/50 border border-orange-100 rounded-xl p-5">
                         <CustomSelect label="Đối tượng áp dụng (Hạng thành viên tối thiểu)" name="minMembershipRank" value={formData.minMembershipRank} onChange={(val) => setFormData(prev => ({ ...prev, minMembershipRank: val }))} icon={<Crown />}
@@ -350,7 +349,6 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         />
                         <p className="text-xs text-gray-500 mt-2 ml-1 italic">* Khuyến mãi này sẽ áp dụng cho các thành viên có hạng này trở lên.</p>
                     </div>
-
 
                     <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
                         <CustomSelect label="Loại giảm giá" name="type" value={promotionTypeOption} onChange={(val) => handleTypeChange(val)} icon={<Layers />}
@@ -363,13 +361,11 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         <CustomInput label={isPercentage ? "Mức giảm (%)" : "Số tiền giảm (VNĐ)"} name="value" type={isPercentage ? "number" : "text"} value={isPercentage ? formData.value : formatCurrency(formData.value)} onChange={isPercentage ? handleChange : handleCurrencyChange} placeholder={isPercentage ? "VD: 20" : "VD: 50.000"} icon={isPercentage ? Percent : Banknote} error={errors.value} min="0" onFocus={(e) => e.target.select()} />
                     </div>
 
-
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-start">
                         <CustomInput label="Đơn tối thiểu (VNĐ)" name="minOrder" type="text" value={formatCurrency(formData.minOrder)} onChange={handleCurrencyChange} icon={Banknote} error={errors.minOrder} placeholder="0 (Không giới hạn)" />
                         <CustomInput label="Giảm tối đa (VNĐ)" name="maxDiscount" type="text" value={formatCurrency(formData.maxDiscount)} onChange={handleCurrencyChange} icon={Banknote} placeholder={isMaxDiscountDisabled ? "Không áp dụng" : "VD: 200.000"} onFocus={(e) => e.target.select()} error={errors.maxDiscount} disabled={isMaxDiscountDisabled} />
                         <CustomInput label="Tổng số lượng" name="quantity" type="number" value={formData.quantity} onChange={handleChange} icon={Hash} error={errors.quantity} placeholder="1000" min="1" onFocus={(e) => e.target.select()} />
                     </div>
-
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
                         <div className="space-y-1.5">
@@ -377,7 +373,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                             <div className="flex gap-2 items-start">
                                 {/* [FIX] DatePickerInput + minDate */}
                                 <div className="w-3/5">
-                                    <DatePickerInput 
+                                    <DatePickerInput
                                         value={parseDateLocal(getSplitValue(formData.startDate, 'date'))}
                                         onChange={(date) => handleSplitDateTimeChange('startDate', 'date', format(date, 'yyyy-MM-dd'))}
                                         minDate={new Date()} // Chặn quá khứ
@@ -392,10 +388,10 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                             <div className="flex gap-2 items-start">
                                 {/* [FIX] DatePickerInput + minDate dynamic */}
                                 <div className="w-3/5">
-                                    <DatePickerInput 
+                                    <DatePickerInput
                                         value={parseDateLocal(getSplitValue(formData.endDate, 'date'))}
                                         onChange={(date) => handleSplitDateTimeChange('endDate', 'date', format(date, 'yyyy-MM-dd'))}
-                                        minDate={parseDateLocal(getSplitValue(formData.startDate, 'date')) || new Date()} 
+                                        minDate={parseDateLocal(getSplitValue(formData.startDate, 'date')) || new Date()}
                                     />
                                 </div>
                                 <div className="w-2/5"><TimePicker value={getSplitValue(formData.endDate, 'time')} onChange={(newTime) => handleSplitDateTimeChange('endDate', 'time', newTime)} error={!!errors.endDate} /></div>
@@ -403,6 +399,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                             {errors.endDate && <p className="text-xs text-red-500 flex items-center gap-1 ml-1 mt-1"><AlertCircle size={12}/> {errors.endDate}</p>}
                         </div>
                     </div>
+
                 </div>
 
                 <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
