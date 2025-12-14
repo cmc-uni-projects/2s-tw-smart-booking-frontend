@@ -194,11 +194,15 @@ export default function HotelDetailPage() {
             navigate(`/booking/${hotelId}`, {
                 state: {
                     roomId: validRoomId,
+                    selectedRoomId: validRoomId, // Thêm dòng này cho chắc chắn
                     roomName: selectedRoomForBooking.roomName || selectedRoomForBooking.name,
                     price: selectedRoomForBooking.pricePerNight || selectedRoomForBooking.price,
                     image: selectedRoomForBooking.images?.[0],
-                    startDate: range[0],
-                    endDate: range[1],
+                    
+                    // 🔥 ĐÃ SỬA: Đổi tên key thành checkInDate/checkOutDate để khớp với BookingPage
+                    checkInDate: range[0], 
+                    checkOutDate: range[1],
+                    
                     hotelName: hotel.name,
                     address: hotel.location,
                     // Truyền dữ liệu tính toán giá
