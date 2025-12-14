@@ -1,73 +1,78 @@
 import React from "react";
-import PropTypes from "prop-types"; // ✅ 1. Import PropTypes
-import { Search, Plus, ChevronDown } from "lucide-react"; // ✅ 2. Thêm icon ChevronDown cho Select
-import Button from "@/components/common/Button/Button";
+import PropTypes from "prop-types";
+import { Search, Filter, Crown } from "lucide-react";
 
-export default function UserFilterBar({ searchTerm, onSearchChange, roleFilter, onRoleFilterChange, onAddUser }) {
-    const roles = [
-        { value: "ALL", label: "Tất cả vai trò" },
-        { value: "CUSTOMER", label: "Khách hàng" },
-        { value: "OWNER", label: "Chủ khách sạn" },
-        { value: "ADMIN", label: "Quản trị viên" },
-    ];
-
+export default function UserFilterBar({
+                                          searchTerm,
+                                          onSearchChange,
+                                          roleFilter,
+                                          onRoleFilterChange,
+                                          rankFilter,
+                                          onRankFilterChange
+                                      }) {
     return (
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 justify-between items-center mb-6">
-            {/* Search & Filter Group */}
-            <div className="flex flex-1 w-full md:w-auto gap-3 flex-col sm:flex-row">
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
+            {/* Thanh tìm kiếm */}
+            <div className="relative w-full md:w-96">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                    type="text"
+                    className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all duration-200 sm:text-sm"
+                    placeholder="Tìm kiếm user..."
+                    value={searchTerm}
+                    onChange={(e) => onSearchChange(e.target.value)}
+                />
+            </div>
 
-                {/* Search Input */}
-                <div className="relative flex-1 group">
+            {/* Khu vực bộ lọc */}
+            <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+
+                {/* Bộ lọc Rank */}
+                <div className="relative min-w-[160px]">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Search className="h-5 w-5 text-gray-400 group-focus-within:text-[rgb(40,169,224)] transition-colors" />
+                        <Crown className="h-4 w-4 text-yellow-500" />
                     </div>
-                    <input
-                        type="text"
-                        placeholder="Tìm kiếm người dùng..."
-                        className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[rgb(40,169,224,0.2)] focus:border-[rgb(40,169,224)] focus:bg-white transition-all duration-200"
-                        value={searchTerm}
-                        onChange={(e) => onSearchChange(e.target.value)}
-                    />
+                    <select
+                        value={rankFilter}
+                        onChange={(e) => onRankFilterChange(e.target.value)}
+                        className="block w-full pl-9 pr-8 py-2.5 text-base border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 sm:text-sm rounded-xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
+                        <option value="ALL">Tất cả hạng</option>
+                        <option value="BRONZE">Bronze</option>
+                        <option value="SILVER">Silver</option>
+                        <option value="GOLD">Gold</option>
+                        <option value="DIAMOND">Diamond</option>
+                    </select>
                 </div>
 
-                {/* Role Filter (Custom UI) */}
-                <div className="relative w-full sm:w-48">
-                    {/* ✅ 3. Thêm appearance-none để ẩn mũi tên mặc định và thêm icon custom */}
+                {/* Bộ lọc Vai trò - Đã xóa ADMIN */}
+                <div className="relative min-w-[160px]">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Filter className="h-4 w-4 text-gray-400" />
+                    </div>
                     <select
                         value={roleFilter}
                         onChange={(e) => onRoleFilterChange(e.target.value)}
-                        className="w-full pl-3 pr-10 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm text-gray-700 focus:outline-none focus:border-[rgb(40,169,224)] focus:bg-white transition-all appearance-none cursor-pointer"
+                        className="block w-full pl-9 pr-8 py-2.5 text-base border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 sm:text-sm rounded-xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
                     >
-                        {roles.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                        <option value="ALL">Tất cả vai trò</option>
+                        <option value="CUSTOMER">Khách hàng</option>
+                        <option value="OWNER">Chủ khách sạn</option>
+                        {/* ❌ Đã xóa option ADMIN tại đây */}
                     </select>
-
-                    {/* Custom Arrow Icon */}
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-500">
-                        <ChevronDown size={16} />
-                    </div>
                 </div>
-            </div>
-
-            {/* Add Button */}
-            <div className="w-full md:w-auto">
-                <Button
-                    variant="primary"
-                    onClick={onAddUser}
-                    leftIcon={<Plus size={18} />}
-                    className="w-full md:w-auto justify-center" // Button full width trên mobile
-                >
-                    Thêm mới
-                </Button>
             </div>
         </div>
     );
 }
 
-// ✅ 4. Định nghĩa PropTypes để code tường minh hơn
 UserFilterBar.propTypes = {
     searchTerm: PropTypes.string,
-    onSearchChange: PropTypes.func.isRequired,
+    onSearchChange: PropTypes.func,
     roleFilter: PropTypes.string,
-    onRoleFilterChange: PropTypes.func.isRequired,
-    onAddUser: PropTypes.func
+    onRoleFilterChange: PropTypes.func,
+    rankFilter: PropTypes.string,
+    onRankFilterChange: PropTypes.func
 };

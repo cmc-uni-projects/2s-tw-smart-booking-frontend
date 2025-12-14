@@ -49,7 +49,6 @@ const adminService = {
 
   reviewProperty: async (propertyId, reviewData) => {
     try {
-      // reviewData thường gồm: { status: "APPROVED" | "REJECTED", reason: "..." }
       const response = await api.post(
           `/admin/properties/${propertyId}/review`,
           reviewData
@@ -62,33 +61,39 @@ const adminService = {
   },
 
   // ============================
-  // 👥 QUẢN LÝ NGƯỜI DÙNG (USERS) - [NEW]
+  // 👥 QUẢN LÝ NGƯỜI DÙNG (USERS)
   // ============================
-  getAllUsers: async (page = 0, size = 10, search = "", role = "ALL", status = "ALL") => {
+  // ✅ CẬP NHẬT: Thêm tham số rank vào cuối
+  getAllUsers: async (page = 0, size = 10, search = "", role = "ALL", status = "ALL", rank = "ALL") => {
     const params = {
       page,
       size,
-      search: search || undefined, // Nếu rỗng thì không gửi lên param này
+      search: search || undefined,
     };
 
-    // Chỉ gửi params role/status nếu không phải là "ALL"
     if (role !== "ALL") params.role = role;
     if (status !== "ALL") params.status = status;
+    // ✅ Gửi thêm rank nếu có chọn
+    if (rank !== "ALL") params.rank = rank;
 
     try {
       const response = await api.get("/admin/users", { params });
-      return response.data; // Trả về ApiResponse chứa Page<AdminUserResponseDTO>
+      return response.data;
     } catch (error) {
       console.error("Error fetching users:", error);
       throw new Error(error.response?.data?.message || "Lỗi khi tải danh sách người dùng");
     }
   },
 
-  updateUserStatus: async (userId, newStatus) => {
+  // ✅ CẬP NHẬT: Thêm tham số reason (lý do khóa)
+  updateUserStatus: async (userId, newStatus, reason = "") => {
     try {
-      // Endpoint BE: PATCH /api/admin/users/{userId}/status?status=...
+      // Endpoint BE: PATCH /api/admin/users/{userId}/status?status=...&reason=...
       const response = await api.patch(`/admin/users/${userId}/status`, null, {
-        params: { status: newStatus }
+        params: {
+          status: newStatus,
+          reason: reason // Gửi lý do lên backend
+        }
       });
       return response.data;
     } catch (error) {
