@@ -3,7 +3,6 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 // IMPORT ROUTE ARRAYS
-// Các file này export mảng các route objects { path, element, ... }
 import customerRoutes from "./CustomerRoutes";
 import adminRoutes from "./AdminRoutes";
 import ownerRoutes from "./OwnerRoutes";
@@ -14,6 +13,10 @@ import Register from "@/pages/Auth/Register";
 import ForgotPassword from "@/pages/Auth/ForgotPassword";
 import ResetPassword from "@/pages/Auth/ResetPassword";
 import VerifyEmail from "@/pages/Auth/VerifyEmail";
+// ✅ Import thêm handler xử lý Login Google/Facebook
+import OAuth2RedirectHandler from "@/pages/Auth/OAuth2RedirectHandler";
+// ✅ Import thêm trang hoàn thiện hồ sơ (nếu user thiếu thông tin)
+import CompleteProfile from "@/pages/Auth/CompleteProfile";
 
 // DEV PREVIEW (Trang xem trước components)
 import ComponentsPreview from "@/pages/ComponentsPreview";
@@ -34,6 +37,12 @@ const AppRoutes = () => {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
 
+            {/* ✅ Route nhận Token từ Google/Facebook trả về */}
+            <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
+
+            {/* ✅ Route cập nhật thông tin bổ sung sau khi đăng ký */}
+            <Route path="/complete-profile" element={<CompleteProfile />} />
+
             {/* =========================================================
                 DEV TOOLS & POLICY
             ========================================================= */}
@@ -43,7 +52,6 @@ const AppRoutes = () => {
 
             {/* =========================================================
                 CUSTOMER ROUTES
-                (Map qua mảng customerRoutes để render)
             ========================================================= */}
             {customerRoutes.map((route, index) => (
                 <Route
@@ -55,7 +63,6 @@ const AppRoutes = () => {
 
             {/* =========================================================
                 ADMIN ROUTES
-                (Đã bao gồm UserManagementPage vừa thêm trong AdminRoutes.jsx)
             ========================================================= */}
             {adminRoutes.map((route, index) => (
                 <Route
@@ -78,7 +85,6 @@ const AppRoutes = () => {
 
             {/* =========================================================
                 FALLBACK (404)
-                Chuyển hướng về trang chủ nếu không tìm thấy route
             ========================================================= */}
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -63,17 +63,16 @@ const adminService = {
   // ============================
   // 👥 QUẢN LÝ NGƯỜI DÙNG (USERS)
   // ============================
-  // ✅ CẬP NHẬT: Thêm tham số rank vào cuối
   getAllUsers: async (page = 0, size = 10, search = "", role = "ALL", status = "ALL", rank = "ALL") => {
     const params = {
       page,
       size,
-      search: search || undefined,
+      // ⚠️ Đã đổi 'search' -> 'keyword' để sửa lỗi tìm kiếm
+      keyword: search || undefined,
     };
 
     if (role !== "ALL") params.role = role;
     if (status !== "ALL") params.status = status;
-    // ✅ Gửi thêm rank nếu có chọn
     if (rank !== "ALL") params.rank = rank;
 
     try {
@@ -85,14 +84,13 @@ const adminService = {
     }
   },
 
-  // ✅ CẬP NHẬT: Thêm tham số reason (lý do khóa)
+  // Cập nhật trạng thái kèm lý do
   updateUserStatus: async (userId, newStatus, reason = "") => {
     try {
-      // Endpoint BE: PATCH /api/admin/users/{userId}/status?status=...&reason=...
       const response = await api.patch(`/admin/users/${userId}/status`, null, {
         params: {
           status: newStatus,
-          reason: reason // Gửi lý do lên backend
+          reason: reason
         }
       });
       return response.data;

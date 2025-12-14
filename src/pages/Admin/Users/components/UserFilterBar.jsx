@@ -21,7 +21,7 @@ export default function UserFilterBar({
                     type="text"
                     className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all duration-200 sm:text-sm"
                     placeholder="Tìm kiếm user..."
-                    value={searchTerm}
+                    value={searchTerm} // Liên kết với state UI để hiển thị mượt mà
                     onChange={(e) => onSearchChange(e.target.value)}
                 />
             </div>
@@ -47,7 +47,7 @@ export default function UserFilterBar({
                     </select>
                 </div>
 
-                {/* Bộ lọc Vai trò - Đã xóa ADMIN */}
+                {/* Bộ lọc Vai trò - (Đã ẩn ADMIN) */}
                 <div className="relative min-w-[160px]">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Filter className="h-4 w-4 text-gray-400" />
@@ -60,7 +60,7 @@ export default function UserFilterBar({
                         <option value="ALL">Tất cả vai trò</option>
                         <option value="CUSTOMER">Khách hàng</option>
                         <option value="OWNER">Chủ khách sạn</option>
-                        {/* ❌ Đã xóa option ADMIN tại đây */}
+                        {/* Đã xóa ADMIN ở đây để không cho lọc */}
                     </select>
                 </div>
             </div>

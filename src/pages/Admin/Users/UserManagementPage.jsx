@@ -1,29 +1,32 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-// ✅ Import các component Common
+// Import các component Common
 import ConfirmModal from "@/components/common/Modal/ConfirmModal";
 import ToastPortal from "@/components/common/Notification/ToastPortal";
 import LoadingOverlay from "@/components/common/Loading/LoadingOverlay";
-import Pagination from "@/pages/Owner/Bookings/components/common/Pagination"; // Kiểm tra lại đường dẫn này trong dự án của bạn
+import Pagination from "@/pages/Owner/Bookings/components/common/Pagination";
 
-// ✅ Import các component con của trang
+// Import các component con
 import UserStats from "./components/UserStats";
 import UserFilterBar from "./components/UserFilterBar";
 import UserTable from "./components/UserTable";
 import LockReasonModal from "./components/LockReasonModal";
 
-// ✅ Import Service
+// Import Service
 import adminService from "@/services/admin.service";
 
 export default function UserManagementPage() {
-    // Ref cho thông báo
+    // Ref
     const toastRef = useRef();
 
     // State dữ liệu
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    // State bộ lọc & phân trang
-    const [searchTerm, setSearchTerm] = useState("");
+    // ✅ State tìm kiếm: Tách biệt giá trị nhập (UI) và giá trị gọi API (Logic)
+    const [searchTerm, setSearchTerm] = useState(""); // Hiển thị trên ô input (update ngay lập tức)
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(""); // Dùng để gọi API (update sau 500ms)
+
+    // Filter & Pagination States
     const [roleFilter, setRoleFilter] = useState("ALL");
     const [rankFilter, setRankFilter] = useState("ALL");
     const [currentPage, setCurrentPage] = useState(1);
@@ -31,40 +34,45 @@ export default function UserManagementPage() {
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
 
-    // State thống kê (Tạm tính trên Frontend hoặc lấy từ API nếu có)
+    // Stats
     const [stats, setStats] = useState({ total: 0, active: 0, banned: 0 });
 
-    // State cho Modal Khóa (Nhập lý do)
+    // Modals
     const [isLockModalOpen, setIsLockModalOpen] = useState(false);
     const [selectedUserForLock, setSelectedUserForLock] = useState(null);
-
-    // State cho Modal Xác nhận (Mở khóa)
     const [confirmModal, setConfirmModal] = useState({
-        open: false,
-        title: "",
-        message: "",
-        type: "info",
-        confirmText: "Xác nhận",
-        onConfirm: null,
+        open: false, title: "", message: "", type: "info", confirmText: "Xác nhận", onConfirm: null,
     });
 
-    // Helper hiển thị thông báo
     const addToast = (message, mode = "info") => {
-        if (toastRef.current) {
-            toastRef.current.addMessage({ mode, message });
-        }
+        if (toastRef.current) toastRef.current.addMessage({ mode, message });
     };
 
-    // Hàm gọi API lấy danh sách user
+    // ✅ KỸ THUẬT DEBOUNCE: Chỉ cập nhật từ khóa tìm kiếm sau khi người dùng ngừng gõ 500ms
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm); // Cập nhật từ khóa thực tế để gọi API
+            if (searchTerm !== "") {
+                setCurrentPage(1); // Reset về trang 1 nếu đang tìm kiếm
+            }
+        }, 500); // Độ trễ 500ms (0.5 giây)
+
+        // Clear timeout nếu người dùng gõ tiếp trước khi hết 500ms
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [searchTerm]);
+
+    // Hàm gọi API
     const fetchUsers = useCallback(async () => {
         setIsLoading(true);
         try {
             const response = await adminService.getAllUsers(
                 currentPage - 1,
                 pageSize,
-                searchTerm,
+                debouncedSearchTerm, // ✅ Sử dụng từ khóa đã Debounce
                 roleFilter,
-                "ALL", // Status filter (đang để ALL)
+                "ALL",
                 rankFilter
             );
 
@@ -74,7 +82,6 @@ export default function UserManagementPage() {
                 setTotalPages(data.totalPages || 0);
                 setTotalElements(data.totalElements || 0);
 
-                // Cập nhật thống kê (Lưu ý: Logic này đang đếm trên trang hiện tại, lý tưởng nhất là Backend trả về stats)
                 setStats({
                     total: data.totalElements || 0,
                     active: data.content?.filter(u => u.status === 'ACTIVE').length || 0,
@@ -87,28 +94,28 @@ export default function UserManagementPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [currentPage, pageSize, searchTerm, roleFilter, rankFilter]);
+    }, [currentPage, pageSize, debouncedSearchTerm, roleFilter, rankFilter]); // ✅ Dependency là debouncedSearchTerm
 
     useEffect(() => {
         fetchUsers();
     }, [fetchUsers]);
 
-    // --- HANDLERS ---
-    const handleSearchChange = (value) => { setSearchTerm(value); setCurrentPage(1); };
+    // ✅ Handler chỉ cập nhật UI, không gọi API hay reset trang ngay
+    const handleSearchChange = (value) => {
+        setSearchTerm(value);
+    };
+
     const handleRoleChange = (role) => { setRoleFilter(role); setCurrentPage(1); };
     const handleRankChange = (rank) => { setRankFilter(rank); setCurrentPage(1); };
     const handlePageChange = (page) => setCurrentPage(page);
 
-    // Xử lý khi nhấn nút hành động trên bảng
+    // Logic xử lý trạng thái (Khóa/Mở khóa)
     const handleStatusClick = (userId, currentStatus) => {
         const user = users.find(u => u.userId === userId);
-
         if (currentStatus === "ACTIVE") {
-            // Nếu đang Active -> Mở modal Khóa (để nhập lý do)
             setSelectedUserForLock(user);
             setIsLockModalOpen(true);
         } else {
-            // Nếu đang Banned -> Mở modal Xác nhận (để mở khóa)
             setConfirmModal({
                 open: true,
                 title: "Mở khóa tài khoản",
@@ -120,22 +127,15 @@ export default function UserManagementPage() {
         }
     };
 
-    // Hàm thực thi gọi API cập nhật trạng thái
     const executeStatusChange = async (userId, newStatus, reason) => {
         try {
             await adminService.updateUserStatus(userId, newStatus, reason);
-
             const actionText = newStatus === "BANNED" ? "Đã khóa" : "Đã mở khóa";
             addToast(`${actionText} tài khoản thành công`, "success");
-
-            // Reset các modal
             setIsLockModalOpen(false);
             setSelectedUserForLock(null);
-
-            // Load lại dữ liệu
             fetchUsers();
         } catch (error) {
-            console.error(error);
             addToast("Lỗi cập nhật trạng thái", "error");
         }
     };
@@ -143,11 +143,8 @@ export default function UserManagementPage() {
     return (
         <div className="p-6 min-h-screen bg-gray-50/50 space-y-6 relative">
             {isLoading && <LoadingOverlay />}
-
-            {/* Portal hiển thị thông báo góc trên màn hình */}
             <ToastPortal ref={toastRef} autoClose={true} />
 
-            {/* Modal Khóa Tài Khoản (Nhập lý do) */}
             <LockReasonModal
                 isOpen={isLockModalOpen}
                 onClose={() => setIsLockModalOpen(false)}
@@ -155,7 +152,6 @@ export default function UserManagementPage() {
                 onConfirm={(reason) => executeStatusChange(selectedUserForLock?.userId, "BANNED", reason)}
             />
 
-            {/* Modal Xác Nhận (Dùng cho Mở khóa) */}
             <ConfirmModal
                 open={confirmModal.open}
                 title={confirmModal.title}
@@ -166,17 +162,14 @@ export default function UserManagementPage() {
                 onClose={() => setConfirmModal((prev) => ({ ...prev, open: false }))}
             />
 
-            {/* Tiêu đề trang */}
             <div className="flex flex-col gap-1">
                 <h1 className="text-2xl font-bold text-gray-800">Quản lý người dùng</h1>
             </div>
 
-            {/* Thẻ thống kê */}
             <UserStats stats={stats} />
 
-            {/* Thanh bộ lọc */}
             <UserFilterBar
-                searchTerm={searchTerm}
+                searchTerm={searchTerm} // ✅ Truyền searchTerm (UI) để input hiển thị mượt
                 onSearchChange={handleSearchChange}
                 roleFilter={roleFilter}
                 onRoleFilterChange={handleRoleChange}
@@ -184,13 +177,11 @@ export default function UserManagementPage() {
                 onRankFilterChange={handleRankChange}
             />
 
-            {/* Bảng dữ liệu */}
             <UserTable
                 users={users}
                 onStatusChange={handleStatusClick}
             />
 
-            {/* Phân trang */}
             {totalPages > 0 && (
                 <div className="mt-4 flex justify-end">
                     <Pagination

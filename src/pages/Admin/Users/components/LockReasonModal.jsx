@@ -14,7 +14,7 @@ export default function LockReasonModal({ isOpen, onClose, onConfirm, userName }
             return;
         }
         onConfirm(reason);
-        setReason(""); // Reset sau khi gửi
+        setReason("");
         setError("");
     };
 
@@ -28,6 +28,7 @@ export default function LockReasonModal({ isOpen, onClose, onConfirm, userName }
                         Khóa tài khoản
                     </h3>
                     <button
+                        type="button" // ✅ Fix lỗi reload
                         onClick={onClose}
                         className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
                     >
@@ -51,7 +52,7 @@ export default function LockReasonModal({ isOpen, onClose, onConfirm, userName }
                                 error ? "border-red-300 focus:border-red-500" : "border-gray-200 focus:border-blue-500"
                             }`}
                             rows="3"
-                            placeholder="Nhập lý do chi tiết (VD: Vi phạm chính sách, Spam...)"
+                            placeholder="Nhập lý do chi tiết..."
                             value={reason}
                             onChange={(e) => {
                                 setReason(e.target.value);
@@ -65,12 +66,14 @@ export default function LockReasonModal({ isOpen, onClose, onConfirm, userName }
                 {/* Footer */}
                 <div className="p-4 bg-gray-50 flex justify-end gap-3">
                     <button
+                        type="button" // ✅ Fix lỗi reload
                         onClick={onClose}
                         className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                         Hủy bỏ
                     </button>
                     <button
+                        type="button" // ✅ Fix lỗi reload
                         onClick={handleSubmit}
                         className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 shadow-sm shadow-red-200 transition-colors"
                     >
