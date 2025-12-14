@@ -5,35 +5,43 @@ import { Info, CalendarDays, ArrowRight, Check, TrendingUp, Sparkles } from "luc
 import { DateRange } from 'react-date-range';
 import { vi } from 'date-fns/locale';
 import { addDays, differenceInCalendarDays, format, getDay } from 'date-fns';
-// ✅ Import Recharts để vẽ biểu đồ
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from 'recharts';
 
 import roomService from "@/services/room.service";
 import Spinner from "@/components/common/Loading/Spinner";
 
-// Import CSS
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 
 const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], selectedRoomId, roomPrice: initialRoomPrice, weekendPrice }) => {
 
-    // Logic fallback: Nếu không có giá cuối tuần thì dùng giá thường
+    // --- 1. Logic Khởi tạo & Fallback (Giữ nguyên của develop) ---
     const standardPrice = Number(initialRoomPrice) || 0;
     const endPrice = (weekendPrice && Number(weekendPrice) > 0) ? Number(weekendPrice) : standardPrice;
 
-    // State lưu giá thực tế (lấy từ API Forecast để chính xác nhất)
+    // State lưu giá (dùng cho tính toán tiền)
     const [prices, setPrices] = useState({ weekday: standardPrice, weekend: endPrice });
 
+    // State chọn ngày
     const [selection, setSelection] = useState({
         startDate: new Date(),
         endDate: addDays(new Date(), 1),
         key: 'selection'
     });
 
+    // State dữ liệu biểu đồ & UI
     const [forecastData, setForecastData] = useState([]);
     const [loadingForecast, setLoadingForecast] = useState(false);
     const [monthsToShow, setMonthsToShow] = useState(2);
     const [hasPriceVariation, setHasPriceVariation] = useState(false);
+
+    // [MỚI] State hỗ trợ UI đẹp hơn (từ feature/forecast)
+    const [hoverInfo, setHoverInfo] = useState(null);
+    const [priceComparison, setPriceComparison] = useState({
+        isVariation: false,
+        higherType: 'weekend', // 'weekend' hoặc 'weekday'
+        maxPrice: 0
+    });
 
     // Responsive: chỉnh số tháng hiển thị
     useEffect(() => {
@@ -45,7 +53,7 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // 1. Gọi API lấy Forecast (Dữ liệu biểu đồ)
+    // --- 2. Gọi API Forecast & Xử lý dữ liệu (Nâng cấp) ---
     useEffect(() => {
         const fetchPriceForecast = async () => {
             if (!selectedRoomId || !open) return;
@@ -55,31 +63,48 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                 if (res.data) {
                     const apiData = res.data;
 
-                    // Lấy giá chính xác từ dữ liệu trả về
-                    const pWeekday = apiData.find(d => (d.weekend !== undefined ? !d.weekend : !d.isWeekend))?.price || standardPrice;
-                    const pWeekend = apiData.find(d => (d.weekend !== undefined ? d.weekend : d.isWeekend))?.price || endPrice;
+                    // Xác định giá Ngày thường & Cuối tuần từ dữ liệu API
+                    const weekdayItem = apiData.find(d => (d.weekend !== undefined ? !d.weekend : !d.isWeekend));
+                    const weekendItem = apiData.find(d => (d.weekend !== undefined ? d.weekend : d.isWeekend));
 
-                    setPrices({ weekday: Number(pWeekday), weekend: Number(pWeekend) });
-                    setHasPriceVariation(Number(pWeekday) !== Number(pWeekend));
+                    // Nếu API thiếu dữ liệu thì dùng fallback standardPrice/endPrice
+                    const pWeekday = weekdayItem ? Number(weekdayItem.price) : standardPrice;
+                    const pWeekend = weekendItem ? Number(weekendItem.price) : endPrice;
+
+                    // Cập nhật state giá để tính tiền
+                    setPrices({ weekday: pWeekday, weekend: pWeekend });
+
+                    // Logic so sánh giá (để hiển thị UI thông minh)
+                    const maxP = Math.max(pWeekday, pWeekend);
+                    const isVar = pWeekday !== pWeekend;
+                    const higherType = pWeekend >= pWeekday ? 'weekend' : 'weekday';
+
+                    setHasPriceVariation(isVar);
+                    setPriceComparison({
+                        isVariation: isVar,
+                        higherType: higherType,
+                        maxPrice: maxP
+                    });
 
                     // Map dữ liệu cho Recharts
                     const formattedData = apiData.map(item => {
-                        const isWknd = item.weekend !== undefined ? item.weekend : item.isWeekend;
-                        const maxP = Math.max(Number(pWeekday), Number(pWeekend));
+                        const dateObj = new Date(item.date);
+                        const isWeekendDay = item.weekend !== undefined ? item.weekend : item.isWeekend;
+
                         let savings = 0;
-                        // Tính % rẻ hơn
-                        if (!isWknd && item.price < maxP && maxP > 0) {
+                        // Tính % rẻ hơn so với mức giá cao nhất
+                        if (item.price < maxP && maxP > 0) {
                             savings = Math.round(((maxP - item.price) / maxP) * 100);
                         }
 
                         return {
-                            date: new Date(item.date),
-                            dayName: format(new Date(item.date), "EEEE", { locale: vi }).replace("Thứ ", "T"),
-                            fullDateStr: format(new Date(item.date), "dd/MM"),
+                            date: dateObj,
+                            dayName: format(dateObj, "EEEE", { locale: vi }).replace("Thứ ", "T"),
+                            fullDateStr: format(dateObj, "dd/MM"),
                             price: item.price,
-                            level: isWknd ? 'weekend' : 'weekday',
+                            level: isWeekendDay ? 'weekend' : 'weekday',
                             savings: savings,
-                            isWeekend: isWknd
+                            isWeekend: isWeekendDay
                         };
                     });
                     setForecastData(formattedData);
@@ -91,9 +116,9 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
             }
         };
         fetchPriceForecast();
-    }, [selectedRoomId, open]);
+    }, [selectedRoomId, open, standardPrice, endPrice]);
 
-    // 2. Logic tính tiền chi tiết (Ngày thường vs Cuối tuần)
+    // --- 3. Logic tính tiền (Giữ nguyên logic chuẩn của develop) ---
     const bookingCalculation = useMemo(() => {
         let total = 0;
         let weekdayCount = 0;
@@ -101,12 +126,11 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
         let tempDate = new Date(selection.startDate);
         const endDate = new Date(selection.endDate);
 
-        // Reset giờ để so sánh ngày chính xác
         tempDate.setHours(0,0,0,0);
         endDate.setHours(0,0,0,0);
 
         while (tempDate < endDate) {
-            const dayOfWeek = getDay(tempDate); // 0=CN, 6=T7
+            const dayOfWeek = getDay(tempDate);
             const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
             if (isWeekend) {
@@ -119,32 +143,25 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
             tempDate = addDays(tempDate, 1);
         }
         const nights = Math.max(1, differenceInCalendarDays(selection.endDate, selection.startDate));
+        // Trả về cấu trúc giống develop cũ để không gãy logic ở cha
         return { total, nights, weekdayCount, weekendCount, prices };
     }, [selection, prices]);
 
     const handleConfirm = () => {
-        // ✅ Gửi kèm kết quả tính toán (calculationData) ra ngoài
         onConfirm([selection.startDate, selection.endDate], bookingCalculation);
     };
 
-    // Tooltip tùy chỉnh cho biểu đồ
-    const CustomTooltip = ({ active, payload }) => {
-        if (active && payload && payload.length) {
-            const data = payload[0].payload;
-            return (
-                <div className="bg-white p-3 border border-gray-100 shadow-xl rounded-xl text-xs z-50">
-                    <div className="font-bold text-gray-700 mb-1">{data.dayName}, {data.fullDateStr}</div>
-                    <div className="text-base font-extrabold text-blue-600 mb-1">
-                        {new Intl.NumberFormat('vi-VN').format(data.price)}₫
-                    </div>
-                    {data.savings > 0 && <div className="text-green-600 font-medium">Rẻ hơn {data.savings}% so với cuối tuần</div>}
-                </div>
-            );
-        }
-        return null;
+    // --- 4. Các hàm xử lý UI mới ---
+    const handleChartClick = (data) => {
+        if (!data || !data.activePayload) return;
+        const clickedDate = data.activePayload[0].payload.date;
+        setSelection({
+            startDate: clickedDate,
+            endDate: addDays(clickedDate, 1),
+            key: 'selection'
+        });
     };
 
-    // Logic chặn ngày (Giữ nguyên)
     const checkDisabledDate = (date) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -159,6 +176,37 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
         });
     };
 
+    // Tooltip tùy chỉnh (Đẹp hơn, lấy từ feature)
+    const CustomTooltip = ({ active, payload }) => {
+        if (active && payload && payload.length) {
+            const data = payload[0].payload;
+            // Xác định text so sánh dựa trên logic
+            const compareText = priceComparison.higherType === 'weekend' ? 'cuối tuần' : 'ngày thường';
+
+            return (
+                <div className="bg-white p-3 border border-gray-100 shadow-xl rounded-xl text-xs transform -translate-y-2 z-50">
+                    <div className="font-bold text-gray-700 mb-1 flex items-center gap-2">
+                        {data.dayName}, {data.fullDateStr}
+                        {data.isWeekend
+                            ? <span className="bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded text-[10px] font-bold">Cuối tuần</span>
+                            : <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-[10px] font-bold">Trong tuần</span>
+                        }
+                    </div>
+                    <div className="text-base font-extrabold text-blue-600 mb-1">
+                        {new Intl.NumberFormat('vi-VN').format(data.price)}₫
+                    </div>
+                    {data.savings > 0 && (
+                        <div className="text-green-600 font-medium flex items-center gap-1">
+                            <TrendingUp size={12} className="rotate-180"/>
+                            Rẻ hơn {data.savings}% so với {compareText}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        return null;
+    };
+
     return (
         <Modal
             open={open}
@@ -168,14 +216,20 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
         >
             <div className="flex flex-col h-full bg-white max-h-[90vh] overflow-hidden">
 
-                {/* Header Tip */}
-                <div className="bg-blue-50 px-6 py-3 border-b border-blue-100 flex items-start gap-3 shrink-0">
-                    <Info size={18} className="text-blue-600 mt-0.5 shrink-0" />
-                    <div className="text-sm text-blue-800">
+                {/* Header Tip (Nâng cấp giao diện) */}
+                <div className="bg-indigo-50 px-6 py-3 border-b border-indigo-100 flex items-center gap-3 shrink-0">
+                    <Sparkles size={18} className="text-indigo-600 animate-pulse" />
+                    <div className="text-sm text-indigo-900">
                         {hasPriceVariation ? (
-                            <span><span className="font-semibold">Mẹo thông minh:</span> Đặt phòng vào các ngày <span className="font-bold text-green-600">Trong tuần (Xanh lá)</span> để có giá tốt nhất!</span>
+                            <span>
+                                <span className="font-bold">Mẹo thông minh:</span> Đặt phòng vào các ngày
+                                <span className="font-bold text-green-600 mx-1">
+                                    {priceComparison.higherType === 'weekend' ? 'Trong tuần' : 'Cuối tuần'}
+                                </span>
+                                để tiết kiệm tới <span className="font-bold text-orange-600">{Math.round(((priceComparison.maxPrice - Math.min(prices.weekday, prices.weekend))/priceComparison.maxPrice)*100)}%</span>!
+                            </span>
                         ) : (
-                            <span><span className="font-semibold">Lưu ý:</span> Những ngày hiển thị màu xám là ngày đã hết phòng.</span>
+                            <span><span className="font-bold">Yên tâm đặt phòng:</span> Giá phòng ổn định tất cả các ngày trong tuần.</span>
                         )}
                     </div>
                 </div>
@@ -202,15 +256,37 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                             />
                         </div>
 
-                        {/* ✅ CHART KHU VỰC - Thêm mới vào đây */}
-                        <div className="w-full max-w-4xl bg-white p-4 rounded-2xl border border-gray-200 shadow-sm min-h-[220px]">
+                        {/* --- BIỂU ĐỒ GIÁ (Đã làm đẹp) --- */}
+                        <div className="w-full max-w-4xl bg-white p-5 rounded-2xl border border-gray-200 shadow-sm mt-auto relative overflow-hidden min-h-[220px]">
                             {loadingForecast ? (
-                                <div className="flex justify-center h-44 items-center"><Spinner size="md"/></div>
+                                <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">
+                                    <Spinner size="md" />
+                                </div>
                             ) : (
-                                <div className="h-44 w-full">
-                                    <div className="flex justify-between mb-2">
-                                        <h4 className="text-sm font-bold text-gray-700 flex gap-2"><TrendingUp size={16}/> Dự báo giá</h4>
-                                        <div className="flex gap-3 text-[10px] font-medium bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
+                                <>
+                                    {/* Hình nền trang trí */}
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-0 opacity-50 pointer-events-none"></div>
+
+                                    {/* Header của biểu đồ */}
+                                    <div className="flex items-center justify-between mb-4 relative z-10">
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="bg-blue-100 p-1.5 rounded-lg">
+                                                    <TrendingUp size={16} className="text-blue-600" />
+                                                </div>
+                                                <h4 className="text-sm font-bold text-gray-800">Xu hướng giá 14 ngày tới</h4>
+                                            </div>
+                                            <p className="text-xs text-gray-500 mt-1 pl-9 h-4">
+                                                {hoverInfo ? (
+                                                    <span className="text-blue-600 font-medium transition-all">
+                                                        {hoverInfo.fullDateStr}: {new Intl.NumberFormat('vi-VN').format(hoverInfo.price)}₫
+                                                        {hoverInfo.savings > 0 ? ` (Rẻ hơn ${hoverInfo.savings}%)` : ''}
+                                                    </span>
+                                                ) : "Di chuột vào cột để xem chi tiết giá"}
+                                            </p>
+                                        </div>
+
+                                        <div className="flex gap-3 text-[10px] font-medium bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
                                             {hasPriceVariation ? (
                                                 <>
                                                     <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm"></span> Trong tuần</div>
@@ -221,58 +297,82 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                                             )}
                                         </div>
                                     </div>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart
-                                            data={forecastData}
-                                            margin={{top:5, right:0, left:-20, bottom:0}}
-                                            onClick={(d) => d && d.activePayload && setSelection({
-                                                startDate: d.activePayload[0].payload.date,
-                                                endDate: addDays(d.activePayload[0].payload.date, 1),
-                                                key:'selection'
-                                            })}
-                                        >
-                                            <defs>
-                                                <linearGradient id="colorWk" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#22c55e"/><stop offset="100%" stopColor="#86efac"/></linearGradient>
-                                                <linearGradient id="colorEnd" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#f97316"/><stop offset="100%" stopColor="#fdba74"/></linearGradient>
-                                                <linearGradient id="colorSt" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#3b82f6"/><stop offset="100%" stopColor="#93c5fd"/></linearGradient>
-                                            </defs>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9"/>
-                                            <XAxis dataKey="dayName" axisLine={false} tickLine={false} tick={{fontSize:10, fill:'#64748b'}} dy={5}/>
-                                            <YAxis axisLine={false} tickLine={false} tick={{fontSize:10, fill:'#94a3b8'}} tickFormatter={v => `${v/1000}k`}/>
-                                            <Tooltip content={<CustomTooltip/>} cursor={{fill:'rgba(0,0,0,0.05)', radius:4}}/>
-                                            <Bar dataKey="price" radius={[4,4,0,0]} maxBarSize={40}>
-                                                {forecastData.map((e, i) => {
-                                                    let fillUrl = "url(#colorSt)";
-                                                    if (hasPriceVariation) {
-                                                        if (e.isWeekend) fillUrl = "url(#colorEnd)";
-                                                        else fillUrl = "url(#colorWk)";
-                                                    }
 
-                                                    // Highlight ngày đang chọn
-                                                    const isSelected = e.date >= selection.startDate && e.date < selection.endDate;
+                                    {/* Khu vực vẽ biểu đồ */}
+                                    <div className="h-44 w-full relative z-10">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                                data={forecastData}
+                                                margin={{top: 10, right: 0, left: -20, bottom: 0}}
+                                                onClick={handleChartClick}
+                                                onMouseMove={(state) => state.activePayload && setHoverInfo(state.activePayload[0].payload)}
+                                                onMouseLeave={() => setHoverInfo(null)}
+                                                barCategoryGap="20%"
+                                            >
+                                                <defs>
+                                                    <linearGradient id="colorWeekday" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="0%" stopColor="#22c55e" stopOpacity={1}/>
+                                                        <stop offset="100%" stopColor="#86efac" stopOpacity={0.6}/>
+                                                    </linearGradient>
+                                                    <linearGradient id="colorWeekend" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="0%" stopColor="#FB923C" stopOpacity={1}/>
+                                                        <stop offset="100%" stopColor="#FED7AA" stopOpacity={0.6}/>
+                                                    </linearGradient>
+                                                    <linearGradient id="colorStable" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="0%" stopColor="#60A5FA" stopOpacity={1}/>
+                                                        <stop offset="100%" stopColor="#BFDBFE" stopOpacity={0.6}/>
+                                                    </linearGradient>
+                                                </defs>
 
-                                                    return (
-                                                        <Cell
-                                                            key={i}
-                                                            fill={fillUrl}
-                                                            stroke={isSelected ? '#2563eb' : 'none'}
-                                                            strokeWidth={isSelected ? 2 : 0}
-                                                            style={{ opacity: isSelected ? 1 : 0.8 }}
-                                                        />
-                                                    );
-                                                })}
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                                <XAxis
+                                                    dataKey="dayName" axisLine={false} tickLine={false}
+                                                    tick={{fontSize: 11, fill: '#64748b', fontWeight: 500}} dy={10}
+                                                />
+                                                <YAxis
+                                                    axisLine={false} tickLine={false}
+                                                    tick={{fontSize: 10, fill: '#94a3b8'}}
+                                                    tickFormatter={(val) => `${val/1000}k`}
+                                                />
+                                                <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(0,0,0,0.03)', radius: 6}} />
+
+                                                <Bar dataKey="price" radius={[6, 6, 0, 0]} maxBarSize={45} cursor="pointer" animationDuration={800}>
+                                                    {forecastData.map((entry, index) => {
+                                                        let fillUrl = "url(#colorStable)";
+                                                        if (hasPriceVariation) {
+                                                            if (entry.isWeekend) fillUrl = "url(#colorWeekend)";
+                                                            else fillUrl = "url(#colorWeekday)";
+                                                        }
+
+                                                        const isSelected = entry.date >= selection.startDate && entry.date < selection.endDate;
+
+                                                        return (
+                                                            <Cell
+                                                                key={`cell-${index}`}
+                                                                fill={fillUrl}
+                                                                stroke={isSelected ? '#2563eb' : 'none'}
+                                                                strokeWidth={isSelected ? 2 : 0}
+                                                                style={{
+                                                                    filter: isSelected ? 'drop-shadow(0px 4px 8px rgba(37, 99, 235, 0.3))' : 'none',
+                                                                    opacity: isSelected ? 1 : 0.75,
+                                                                    transition: 'all 0.3s ease'
+                                                                }}
+                                                            />
+                                                        );
+                                                    })}
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </>
                             )}
                         </div>
                     </div>
 
-                    {/* 3. CỘT PHẢI: SUMMARY (Cập nhật hiển thị giá chi tiết) */}
+                    {/* 3. CỘT PHẢI: CHI TIẾT THANH TOÁN (Giữ nguyên UI/Logic của develop) */}
                     <div className="w-full lg:w-96 bg-white p-6 flex flex-col gap-6 shadow-[-4px_0px_10px_rgba(0,0,0,0.02)] z-10 shrink-0 overflow-y-auto">
 
-                        {/* Box hiển thị ngày (Giữ nguyên) */}
+                        {/* Box hiển thị ngày */}
                         <div>
                             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Thời gian lưu trú</h4>
                             <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-4">
@@ -302,7 +402,7 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                             </div>
                         </div>
 
-                        {/* Box tính tiền (Update logic hiển thị) */}
+                        {/* Box tính tiền */}
                         <div className="flex-1 min-h-[100px]">
                             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Chi tiết thanh toán</h4>
                             <div className="space-y-3 text-sm">
