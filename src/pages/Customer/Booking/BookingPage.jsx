@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { format, addDays } from 'date-fns';
-import { ArrowLeft, ShieldCheck, Headset, Wallet } from 'lucide-react'; // ✅ Thêm icon mới
+import { ArrowLeft, ShieldCheck, Headset, Wallet } from 'lucide-react';
 
 // Components
 import Button from '@/components/common/Button/Button';
@@ -17,7 +17,7 @@ import propertyService from "@/services/property.service";
 import bookingService from "@/services/booking.service";
 import { useAuth } from "@/context/AuthContext";
 
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", ""); 
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
 const getFullImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/150";
     if (path.startsWith("http")) return path;
@@ -26,7 +26,7 @@ const getFullImageUrl = (path) => {
     return `${BASE_URL}${cleanPath}`;
 };
 
-// ✅ Component con: Khối An Tâm Đặt Phòng
+// Component con: Khối An Tâm Đặt Phòng
 const TrustBadges = () => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
@@ -57,43 +57,78 @@ export default function BookingPage() {
     const { propertyId } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
-    const { currentUser } = useAuth(); 
+    const { currentUser } = useAuth();
 
-    // Lấy dữ liệu từ state
-    const { selectedRoomId, checkInDate, checkOutDate } = location.state || {};
+    // Lấy dữ liệu từ state (được truyền từ HotelDetailPage)
+    const {
+        selectedRoomId, // ID phòng chọn
+        roomId: stateRoomId, // Fallback ID
+        checkInDate,
+        checkOutDate,
+        calculationData // ✅ [MỚI] Dữ liệu tính toán giá (có cuối tuần)
+    } = location.state || {};
+
+    // Ưu tiên lấy roomId chuẩn
+    const finalRoomId = selectedRoomId || stateRoomId;
 
     // Data State
     const [hotel, setHotel] = useState(null);
     const [room, setRoom] = useState(null);
     const [loading, setLoading] = useState(true);
-    
+
     // Form State
     const [dateRange] = useState({
         startDate: checkInDate ? new Date(checkInDate) : new Date(),
         endDate: checkOutDate ? new Date(checkOutDate) : addDays(new Date(), 1)
     });
-    
+
     const [contactData, setContactData] = useState({});
     const [submitting, setSubmitting] = useState(false);
 
     // 1. Fetch Hotel & Room Info
     useEffect(() => {
         const fetchData = async () => {
-            if (!propertyId) return;
+            // Logic cũ: lấy pid từ URL hoặc hotel state
+            const pid = propertyId || (hotel && hotel.id);
+
+            // Nếu không có propertyId và cũng không có hotel data sẵn -> dừng
+            if (!pid && !location.state?.hotelName) return;
+
+            // Nếu location.state đã có đủ thông tin hotel/room (tối ưu không cần gọi lại API)
+            if (location.state?.hotelName && location.state?.roomName) {
+                setHotel({
+                    id: propertyId,
+                    name: location.state.hotelName,
+                    location: location.state.address,
+                    // Các field khác có thể thiếu nếu lấy từ state, nhưng đủ để hiển thị cơ bản
+                    image: null
+                });
+                setRoom({
+                    id: finalRoomId,
+                    name: location.state.roomName,
+                    price: location.state.price,
+                    guests: 2, // Fallback
+                    image: location.state.image
+                });
+                setLoading(false);
+                return;
+            }
+
+            // Logic cũ: Gọi API lấy chi tiết
             setLoading(true);
             try {
                 const data = await propertyService.getPropertyDetail(propertyId);
                 setHotel({
                     id: data.propertyId,
                     name: data.propertyName,
-                    type: data.propertyType, 
+                    type: data.propertyType,
                     location: `${data.address}, ${data.city}`,
                     image: getFullImageUrl(data.coverImage)
                 });
 
                 let targetRoom = null;
-                if (data.rooms && selectedRoomId) {
-                    targetRoom = data.rooms.find(r => r.roomId === selectedRoomId);
+                if (data.rooms && finalRoomId) {
+                    targetRoom = data.rooms.find(r => r.roomId === finalRoomId);
                 } else if (data.rooms?.length > 0) {
                     targetRoom = data.rooms[0];
                 }
@@ -104,8 +139,8 @@ export default function BookingPage() {
                         name: targetRoom.roomName,
                         price: targetRoom.pricePerNight,
                         guests: targetRoom.capacity,
-                        image: (targetRoom.images && targetRoom.images.length > 0) 
-                            ? getFullImageUrl(targetRoom.images[0]) 
+                        image: (targetRoom.images && targetRoom.images.length > 0)
+                            ? getFullImageUrl(targetRoom.images[0])
                             : null
                     });
                 }
@@ -116,10 +151,10 @@ export default function BookingPage() {
             }
         };
         fetchData();
-    }, [propertyId, selectedRoomId]);
+    }, [propertyId, finalRoomId]);
 
-    // Validate Form
-    const isFormValid = 
+    // Validate Form (dựa trên ContactInfoForm cũ: fullName, phone, email)
+    const isFormValid =
         contactData.fullName?.trim() &&
         contactData.phone?.trim() &&
         contactData.email?.trim();
@@ -134,35 +169,49 @@ export default function BookingPage() {
 
         setSubmitting(true);
         try {
-            const isWholeUnit = ["VILLA", "HOMESTAY"].includes(hotel.type);
+            const isWholeUnit = ["VILLA", "HOMESTAY"].includes(hotel?.type);
 
             const payload = {
-                userId: currentUser.userId, 
-                propertyId: parseInt(propertyId),
-                roomId: isWholeUnit ? null : room.id,
+                userId: currentUser.userId,
+                propertyId: parseInt(propertyId || hotel.id), // Đảm bảo có ID
+                roomId: isWholeUnit ? null : (room?.id || finalRoomId),
                 checkInDate: format(dateRange.startDate, "yyyy-MM-dd"),
                 checkOutDate: format(dateRange.endDate, "yyyy-MM-dd"),
-                guestCount: room.guests,
-                
+                guestCount: room?.guests || 1,
+
                 bookingForSelf: contactData.isSelfBooking,
+
+                // Map dữ liệu contact (Form cũ dùng 'phone')
                 contactName: contactData.fullName,
                 contactPhone: contactData.phone,
+                guestPhone: contactData.phone,   // Map thêm cho chắc
                 contactEmail: contactData.email,
-                specialRequest: contactData.specialRequest
+                guestEmail: contactData.email,
+
+                specialRequest: contactData.specialRequest,
+                note: contactData.specialRequest,
+
+                // ✅ QUAN TRỌNG: Gửi tổng tiền chính xác (đã tính cuối tuần) lên server
+                totalPrice: calculationData ? calculationData.total : undefined
             };
 
             const response = await bookingService.createBooking(payload);
             const newBookingId = response.bookingId || response.data?.bookingId;
 
             if (newBookingId) {
-                navigate(`/booking/payment/${newBookingId}`);
+                // ✅ SỬA: Truyền giá cuối cùng sang trang Payment
+                navigate(`/booking/payment/${newBookingId}`, {
+                    state: {
+                        finalTotalPrice: calculationData ? calculationData.total : undefined
+                    }
+                });
             } else {
                 throw new Error("Không nhận được Mã đặt phòng.");
             }
 
         } catch (error) {
             console.error("Booking Error:", error);
-            alert("Đặt phòng thất bại: " + (error.message || "Lỗi hệ thống"));
+            alert("Lỗi: " + (error.response?.data?.message || "Đặt phòng thất bại. Vui lòng thử lại."));
         } finally {
             setSubmitting(false);
         }
@@ -183,7 +232,7 @@ export default function BookingPage() {
 
             <Button
                 variant="ghost"
-                onClick={() => navigate(`/hotels/${hotel.id}`)} 
+                onClick={() => navigate(`/hotels/${hotel.id}`)}
                 leftIcon={<ArrowLeft size={18} />}
                 className="mb-6 text-slate-500 hover:text-blue-600 pl-0 hover:bg-transparent"
             >
@@ -193,32 +242,33 @@ export default function BookingPage() {
             <h1 className="text-3xl font-bold mb-8 text-slate-900">Xác nhận & Đặt phòng</h1>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
+
                 {/* CỘT TRÁI: FORM & TIỆN ÍCH */}
                 <div className="lg:col-span-2 space-y-6">
-                    
-                    {/* Form Liên hệ */}
-                    <ContactInfoForm 
+
+                    {/* Form Liên hệ (Giữ nguyên component cũ) */}
+                    <ContactInfoForm
                         user={currentUser}
                         onChange={setContactData}
                     />
 
-                    {/* ✅ KHỐI AN TÂM ĐẶT PHÒNG */}
                     <TrustBadges />
                 </div>
 
                 {/* CỘT PHẢI: SUMMARY */}
                 <div className="lg:col-span-1">
-                    <BookingSummary 
-                        hotel={hotel} 
+                    <BookingSummary
+                        hotel={hotel}
                         room={room}
-                        dateRange={dateRange} 
+                        dateRange={dateRange}
                         onSubmit={handleFinalSubmit}
-                        disabled={!isFormValid} 
+                        disabled={!isFormValid}
                         submitting={submitting}
+                        // ✅ Truyền calculationData xuống để hiển thị giá đúng
+                        calculationData={calculationData}
                     />
                 </div>
             </div>
         </main>
     );
-}
+};
