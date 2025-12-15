@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { format, addDays } from 'date-fns';
-import { Check } from "lucide-react"; // Import thiếu ở code cũ, bổ sung
+import { Check } from "lucide-react";
 
 // Components Common
 import Spinner from "@/components/common/Loading/Spinner";
@@ -16,8 +16,6 @@ import HotelSidebar from "./components/HotelSidebar";
 import RoomListSection from "./components/RoomListSection";
 import RoomDetailModal from "./components/RoomDetailModal";
 import BookingDateModal from "./components/BookingDateModal";
-
-// ✅ Import Components Mới
 import HotelReviewSidebar from "./components/HotelReviewSidebar";
 import FeaturedReviews from "./components/FeaturedReviews";
 
@@ -97,6 +95,8 @@ export default function HotelDetailPage() {
                 const mappedHotel = {
                     id: hotelData.propertyId,
                     ownerId: hotelData.ownerId,
+                    // ✅ [FIX] Lấy thêm propertyType để truyền sang trang Booking
+                    type: hotelData.propertyType,
                     name: hotelData.propertyName,
                     description: hotelData.description,
                     rating: hotelData.rating,
@@ -107,14 +107,12 @@ export default function HotelDetailPage() {
                     images: (hotelData.images && hotelData.images.length > 0) ? hotelData.images.map(getFullImageUrl) : [getFullImageUrl(hotelData.coverImage)],
                     amenities: hotelData.amenities ? hotelData.amenities.map(a => ({ name: a.amenityName, icon: getAmenityIcon(a.amenityName) })) : [],
                     rooms: hotelData.rooms ? hotelData.rooms.map(r => ({
-                        // ✅ Đảm bảo map cả id và roomId
                         id: r.roomId,
-                        roomId: r.roomId,
+                        roomId: r.roomId, // Map thêm field roomId cho chắc chắn
                         name: r.roomName,
                         roomName: r.roomName,
                         price: r.pricePerNight,
-                        // ✅ Thêm trường weekendPrice
-                        weekendPrice: r.weekendPrice,
+                        weekendPrice: r.weekendPrice, // ✅ Map giá cuối tuần từ API
                         guests: r.capacity,
                         size: r.area || 30,
                         description: r.description,
@@ -172,10 +170,11 @@ export default function HotelDetailPage() {
 
     const handleCloseRoomDetail = () => setSelectedRoomDetail(null);
 
+    // Xử lý khi bấm nút "Đặt ngay"
     const handleBookNowClick = async (room) => {
         setSelectedRoomForBooking(room);
         try {
-            // ✅ Lấy ID chuẩn (room.id hoặc room.roomId)
+            // Lấy lịch đã đặt
             const rId = room.roomId || room.id;
             const res = await bookingService.getRoomAvailability(rId);
             if (res && res.data) { setOccupiedDates(res.data); } else { setOccupiedDates([]); }
@@ -183,29 +182,33 @@ export default function HotelDetailPage() {
         setIsDateModalOpen(true);
     };
 
-    // ✅ SỬA: Hàm chuyển hướng khi xác nhận đặt phòng
+    // ✅ [FIX] HÀM QUAN TRỌNG: Chuyển sang trang Booking với đầy đủ dữ liệu
     const handleDateConfirm = (range, calculationData) => {
         setIsDateModalOpen(false);
         if (selectedRoomForBooking) {
-            // Đảm bảo roomId không null
             const validRoomId = selectedRoomForBooking.roomId || selectedRoomForBooking.id;
 
-            // ⚠️ SỬA TẠI ĐÂY: Thêm ${hotelId} vào đường dẫn để khớp với CustomerRoutes.jsx
             navigate(`/booking/${hotelId}`, {
                 state: {
+                    // ✅ Truyền Property ID & Type để BookingPage xử lý logic Homestay
+                    propertyId: hotel.id,
+                    propertyType: hotel.type,
+
                     roomId: validRoomId,
-                    selectedRoomId: validRoomId, // Thêm dòng này cho chắc chắn
-                    roomName: selectedRoomForBooking.roomName || selectedRoomForBooking.name,
-                    price: selectedRoomForBooking.pricePerNight || selectedRoomForBooking.price,
+                    selectedRoomId: validRoomId,
+                    roomName: selectedRoomForBooking.name || selectedRoomForBooking.roomName,
+                    price: selectedRoomForBooking.price,
                     image: selectedRoomForBooking.images?.[0],
-                    
-                    // 🔥 ĐÃ SỬA: Đổi tên key thành checkInDate/checkOutDate để khớp với BookingPage
-                    checkInDate: range[0], 
-                    checkOutDate: range[1],
-                    
+
+                    // Format ngày tháng chuẩn JS Date object
+                    startDate: range[0],
+                    endDate: range[1],
+
+                    // Thông tin hotel để hiển thị summary
                     hotelName: hotel.name,
                     address: hotel.location,
-                    // Truyền dữ liệu tính toán giá
+
+                    // Dữ liệu tính toán từ Modal (Tổng tiền, số đêm...)
                     calculationData: calculationData
                 }
             });
@@ -275,15 +278,14 @@ export default function HotelDetailPage() {
             <RoomDetailModal room={selectedRoomDetail} open={!!selectedRoomDetail} onClose={handleCloseRoomDetail} />
             <ImageViewerModal open={isViewerOpen} onClose={() => setViewerOpen(false)} images={viewerImages} startIndex={selectedImageIndex} />
 
-            {/* ✅ Cập nhật Props cho Modal */}
             {selectedRoomForBooking && (
                 <BookingDateModal
                     open={isDateModalOpen}
                     onClose={() => setIsDateModalOpen(false)}
                     onConfirm={handleDateConfirm}
                     occupiedDates={occupiedDates}
+                    // ✅ Truyền đúng props để Modal tính toán
                     roomPrice={selectedRoomForBooking.price}
-                    // Truyền thêm weekendPrice và ID chuẩn
                     weekendPrice={selectedRoomForBooking.weekendPrice}
                     selectedRoomId={selectedRoomForBooking.roomId || selectedRoomForBooking.id}
                 />
