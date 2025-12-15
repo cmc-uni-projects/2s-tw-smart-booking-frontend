@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Modal from "@/components/common/Modal/Modal";
 import Button from "@/components/common/Button/Button";
-import { Info, CalendarDays, ArrowRight, Check, TrendingUp, Sparkles } from "lucide-react";
+import { Info, CalendarDays, ArrowRight, Check, TrendingUp, Sparkles, AlertCircle } from "lucide-react"; // ✅ Import thêm AlertCircle
 import { DateRange } from 'react-date-range';
 import { vi } from 'date-fns/locale';
 import { addDays, differenceInCalendarDays, format, getDay } from 'date-fns';
@@ -15,7 +15,7 @@ import 'react-date-range/dist/theme/default.css';
 
 const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], selectedRoomId, roomPrice: initialRoomPrice, weekendPrice }) => {
 
-    // --- 1. Logic Khởi tạo & Fallback (Giữ nguyên của develop) ---
+    // --- 1. Logic Khởi tạo & Fallback ---
     const standardPrice = Number(initialRoomPrice) || 0;
     const endPrice = (weekendPrice && Number(weekendPrice) > 0) ? Number(weekendPrice) : standardPrice;
 
@@ -35,13 +35,16 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
     const [monthsToShow, setMonthsToShow] = useState(2);
     const [hasPriceVariation, setHasPriceVariation] = useState(false);
 
-    // [MỚI] State hỗ trợ UI đẹp hơn (từ feature/forecast)
+    // State hỗ trợ UI đẹp hơn
     const [hoverInfo, setHoverInfo] = useState(null);
     const [priceComparison, setPriceComparison] = useState({
         isVariation: false,
-        higherType: 'weekend', // 'weekend' hoặc 'weekday'
+        higherType: 'weekend',
         maxPrice: 0
     });
+
+    // ✅ [MỚI] State cảnh báo lỗi chọn lịch
+    const [dateError, setDateError] = useState(null);
 
     // Responsive: chỉnh số tháng hiển thị
     useEffect(() => {
@@ -53,7 +56,7 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // --- 2. Gọi API Forecast & Xử lý dữ liệu (Nâng cấp) ---
+    // --- 2. Gọi API Forecast & Xử lý dữ liệu ---
     useEffect(() => {
         const fetchPriceForecast = async () => {
             if (!selectedRoomId || !open) return;
@@ -63,18 +66,14 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                 if (res.data) {
                     const apiData = res.data;
 
-                    // Xác định giá Ngày thường & Cuối tuần từ dữ liệu API
                     const weekdayItem = apiData.find(d => (d.weekend !== undefined ? !d.weekend : !d.isWeekend));
                     const weekendItem = apiData.find(d => (d.weekend !== undefined ? d.weekend : d.isWeekend));
 
-                    // Nếu API thiếu dữ liệu thì dùng fallback standardPrice/endPrice
                     const pWeekday = weekdayItem ? Number(weekdayItem.price) : standardPrice;
                     const pWeekend = weekendItem ? Number(weekendItem.price) : endPrice;
 
-                    // Cập nhật state giá để tính tiền
                     setPrices({ weekday: pWeekday, weekend: pWeekend });
 
-                    // Logic so sánh giá (để hiển thị UI thông minh)
                     const maxP = Math.max(pWeekday, pWeekend);
                     const isVar = pWeekday !== pWeekend;
                     const higherType = pWeekend >= pWeekday ? 'weekend' : 'weekday';
@@ -86,13 +85,11 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                         maxPrice: maxP
                     });
 
-                    // Map dữ liệu cho Recharts
                     const formattedData = apiData.map(item => {
                         const dateObj = new Date(item.date);
                         const isWeekendDay = item.weekend !== undefined ? item.weekend : item.isWeekend;
 
                         let savings = 0;
-                        // Tính % rẻ hơn so với mức giá cao nhất
                         if (item.price < maxP && maxP > 0) {
                             savings = Math.round(((maxP - item.price) / maxP) * 100);
                         }
@@ -118,7 +115,46 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
         fetchPriceForecast();
     }, [selectedRoomId, open, standardPrice, endPrice]);
 
-    // --- 3. Logic tính tiền (Giữ nguyên logic chuẩn của develop) ---
+    // ✅ [MỚI] HÀM KIỂM TRA LỊCH CÓ HỢP LỆ KHÔNG
+    const isRangeValid = useMemo(() => {
+        if (!selection.startDate || !selection.endDate) return false;
+
+        // Tạo bản sao để không ảnh hưởng state gốc
+        let curr = new Date(selection.startDate);
+        const end = new Date(selection.endDate);
+
+        // Reset giờ để so sánh chính xác
+        curr.setHours(0,0,0,0);
+        end.setHours(0,0,0,0);
+
+        // Duyệt qua từng ngày trong khoảng khách chọn
+        while (curr < end) {
+            // Kiểm tra xem ngày này có nằm trong bất kỳ khoảng occupied nào không
+            const isOccupied = occupiedDates.some(range => {
+                const s = new Date(range.start);
+                const e = new Date(range.end);
+                s.setHours(0,0,0,0);
+                e.setHours(0,0,0,0);
+                return curr >= s && curr <= e;
+            });
+
+            if (isOccupied) return false; // Phát hiện trùng lịch -> Invalid
+
+            curr = addDays(curr, 1);
+        }
+        return true;
+    }, [selection, occupiedDates]);
+
+    // ✅ [MỚI] Tự động set lỗi khi chọn ngày sai
+    useEffect(() => {
+        if (isRangeValid) {
+            setDateError(null);
+        } else {
+            setDateError("Khoảng thời gian bạn chọn có ngày đã hết phòng. Vui lòng chọn lại!");
+        }
+    }, [selection, isRangeValid]);
+
+    // --- 3. Logic tính tiền ---
     const bookingCalculation = useMemo(() => {
         let total = 0;
         let weekdayCount = 0;
@@ -143,11 +179,15 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
             tempDate = addDays(tempDate, 1);
         }
         const nights = Math.max(1, differenceInCalendarDays(selection.endDate, selection.startDate));
-        // Trả về cấu trúc giống develop cũ để không gãy logic ở cha
         return { total, nights, weekdayCount, weekendCount, prices };
     }, [selection, prices]);
 
     const handleConfirm = () => {
+        // ✅ [FIX] Chặn submit nếu lịch không hợp lệ
+        if (!isRangeValid) {
+            setDateError("Bạn không thể đặt phòng vì khoảng thời gian này đã có người đặt!");
+            return;
+        }
         onConfirm([selection.startDate, selection.endDate], bookingCalculation);
     };
 
@@ -176,11 +216,9 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
         });
     };
 
-    // Tooltip tùy chỉnh (Đẹp hơn, lấy từ feature)
     const CustomTooltip = ({ active, payload }) => {
         if (active && payload && payload.length) {
             const data = payload[0].payload;
-            // Xác định text so sánh dựa trên logic
             const compareText = priceComparison.higherType === 'weekend' ? 'cuối tuần' : 'ngày thường';
 
             return (
@@ -216,7 +254,7 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
         >
             <div className="flex flex-col h-full bg-white max-h-[90vh] overflow-hidden">
 
-                {/* Header Tip (Nâng cấp giao diện) */}
+                {/* Header Tip */}
                 <div className="bg-indigo-50 px-6 py-3 border-b border-indigo-100 flex items-center gap-3 shrink-0">
                     <Sparkles size={18} className="text-indigo-600 animate-pulse" />
                     <div className="text-sm text-indigo-900">
@@ -256,7 +294,7 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                             />
                         </div>
 
-                        {/* --- BIỂU ĐỒ GIÁ (Đã làm đẹp) --- */}
+                        {/* BIỂU ĐỒ GIÁ */}
                         <div className="w-full max-w-4xl bg-white p-5 rounded-2xl border border-gray-200 shadow-sm mt-auto relative overflow-hidden min-h-[220px]">
                             {loadingForecast ? (
                                 <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">
@@ -264,10 +302,8 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                                 </div>
                             ) : (
                                 <>
-                                    {/* Hình nền trang trí */}
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-0 opacity-50 pointer-events-none"></div>
 
-                                    {/* Header của biểu đồ */}
                                     <div className="flex items-center justify-between mb-4 relative z-10">
                                         <div>
                                             <div className="flex items-center gap-2">
@@ -298,7 +334,6 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                                         </div>
                                     </div>
 
-                                    {/* Khu vực vẽ biểu đồ */}
                                     <div className="h-44 w-full relative z-10">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <BarChart
@@ -369,7 +404,7 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                         </div>
                     </div>
 
-                    {/* 3. CỘT PHẢI: CHI TIẾT THANH TOÁN (Giữ nguyên UI/Logic của develop) */}
+                    {/* 3. CỘT PHẢI: CHI TIẾT THANH TOÁN */}
                     <div className="w-full lg:w-96 bg-white p-6 flex flex-col gap-6 shadow-[-4px_0px_10px_rgba(0,0,0,0.02)] z-10 shrink-0 overflow-y-auto">
 
                         {/* Box hiển thị ngày */}
@@ -401,6 +436,14 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                                 </div>
                             </div>
                         </div>
+
+                        {/* ✅ [MỚI] THÔNG BÁO LỖI NẾU CÓ */}
+                        {dateError && (
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2 animate-pulse">
+                                <AlertCircle size={18} className="text-red-500 mt-0.5 shrink-0" />
+                                <p className="text-xs text-red-600 font-medium">{dateError}</p>
+                            </div>
+                        )}
 
                         {/* Box tính tiền */}
                         <div className="flex-1 min-h-[100px]">
@@ -438,7 +481,13 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                         <div className="flex flex-col gap-3 mt-auto pt-4 border-t border-gray-100">
                             <Button
                                 onClick={handleConfirm}
-                                className="w-full shadow-lg shadow-blue-200 bg-[rgb(40,169,224)] hover:bg-[#1b98d6] py-3.5 text-base font-bold flex items-center justify-center gap-2 transition-transform active:scale-[0.98]"
+                                // ✅ Disable nút nếu có lỗi
+                                disabled={!!dateError}
+                                className={`w-full shadow-lg py-3.5 text-base font-bold flex items-center justify-center gap-2 transition-transform active:scale-[0.98] ${
+                                    dateError
+                                        ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
+                                        : "shadow-blue-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                                }`}
                             >
                                 <Check size={20} strokeWidth={3} /> Xác nhận đặt phòng
                             </Button>
