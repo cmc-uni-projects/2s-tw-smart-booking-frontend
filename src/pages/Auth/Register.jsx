@@ -1,333 +1,378 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-// ✅ 1. Thêm Check, Circle vào import
-import { UserPlus, Mail, ArrowLeft, User, Check, Circle } from "lucide-react";
-import { FaFacebook } from "react-icons/fa";
-import { authService } from "../../services/auth.service";
+import { authService } from "@/services/auth.service"; 
+import { 
+  Mail, Lock, Eye, EyeOff, ArrowLeft, Loader2, 
+  User, UserPlus, Check, X, ShieldCheck, MailCheck, ArrowRight
+} from "lucide-react";
+import LoginSlider from "@/components/auth/LoginSlider";
+import LegalModal from "@/components/auth/LegalModal"; 
 
-// Common Components
-import AuthTextField from "../../components/common/Input/AuthTextField"; 
-import PasswordField from "../../components/common/Input/PasswordField";
-import ConfirmPasswordField from "../../components/common/Input/ConfirmPasswordField";
-import Button from "../../components/common/Button/Button";
-import Divider from "../../components/common/Divider/Divider";
-import Toast from "../../components/common/Notification/Toast";
-import ToastPortal from "../../components/common/Notification/ToastPortal";
+// URL Backend & Background
+const API_BASE_URL = "http://localhost:8386"; 
+const BG_URL = "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=2074&auto=format&fit=crop";
 
-// Component SVG cho icon Google (Giữ nguyên)
-const GoogleIcon = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 48 48"
-    width="20px"
-    height="20px"
-    className={className}
-  >
-    <path
-      fill="#FFC107"
-      d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
-    />
-    <path
-      fill="#FF3D00"
-      d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
-    />
-    <path
-      fill="#4CAF50"
-      d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
-    />
-    <path
-      fill="#1976D2"
-      d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C39.712,35.619,44,30.397,44,24C44,22.659,43.862,21.35,43.611,20.083z"
-    />
-  </svg>
+// --- NỘI DUNG ĐIỀU KHOẢN ---
+const TERMS_CONTENT = (
+    <div className="space-y-4 text-slate-600 text-sm leading-relaxed text-justify">
+        <p><strong>1. Giới thiệu</strong><br/>Chào mừng bạn đến với TravelMate. Bằng việc đăng ký tài khoản, bạn xác nhận đã đọc, hiểu và đồng ý tuân thủ các Điều khoản dịch vụ này.</p>
+        <p><strong>2. Tài khoản người dùng</strong><br/>Bạn chịu trách nhiệm bảo mật thông tin tài khoản và mật khẩu của mình.</p>
+    </div>
+);
+const PRIVACY_CONTENT = (
+    <div className="space-y-4 text-slate-600 text-sm leading-relaxed text-justify">
+        <p><strong>1. Thu thập thông tin</strong><br/>Chúng tôi thu thập tên, email để xác thực danh tính.</p>
+        <p><strong>2. Bảo mật dữ liệu</strong><br/>Dữ liệu của bạn được mã hóa SSL và lưu trữ an toàn.</p>
+    </div>
 );
 
+// ==========================================
+// 🏆 COMPONENT MODAL THÀNH CÔNG (MỚI)
+// ==========================================
+const RegistrationSuccessModal = ({ isOpen, email, countdown, onLoginNow }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative overflow-hidden animate-zoom-in border border-emerald-100">
+                
+                {/* Decorative Background */}
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+                <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-50 rounded-full blur-2xl"></div>
+
+                <div className="text-center relative z-10">
+                    {/* Icon Animation */}
+                    <div className="mx-auto mb-6 w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center animate-bounce-slow">
+                        <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                            <MailCheck size={32} className="text-white" />
+                        </div>
+                    </div>
+
+                    <h2 className="text-2xl font-black text-slate-800 mb-2">Đăng ký thành công! 🎉</h2>
+                    
+                    <p className="text-slate-600 text-sm mb-6 leading-relaxed">
+                        Chúc mừng bạn đã tạo tài khoản thành công tại <strong>TravelMate</strong>.
+                        <br/>Vui lòng kiểm tra hộp thư đến của email:
+                        <br/><span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded mt-1 inline-block">{email}</span>
+                        <br/>và nhấp vào liên kết xác thực để kích hoạt tài khoản.
+                    </p>
+
+                    {/* Countdown Timer */}
+                    <div className="mb-6">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                            Tự động chuyển hướng sau
+                        </p>
+                        <div className="text-4xl font-black text-slate-800 tabular-nums">
+                            {countdown}
+                            <span className="text-sm font-medium text-slate-400 ml-1">giây</span>
+                        </div>
+                        {/* Progress Bar */}
+                        <div className="h-1.5 w-32 mx-auto bg-slate-100 rounded-full mt-3 overflow-hidden">
+                             <div 
+                                className="h-full bg-emerald-500 transition-all duration-1000 ease-linear"
+                                style={{ width: `${(countdown / 5) * 100}%` }}
+                             ></div>
+                        </div>
+                    </div>
+
+                    {/* Button */}
+                    <button 
+                        onClick={onLoginNow}
+                        className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-all active:scale-95 flex items-center justify-center gap-2"
+                    >
+                        Đăng nhập ngay <ArrowRight size={18} />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
+// 🚀 MAIN COMPONENT
+// ==========================================
 const Register = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
+  const scrollContainerRef = useRef(null);
 
+  // Form State
+  const [formData, setFormData] = useState({
+    fullName: "", email: "", password: "", confirmPassword: ""
+  });
+  
+  // Logic State
+  const [agreed, setAgreed] = useState(false); 
+  const [modalType, setModalType] = useState(null); 
+  
+  // ✅ STATE CHO SUCCESS MODAL & COUNTDOWN
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+
+  // Password Logic
+  const [passwordCriteria, setPasswordCriteria] = useState({
+    length: false, hasNumber: false, hasSpecial: false, hasUpper: false
+  });
+  const [passwordScore, setPasswordScore] = useState(0);
+
+  // UI State
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [toastMsg, setToastMsg] = useState("");
-  const [toastType, setToastType] = useState("info");
-  const [showToast, setShowToast] = useState(false);
+  const [error, setError] = useState("");
+  const [focusedField, setFocusedField] = useState(null);
 
-  // ✅ 2. State kiểm tra độ mạnh mật khẩu & Hiển thị Hint
-  const [showPasswordHints, setShowPasswordHints] = useState(false);
-  const [validations, setValidations] = useState({
-    length: false,
-    upper: false,
-    lower: false,
-    number: false,
-    special: false
-  });
+  // --- EFFECT: COUNTDOWN TIMER ---
+  useEffect(() => {
+    let timer;
+    if (showSuccessModal && countdown > 0) {
+        timer = setTimeout(() => {
+            setCountdown((prev) => prev - 1);
+        }, 1000);
+    } else if (showSuccessModal && countdown === 0) {
+        // Hết giờ -> Chuyển trang
+        navigate("/login");
+    }
+    return () => clearTimeout(timer);
+  }, [showSuccessModal, countdown, navigate]);
 
-  const showToastOnce = (msg, type = "error") => {
-    setToastMsg(msg);
-    setToastType(type);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+  // --- EFFECT: CHECK PASSWORD STRENGTH ---
+  useEffect(() => {
+    const pwd = formData.password;
+    const criteria = {
+        length: pwd.length >= 6,
+        hasNumber: /\d/.test(pwd),
+        hasUpper: /[A-Z]/.test(pwd),
+        hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(pwd)
+    };
+    setPasswordCriteria(criteria);
+    const score = Object.values(criteria).filter(Boolean).length;
+    setPasswordScore(score);
+
+    if (pwd.length === 1 && scrollContainerRef.current) {
+        setTimeout(() => {
+             scrollContainerRef.current.scrollTo({
+                top: scrollContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+             });
+        }, 200); 
+    }
+  }, [formData.password]);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (error) setError("");
   };
 
-  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  // ✅ 3. Hàm riêng xử lý input mật khẩu để check realtime
-  const handlePasswordChange = (e) => {
-    const val = e.target.value;
-    setForm({ ...form, password: val });
-
-    setValidations({
-      length: val.length >= 8,
-      upper: /[A-Z]/.test(val),
-      lower: /[a-z]/.test(val),
-      number: /[0-9]/.test(val),
-      special: /[!@#$%^&*(),.?":{}|<>]/.test(val),
-    });
+  const handleSocialLogin = (provider) => {
+    window.location.href = `${API_BASE_URL}/oauth2/authorization/${provider}`;
   };
 
-  // Kiểm tra tổng thể
-  const isPasswordValid = Object.values(validations).every(Boolean);
-
-  const onSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (
-      !form.fullName.trim() ||
-      !form.email.trim() ||
-      !form.password ||
-      !form.confirmPassword
-    ) {
-      showToastOnce("Vui lòng điền đầy đủ tất cả các trường bắt buộc.");
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      showToastOnce("Địa chỉ email không hợp lệ.");
-      return;
-    }
     
-    // ✅ Check độ mạnh password trước khi gửi
-    if (!isPasswordValid) {
-      showToastOnce("Mật khẩu chưa đủ mạnh (Cần chữ hoa, thường, số, ký tự đặc biệt).");
-      return;
+    if (!agreed) {
+        setError("Bạn cần đồng ý với Điều khoản dịch vụ để tiếp tục.");
+        return;
     }
 
-    if (form.password !== form.confirmPassword) {
-      showToastOnce("Mật khẩu xác nhận không khớp!");
+    const { fullName, email, password, confirmPassword } = formData;
+
+    if (!fullName || !email || !password || !confirmPassword) {
+      setError("Vui lòng điền đầy đủ thông tin.");
       return;
+    }
+    if (password !== confirmPassword) {
+      setError("Mật khẩu xác nhận không khớp.");
+      return;
+    }
+    if (passwordScore < 2) {
+        setError("Mật khẩu quá yếu. Vui lòng cải thiện.");
+        return;
     }
 
     setLoading(true);
     try {
-      await authService.register(
-        form.fullName.trim(),
-        form.email.trim(),
-        form.password,
-        form.confirmPassword
-      );
-      showToastOnce(
-        "🎉 Đăng ký thành công! Hãy kiểm tra email để xác minh tài khoản.",
-        "success"
-      );
-      setTimeout(() => navigate("/login"), 2500);
+      // Gọi service cũ (4 tham số)
+      const res = await authService.register(fullName, email, password, confirmPassword);
+
+      if (res) { 
+        // ✅ THÀNH CÔNG: KHÔNG HIỆN TOAST, MỞ MODAL
+        setShowSuccessModal(true);
+        // Lưu ý: Không navigate ở đây nữa, useEffect sẽ lo việc đó
+      }
     } catch (err) {
-      console.error("Register error:", err);
-      showToastOnce(
-        err.response?.data?.message || "Đăng ký thất bại, vui lòng thử lại."
-      );
+      const msg = err.message || "Đăng ký thất bại.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:8386/oauth2/authorization/google";
-  };
-
-  const handleFacebookLogin = () => {
-    window.location.href = "http://localhost:8386/oauth2/authorization/facebook";
-  };
-
-  // ✅ Component hiển thị dòng check
-  const ValidationItem = ({ fulfilled, text }) => (
-    <div className={`flex items-center gap-2 text-xs transition-colors ${fulfilled ? "text-green-600 font-medium" : "text-gray-400"}`}>
-      {fulfilled ? <Check size={14} strokeWidth={3} /> : <Circle size={14} />}
-      <span>{text}</span>
-    </div>
-  );
+  // Helper functions
+  const getStrengthColor = () => { /*...*/ if (passwordScore <= 1) return "bg-red-500"; if (passwordScore === 2) return "bg-yellow-500"; if (passwordScore === 3) return "bg-blue-500"; return "bg-green-500"; };
+  const getStrengthText = () => { /*...*/ if (passwordScore === 0) return ""; if (passwordScore <= 1) return "Quá yếu"; if (passwordScore === 2) return "Trung bình"; if (passwordScore === 3) return "Tốt"; return "Tuyệt vời"; };
+  const isFormValid = passwordScore >= 2 && formData.fullName && formData.email && agreed;
 
   return (
-    <>
-      <div
-        className="min-h-screen flex justify-center items-center px-6 py-10 bg-cover bg-center bg-no-repeat relative overflow-hidden"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80')",
-        }}
+    <div className="relative h-screen w-screen overflow-hidden flex items-center justify-center font-sans bg-slate-900">
+      
+      {/* Background */}
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat animate-ken-burns-slow"
+        style={{ backgroundImage: `url(${BG_URL})` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-[#00A8E8]/60 via-[#0090C1]/50 to-[#006494]/70 backdrop-blur-sm"></div>
-        <div className="relative z-10 w-full max-w-4xl bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl flex flex-col lg:flex-row animate-fadeIn border border-white/30 overflow-hidden max-h-[90vh]">
-          {/* Left: Register Form */}
-          <div className="w-full lg:w-1/2 p-10 flex flex-col justify-start overflow-y-auto">
-            <img
-              src="/assets/logo/logo_travelmate_xoafont.png"
-              alt="TravelMate"
-              className="h-[164px] w-[164px] mx-auto mb-4 object-contain animate-float flex-shrink-0"
-            />
+        <div className="absolute inset-0 bg-gradient-to-tr from-slate-900/90 via-slate-900/50 to-emerald-900/30 backdrop-blur-[2px]" />
+      </div>
+      
+      <button onClick={() => navigate("/")} className="absolute top-6 left-6 z-30 flex items-center gap-2 text-white/90 hover:text-white px-4 py-2 rounded-full bg-white/10 border border-white/20 shadow-lg hover:bg-white/20 transition-all group backdrop-blur-md">
+        <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+        <span className="text-sm font-bold">Trang chủ</span>
+      </button>
 
-            <h2 className="text-2xl font-extrabold text-[#006494] text-center mb-6 tracking-tight flex-shrink-0">
-              Tạo tài khoản TravelMate
-            </h2>
+      {/* MAIN CARD */}
+      <div className="relative z-10 w-full h-full md:h-[90vh] md:max-w-6xl bg-white md:rounded-[2.5rem] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-2 animate-zoom-in">
+        <LoginSlider />
 
-            <form onSubmit={onSubmit} className="space-y-5">
-              <AuthTextField
-                name="fullName"
-                label="Họ và tên"
-                value={form.fullName}
-                onChange={onChange}
-                required
-                icon={<User size={18} />}
-              />
-
-              <AuthTextField
-                name="email"
-                label="Email"
-                type="email"
-                value={form.email}
-                onChange={onChange}
-                required
-                icon={<Mail size={18} />}
-              />
-
-              {/* ✅ MẬT KHẨU CÓ CHECKLIST */}
-              <div>
-                <PasswordField
-                  label="Mật khẩu"
-                  value={form.password}
-                  onChange={handlePasswordChange} // Sử dụng hàm handle riêng
-                  required
-                  // Bắt sự kiện focus/blur để hiện/ẩn checklist
-                  onFocus={() => setShowPasswordHints(true)}
-                  onBlur={() => setShowPasswordHints(false)}
-                />
-                
-                {/* Checklist hiển thị khi focus HOẶC khi đã nhập nhưng chưa đủ mạnh */}
-                <div 
-                  className={`transition-all duration-300 overflow-hidden ${
-                    showPasswordHints || (form.password.length > 0 && !isPasswordValid) 
-                      ? 'max-h-[200px] opacity-100 mt-3 p-3 border border-gray-200 bg-gray-50 rounded-lg' 
-                      : 'max-h-0 opacity-0'
-                  }`}
-                >
-                   <div className="grid grid-cols-2 gap-2">
-                      <ValidationItem fulfilled={validations.length} text="Tối thiểu 8 ký tự" />
-                      <ValidationItem fulfilled={validations.upper} text="Chữ in hoa (A-Z)" />
-                      <ValidationItem fulfilled={validations.lower} text="Chữ thường (a-z)" />
-                      <ValidationItem fulfilled={validations.number} text="Số (0-9)" />
-                      <ValidationItem fulfilled={validations.special} text="Ký tự đặc biệt" />
-                   </div>
-                </div>
-              </div>
-
-              <ConfirmPasswordField
-                label="Xác nhận mật khẩu"
-                password={form.password}
-                value={form.confirmPassword}
-                onChange={(e) =>
-                  setForm({ ...form, confirmPassword: e.target.value })
-                }
-                required
-              />
-
-              <Button
-                type="submit"
-                disabled={loading}
-                isLoading={loading}
-                leftIcon={<UserPlus size={18} />}
-                fullWidth
-              >
-                {loading ? "Đang đăng ký..." : "Đăng ký tài khoản"}
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                fullWidth
-                onClick={() => navigate("/")}
-                leftIcon={<ArrowLeft size={18} />}
-              >
-                Quay lại trang chủ
-              </Button>
-            </form>
-
-            <p className="text-gray-600 text-sm mt-6 text-center flex-shrink-0">
-              Đã có tài khoản?{" "}
-              <Link
-                to="/login"
-                className="text-[rgb(40,169,224)] hover:underline font-semibold"
-              >
-                Đăng nhập ngay
-              </Link>
-            </p>
-          </div>
-
-          {/* Divider */}
-          <Divider vertical className="hidden lg:flex mx-4 my-10 bg-gray-300/30" />
-
-          {/* Right: Social Login */}
-          <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-10 bg-white/80">
-            <h3 className="text-xl font-semibold text-gray-800 mb-6">
-              Đăng nhập nhanh bằng mạng xã hội
-            </h3>
-
-            <div className="flex flex-col gap-4 w-full max-w-xs">
-              <Button
-                variant="outline"
-                onClick={handleGoogleLogin}
-                leftIcon={<GoogleIcon className="text-[#db4437]" />}
-                fullWidth
-              >
-                Tiếp tục với Google
-              </Button>
-
-              <Button
-                style={{ backgroundColor: "#1877F2", color: "white" }}
-                onClick={handleFacebookLogin}
-                leftIcon={<FaFacebook size={20} />}
-                fullWidth
-              >
-                Tiếp tục với Facebook
-              </Button>
+        <div className="flex flex-col relative bg-white h-full max-h-full">
+            <div className="absolute top-0 right-0 p-6 z-20 hidden md:flex gap-4 bg-white/90 backdrop-blur-sm rounded-bl-2xl border-b border-l border-slate-100 shadow-sm">
+                <span className="text-sm font-semibold text-slate-400">Đã có tài khoản?</span>
+                <Link to="/login" className="text-sm font-bold text-emerald-600 hover:text-emerald-700 transition-colors">Đăng nhập</Link>
             </div>
 
-            <p className="text-gray-500 text-xs mt-6 text-center max-w-xs leading-snug">
-              Bằng cách đăng ký, bạn đồng ý với{" "}
-              <span className="text-[rgb(40,169,224)] hover:underline cursor-pointer">
-                Điều khoản dịch vụ
-              </span>{" "}
-              và{" "}
-              <span className="text-[rgb(40,169,224)] hover:underline cursor-pointer">
-                Chính sách bảo mật
-              </span>{" "}
-              của TravelMate.
-            </p>
-          </div>
+            <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-6 md:p-12 relative z-10 pb-40 scroll-smooth">
+                <div className="max-w-md mx-auto w-full mt-4 md:mt-8 pb-40">
+                    <div className="mb-8">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-bold uppercase tracking-wider mb-4 border border-emerald-100">
+                            <UserPlus size={14} /> Thành viên mới
+                        </div>
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Bắt đầu hành trình.</h1>
+                        <p className="text-slate-500 font-medium">Tạo tài khoản miễn phí trong 30 giây.</p>
+                    </div>
+
+                    {error && (
+                        <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 text-sm font-bold flex items-center gap-3 animate-shake shadow-sm">
+                           <X size={16} /> {error}
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        {/* INPUT: FullName */}
+                        <div className="relative group">
+                             <div className={`absolute left-4 top-3.5 transition-colors ${focusedField === 'fullName' ? 'text-emerald-600' : 'text-slate-400'}`}> <User size={20} /> </div>
+                             <input type="text" name="fullName" onFocus={() => setFocusedField('fullName')} onBlur={() => setFocusedField(null)} value={formData.fullName} onChange={handleChange} className={`w-full pl-12 pr-4 py-3.5 bg-slate-50 border-2 rounded-xl outline-none font-semibold text-slate-800 transition-all ${focusedField === 'fullName' ? 'border-emerald-500 bg-white shadow-lg shadow-emerald-500/10' : 'border-slate-100 hover:border-slate-300'}`} placeholder="Họ và tên đầy đủ" />
+                        </div>
+
+                        {/* INPUT: Email */}
+                        <div className="relative group">
+                            <div className={`absolute left-4 top-3.5 transition-colors ${focusedField === 'email' ? 'text-emerald-600' : 'text-slate-400'}`}> <Mail size={20} /> </div>
+                            <input type="email" name="email" onFocus={() => setFocusedField('email')} onBlur={() => setFocusedField(null)} value={formData.email} onChange={handleChange} className={`w-full pl-12 pr-4 py-3.5 bg-slate-50 border-2 rounded-xl outline-none font-semibold text-slate-800 transition-all ${focusedField === 'email' ? 'border-emerald-500 bg-white shadow-lg shadow-emerald-500/10' : 'border-slate-100 hover:border-slate-300'}`} placeholder="Email" />
+                        </div>
+
+                        {/* INPUT: Password */}
+                        <div className="relative group">
+                             <div className={`absolute left-4 top-3.5 transition-colors ${focusedField === 'password' ? 'text-emerald-600' : 'text-slate-400'}`}> <Lock size={20} /> </div>
+                             <input type={showPassword ? "text" : "password"} name="password" onFocus={() => setFocusedField('password')} onBlur={() => setFocusedField(null)} value={formData.password} onChange={handleChange} className={`w-full pl-12 pr-12 py-3.5 bg-slate-50 border-2 rounded-xl outline-none font-semibold text-slate-800 transition-all ${focusedField === 'password' ? 'border-emerald-500 bg-white shadow-lg shadow-emerald-500/10' : 'border-slate-100 hover:border-slate-300'}`} placeholder="Mật khẩu" />
+                             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-2"> {showPassword ? <EyeOff size={20} /> : <Eye size={20} />} </button>
+                        </div>
+
+                        {/* Password Check */}
+                        <div className={`overflow-hidden transition-all duration-500 ease-in-out ${formData.password ? 'max-h-56 opacity-100' : 'max-h-0 opacity-0'}`}>
+                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mt-1">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-xs font-bold text-slate-500 uppercase">Độ mạnh mật khẩu</span>
+                                    <span className={`text-xs font-bold transition-colors ${passwordScore <= 1 ? "text-red-500" : passwordScore === 2 ? "text-yellow-500" : passwordScore === 3 ? "text-blue-500" : "text-green-500"}`}> {getStrengthText()} </span>
+                                </div>
+                                <div className="h-1.5 w-full bg-slate-200 rounded-full mb-3 overflow-hidden">
+                                    <div className={`h-full rounded-full transition-all duration-500 ${getStrengthColor()}`} style={{ width: `${(passwordScore / 4) * 100}%` }}></div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Badge active={passwordCriteria.length} text="Ít nhất 6 ký tự" />
+                                    <Badge active={passwordCriteria.hasNumber} text="Có chứa số" />
+                                    <Badge active={passwordCriteria.hasUpper} text="Chữ in hoa" />
+                                    <Badge active={passwordCriteria.hasSpecial} text="Ký tự đặc biệt" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* INPUT: Confirm Password */}
+                        <div className="relative group">
+                             <input type={showConfirmPassword ? "text" : "password"} name="confirmPassword" onFocus={() => setFocusedField('confirmPassword')} onBlur={() => setFocusedField(null)} value={formData.confirmPassword} onChange={handleChange} className={`w-full pl-4 pr-12 py-3.5 bg-slate-50 border-2 rounded-xl outline-none font-semibold text-slate-800 transition-all ${focusedField === 'confirmPassword' ? 'border-emerald-500 bg-white shadow-lg shadow-emerald-500/10' : 'border-slate-100 hover:border-slate-300'}`} placeholder="Nhập lại mật khẩu" />
+                             {formData.confirmPassword && formData.password === formData.confirmPassword && ( <div className="absolute right-12 top-1/2 -translate-y-1/2 text-green-500"> <Check size={18} fill="currentColor" className="text-white" /> </div> )}
+                             <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-2"> {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />} </button>
+                        </div>
+
+                        {/* Checkbox Terms */}
+                        <div className="flex items-start gap-3 mt-4 group">
+                             <div className="relative flex items-center pt-0.5">
+                                 <input type="checkbox" id="terms" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border-2 border-slate-300 transition-all checked:border-emerald-500 checked:bg-emerald-500 hover:border-emerald-400" />
+                                 <Check size={14} strokeWidth={3} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100" />
+                             </div>
+                             <label htmlFor="terms" className="text-sm text-slate-500 leading-snug cursor-pointer select-none">
+                                 Tôi đồng ý với <button type="button" onClick={() => setModalType('terms')} className="text-emerald-600 font-bold hover:underline">Điều khoản</button> và <button type="button" onClick={() => setModalType('privacy')} className="text-emerald-600 font-bold hover:underline">Chính sách bảo mật</button>.
+                             </label>
+                        </div>
+
+                        <button type="submit" disabled={loading || !isFormValid} className={`group w-full py-4 rounded-2xl font-black text-lg shadow-xl transition-all duration-300 flex items-center justify-center gap-2 active:scale-[0.98] mt-4 ${isFormValid ? "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-emerald-500/30 cursor-pointer" : "bg-slate-200 text-slate-400 cursor-not-allowed opacity-80"}`}>
+                            {loading ? <Loader2 className="animate-spin" /> : <>Tạo tài khoản <ShieldCheck size={20} /></>}
+                        </button>
+                    </form>
+
+                    {/* Social Login */}
+                    <div className="my-8 flex items-center gap-4">
+                        <div className="h-[1px] bg-slate-200 flex-1"></div>
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Hoặc đăng ký với</span>
+                        <div className="h-[1px] bg-slate-200 flex-1"></div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 pb-4">
+                        <button type="button" onClick={() => handleSocialLogin('google')} className="flex items-center justify-center gap-2 py-3 border border-slate-200 rounded-xl hover:bg-slate-50 font-bold text-slate-600 text-sm group">
+                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="G" className="w-5 h-5 group-hover:scale-110 transition-transform" /> Google
+                        </button>
+                        <button type="button" onClick={() => handleSocialLogin('facebook')} className="flex items-center justify-center gap-2 py-3 border border-slate-200 rounded-xl hover:bg-[#1877F2]/5 hover:text-[#1877F2] font-bold text-slate-600 text-sm group">
+                            <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="F" className="w-5 h-5 group-hover:scale-110 transition-transform" /> Facebook
+                        </button>
+                    </div>
+
+                    <p className="text-center text-slate-500 font-medium md:hidden pb-8">
+                        Đã có tài khoản? <Link to="/login" className="text-emerald-600 font-black hover:underline">Đăng nhập</Link>
+                    </p>
+                </div>
+            </div>
         </div>
       </div>
 
-      {/* ToastPortal */}
-      <ToastPortal>
-        {showToast && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999]">
-            <Toast message={toastMsg} type={toastType} />
-          </div>
-        )}
-      </ToastPortal>
-    </>
+      {/* ✅ SUCCESS MODAL */}
+      <RegistrationSuccessModal 
+        isOpen={showSuccessModal} 
+        email={formData.email} 
+        countdown={countdown} 
+        onLoginNow={() => navigate("/login")}
+      />
+
+      {/* Other Modals */}
+      <LegalModal isOpen={modalType === 'terms'} onClose={() => setModalType(null)} title="Điều khoản dịch vụ" type="terms">{TERMS_CONTENT}</LegalModal>
+      <LegalModal isOpen={modalType === 'privacy'} onClose={() => setModalType(null)} title="Chính sách bảo mật" type="privacy">{PRIVACY_CONTENT}</LegalModal>
+      
+      {/* Animation Styles */}
+      <style>{`
+         @keyframes ken-burns-slow { 0% { transform: scale(1); } 100% { transform: scale(1.15); } }
+         .animate-ken-burns-slow { animation: ken-burns-slow 20s infinite alternate ease-in-out; }
+         @keyframes zoom-in { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
+         .animate-zoom-in { animation: zoom-in 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+         @keyframes bounce-slow { 0%, 100% { transform: translateY(-5%); } 50% { transform: translateY(5%); } }
+         .animate-bounce-slow { animation: bounce-slow 2s infinite ease-in-out; }
+         @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+         .animate-fade-in { animation: fade-in 0.3s ease-out; }
+      `}</style>
+    </div>
   );
 };
+
+// ...Badge Component (giữ nguyên)
+const Badge = ({ active, text }) => (
+    <div className={`flex items-center gap-1.5 text-[11px] font-bold px-2 py-1 rounded-md transition-all duration-300 ${active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-400"}`}>
+        {active ? <Check size={12} strokeWidth={4} /> : <div className="w-3 h-3 rounded-full bg-slate-300"></div>}
+        {text}
+    </div>
+);
 
 export default Register;

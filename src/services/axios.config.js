@@ -18,30 +18,41 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// ✅ CẬP NHẬT PHẦN NÀY
+// ✅ CẬP NHẬT PHẦN NÀY (Đã sửa logic chặn reload)
 api.interceptors.response.use(
     (response) => response,
     (error) => {
         const { response } = error;
 
         if (response) {
-            // 1. Token hết hạn (401)
+            // 1. Xử lý lỗi 401 (Unauthorized - Sai pass hoặc Hết hạn token)
             if (response.status === 401) {
+                // 🛑 QUAN TRỌNG: Kiểm tra xem lỗi này đến từ API nào?
+                // error.config.url chứa đường dẫn API vừa gọi
+                const requestUrl = error.config?.url || "";
+
+                // Nếu lỗi 401 đến từ API Login -> RETURN LUÔN (Không reload trang)
+                // Để component Login nhận lỗi và hiện Modal "Sai mật khẩu"
+                if (requestUrl.includes("/auth/login") || requestUrl.includes("/auth/token")) {
+                    return Promise.reject(error);
+                }
+
+                // Nếu lỗi 401 đến từ các trang khác (Ví dụ đang lướt web mà token hết hạn)
+                // Thì mới đá về trang Login
                 localStorage.removeItem("user");
                 localStorage.removeItem("accessToken");
                 window.location.href = "/login";
+                return Promise.reject(error); // Ngắt luồng tại đây sau khi redirect
             }
 
             // 2. Tài khoản bị khóa (403)
             if (response.status === 403) {
-                const errorMessage = response.data?.error || "";
-
-                // Kiểm tra thông điệp lỗi từ Backend (Cần đảm bảo Backend trả về đúng chuỗi này)
-                // Ví dụ Backend trả: { "error": "Tài khoản của bạn đã bị khóa." }
+                // Kiểm tra xem có phải đang Login không. Nếu đang Login thì để Component Login tự xử lý Modal 403.
+                // Nếu bạn muốn xử lý tập trung ở đây cũng được, nhưng thường Component Login cần bắt lỗi này.
+                
+                // Logic cũ của bạn (Giữ nguyên nếu muốn dùng Event, nhưng Login.jsx tôi gửi đã xử lý rồi)
+                const errorMessage = response.data?.error || response.data?.message || "";
                 if (errorMessage && (errorMessage.toLowerCase().includes("khóa") || errorMessage.toLowerCase().includes("locked") || errorMessage.toLowerCase().includes("banned"))) {
-
-                    // 🔥 Phát tín hiệu để React Component nhận biết và hiện Modal
-                    // Chúng ta không dùng alert() hay window.location ở đây để UX mượt hơn
                     window.dispatchEvent(new CustomEvent("auth:account-locked", {
                         detail: errorMessage
                     }));

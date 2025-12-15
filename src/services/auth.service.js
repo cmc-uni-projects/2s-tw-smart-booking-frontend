@@ -18,12 +18,14 @@ const login = async (email, password) => {
       localStorage.setItem("user", JSON.stringify(user));
       return response.data.data; 
     }
-    throw new Error(response.data.message || "Login failed");
+    
+    // Trường hợp API trả về 200 nhưng không có data (Logic dự phòng)
+    return response.data;
   } catch (error) {
-    if (error.response && error.response.data) {
-      throw new Error(error.response.data.message || "Login failed");
-    }
-    throw new Error("Cannot connect to server");
+    // ⚠️ SỬA LỖI QUAN TRỌNG: 
+    // Phải ném error gốc ra để component Login bắt được error.response.status (401, 403)
+    console.error("Auth Service Login Error:", error);
+    throw error; 
   }
 };
 
@@ -38,10 +40,8 @@ const register = async (fullName, email, password, confirmPassword) => {
     });
     return response.data;
   } catch (error) {
-    if (error.response && error.response.data) {
-      throw new Error(error.response.data.message || "Registration failed");
-    }
-    throw new Error("Cannot connect to server");
+    // Cũng nên throw error gốc để hứng lỗi Validate (400) hoặc Conflict (409)
+    throw error;
   }
 };
 
@@ -74,10 +74,7 @@ const forgotPassword = async (email) => {
     const response = await api.post(`/auth/forgot-password`, { email });
     return response.data;
   } catch (error) {
-    if (error.response && error.response.data) {
-      throw new Error(error.response.data.message || "Forgot password failed");
-    }
-    throw new Error("Cannot connect to server");
+    throw error;
   }
 };
 
@@ -87,10 +84,7 @@ const resetPassword = async (token, newPassword) => {
     const response = await api.post(`/auth/reset-password`, { token, newPassword });
     return response.data;
   } catch (error) {
-    if (error.response && error.response.data) {
-      throw new Error(error.response.data.message || "Reset password failed");
-    }
-    throw new Error("Cannot connect to server");
+    throw error;
   }
 };
 
@@ -102,10 +96,7 @@ const verifyEmail = async (token) => {
     });
     return response.data;
   } catch (error) {
-    if (error.response && error.response.data) {
-      throw new Error(error.response.data.message || "Email verification failed");
-    }
-    throw new Error("Cannot connect to server");
+    throw error;
   }
 };
 
@@ -126,6 +117,7 @@ const fetchUserProfile = async () => {
     throw error;
   }
 };
+
 const unlinkSocialAccount = async (provider) => {
   try {
     // Gọi method DELETE: /api/v1/auth/social/unlink?provider=google
@@ -134,17 +126,16 @@ const unlinkSocialAccount = async (provider) => {
     });
     return response.data;
   } catch (error) {
-    // Ném lỗi để component xử lý hiển thị
-    const msg = error.response?.data?.message || "Không thể ngắt kết nối.";
-    throw new Error(msg);
+    throw error;
   }
 };
+
 const createPassword = async (password) => {
   try {
     const response = await api.post(`/auth/create-password`, { password });
     return response.data;
   } catch (error) {
-    throw new Error(error.response?.data?.message || "Tạo mật khẩu thất bại");
+    throw error;
   }
 };
 

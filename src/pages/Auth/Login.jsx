@@ -1,243 +1,343 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Plane, Mail, ArrowLeft } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
-import { FaFacebook } from "react-icons/fa";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { authService } from "@/services/auth.service"; 
+import { 
+  Mail, Lock, Eye, EyeOff, ArrowLeft, Loader2, LogIn, Plane, X, AlertTriangle, ShieldAlert
+} from "lucide-react"; // Đã thêm icon X, AlertTriangle, ShieldAlert
+import Toast from "@/components/common/Notification/Toast";
+import ToastPortal from "@/components/common/Notification/ToastPortal";
+import LoginSlider from "@/components/auth/LoginSlider";
 
-// Common Components
-// ✅ THAY ĐỔI: Bỏ import TextField, thêm import AuthTextField
-import AuthTextField from "../../components/common/Input/AuthTextField"; 
-import PasswordField from "../../components/common/Input/PasswordField";
-import Button from "../../components/common/Button/Button";
-import Divider from "../../components/common/Divider/Divider";
-import Toast from "../../components/common/Notification/Toast";
-import ToastPortal from "../../components/common/Notification/ToastPortal";
-
-// Component SVG cho icon Google (Giữ nguyên)
-const GoogleIcon = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 48 48"
-    width="20px"
-    height="20px"
-    className={className} 
-  >
-    {/* ... (paths của icon Google) ... */}
-    <path
-      fill="#FFC107"
-      d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
-    />
-    <path
-      fill="#FF3D00"
-      d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
-    />
-    <path
-      fill="#4CAF50"
-      d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
-    />
-    <path
-      fill="#1976D2"
-      d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C39.712,35.619,44,30.397,44,24C44,22.659,43.862,21.35,43.611,20.083z"
-    />
-  </svg>
-);
+// URL Backend (Cổng OAuth2)
+const API_BASE_URL = "http://localhost:8386"; 
+const BG_URL = "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070&auto=format&fit=crop";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, error: authError, loading } = useAuth();
+  const location = useLocation();
+  const { updateUser } = useAuth();
+  
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(""); // Vẫn giữ để hiện lỗi inline nếu cần
+  const [toast, setToast] = useState({ show: false, message: "", type: "info" });
+  
+  // ✅ STATE MỚI: QUẢN LÝ MODAL LỖI
+  const [errorModal, setErrorModal] = useState({
+      show: false,
+      title: "",
+      message: ""
+  });
+  
+  const [focusedField, setFocusedField] = useState(null);
 
-  const [email, setEmail] = useState("");
-  const [pw, setPw] = useState("");
-  const [toastMsg, setToastMsg] = useState("");
-  const [toastType, setToastType] = useState("info");
-  const [showToast, setShowToast] = useState(false);
+  const from = location.state?.from?.pathname || "/";
 
-  // ... (Giữ nguyên các hàm showToastOnce, onSubmit, handleGoogleLogin, handleFacebookLogin) ...
-  const showToastOnce = (msg, type = "error") => {
-    setToastMsg(msg);
-    setToastType(type);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 2500);
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (error) setError("");
   };
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
+  const handleSocialLogin = (provider) => {
+    window.location.href = `${API_BASE_URL}/oauth2/authorization/${provider}`;
+  };
 
-    if (!email.trim() || !pw.trim()) {
-      showToastOnce("Vui lòng điền đầy đủ thông tin.", "error");
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showToastOnce("Email không hợp lệ.", "error");
-      return;
+  // ✅ HÀM ĐÓNG MODAL
+  const closeErrorModal = () => {
+      setErrorModal({ ...errorModal, show: false });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Chặn load lại trang
+    
+    if (!formData.email || !formData.password) {
+        setError("Vui lòng nhập đầy đủ thông tin.");
+        return;
     }
 
+    setLoading(true);
     try {
-      const success = await login(email.trim(), pw);
-      if (success) {
-        navigate("/");
-      } else if (authError) {
-        showToastOnce(authError, "error");
+      const res = await authService.login(formData.email, formData.password);
+      
+      if (res) { 
+        if (updateUser) {
+            await updateUser(res.user);
+        }
+        setToast({ show: true, message: "Đăng nhập thành công!", type: "success" });
+        setTimeout(() => {
+            navigate(from, { replace: true });
+        }, 800);
       }
     } catch (err) {
-      console.error("Login error:", err);
-      showToastOnce("Đăng nhập thất bại, vui lòng thử lại.", "error");
+      // ✅ LOGIC XỬ LÝ LỖI MỚI (Tương thích với Spring Boot ExceptionHandler)
+      console.error("Login Error:", err);
+
+      let modalTitle = "Đăng nhập thất bại";
+      let modalMsg = "Có lỗi xảy ra, vui lòng thử lại.";
+      let shouldShowModal = false;
+
+      if (err.response) {
+          const status = err.response.status;
+          const data = err.response.data; 
+          // Backend trả về message trong data.message (theo ApiResponse)
+          const backendMessage = data.message || "";
+
+          // TRƯỜNG HỢP 1: Tài khoản chưa kích hoạt (403 Forbidden hoặc DisabledException)
+          if (status === 403 || backendMessage.toLowerCase().includes("disabled") || backendMessage.includes("chưa được xác thực")) {
+              modalTitle = "Tài khoản chưa kích hoạt";
+              modalMsg = backendMessage || "Vui lòng kiểm tra email của bạn để xác thực tài khoản trước khi đăng nhập.";
+              shouldShowModal = true;
+          } 
+          // TRƯỜNG HỢP 2: Sai thông tin (401 Unauthorized)
+          else if (status === 401 || backendMessage.toLowerCase().includes("bad credentials")) {
+              modalTitle = "Thông tin không chính xác";
+              modalMsg = "Email hoặc mật khẩu bạn nhập không đúng. Vui lòng thử lại.";
+              shouldShowModal = true;
+          }
+          // Các lỗi khác thì hiện thông báo nhỏ inline
+          else {
+              setError(backendMessage || "Lỗi hệ thống.");
+          }
+      } else {
+          setError("Không thể kết nối đến máy chủ.");
+      }
+
+      // Nếu rơi vào 2 trường hợp trên thì hiện Modal
+      if (shouldShowModal) {
+          setErrorModal({
+              show: true,
+              title: modalTitle,
+              message: modalMsg
+          });
+      }
+
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:8386/oauth2/authorization/google";
-  };
-
-  const handleFacebookLogin = () => {
-    window.location.href = "http://localhost:8386/oauth2/authorization/facebook";
   };
 
   return (
-    <>
-      <div
-        className="min-h-screen flex items-center justify-center px-6 bg-cover bg-center relative overflow-hidden"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80')",
-        }}
+    <div className="relative h-screen w-screen overflow-hidden flex items-center justify-center font-sans bg-slate-900">
+      
+      {/* BACKGROUND LAYER */}
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat animate-ken-burns-slow"
+        style={{ backgroundImage: `url(${BG_URL})` }}
       >
-        {/* ... (Giữ nguyên phần Giao diện) ... */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#00A8E8]/60 via-[#0090C1]/50 to-[#006494]/70 backdrop-blur-sm"></div>
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-[4px]" />
+      </div>
 
-        <div className="relative z-10 w-full max-w-4xl bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl flex flex-col lg:flex-row animate-fadeIn border border-white/30 overflow-hidden">
-          {/* Left side - Login Form */}
-          <div className="w-full lg:w-1/2 p-10 flex flex-col justify-center">
-            <img
-              src="/assets/logo/logo_travelmate_xoafont.png"
-              alt="TravelMate"
-              className="h-[164px] w-[164px] mx-auto mb-4 object-contain animate-float"
-            />
+      {/* BACK BUTTON */}
+      <button 
+        onClick={() => navigate("/")}
+        className="absolute top-6 left-6 z-30 flex items-center gap-2 text-white/90 hover:text-white px-4 py-2 rounded-full bg-white/10 border border-white/20 shadow-lg hover:bg-white/20 transition-all group backdrop-blur-md"
+      >
+        <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+        <span className="text-sm font-bold">Trang chủ</span>
+      </button>
 
-            <h2 className="text-2xl font-extrabold text-[#006494] text-center mb-6 tracking-tight">
-              Đăng nhập TravelMate
-            </h2>
+      {/* MAIN CARD */}
+      <div className="relative z-10 w-full h-full md:h-auto md:max-w-6xl md:aspect-[16/9] bg-white md:rounded-[2.5rem] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-2 animate-zoom-in">
+        
+        {/* LEFT SIDE: SLIDER */}
+        <LoginSlider />
 
-            <form onSubmit={onSubmit} className="space-y-5">
-              {/* ✅ THAY ĐỔI: Sử dụng AuthTextField */}
-              <AuthTextField
-                name="email"
-                label="Email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                icon={<Mail size={18} />}
-              />
-
-              <PasswordField
-                label="Mật khẩu"
-                value={pw}
-                onChange={(e) => setPw(e.target.value)}
-                required
-              />
-
-              <div className="flex justify-end text-sm text-gray-600">
-                <Link
-                  to="/forgot-password"
-                  className="text-[rgb(40,169,224)] hover:underline"
-                >
-                  Quên mật khẩu?
+        {/* --- RIGHT SIDE: FORM --- */}
+        <div className="flex flex-col relative overflow-y-auto custom-scrollbar bg-white">
+            
+            <div className="absolute top-0 right-0 p-8 hidden md:flex gap-4">
+                <span className="text-sm font-semibold text-slate-400">Bạn chưa có tài khoản?</span>
+                <Link to="/register" className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
+                    Đăng ký ngay
                 </Link>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={loading}
-                size="lg"
-                leftIcon={<Plane size={18} />}
-                isLoading={loading}
-                fullWidth
-              >
-                {loading ? "Đang đăng nhập..." : "Đăng nhập"}
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                fullWidth
-                onClick={() => navigate("/")}
-                leftIcon={<ArrowLeft size={18} />}
-              >
-                Quay lại trang chủ
-              </Button>
-            </form>
-
-            <p className="text-gray-600 text-sm mt-6 text-center">
-              Chưa có tài khoản?{" "}
-              <Link
-                to="/register"
-                className="text-[rgb(40,169,224)] hover:underline font-semibold"
-              >
-                Đăng ký ngay
-              </Link>
-            </p>
-          </div>
-
-          {/* Divider */}
-          <Divider vertical className="hidden lg:flex mx-4 my-10 bg-gray-300/30" />
-
-          {/* Right side - Social login */}
-          <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-10 bg-white/80">
-            <h3 className="text-xl font-semibold text-gray-800 mb-6">
-              Đăng nhập bằng mạng xã hội
-            </h3>
-
-            <div className="flex flex-col gap-4 w-full max-w-xs">
-              <Button
-                variant="outline"
-                onClick={handleGoogleLogin}
-                // 2. Truyền className cho icon Google
-                leftIcon={<GoogleIcon className="text-[#db4437]" />}
-                fullWidth
-              >
-                Tiếp tục với Google
-              </Button>
-
-              <Button
-                style={{
-                  backgroundColor: "#1877F2",
-                  color: "white",
-                }}
-                onClick={handleFacebookLogin}
-                leftIcon={<FaFacebook  size={20} />}
-                fullWidth
-              >
-                Tiếp tục với Facebook
-              </Button>
             </div>
 
-            <p className="text-gray-500 text-xs mt-6 text-center max-w-xs leading-snug">
-              Bằng cách đăng nhập, bạn đồng ý với{" "}
-              <span className="text-[rgb(40,169,224)] hover:underline cursor-pointer">
-                Điều khoản dịch vụ
-              </span>{" "}
-              và{" "}
-              <span className="text-[rgb(40,169,224)] hover:underline cursor-pointer">
-                Chính sách bảo mật
-              </span>{" "}
-              của TravelMate.
-            </p>
-          </div>
+            <div className="flex-1 flex flex-col justify-center p-8 md:p-12 lg:p-16">
+                <div className="max-w-md mx-auto w-full">
+                    
+                    {/* HEADLINE */}
+                    <div className="mb-10 relative">
+                        <div className="absolute -top-10 -left-10 w-20 h-20 bg-blue-100 rounded-full blur-xl opacity-50"></div>
+                        <h1 className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mb-2 flex items-center gap-3">
+                            Tiếp tục hành trình
+                            <Plane className="text-blue-500 animate-pulse" size={28} />
+                        </h1>
+                        <p className="text-slate-500 text-lg font-medium">
+                            Đăng nhập để mở khóa những <span className="text-blue-600 font-bold">ưu đãi độc quyền</span>.
+                        </p>
+                        <div className="h-1.5 w-20 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full mt-4"></div>
+                    </div>
+
+                    {/* Lỗi inline (cho các lỗi nhỏ) */}
+                    {error && (
+                        <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 text-sm font-bold flex items-center gap-3 animate-shake">
+                            <div className="p-1.5 bg-rose-100 rounded-full"><Lock size={14} /></div>
+                            {error}
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Input Email */}
+                        <div className="relative group">
+                             <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${focusedField === 'email' ? 'text-blue-600' : 'text-slate-400'}`}>
+                                 <Mail size={20} />
+                             </div>
+                             <input
+                                type="email"
+                                name="email"
+                                onFocus={() => setFocusedField('email')}
+                                onBlur={() => setFocusedField(null)}
+                                value={formData.email}
+                                onChange={handleChange}
+                                className={`peer w-full pl-12 pr-4 py-4 bg-slate-50 border-2 rounded-2xl outline-none font-semibold text-slate-800 transition-all duration-300
+                                    ${focusedField === 'email' ? 'border-blue-500 bg-white shadow-lg shadow-blue-500/10' : 'border-slate-100 hover:border-slate-300 group-hover:bg-slate-100'}
+                                `}
+                                placeholder=" " 
+                             />
+                             <label className={`absolute left-12 transition-all duration-300 pointer-events-none
+                                ${focusedField === 'email' || formData.email 
+                                    ? '-top-2.5 bg-white px-2 text-xs font-bold text-blue-600' 
+                                    : 'top-4 text-slate-400 font-medium'
+                                }
+                             `}>
+                                 Email đăng nhập
+                             </label>
+                        </div>
+
+                        {/* Input Password */}
+                        <div className="relative group">
+                             <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${focusedField === 'password' ? 'text-blue-600' : 'text-slate-400'}`}>
+                                 <Lock size={20} />
+                             </div>
+                             <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                onFocus={() => setFocusedField('password')}
+                                onBlur={() => setFocusedField(null)}
+                                value={formData.password}
+                                onChange={handleChange}
+                                className={`peer w-full pl-12 pr-12 py-4 bg-slate-50 border-2 rounded-2xl outline-none font-semibold text-slate-800 transition-all duration-300
+                                    ${focusedField === 'password' ? 'border-blue-500 bg-white shadow-lg shadow-blue-500/10' : 'border-slate-100 hover:border-slate-300 group-hover:bg-slate-100'}
+                                `}
+                                placeholder=" "
+                             />
+                             <label className={`absolute left-12 transition-all duration-300 pointer-events-none
+                                ${focusedField === 'password' || formData.password 
+                                    ? '-top-2.5 bg-white px-2 text-xs font-bold text-blue-600' 
+                                    : 'top-4 text-slate-400 font-medium'
+                                }
+                             `}>
+                                 Mật khẩu
+                             </label>
+                             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-200 transition-all">
+                                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                             </button>
+                        </div>
+
+                        <div className="flex justify-between items-center">
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                <span className="text-sm font-semibold text-slate-500 group-hover:text-slate-700 transition-colors">Ghi nhớ</span>
+                            </label>
+                            <Link to="/forgot-password" className="text-sm font-bold text-blue-600 hover:text-blue-800 hover:underline decoration-2 underline-offset-4 transition-colors">
+                                Quên mật khẩu?
+                            </Link>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="group w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-black text-lg shadow-xl shadow-blue-500/20 transition-all duration-300 flex items-center justify-center gap-3 active:scale-[0.98]"
+                        >
+                            {loading ? <Loader2 className="animate-spin" /> : <>Đăng nhập ngay <LogIn size={20} className="group-hover:translate-x-1 transition-transform" /></>}
+                        </button>
+                    </form>
+
+                    <div className="my-8 flex items-center gap-4">
+                        <div className="h-[1px] bg-slate-200 flex-1"></div>
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Hoặc tiếp tục với</span>
+                        <div className="h-[1px] bg-slate-200 flex-1"></div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <button 
+                            type="button"
+                            onClick={() => handleSocialLogin('google')}
+                            className="flex items-center justify-center gap-3 py-3 border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all font-bold text-slate-600 text-sm group"
+                        >
+                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="G" className="w-5 h-5 group-hover:scale-110 transition-transform" /> Google
+                        </button>
+                        <button 
+                            type="button"
+                            onClick={() => handleSocialLogin('facebook')}
+                            className="flex items-center justify-center gap-3 py-3 border border-slate-200 rounded-xl hover:bg-[#1877F2]/5 hover:border-[#1877F2]/20 hover:text-[#1877F2] transition-all font-bold text-slate-600 text-sm group"
+                        >
+                            <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="F" className="w-5 h-5 group-hover:scale-110 transition-transform" /> Facebook
+                        </button>
+                    </div>
+                </div>
+                
+                <p className="mt-8 text-center text-slate-500 font-medium md:hidden">
+                    Chưa có tài khoản? <Link to="/register" className="text-blue-600 font-black hover:underline">Đăng ký ngay</Link>
+                </p>
+            </div>
         </div>
       </div>
 
-      {/* ToastPortal */}
+      {/* ✅ THÔNG BÁO TOAST (Cho thành công) */}
       <ToastPortal>
-        {showToast && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999]">
-            <Toast message={toastMsg} type={toastType} />
-          </div>
-        )}
+        {toast.show && <div className="fixed top-6 right-6 z-50 animate-slide-in-right"><Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} /></div>}
       </ToastPortal>
-    </>
+      
+      {/* ✅ MODAL LỖI (Mới thêm) */}
+      {errorModal.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-zoom-in relative">
+                {/* Header Modal */}
+                <div className="bg-rose-50 p-6 flex flex-col items-center justify-center text-center border-b border-rose-100">
+                    <div className="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mb-4 shadow-inner">
+                        <ShieldAlert size={32} />
+                    </div>
+                    <h3 className="text-xl font-black text-slate-800">{errorModal.title}</h3>
+                </div>
+                
+                {/* Body Modal */}
+                <div className="p-6 text-center">
+                    <p className="text-slate-600 font-medium leading-relaxed">
+                        {errorModal.message}
+                    </p>
+                </div>
+
+                {/* Footer Modal */}
+                <div className="p-4 bg-slate-50 flex justify-center">
+                    <button 
+                        onClick={closeErrorModal}
+                        className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all active:scale-95"
+                    >
+                        Đã hiểu
+                    </button>
+                </div>
+
+                {/* Nút tắt nhanh */}
+                <button onClick={closeErrorModal} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 hover:bg-white rounded-full transition-all">
+                    <X size={20} />
+                </button>
+            </div>
+        </div>
+      )}
+
+      <style>{`
+         @keyframes ken-burns-slow { 0% { transform: scale(1); } 100% { transform: scale(1.15); } }
+         .animate-ken-burns-slow { animation: ken-burns-slow 20s infinite alternate ease-in-out; }
+         @keyframes zoom-in { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
+         .animate-zoom-in { animation: zoom-in 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+         @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
+         .animate-fade-in { animation: fade-in 0.2s ease-out; }
+      `}</style>
+    </div>
   );
 };
-
 
 export default Login;
