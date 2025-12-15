@@ -11,7 +11,7 @@ export default function UserRoleBadge({ role }) {
             case "ADMIN":
                 return { color: "primary", label: "Quản trị viên" }; // Màu xanh dương
             case "OWNER":
-                return { color: "warning", label: "Chủ khách sạn" }; // Màu vàng
+                return { color: "primary", label: "Chủ khách sạn" }; // Màu vàng
             case "CUSTOMER":
                 return { color: "success", label: "Khách hàng" };   // Màu xanh lá
             default:

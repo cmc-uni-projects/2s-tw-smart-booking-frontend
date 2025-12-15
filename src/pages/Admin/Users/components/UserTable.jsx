@@ -3,7 +3,7 @@ import UserInfoCell from "./UserInfoCell";
 import UserStatusBadge from "./UserStatusBadge";
 import UserRoleBadge from "./UserRoleBadge";
 import UserRankBadge from "./UserRankBadge";
-import ActionMenu from "./ActionMenu"; // ✅ Import lại ActionMenu
+import ActionMenu from "./ActionMenu";
 
 export default function UserTable({ users, onStatusChange }) {
     return (
@@ -11,24 +11,24 @@ export default function UserTable({ users, onStatusChange }) {
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="bg-gray-50/50 border-b border-gray-100">
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {/* ✅ ĐÃ SỬA: Chuyển nền sang xanh dương nhạt (bg-blue-50) và viền xanh (border-blue-100) */}
+                        <tr className="bg-blue-50 border-b border-blue-100">
+                            <th className="px-6 py-4 text-xs font-bold text-blue-700 uppercase tracking-wider">
                                 Người dùng
                             </th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-4 text-xs font-bold text-blue-700 uppercase tracking-wider">
                                 Vai trò
                             </th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-4 text-xs font-bold text-blue-700 uppercase tracking-wider">
                                 Hạng TV
                             </th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-4 text-xs font-bold text-blue-700 uppercase tracking-wider">
                                 Liên hệ
                             </th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-4 text-xs font-bold text-blue-700 uppercase tracking-wider">
                                 Trạng thái
                             </th>
-                            {/* ✅ Cột Hành động */}
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">
+                            <th className="px-6 py-4 text-xs font-bold text-blue-700 uppercase tracking-wider text-center">
                                 Hành động
                             </th>
                         </tr>
@@ -43,10 +43,10 @@ export default function UserTable({ users, onStatusChange }) {
                         ) : (
                             users.map((user) => {
                                 const primaryRole = (user.roles && user.roles.length > 0) ? user.roles[0] : "CUSTOMER";
+                                const rank = user.membershipRank || "BRONZE";
 
                                 return (
-                                    <tr key={user.userId} className="hover:bg-gray-50/50 transition-colors">
-                                        {/* Người dùng */}
+                                    <tr key={user.userId} className="hover:bg-blue-50/30 transition-colors">
                                         <td className="px-6 py-4">
                                             <UserInfoCell
                                                 avatar={user.avatarUrl}
@@ -55,29 +55,24 @@ export default function UserTable({ users, onStatusChange }) {
                                             />
                                         </td>
 
-                                        {/* Vai trò */}
                                         <td className="px-6 py-4">
                                             <UserRoleBadge role={primaryRole} />
                                         </td>
 
-                                        {/* Hạng TV */}
                                         <td className="px-6 py-4">
-                                            <UserRankBadge rank={user.rank} />
+                                            <UserRankBadge rank={rank} />
                                         </td>
 
-                                        {/* Liên hệ */}
                                         <td className="px-6 py-4">
                                             <div className="text-sm text-gray-600">
                                                 {user.phoneNumber ? user.phoneNumber : ""}
                                             </div>
                                         </td>
 
-                                        {/* Trạng thái */}
                                         <td className="px-6 py-4">
                                             <UserStatusBadge status={user.status} />
                                         </td>
 
-                                        {/* ✅ ActionMenu: Nút Khóa/Mở khóa */}
                                         <td className="px-6 py-4">
                                             <ActionMenu
                                                 onLock={() => onStatusChange(user.userId, user.status)}
