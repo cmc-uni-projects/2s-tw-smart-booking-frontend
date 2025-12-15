@@ -19,6 +19,7 @@ import {
   Ticket 
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { FileSearch } from "lucide-react";
 
 const AdminSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -80,7 +81,14 @@ const AdminSidebar = () => {
       icon: <CheckSquare size={20} />, 
       path: "/admin/approvals" 
     },
-    
+
+    {
+      name: "Audit Logs",
+      icon: <FileSearch size={20} />,
+      path: "/admin/audit-logs"
+    },
+
+
   ];
 
   const handleSubMenuToggle = (key) => {
