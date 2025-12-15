@@ -19,8 +19,8 @@ const adminService = {
   reviewOwnerApplication: async (applicationId, reviewData) => {
     try {
       const response = await api.post(
-        `/admin/owner-applications/${applicationId}/review`,
-        reviewData
+          `/admin/owner-applications/${applicationId}/review`,
+          reviewData
       );
       return response.data;
     } catch (error) {
@@ -51,9 +51,9 @@ const adminService = {
   getPropertiesByStatus: async (status) => {
     try {
       const response = await api.get(`/admin/properties/status`, {
-        params: { status }, 
+        params: { status },
       });
-      return response.data; 
+      return response.data;
     } catch (error) {
       console.error("Error fetching properties:", error);
       throw error;
@@ -63,8 +63,8 @@ const adminService = {
   reviewProperty: async (propertyId, reviewData) => {
     try {
       const response = await api.post(
-        `/admin/properties/${propertyId}/review`, 
-        reviewData
+          `/admin/properties/${propertyId}/review`,
+          reviewData
       );
       return response.data;
     } catch (error) {
