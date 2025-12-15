@@ -4,7 +4,10 @@ import AdminLayout from "../layouts/AdminLayout/AdminLayout";
 import AdminDashboard from "../pages/Admin/Dashboard/AdminDashboard";
 import PendingApprovalsPage from "../pages/Admin/Hotels/PendingApprovalsPage";
 import HotelSubmissionsPage from "../pages/Admin/Hotels/HotelSubmissionsPage";
-import RefundManagementPage from "../pages/Admin/Transactions/RefundManagementPage";
+import RefundManagementPage from "../pages/Admin/Transactions/RefundManagementPage"; 
+import ActiveHotelsPage from "../pages/Admin/Hotels/ActiveHotelsPage"; 
+
+// 👇 (Mới từ nhánh của bạn) Import Component Quản lý Khuyến mãi
 import PromotionManager from "../pages/Admin/Promotions/PromotionManager";
 
 // 👇 (Mới) Import trang Quản lý Người dùng
@@ -20,6 +23,16 @@ const adminRoutes = [
             <AdminLayout>
                 <ProtectedRoute requiredRole="ADMIN">
                     <AdminDashboard />
+                </ProtectedRoute>
+            </AdminLayout>
+        ),
+    },
+    {
+        path: "/admin/hotels/list", // Route mới theo yêu cầu của bạn
+        element: (
+            <AdminLayout>
+                <ProtectedRoute requiredRole="ADMIN">
+                    <ActiveHotelsPage />
                 </ProtectedRoute>
             </AdminLayout>
         ),

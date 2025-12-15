@@ -2,7 +2,7 @@ import api from "./axios.config.js";
 
 const adminService = {
   // ============================
-  // 🧑‍💼 LẤY CÁC ĐƠN ĐĂNG KÝ OWNER
+  // 🧑‍💼 LẤY CÁC ĐƠN ĐĂNG KÝ OWNER (LEGACY)
   // ============================
   getOwnerApplications: async (status) => {
     try {
@@ -16,9 +16,6 @@ const adminService = {
     }
   },
 
-  // ============================
-  // 📝 DUYỆT ĐƠN ĐĂNG KÝ OWNER
-  // ============================
   reviewOwnerApplication: async (applicationId, reviewData) => {
     try {
       const response = await api.post(
@@ -33,8 +30,24 @@ const adminService = {
   },
 
   // ============================
-  // 🏨 LẤY DANH SÁCH CƠ SỞ THEO TRẠNG THÁI
+  // 🏨 QUẢN LÝ KHÁCH SẠN (LIST & ACTIONS)
   // ============================
+
+  // 1. [QUAN TRỌNG] Hàm này dùng cho ActiveHotelsPage để lọc tab Active/Suspended
+  // Gọi API: GET /api/v1/admin/properties/list
+  getPropertiesList: async (page = 0, size = 10, status = "APPROVE") => {
+    try {
+      const response = await api.get(`/admin/properties/list`, {
+        params: { page, size, status }
+      });
+      return response.data; // Trả về ApiResponse chứa data.content
+    } catch (error) {
+      console.error("Error fetching properties list:", error);
+      throw error;
+    }
+  },
+
+  // 2. Hàm cũ (giữ lại nếu trang duyệt đơn PENDING cần dùng)
   getPropertiesByStatus: async (status) => {
     try {
       const response = await api.get(`/admin/properties/status`, {
@@ -43,7 +56,7 @@ const adminService = {
       return response.data;
     } catch (error) {
       console.error("Error fetching properties:", error);
-      throw new Error(error.response?.data?.message || "Lỗi khi tải danh sách cơ sở");
+      throw error;
     }
   },
 
@@ -56,63 +69,76 @@ const adminService = {
       return response.data;
     } catch (error) {
       console.error("Error reviewing property:", error);
-      throw new Error(error.response?.data?.message || "Lỗi khi duyệt cơ sở lưu trú");
+      throw error;
     }
   },
 
-  // ============================
-  // 👥 QUẢN LÝ NGƯỜI DÙNG (USERS)
-  // ============================
-  getAllUsers: async (page = 0, size = 10, search = "", role = "ALL", status = "ALL", rank = "ALL") => {
-    const params = {
-      page,
-      size,
-      // ⚠️ Đã đổi 'search' -> 'keyword' để sửa lỗi tìm kiếm
-      keyword: search || undefined,
-    };
-
-    if (role !== "ALL") params.role = role;
-    if (status !== "ALL") params.status = status;
-    if (rank !== "ALL") params.rank = rank;
-
+  // 3. Dừng hoạt động khách sạn
+  suspendProperty: async (propertyId, reason) => {
     try {
-      const response = await api.get("/admin/users", { params });
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      throw new Error(error.response?.data?.message || "Lỗi khi tải danh sách người dùng");
-    }
-  },
-
-  // Cập nhật trạng thái kèm lý do
-  updateUserStatus: async (userId, newStatus, reason = "") => {
-    try {
-      const response = await api.patch(`/admin/users/${userId}/status`, null, {
-        params: {
-          status: newStatus,
-          reason: reason
-        }
+      const response = await api.put(`/admin/properties/${propertyId}/suspend`, {
+        reason
       });
       return response.data;
     } catch (error) {
-      console.error("Error updating user status:", error);
-      throw new Error(error.response?.data?.message || "Lỗi cập nhật trạng thái người dùng");
+      console.error("Error suspending property:", error);
+      throw error;
     }
   },
 
-  deleteUser: async (userId) => {
+  // 4. Mở lại hoạt động khách sạn
+  activateProperty: async (propertyId) => {
     try {
-      const response = await api.delete(`/admin/users/${userId}`);
+      const response = await api.put(`/admin/properties/${propertyId}/activate`);
       return response.data;
     } catch (error) {
-      console.error("Error deleting user:", error);
-      throw new Error(error.response?.data?.message || "Lỗi khi xóa người dùng");
+      console.error("Error activating property:", error);
+      throw error;
     }
   },
 
   // ============================
-  // 📊 THỐNG KÊ DASHBOARD
+  // 🛏️ QUẢN LÝ PHÒNG
   // ============================
+
+  getPropertyRooms: async (propertyId) => {
+    try {
+      const response = await api.get(`/admin/properties/${propertyId}/rooms`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching property rooms:", error);
+      throw error;
+    }
+  },
+
+ // 5. Dừng hoạt động phòng
+  suspendRoom: async (roomId, reason) => {
+    try {
+      // ❌ Cũ (Sai): /admin/rooms/${roomId}/suspend
+      // ✅ Mới (Đúng): /admin/properties/rooms/${roomId}/suspend
+      const response = await api.put(`/admin/properties/rooms/${roomId}/suspend`, {
+        reason
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error suspending room:", error);
+      throw error;
+    }
+  },
+
+  // 6. Mở lại hoạt động phòng
+  activateRoom: async (roomId) => {
+    try {
+      // ❌ Cũ (Sai): /admin/rooms/${roomId}/activate
+      // ✅ Mới (Đúng): /admin/properties/rooms/${roomId}/activate
+      const response = await api.put(`/admin/properties/rooms/${roomId}/activate`);
+      return response.data;
+    } catch (error) {
+      console.error("Error activating room:", error);
+      throw error;
+    }
+  },
+
   getDashboardStats: async () => {
     try {
       const response = await api.get("/admin/owner-applications/dashboard-stats");
