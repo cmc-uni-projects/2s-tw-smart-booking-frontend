@@ -1,63 +1,96 @@
-import React, { useMemo } from "react";
-import Table from "@/components/common/Table/Table";
+import React from "react";
 import UserInfoCell from "./UserInfoCell";
 import UserStatusBadge from "./UserStatusBadge";
 import UserRoleBadge from "./UserRoleBadge";
-import UserRankBadge from "./UserRankBadge"; // ✅ Import component mới
-import ActionMenu from "./ActionMenu";
+import UserRankBadge from "./UserRankBadge";
+import ActionMenu from "./ActionMenu"; // ✅ Import lại ActionMenu
 
 export default function UserTable({ users, onStatusChange }) {
-    const columns = [
-        { key: "userInfo", label: "Người dùng" },
-        { key: "roleDisplay", label: "Vai trò" },
-        { key: "rankDisplay", label: "Hạng TV" }, // ✅ Thêm cột Hạng Thành Viên
-        { key: "contactInfo", label: "Liên hệ" },
-        { key: "statusDisplay", label: "Trạng thái" },
-        {
-            key: "actions",
-            label: <div className="text-center w-full">Hành động</div>
-        },
-    ];
-
-    const tableData = useMemo(() => {
-        if (!users || !Array.isArray(users)) return [];
-
-        return users.map((user) => {
-            const primaryRole = (user.roles && user.roles.length > 0) ? user.roles[0] : "CUSTOMER";
-
-            return {
-                ...user,
-                userInfo: (
-                    <UserInfoCell
-                        avatar={user.avatarUrl}
-                        fullName={user.fullName}
-                        email={user.email}
-                    />
-                ),
-                roleDisplay: <UserRoleBadge role={primaryRole} />,
-
-                // ✅ Map dữ liệu Rank (Giả sử field từ API là 'rank')
-                rankDisplay: <UserRankBadge rank={user.rank} />,
-
-                contactInfo: (
-                    <div className="text-sm text-gray-600">
-                        <div>{user.phoneNumber ? user.phoneNumber : ""}</div>
-                    </div>
-                ),
-                statusDisplay: <UserStatusBadge status={user.status} />,
-                actions: (
-                    <ActionMenu
-                        onLock={() => onStatusChange(user.userId, user.status)}
-                        isLocked={user.status === 'BANNED'}
-                    />
-                )
-            };
-        });
-    }, [users, onStatusChange]);
-
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <Table columns={columns} data={tableData} />
+            <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-gray-50/50 border-b border-gray-100">
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Người dùng
+                            </th>
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Vai trò
+                            </th>
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Hạng TV
+                            </th>
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Liên hệ
+                            </th>
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                Trạng thái
+                            </th>
+                            {/* ✅ Cột Hành động */}
+                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">
+                                Hành động
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                        {(!users || !Array.isArray(users) || users.length === 0) ? (
+                            <tr>
+                                <td colSpan="6" className="px-6 py-8 text-center text-gray-500 text-sm">
+                                    Không có dữ liệu người dùng
+                                </td>
+                            </tr>
+                        ) : (
+                            users.map((user) => {
+                                const primaryRole = (user.roles && user.roles.length > 0) ? user.roles[0] : "CUSTOMER";
+
+                                return (
+                                    <tr key={user.userId} className="hover:bg-gray-50/50 transition-colors">
+                                        {/* Người dùng */}
+                                        <td className="px-6 py-4">
+                                            <UserInfoCell
+                                                avatar={user.avatarUrl}
+                                                fullName={user.fullName}
+                                                email={user.email}
+                                            />
+                                        </td>
+
+                                        {/* Vai trò */}
+                                        <td className="px-6 py-4">
+                                            <UserRoleBadge role={primaryRole} />
+                                        </td>
+
+                                        {/* Hạng TV */}
+                                        <td className="px-6 py-4">
+                                            <UserRankBadge rank={user.rank} />
+                                        </td>
+
+                                        {/* Liên hệ */}
+                                        <td className="px-6 py-4">
+                                            <div className="text-sm text-gray-600">
+                                                {user.phoneNumber ? user.phoneNumber : ""}
+                                            </div>
+                                        </td>
+
+                                        {/* Trạng thái */}
+                                        <td className="px-6 py-4">
+                                            <UserStatusBadge status={user.status} />
+                                        </td>
+
+                                        {/* ✅ ActionMenu: Nút Khóa/Mở khóa */}
+                                        <td className="px-6 py-4">
+                                            <ActionMenu
+                                                onLock={() => onStatusChange(user.userId, user.status)}
+                                                isLocked={user.status === 'BANNED'}
+                                            />
+                                        </td>
+                                    </tr>
+                                );
+                            })
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }
