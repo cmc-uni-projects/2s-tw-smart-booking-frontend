@@ -81,8 +81,6 @@ const AdminSidebar = () => {
       path: "/admin/approvals" 
     },
     
-    { name: "Quản lý Reviews", icon: <Star size={20} />, path: "/admin/reviews" },
-    { name: "Cài đặt Hệ thống", icon: <Settings size={20} />, path: "/admin/settings" },
   ];
 
   const handleSubMenuToggle = (key) => {
