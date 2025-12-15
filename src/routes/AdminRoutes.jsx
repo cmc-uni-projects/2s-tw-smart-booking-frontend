@@ -5,7 +5,9 @@ import AdminDashboard from "../pages/Admin/Dashboard/AdminDashboard";
 import PendingApprovalsPage from "../pages/Admin/Hotels/PendingApprovalsPage";
 import HotelSubmissionsPage from "../pages/Admin/Hotels/HotelSubmissionsPage";
 import RefundManagementPage from "../pages/Admin/Transactions/RefundManagementPage"; 
-import ActiveHotelsPage from "../pages/Admin/Hotels/ActiveHotelsPage"; 
+import ActiveHotelsPage from "../pages/Admin/Hotels/ActiveHotelsPage";
+import AuditLogsPage from "../pages/Admin/AuditLogs/AuditLogsPage";
+
 
 // 👇 (Mới từ nhánh của bạn) Import Component Quản lý Khuyến mãi
 import PromotionManager from "../pages/Admin/Promotions/PromotionManager";
@@ -98,6 +100,18 @@ const adminRoutes = [
             </AdminLayout>
         ),
     },
+
+    {
+        path: "/admin/audit-logs",
+        element: (
+            <AdminLayout>
+                <ProtectedRoute roles={["ADMIN"]}>
+                    <AuditLogsPage />
+                </ProtectedRoute>
+            </AdminLayout>
+        ),
+    },
+
 ];
 
 export default adminRoutes;
