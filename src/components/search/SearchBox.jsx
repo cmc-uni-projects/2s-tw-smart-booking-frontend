@@ -8,10 +8,10 @@ import DateSelector from "@/components/search/DateSelector";
 import GuestSelector from "@/components/search/GuestSelector";
 
 const SearchBox = ({ 
-  initialValues = {}, // Giá trị khởi tạo (từ URL hoặc mặc định)
-  onSearch,           // Hàm callback khi bấm tìm (nếu cần xử lý riêng)
-  className = "",      // Class tùy chỉnh cho container
-  vertical = false    // Chế độ hiển thị dọc (nếu cần cho mobile menu)
+  initialValues = {}, 
+  onSearch, 
+  className = "", 
+  vertical = false 
 }) => {
   const navigate = useNavigate();
 
@@ -31,7 +31,6 @@ const SearchBox = ({
     rooms: 1,
   });
 
-  // Cập nhật state khi initialValues thay đổi (quan trọng cho trang Search)
   useEffect(() => {
     if (initialValues.destination !== undefined) setDestination(initialValues.destination);
     if (initialValues.guests) setGuests(prev => ({ ...prev, adults: initialValues.guests }));
@@ -49,11 +48,9 @@ const SearchBox = ({
       rooms: guests.rooms
     };
 
-    // Nếu có prop onSearch (dùng ở trang kết quả), gọi nó
     if (onSearch) {
       onSearch(params);
     } else {
-      // Mặc định: Điều hướng sang trang hotels
       navigate({
         pathname: "/hotels",
         search: `?${createSearchParams(params)}`,
@@ -63,28 +60,28 @@ const SearchBox = ({
 
   // --- 3. RENDER ---
   return (
-    <div className={`bg-white rounded-2xl shadow-xl border border-gray-100 p-4 grid gap-4 ${vertical ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-4'} ${className}`}>
-      
+    // 👇 SỬA: relative z-[100] để đảm bảo nó cao nhất
+    <div className={`relative z-[100] bg-white rounded-2xl shadow-xl border border-gray-100 p-4 grid gap-4 ${vertical ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-4'} ${className}`}>      
       {/* Destination */}
-      <div className="relative z-20">
+      <div className="relative z-30">
          <DestinationSelector value={destination} onChange={setDestination} />
       </div>
       
       {/* Date */}
-      <div className="relative z-10">
+      <div className="relative z-20">
          <DateSelector value={dates} onChange={setDates} />
       </div>
 
       {/* Guests */}
-      <div className="relative z-0">
+      <div className="relative z-10">
          <GuestSelector value={guests} onChange={setGuests} />
       </div>
 
       {/* Search Button */}
-      <div className="flex items-end">
+      <div className="flex items-end relative z-0">
         <Button
           size="lg"
-          className="w-full bg-[rgb(40,169,224)] hover:bg-[#1b98d6] text-white font-semibold shadow-md rounded-xl h-[52px]" // Chiều cao cố định để khớp với các input
+          className="w-full bg-[rgb(40,169,224)] hover:bg-[#1b98d6] text-white font-semibold shadow-md rounded-xl h-[52px]" 
           onClick={handleSearchClick}
           leftIcon={<Search size={20} />}
         >
