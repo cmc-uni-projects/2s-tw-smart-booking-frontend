@@ -70,6 +70,64 @@ const adminService = {
       throw error;
     }
   },
+  // ============================
+  // 🏨 QUẢN LÝ KHÁCH SẠN (ACTIVE)
+  // ============================
+  
+  // 1. Lấy danh sách khách sạn đang hoạt động (có phân trang)
+  getActiveProperties: async (page = 0, size = 10) => {
+    try {
+      const response = await api.get(`/admin/properties/active`, {
+        params: { page, size }
+      });
+      return response.data; // Trả về ApiResponse
+    } catch (error) {
+      console.error("Error fetching active properties:", error);
+      throw error;
+    }
+  },
+
+  // 2. Dừng hoạt động khách sạn
+  suspendProperty: async (propertyId, reason) => {
+    try {
+      const response = await api.put(`/admin/properties/${propertyId}/suspend`, {
+        reason
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error suspending property:", error);
+      throw error;
+    }
+  },
+
+  // ============================
+  // 🛏️ QUẢN LÝ PHÒNG (CỦA KHÁCH SẠN)
+  // ============================
+
+  // 3. Lấy danh sách phòng của 1 khách sạn
+  getPropertyRooms: async (propertyId) => {
+    try {
+      const response = await api.get(`/admin/properties/${propertyId}/rooms`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching property rooms:", error);
+      throw error;
+    }
+  },
+
+  // 4. Dừng hoạt động phòng
+  suspendRoom: async (roomId, reason) => {
+    try {
+      const response = await api.put(`/admin/rooms/${roomId}/suspend`, {
+        reason
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error suspending room:", error);
+      throw error;
+    }
+  },
 };
+
 
 export default adminService;
