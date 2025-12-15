@@ -43,9 +43,6 @@ const OwnerSidebar = () => {
       ]
     },
     { name: "Cơ sở lưu trú", icon: <BedDouble size={20} />, path: "/owner/rooms" },
-    { name: "Tác vụ", icon: <ClipboardList size={20} />, path: "/owner/tasks" },
-    { name: "Đánh giá", icon: <Star size={20} />, path: "/owner/reviews" },
-    { name: "Cài đặt Khách sạn", icon: <Settings size={20} />, path: "/owner/settings" },
   ];
 
   const handleSubMenuToggle = (key) => {
