@@ -1,4 +1,3 @@
-// src/components/FloatingChatBot.jsx
 import React, { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import ChatFab from "./ChatBot/ChatFab";
@@ -89,43 +88,57 @@ const FloatingChatBot = () => {
             const responseText = res.data?.response;
             const payload = res.data?.payload;
 
-            // ============================
-            // ✔ FIX: Lọc bỏ chữ "PAYLOAD:"
-            // ============================
             let cleanResponse = responseText;
-
             if (cleanResponse) {
                 cleanResponse = cleanResponse.split("PAYLOAD:")[0].trim();
-                cleanResponse = cleanResponse.replace(/\s+$/, ""); // xoá newline dư
             }
-            // ============================
 
-            // CASE 1: Normal chat
+            // ============================
+            // CASE 1: Chat thường
+            // ============================
             if (action === "ASKING" || action === "NORMAL_CHAT") {
                 setMessages((prev) => [
                     ...prev,
                     {
                         id: Date.now() + 1,
                         sender: "ai",
-                        text: cleanResponse, // dùng cleanResponse thay vì responseText
+                        text: cleanResponse,
                         payload: payload || null,
                         timestamp: new Date(),
                     },
                 ]);
             }
 
-            // CASE 2: Room search
+            // ============================
+            // CASE 2: Search room
+            // ============================
             if (action === "SEARCH_ROOM_RESULT") {
-                setMessages((prev) => [
-                    ...prev,
-                    {
-                        id: Date.now() + 2,
-                        sender: "ai",
-                        type: "hotel_list",
-                        payload,
-                        timestamp: new Date(),
-                    },
-                ]);
+                // ❗ NO RESULT → trả text
+                if (payload?.type === "NO_RESULT") {
+                    setMessages((prev) => [
+                        ...prev,
+                        {
+                            id: Date.now() + 2,
+                            sender: "ai",
+                            text: payload.message || cleanResponse,
+                            payload,
+                            timestamp: new Date(),
+                        },
+                    ]);
+                }
+                // ✅ CÓ RESULT → hiển thị list
+                else {
+                    setMessages((prev) => [
+                        ...prev,
+                        {
+                            id: Date.now() + 2,
+                            sender: "ai",
+                            type: "hotel_list",
+                            payload,
+                            timestamp: new Date(),
+                        },
+                    ]);
+                }
             }
         } catch (err) {
             setMessages((prev) => [

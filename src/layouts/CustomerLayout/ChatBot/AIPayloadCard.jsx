@@ -1,5 +1,6 @@
 import React from "react";
-import { UtensilsCrossed } from "lucide-react";
+import { Bot } from "lucide-react";
+
 
 const AIPayloadCard = ({ payload }) => {
     if (!payload) return null;
@@ -17,7 +18,7 @@ const AIPayloadCard = ({ payload }) => {
 
             {/* Tiêu đề chung */}
             <div className="flex items-center gap-2 mb-3">
-                <UtensilsCrossed size={16} className="text-blue-600" />
+                <Bot size={16} className="text-blue-600" />
                 <h3 className="font-semibold text-gray-900">
                     Gợi ý cho {payload.city || "địa điểm"}
                 </h3>

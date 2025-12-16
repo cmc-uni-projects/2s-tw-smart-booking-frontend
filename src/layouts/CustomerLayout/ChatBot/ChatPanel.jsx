@@ -1,10 +1,10 @@
-// src/layouts/CustomerLayout/ChatBot/ChatPanel.jsx
 import React, { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import ChatHeader from "./ChatHeader";
 import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
-import HotelResultCard from "./HotelResultCard"; // ⭐ Quan trọng: Thêm component này
+import HotelResultCard from "./HotelResultCard";
+import { useAuth } from "@/context/AuthContext";
 
 const panelVariants = {
   hidden: {
@@ -23,17 +23,14 @@ const panelVariants = {
 
 const ChatPanel = ({ onClose, messages, isLoading, onSendMessage }) => {
   const messagesEndRef = useRef(null);
-
-  // =============================
-  // AUTO SCROLL
-  // =============================
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const { currentUser } = useAuth();
+  const isGuest = !currentUser;
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading]);
+    if (!isGuest) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, isLoading, isGuest]);
 
   return (
       <motion.div
@@ -50,32 +47,42 @@ const ChatPanel = ({ onClose, messages, isLoading, onSendMessage }) => {
         <ChatHeader onClose={onClose} />
 
         {/* BODY */}
-        <div className="flex-1 p-4 overflow-y-auto text-sm space-y-3 bg-gray-50 custom-scrollbar">
+        <div className="flex-1 p-4 overflow-y-auto text-sm bg-gray-50 custom-scrollbar">
 
-          {messages.map((msg) => {
-            // =============================
-            // ROOM LIST từ AI (kết quả tìm phòng)
-            // =============================
-            if (msg.type === "hotel_list") {
-              return <HotelResultCard key={msg.id} data={msg.payload} />;
-            }
-
-            // =============================
-            // TIN NHẮN BÌNH THƯỜNG
-            // =============================
-            return <ChatMessage key={msg.id} message={msg} />;
-          })}
-
-          {/* LOADING */}
-          {isLoading && (
-              <div className="flex justify-start animate-pulse">
-                <div className="bg-gray-200 text-gray-500 rounded-2xl rounded-tl-none px-4 py-2 text-xs">
-                  Đang soạn tin...
+          {/* =============================
+            GUEST: HIỂN THỊ Ở ĐẦU KHUNG CHAT
+        ============================= */}
+          {isGuest && (
+              <div className="flex justify-start mb-3">
+                <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-none px-4 py-2 text-gray-600 text-sm shadow-sm max-w-[80%]">
+                  Bạn cần đăng nhập để sử dụng tính năng trợ lý thông minh này
                 </div>
               </div>
           )}
 
-          <div ref={messagesEndRef} />
+          {/* =============================
+            USER ĐÃ LOGIN: CHAT BÌNH THƯỜNG
+        ============================= */}
+          {!isGuest && (
+              <>
+                {messages.map((msg) => {
+                  if (msg.type === "hotel_list") {
+                    return <HotelResultCard key={msg.id} data={msg.payload} />;
+                  }
+                  return <ChatMessage key={msg.id} message={msg} />;
+                })}
+
+                {isLoading && (
+                    <div className="flex justify-start animate-pulse">
+                      <div className="bg-gray-200 text-gray-500 rounded-2xl rounded-tl-none px-4 py-2 text-xs">
+                        Đang soạn tin...
+                      </div>
+                    </div>
+                )}
+
+                <div ref={messagesEndRef} />
+              </>
+          )}
         </div>
 
         {/* INPUT */}
