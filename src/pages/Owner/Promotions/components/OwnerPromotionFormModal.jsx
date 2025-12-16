@@ -187,7 +187,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                 setFormData({
                     code: "", name: "", value: "", quantity: 100, minOrder: 0, maxDiscount: "",
                     startDate: "", endDate: "", isActive: true,
-                    minMembershipRank: "BRONZE" 
+                    minMembershipRank: "BRONZE"
                 });
                 setPreviewUrl(null);
                 setSelectedProperty("ALL");
@@ -382,7 +382,14 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                             if (msg.includes("đã tồn tại") || msg.includes("đã được sử dụng")) {
                                 skippedHotels.push(hotelLabel);
                             } else {
-                                otherErrors.push(`${hotelLabel}: ${msg || "Lỗi"}`);
+                                // [EDIT] Sửa logic hiển thị lỗi tại đây
+                                if (msg.includes("Ngày bắt đầu không được chọn trong quá khứ") || msg.includes("Thời gian")) {
+                                    if (!otherErrors.includes(msg)) {
+                                        otherErrors.push(msg);
+                                    }
+                                } else {
+                                    otherErrors.push(`${hotelLabel}: ${msg || "Lỗi"}`);
+                                }
                             }
                             throw err;
                         }
@@ -539,7 +546,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                             <div className="flex gap-2 items-start">
                                 {/* [FIX] Dùng DatePickerInput cho trải nghiệm tốt hơn & chặn quá khứ */}
                                 <div className="w-3/5">
-                                    <DatePickerInput 
+                                    <DatePickerInput
                                         value={parseDateLocal(getSplitValue(formData.startDate, 'date'))}
                                         onChange={(date) => handleSplitDateTimeChange('startDate', 'date', format(date, 'yyyy-MM-dd'))}
                                         minDate={new Date()} // Chặn chọn quá khứ
@@ -554,10 +561,10 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                             <div className="flex gap-2 items-start">
                                 {/* [FIX] Dùng DatePickerInput & logic chặn ngày kết thúc < ngày bắt đầu */}
                                 <div className="w-3/5">
-                                    <DatePickerInput 
+                                    <DatePickerInput
                                         value={parseDateLocal(getSplitValue(formData.endDate, 'date'))}
                                         onChange={(date) => handleSplitDateTimeChange('endDate', 'date', format(date, 'yyyy-MM-dd'))}
-                                        minDate={parseDateLocal(getSplitValue(formData.startDate, 'date')) || new Date()} 
+                                        minDate={parseDateLocal(getSplitValue(formData.startDate, 'date')) || new Date()}
                                     />
                                 </div>
                                 <div className="w-2/5"><TimePicker value={getSplitValue(formData.endDate, 'time')} onChange={(newTime) => handleSplitDateTimeChange('endDate', 'time', newTime)} error={!!errors.endDate} /></div>

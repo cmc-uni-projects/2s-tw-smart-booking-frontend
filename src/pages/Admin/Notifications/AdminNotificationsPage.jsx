@@ -243,6 +243,7 @@ const AdminNotificationsPage = () => {
                         {t.l}
                     </button>
                 ))}
+                
             </div>
             <div className="relative p-1 md:w-64">
                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />

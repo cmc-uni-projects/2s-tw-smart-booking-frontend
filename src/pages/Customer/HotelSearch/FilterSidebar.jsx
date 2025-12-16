@@ -1,108 +1,141 @@
-// src/pages/Customer/HotelSearch/FilterSidebar.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Card from "@/components/common/Card/Card";
 import Button from "@/components/common/Button/Button";
-import { FilterX } from "lucide-react";
+import { Search, RotateCcw, MapPin, Star } from "lucide-react";
+import MapEntryPoint from "@/pages/Customer/Explore/components/MapEntryPoint";
 
-import MapEntryPoint from "@/pages/Customer/Explore/components/MapEntryPoint"; 
+// Import các components con (Giả sử bạn đã tách như bước trước)
+import FilterSection from "./components/Filter/FilterSection";
+import CheckboxOption from "./components/Filter/CheckboxOption";
+import PriceRangeFilter from "./components/Filter/PriceRangeFilter";
 
-// Một section trong filter
-const FilterSection = ({ title, children }) => (
-    <div className="py-4 border-b border-gray-200 last:border-b-0">
-        <h3 className="text-sm font-semibold text-gray-800 mb-3">{title}</h3>
-        <div className="flex flex-col gap-2">{children}</div>
-    </div>
-);
+export default function FilterSidebar({ onFilterChange }) {
+    
+    // --- STATE ---
+    // Lưu danh sách các thành phố và rating được chọn
+    const [selectedCities, setSelectedCities] = useState([]);
+    const [selectedRatings, setSelectedRatings] = useState([]);
+    const [resetTrigger, setResetTrigger] = useState(0); // Dùng để reset PriceRangeFilter
 
-// Một lựa chọn checkbox
-const CheckboxOption = ({ label, count }) => (
-    <label className="flex items-center justify-between text-sm text-gray-600 hover:text-gray-900 cursor-pointer group">
-        <span className="flex items-center">
-            <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-gray-300 text-[rgb(40,169,224)] focus:ring-[rgb(40,169,224)] cursor-pointer"
-            />
-            <span className="ml-2 group-hover:text-[rgb(40,169,224)] transition-colors">{label}</span>
-        </span>
-        {count !== undefined && <span className="text-xs text-gray-400">{count}</span>}
-    </label>
-);
+    // --- EFFECT: Gửi dữ liệu lên cha khi state thay đổi ---
+    // Chúng ta tách riêng useEffect này để gom City và Rating
+    // Price được PriceRangeFilter gửi riêng, cha sẽ merge lại.
+    useEffect(() => {
+        onFilterChange({ 
+            cities: selectedCities.length > 0 ? selectedCities : null, 
+            ratings: selectedRatings.length > 0 ? selectedRatings : null
+        });
+    }, [selectedCities, selectedRatings]);
 
-export default function FilterSidebar() {
+    // --- HANDLERS ---
+    
+    // 1. Nhận thay đổi giá từ Component con
+    const handlePriceChange = ({ minPrice, maxPrice }) => {
+        onFilterChange({ minPrice, maxPrice });
+    };
+
+    // 2. Toggle Thành phố
+    const handleCityToggle = (city) => {
+        setSelectedCities(prev => {
+            if (prev.includes(city)) return prev.filter(c => c !== city); // Bỏ chọn
+            return [...prev, city]; // Chọn thêm
+        });
+    };
+
+    // 3. Toggle Số sao
+    const handleRatingToggle = (star) => {
+        setSelectedRatings(prev => {
+            if (prev.includes(star)) return prev.filter(s => s !== star);
+            return [...prev, star];
+        });
+    };
+
+    // 4. Reset toàn bộ
+    const handleReset = () => {
+        // Cách 1: Reload trang (Nhanh, sạch)
+        // window.location.reload(); 
+
+        // Cách 2: Reset state (Mượt hơn, SPA chuẩn)
+        setSelectedCities([]);
+        setSelectedRatings([]);
+        setResetTrigger(prev => prev + 1); // Trigger reset cho slider con
+        onFilterChange({ minPrice: null, maxPrice: null, cities: null, ratings: null });
+    };
+
+    // Danh sách thành phố (Lưu ý: Phải khớp tương đối với Database của bạn)
+    const CITIES = [
+        'Thành phố Hà Nội', 
+        'Thành phố Hồ Chí Minh', 
+        'Thành phố Đà Nẵng', 
+        'Tỉnh Quảng Ninh', 
+        'Tỉnh Lào Cai',
+        'Tỉnh Lâm Đồng' // Đà Lạt
+    ];
+
     return (
-        <div className="space-y-4">
+        <div className="space-y-5 animate-fade-in-up">
             
-            {/* Component bản đồ nhỏ */}
             <MapEntryPoint />
 
-            {/* Bộ lọc chính */}
-            <Card className="p-0 overflow-hidden shadow-sm border border-gray-200">
-                {/* Header của Filter */}
-                <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white">
-                    <h2 className="text-lg font-bold text-gray-900">Bộ lọc</h2>
+            <Card className="p-0 overflow-hidden shadow-sm border border-gray-200 rounded-xl">
+                
+                {/* Header */}
+                <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-white">
+                    <div className="flex items-center gap-2">
+                        <div className="bg-blue-50 p-1.5 rounded-lg text-[rgb(40,169,224)]">
+                            <Search size={16} />
+                        </div>
+                        <h2 className="text-base font-bold text-gray-900">Bộ lọc</h2>
+                    </div>
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="text-xs text-[rgb(40,169,224)] hover:bg-blue-50 px-2"
-                        leftIcon={<FilterX size={14} />}
+                        onClick={handleReset}
+                        className="text-xs font-medium text-gray-500 hover:text-red-500 hover:bg-red-50 px-2 transition-colors"
+                        leftIcon={<RotateCcw size={14} />}
                     >
-                        Xóa tất cả
+                        Đặt lại
                     </Button>
                 </div>
 
-                {/* Thân của Filter */}
-                <div className="p-4 overflow-y-auto max-h-[calc(100vh-300px)] custom-scrollbar">
+                <div className="p-5 overflow-y-auto max-h-[calc(100vh-250px)] custom-scrollbar bg-white">
                     
-                    {/* Lọc theo Thành phố */}
-                    <FilterSection title="Thành phố">
-                        <CheckboxOption label="Hà Nội" count={2} />
-                        <CheckboxOption label="Đà Nẵng" count={1} />
-                        <CheckboxOption label="Sapa" count={1} />
-                        <CheckboxOption label="Hồ Chí Minh" count={0} />
+                    {/* MODULE 1: LỌC GIÁ */}
+                    {/* Truyền key để ép React render lại component này khi resetTrigger thay đổi */}
+                    <PriceRangeFilter 
+                        key={resetTrigger} 
+                        onChange={handlePriceChange} 
+                    />
+
+                    {/* MODULE 2: ĐỊA ĐIỂM */}
+                    <FilterSection title="Địa điểm phổ biến" icon={MapPin}>
+                        {CITIES.map(city => (
+                            <CheckboxOption 
+                                key={city} 
+                                label={city.replace("Thành phố ", "").replace("Tỉnh ", "")} // Hiển thị ngắn gọn
+                                checked={selectedCities.includes(city)}
+                                onChange={() => handleCityToggle(city)}
+                            />
+                        ))}
                     </FilterSection>
 
-                    {/* Lọc theo Đánh giá */}
-                    <FilterSection title="Đánh giá của khách">
-                        <CheckboxOption label="5 sao" />
-                        <CheckboxOption label="4 sao" />
-                        <CheckboxOption label="3 sao" />
-                        <CheckboxOption label="2 sao" />
-                        <CheckboxOption label="1 sao" />
+                    {/* MODULE 3: HẠNG SAO */}
+                    <FilterSection title="Hạng sao" icon={Star}>
+                        {[5, 4, 3, 2, 1].map(star => (
+                            <CheckboxOption 
+                                key={star} 
+                                label={
+                                    <div className="flex items-center gap-1">
+                                        <span className="font-medium">{star}</span>
+                                        <Star size={12} className="fill-yellow-400 text-yellow-400" />
+                                    </div>
+                                }
+                                checked={selectedRatings.includes(star)}
+                                onChange={() => handleRatingToggle(star)}
+                            />
+                        ))}
                     </FilterSection>
 
-                    {/* Khoảng giá */}
-                    <FilterSection title="Khoảng giá (mỗi đêm)">
-                        <CheckboxOption label="Dưới 1.000.000₫" />
-                        <CheckboxOption label="1.000.000₫ - 2.000.000₫" />
-                        <CheckboxOption label="2.000.000₫ - 3.000.000₫" />
-                        <CheckboxOption label="Trên 3.000.000₫" />
-                    </FilterSection>
-
-                    {/* Khoảng cách */}
-                    <FilterSection title="Khoảng cách từ sân bay">
-                        <CheckboxOption label="Dưới 5 km" />
-                        <CheckboxOption label="5 km - 10 km" />
-                        <CheckboxOption label="10 km - 20 km" />
-                        <CheckboxOption label="Trên 20 km" />
-                    </FilterSection>
-
-                    {/* Tiện nghi */}
-                    <FilterSection title="Tiện nghi">
-                        <CheckboxOption label="Hồ bơi" />
-                        <CheckboxOption label="Wifi miễn phí" />
-                        <CheckboxOption label="Chỗ đỗ xe" />
-                        <CheckboxOption label="Nhà hàng" />
-                        <CheckboxOption label="Lễ tân 24/7" />
-                        <CheckboxOption label="Phòng tập gym" />
-                    </FilterSection>
-
-                    {/* Loại hình */}
-                    <FilterSection title="Loại hình cư trú">
-                        <CheckboxOption label="Hotel" />
-                        <CheckboxOption label="Resort" />
-                        <CheckboxOption label="Homestay" />
-                        <CheckboxOption label="Villa" />
-                    </FilterSection>
                 </div>
             </Card>
         </div>

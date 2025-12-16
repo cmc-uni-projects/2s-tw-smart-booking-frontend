@@ -148,14 +148,38 @@ const FeaturedHotels = () => {
         const fetchHotels = async () => {
             try {
                 setLoading(true);
-                const res = await propertyService.searchProperties("", 1, null, null);
-                const rawData = Array.isArray(res) ? res : (res.content || res.data || []);
+                
+                // 1. Dùng hàm chuyên biệt (đã thêm ở bước trước) thay vì searchProperties thủ công
+                const res = await propertyService.getFeaturedProperties();
+                
+                console.log("Featured Data:", res); // Debug log
 
+                // 2. Bóc tách dữ liệu an toàn (Xử lý mọi trường hợp cấu trúc JSON)
+                let rawData = [];
+
+                if (res && res.result && Array.isArray(res.result.content)) {
+                    // TRƯỜNG HỢP CHUẨN (ApiResponse): { result: { content: [...] } }
+                    rawData = res.result.content;
+                } 
+                else if (res && res.data && Array.isArray(res.data.content)) {
+                    // Trường hợp dự phòng: { data: { content: [...] } }
+                    rawData = res.data.content;
+                } 
+                else if (res && Array.isArray(res.content)) {
+                    // Trường hợp Page trực tiếp: { content: [...] }
+                    rawData = res.content;
+                } 
+                else if (Array.isArray(res)) {
+                    // Trường hợp trả về mảng trực tiếp
+                    rawData = res;
+                }
+
+                // 3. Map dữ liệu (Lúc này rawData chắc chắn là Array)
                 const mapped = rawData.map(item => ({
                     id: item.propertyId,
                     name: item.propertyName,
                     location: item.address || item.city || "Việt Nam",
-                    price: item.minPrice || 0,
+                    price: item.minPrice || 0, // Giá thấp nhất
                     formattedPrice: new Intl.NumberFormat('vi-VN').format(item.minPrice || 0),
                     image: getCoverImage(item),
                     rating: item.rating || 5.0,
@@ -163,9 +187,10 @@ const FeaturedHotels = () => {
                     isPopular: (item.rating || 0) >= 4.5
                 }));
 
-                setHotels(mapped.slice(0, 4));
+                setHotels(mapped.slice(0, 4)); // Chỉ lấy 4 cái
             } catch (err) {
                 console.error("❌ Lỗi khi tải khách sạn nổi bật:", err);
+                setHotels([]); // Set mảng rỗng để tránh lỗi render
             } finally {
                 setLoading(false);
             }

@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Button from "@/components/common/Button/Button";
 import Card from "@/components/common/Card/Card";
-import { Bookmark, Flame, Crown, Clock, TicketPercent, ThumbsUp } from "lucide-react";
+import { Bookmark, Flame, Crown, Clock, TicketPercent } from "lucide-react"; // ❌ Đã xóa ThumbsUp
 import placeholderImg from "@/assets/images/placeholder.png";
 
 export default function PromotionCard({ promo, onClick, isSaved, onToggleSave }) {
@@ -22,21 +22,7 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
         promo.description?.toLowerCase().includes("hot") ||
         usagePercent > 80;
 
-    // Logic Deal tốt (Giảm >= 10% hoặc >= 100k)
-    const getDiscountValue = () => {
-        if (promo.discountPercent && promo.discountPercent > 0) return { val: promo.discountPercent, type: '%' };
-        if (promo.discountAmount && promo.discountAmount > 0) return { val: promo.discountAmount, type: 'vnd' };
-        if (promo.discountValue) {
-            return promo.discountValue > 100
-                ? { val: promo.discountValue, type: 'vnd' }
-                : { val: promo.discountValue, type: '%' };
-        }
-        return { val: 0, type: '' };
-    };
-
-    const discount = getDiscountValue();
-    const isGoodDeal = (discount.type === '%' && discount.val >= 10) ||
-        (discount.type === 'vnd' && discount.val >= 100000);
+    // ❌ ĐÃ XÓA: Logic tính toán isGoodDeal (Deal tốt)
 
     const getRankConfig = (rank) => {
         if (!rank) return { show: false };
@@ -85,17 +71,9 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 opacity-60 transition-opacity group-hover:opacity-50" />
 
-                    {/* ✅ VỊ TRÍ MỚI: GÓC TRÁI TRÊN (DEAL TỐT) */}
-                    {isGoodDeal && (
-                        <div className="absolute top-3 left-3 z-10">
-                            <div className="bg-emerald-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-lg flex items-center gap-1 border border-emerald-400/50 animate-bounce">
-                                <ThumbsUp size={12} fill="currentColor" />
-                                TỐT
-                            </div>
-                        </div>
-                    )}
+                    {/* ❌ ĐÃ XÓA: Phần hiển thị nhãn "TỐT" ở góc trái trên */}
 
-                    {/* VỊ TRÍ CŨ: GÓC PHẢI TRÊN (HOT & RANK) */}
+                    {/* VỊ TRÍ: GÓC PHẢI TRÊN (HOT & RANK) */}
                     <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
                         {isHot && (
                             <div className="bg-red-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-lg flex items-center gap-1 animate-pulse">

@@ -26,15 +26,16 @@ const getOwnerActiveProperties = async () => {
 // ============================
 // 🔍 TÌM KIẾM PROPERTIES
 // ============================
-const searchProperties = async (keyword, guests, checkIn, checkOut) => {
+const searchProperties = async (params) => {
   try {
-    const response = await api.get(`/properties/search`, {
-      params: {
-        keyword: keyword || "",
-        guests: guests || 1,
-        checkIn: checkIn || null,
-        checkOut: checkOut || null
-      },
+    // console.log("Params sent to API:", params); // Debug xem params có bị lồng không
+    
+    const response = await api.get(`/properties/search`, { 
+      // Axios sẽ tự serialize object này thành query string
+      params: params, 
+      
+      // [QUAN TRỌNG] Nếu bạn đang dùng thư viện qs stringify, hãy bỏ đi hoặc cấu hình lại.
+      // Mặc định axios xử lý params phẳng rất tốt.
     });
     return response.data;
   } catch (error) {
@@ -212,6 +213,22 @@ const togglePropertyStatus = async (id) => {
   }
 };
 
+const getFeaturedProperties = async () => {
+  try {
+    // Tận dụng API search, lấy 8 khách sạn có rating cao nhất
+    const response = await api.get("/properties/search", {
+      params: {
+        page: 0,
+        size: 8,
+        sort: "rating,desc" // Sắp xếp theo rating giảm dần
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
 // ==========================================================
 // 📦 EXPORT
 // ==========================================================
@@ -232,6 +249,7 @@ const propertyService = {
   updatePropertyPolicies,
   checkNameAvailability,
   togglePropertyStatus,
+  getFeaturedProperties
 };
 
 export default propertyService;
