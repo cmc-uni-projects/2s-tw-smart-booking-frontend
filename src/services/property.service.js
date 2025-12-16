@@ -213,6 +213,22 @@ const togglePropertyStatus = async (id) => {
   }
 };
 
+const getFeaturedProperties = async () => {
+  try {
+    // Tận dụng API search, lấy 8 khách sạn có rating cao nhất
+    const response = await api.get("/properties/search", {
+      params: {
+        page: 0,
+        size: 8,
+        sort: "rating,desc" // Sắp xếp theo rating giảm dần
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
 // ==========================================================
 // 📦 EXPORT
 // ==========================================================
@@ -233,6 +249,7 @@ const propertyService = {
   updatePropertyPolicies,
   checkNameAvailability,
   togglePropertyStatus,
+  getFeaturedProperties
 };
 
 export default propertyService;
