@@ -27,9 +27,9 @@ import SessionExpiredHandler from "@/pages/Admin/Users/components/SessionExpired
 
 const AppRoutes = () => {
     return (
-        // ✅ 2. Dùng thẻ Fragment (<>...</>) để bọc SessionExpiredHandler và Routes lại
+        // ✅ 2. Dùng thẻ Fragment để bọc SessionExpiredHandler và Routes
         <>
-            {/* Component này nằm ngoài Routes để luôn hiển thị đè lên mọi trang khi cần */}
+            {/* Component này sẽ lắng nghe sự kiện auth:account-locked toàn cục */}
             <SessionExpiredHandler />
 
             <Routes>
