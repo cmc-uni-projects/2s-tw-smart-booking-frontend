@@ -19,7 +19,7 @@ import PaymentTimeoutModal from './components/PaymentTimeoutModal';
 import DiscountSection from './components/DiscountSection';
 import bookingService from "@/services/booking.service";
 import paymentService from "@/services/payment.service";
-import promotionService from "@/services/promotion.service"; // ✅ Đảm bảo đã import service này
+import promotionService from "@/services/promotion.service";
 import './PaymentPage.css';
 
 // --- CONFIG HELPER (Ưu tiên logic R2 của nhánh HEAD) ---
@@ -495,6 +495,9 @@ export default function PaymentPage() {
                         // Dùng biến display đã được xử lý theo thứ tự
                         adminDiscount={displayAdminDiscount}
                         ownerDiscount={displayOwnerDiscount}
+
+                        // ✅ THÊM DÒNG NÀY ĐỂ KÍCH HOẠT NHÃN BEST OFFER
+                        totalAmount={originalPrice}
                     />
 
                     {/* ✅ Hiển thị giá đã tính toán chính xác */}
@@ -547,4 +550,3 @@ export default function PaymentPage() {
         </main>
     );
 }
-

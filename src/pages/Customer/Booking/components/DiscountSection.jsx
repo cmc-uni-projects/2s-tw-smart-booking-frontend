@@ -2,21 +2,21 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Card from '@/components/common/Card/Card';
-import { Tag, TicketPercent, X, ShieldCheck, Store, ChevronDown } from 'lucide-react';
-import PromotionSelectionDropdown from './PromotionSelectionModal'; // Import Dropdown Component
+import { Tag, TicketPercent, X, ShieldCheck, Store, ChevronDown, Calculator, ArrowRight, Coins } from 'lucide-react';
+import PromotionSelectionDropdown from './PromotionSelectionModal';
 
 // Đường dẫn Public Path
 const TRAVEL_MATE_LOGO_PUBLIC_PATH = "/assets/logo_promption/1.jpg";
 
+// Helper format tiền
+const formatMoney = (val) => new Intl.NumberFormat('vi-VN').format(val);
+
 // ====================================================================
-// CON COMPONENT 1: NÚT GỠ BỎ MÃ
+// COMPONENT: NÚT GỠ BỎ
 // ====================================================================
 const PromoSlotRemoveButton = ({ onRemove }) => (
     <button
-        onClick={(e) => {
-            e.stopPropagation(); // Ngăn sự kiện click lan ra ngoài
-            onRemove();
-        }}
+        onClick={(e) => { e.stopPropagation(); onRemove(); }}
         className="p-1.5 hover:bg-red-50 rounded-full text-gray-400 hover:text-red-500 transition-colors shrink-0"
         title="Gỡ bỏ"
     >
@@ -25,53 +25,30 @@ const PromoSlotRemoveButton = ({ onRemove }) => (
 );
 
 // ====================================================================
-// CON COMPONENT 2: HIỂN THỊ MÃ ĐÃ CHỌN HOẶC TRẠNG THÁI CHƯA CHỌN
+// COMPONENT: HIỂN THỊ SLOT MÃ
 // ====================================================================
-const PromoSlotDisplay = ({ promo, icon: Icon, colorClass, emptyText, onClick, isDropdownOpen, isAdminPromo, logoUrl }) => {
-    const ICON_SIZE_CLASS = "w-12 h-12"; // Điều chỉnh kích thước icon cho cân đối
+const PromoSlotDisplay = ({ promo, icon: Icon, colorClass, emptyText, onClick, isDropdownOpen, isAdminPromo }) => {
+    const ICON_SIZE_CLASS = "w-12 h-12";
 
-    // 1. TRƯỜNG HỢP: ĐÃ CÓ MÃ
     if (promo) {
-        const DisplayIcon = (
-            <div className={`${ICON_SIZE_CLASS} rounded-full ${colorClass} bg-opacity-20 flex items-center justify-center shrink-0`}>
-                {isAdminPromo ? (
-                    <ShieldCheck size={24} className={colorClass.replace('bg-', 'text-')} />
-                ) : (
-                    <Store size={24} className={colorClass.replace('bg-', 'text-')} />
-                )}
-            </div>
-        );
-
-
         return (
             <div className={`border bg-opacity-5 rounded-xl p-3 flex items-center justify-between ${colorClass.replace('bg-', 'border-').replace('text-', 'border-')} bg-white shadow-sm`}>
                 <div className="flex items-center gap-3 overflow-hidden">
-                    {DisplayIcon}
-                    <div className="min-w-0">
-                        <p className={`text-sm font-bold ${colorClass.replace('bg-', 'text-')}`}>
-                            {promo.code}
-                        </p>
-                        {/* Hiển thị số tiền giảm nếu có, hoặc description */}
-                        <p className="text-xs text-gray-500 truncate">
-                            {promo.description || "Đã áp dụng mã ưu đãi"}
-                        </p>
+                    <div className={`${ICON_SIZE_CLASS} rounded-full ${colorClass} bg-opacity-20 flex items-center justify-center shrink-0`}>
+                        {isAdminPromo ? <ShieldCheck size={24} className={colorClass.replace('bg-', 'text-')} /> : <Store size={24} className={colorClass.replace('bg-', 'text-')} />}
                     </div>
-                    
-                    
+                    <div className="min-w-0">
+                        <p className={`text-sm font-bold ${colorClass.replace('bg-', 'text-')}`}>{promo.code}</p>
+                        <p className="text-xs text-gray-500 truncate">{promo.description || "Đã áp dụng mã ưu đãi"}</p>
+                    </div>
                 </div>
-                {/* Nút xóa sẽ được render ở component cha */}
             </div>
         );
     }
 
-    // 2. TRƯỜNG HỢP: CHƯA CÓ MÃ (Nút mở Dropdown)
     return (
         <div
-            className={`relative border rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all ${
-                isDropdownOpen
-                    ? `${colorClass.replace('bg-', 'border-').replace('text-', 'border-')} ring-1 ring-offset-0 ${colorClass.replace('bg-', 'ring-').replace('text-', 'ring-')}`
-                    : 'border-gray-300 hover:bg-gray-50 hover:border-gray-400'
-            }`}
+            className={`relative border rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all ${isDropdownOpen ? `${colorClass.replace('bg-', 'border-').replace('text-', 'border-')} ring-1 ring-offset-0` : 'border-gray-300 hover:bg-gray-50'}`}
             onClick={onClick}
         >
             <div className="flex items-center gap-3 overflow-hidden">
@@ -83,80 +60,40 @@ const PromoSlotDisplay = ({ promo, icon: Icon, colorClass, emptyText, onClick, i
                     <p className="text-xs text-gray-400">Bấm để chọn mã giảm giá</p>
                 </div>
             </div>
-
-            <div className={`text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-gray-600' : ''}`}>
-                <ChevronDown size={18} />
-            </div>
+            <ChevronDown size={18} className={`text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-gray-600' : ''}`} />
         </div>
     );
 };
 
 // ====================================================================
-// CON COMPONENT 3: SLOT KHUYẾN MÃI (Wrapper logic)
+// COMPONENT: CONTAINER (Wrapper)
 // ====================================================================
 const PromoSlotContainer = ({
-                                title, icon, colorClass, emptyText,
-                                promo, // Object chứa {code, description}
-                                onSelect, onRemove,
-                                filterType, bookingPropertyId, logoUrl
+                                title, icon, colorClass, emptyText, promo, onSelect, onRemove,
+                                filterType, bookingPropertyId, totalAmount
                             }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
-    const isAdminPromo = filterType === 'ADMIN';
 
-    // Đóng dropdown khi click ra ngoài
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsOpen(false);
-            }
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) setIsOpen(false);
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleSelectPromo = (selectedPromo) => {
-        onSelect(selectedPromo);
-        setIsOpen(false);
-    };
-
     return (
         <div className="mb-5 last:mb-0" ref={dropdownRef}>
             <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider pl-1">{title}</p>
-
             <div className="relative">
                 <PromoSlotDisplay
-                    promo={promo}
-                    icon={icon}
-                    colorClass={colorClass}
-                    emptyText={emptyText}
-                    isDropdownOpen={isOpen}
-                    isAdminPromo={isAdminPromo}
-                    logoUrl={logoUrl}
-                    onClick={() => {
-                        // Chỉ mở dropdown nếu chưa có mã nào được chọn
-                        if (!promo) setIsOpen(!isOpen);
-                    }}
+                    promo={promo} icon={icon} colorClass={colorClass} emptyText={emptyText}
+                    isDropdownOpen={isOpen} isAdminPromo={filterType === 'ADMIN'}
+                    onClick={() => { if (!promo) setIsOpen(!isOpen); }}
                 />
-
-                {/* Nút xóa nằm đè lên Slot hiển thị khi đã chọn */}
-                {promo && (
-                    <div className="absolute top-1/2 right-3 -translate-y-1/2">
-                        <PromoSlotRemoveButton onRemove={onRemove} />
-                    </div>
-                )}
-
-                {/* Dropdown Content - Chỉ hiện khi chưa chọn mã và đang mở */}
-                {!promo && (
-                    <PromotionSelectionDropdown
-                        isOpen={isOpen}
-                        onClose={() => setIsOpen(false)}
-                        onSelect={handleSelectPromo}
-                        // selectedId={promo?.promotionId} // Không cần thiết vì đang null
-                        filterType={filterType}
-                        bookingPropertyId={bookingPropertyId}
-                    />
-                )}
+                {promo && <div className="absolute top-1/2 right-3 -translate-y-1/2"><PromoSlotRemoveButton onRemove={onRemove} /></div>}
+                {!promo && <PromotionSelectionDropdown isOpen={isOpen} onClose={() => setIsOpen(false)} onSelect={(p) => { onSelect(p); setIsOpen(false); }} filterType={filterType} bookingPropertyId={bookingPropertyId} totalAmount={totalAmount} />}
             </div>
         </div>
     );
@@ -166,72 +103,127 @@ const PromoSlotContainer = ({
 // MAIN COMPONENT: DiscountSection
 // ====================================================================
 const DiscountSection = ({
-                             onApplyAdmin,
-                             onApplyOwner,
-                             bookingPropertyId,
-                             // [UPDATE] Nhận props từ PaymentPage để hiển thị
-                             selectedAdminCode,
-                             selectedOwnerCode,
-                             adminDiscount,
-                             ownerDiscount
+                             onApplyAdmin, onApplyOwner, bookingPropertyId,
+                             selectedAdminCode, selectedOwnerCode,
+                             adminDiscount, ownerDiscount,
+                             totalAmount = 0,
+                             promoOrder = []
                          }) => {
 
-    // [LOGIC MỚI] Tạo object hiển thị từ props thay vì dùng State nội bộ
-    // Vì PaymentPage chỉ trả về 'code' và 'amount', ta tự tạo description
-    const adminPromoDisplay = selectedAdminCode ? {
-        code: selectedAdminCode,
-        description: `Đã giảm ${new Intl.NumberFormat('vi-VN').format(adminDiscount)}₫`
-    } : null;
+    const adminPromoDisplay = selectedAdminCode ? { code: selectedAdminCode, description: `Giảm ${formatMoney(adminDiscount)}₫` } : null;
+    const ownerPromoDisplay = selectedOwnerCode ? { code: selectedOwnerCode, description: `Giảm ${formatMoney(ownerDiscount)}₫` } : null;
 
-    const ownerPromoDisplay = selectedOwnerCode ? {
-        code: selectedOwnerCode,
-        description: `Đã giảm ${new Intl.NumberFormat('vi-VN').format(ownerDiscount)}₫`
-    } : null;
+    // --- LOGIC TÍNH TOÁN STEP-BY-STEP (Đã cập nhật) ---
+    const renderStepByStepCalculation = () => {
+        if (totalAmount <= 0) return null;
+
+        if (promoOrder.length === 0) {
+            return (
+                <div className="mt-6 pt-4 border-t border-gray-100">
+                    <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-500">Giá gốc đơn hàng</span>
+                        <span className="font-bold text-gray-800">{formatMoney(totalAmount)}₫</span>
+                    </div>
+                </div>
+            );
+        }
+
+        let currentPrice = totalAmount;
+        const steps = [];
+
+        // 1. Dòng giá gốc
+        steps.push(
+            <div key="base" className="flex justify-between items-center text-sm text-gray-500 mb-2">
+                <span>Giá gốc:</span>
+                <span className="line-through">{formatMoney(totalAmount)}₫</span>
+            </div>
+        );
+
+        // 2. Lặp qua các mã đã áp dụng
+        promoOrder.forEach((type, index) => {
+            let discountAmount = 0;
+            let label = "";
+            let color = "";
+
+            if (type === 'ADMIN' && adminDiscount > 0) {
+                discountAmount = adminDiscount;
+                label = `Mã TravelMate (${selectedAdminCode})`;
+                color = "text-blue-600";
+            } else if (type === 'OWNER' && ownerDiscount > 0) {
+                discountAmount = ownerDiscount;
+                label = `Mã Khách Sạn (${selectedOwnerCode})`;
+                color = "text-purple-600";
+            }
+
+            if (discountAmount > 0) {
+                // Dòng hiển thị số tiền được giảm
+                steps.push(
+                    <div key={`${type}-disc`} className={`flex justify-between items-center text-sm ${color} font-medium mt-2`}>
+                        <span className="flex items-center gap-1"><TicketPercent size={14}/> {label}</span>
+                        <span>-{formatMoney(discountAmount)}₫</span>
+                    </div>
+                );
+
+                // Cập nhật giá hiện tại
+                currentPrice -= discountAmount;
+                if (currentPrice < 0) currentPrice = 0;
+
+                // ✅ LUÔN HIỂN THỊ DÒNG "CÒN LẠI" SAU MỖI LẦN TRỪ (Sửa đổi ở đây)
+                steps.push(
+                    <div key={`${type}-sub`} className="flex justify-between items-center text-sm font-semibold text-gray-600 border-b border-dashed border-gray-200 py-2 mb-1 bg-gray-50/50 px-2 rounded">
+                        <span className="flex items-center gap-1 text-xs uppercase tracking-wide">
+                            <ArrowRight size={12}/> Còn lại:
+                        </span>
+                        <span>{formatMoney(currentPrice)}₫</span>
+                    </div>
+                );
+            }
+        });
+
+        return (
+            <div className="mt-6 bg-gray-50 rounded-xl p-4 border border-gray-200">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Chi tiết thanh toán</h4>
+                <div className="space-y-1">
+                    {steps}
+                </div>
+
+                {/* Dòng Tổng Kết Cuối Cùng */}
+                <div className="border-t border-gray-200 mt-3 pt-3 flex justify-between items-center">
+                    <span className="font-bold text-gray-800 flex items-center gap-2">
+                        <Calculator size={18} className="text-blue-600"/>
+                        Cần thanh toán:
+                    </span>
+                    <span className="text-2xl font-extrabold text-blue-600">
+                        {formatMoney(currentPrice)}₫
+                    </span>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <Card className="p-5 border border-gray-200 shadow-sm rounded-xl bg-white">
-            {/* Header */}
             <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
-                <div className="bg-blue-100 p-1.5 rounded-md">
-                    <Tag size={18} className="text-blue-600" />
-                </div>
+                <div className="bg-blue-100 p-1.5 rounded-md"><Tag size={18} className="text-blue-600" /></div>
                 <h3 className="font-bold text-lg text-gray-800">Mã ưu đãi & Khuyến mãi</h3>
             </div>
 
-            {/* Slot 1: Admin Promo */}
             <PromoSlotContainer
-                title="TravelMate Voucher"
-                icon={ShieldCheck}
-                colorClass="text-blue-600 bg-blue-600"
-                emptyText="Chọn mã ưu đãi từ hệ thống"
-
-                promo={adminPromoDisplay} // Truyền object hiển thị đã tạo ở trên
-
-                onSelect={onApplyAdmin} // Gọi hàm của PaymentPage
-                onRemove={() => onApplyAdmin(null)} // Gọi hàm với null để gỡ
-
-                filterType={'ADMIN'}
-                logoUrl={TRAVEL_MATE_LOGO_PUBLIC_PATH}
-                // Admin promo thường áp dụng toàn sàn, ko cần filter theo property
+                title="TravelMate Voucher" icon={ShieldCheck} colorClass="text-blue-600 bg-blue-600" emptyText="Chọn mã ưu đãi từ hệ thống"
+                promo={adminPromoDisplay} onSelect={onApplyAdmin} onRemove={() => onApplyAdmin(null)}
+                filterType={'ADMIN'} logoUrl={TRAVEL_MATE_LOGO_PUBLIC_PATH} totalAmount={totalAmount}
             />
 
             <div className="my-4 border-t border-dashed border-gray-200" />
 
-            {/* Slot 2: Owner Promo */}
             <PromoSlotContainer
-                title="Voucher Khách Sạn"
-                icon={Store}
-                colorClass="text-purple-600 bg-purple-600"
-                emptyText="Chọn mã ưu đãi của khách sạn"
-
-                promo={ownerPromoDisplay} // Truyền object hiển thị đã tạo ở trên
-
-                onSelect={onApplyOwner}
-                onRemove={() => onApplyOwner(null)}
-
-                filterType={'OWNER'}
-                bookingPropertyId={bookingPropertyId}
+                title="Voucher Khách Sạn" icon={Store} colorClass="text-purple-600 bg-purple-600" emptyText="Chọn mã ưu đãi của khách sạn"
+                promo={ownerPromoDisplay} onSelect={onApplyOwner} onRemove={() => onApplyOwner(null)}
+                filterType={'OWNER'} bookingPropertyId={bookingPropertyId} totalAmount={totalAmount}
             />
+
+            {/* Gọi hàm render chi tiết */}
+            {renderStepByStepCalculation()}
         </Card>
     );
 };
