@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Star, Sparkles, TrendingUp, Search } from "lucide-react";
+import { Star, TrendingUp, Search } from "lucide-react";
 import SearchBox from "@/components/search/SearchBox"; 
 
 // Ảnh nền chất lượng cao (Landscape)
@@ -31,7 +31,7 @@ const HeroSection = () => {
     
     const timer = setTimeout(() => {
       if (!isDeleting && displayText === word) {
-        setTimeout(() => setIsDeleting(true), 2000); // Đợi 2s trước khi xóa
+        setTimeout(() => setIsDeleting(true), 2000); 
       } else if (isDeleting && displayText === "") {
         setIsDeleting(false);
         setCurrentWordIndex((prev) => (prev + 1) % ROTATING_WORDS.length);
@@ -47,12 +47,12 @@ const HeroSection = () => {
 
   // --- 2. XỬ LÝ TÌM KIẾM TỪ KHÓA ---
   const handleKeywordClick = (keyword) => {
-    // Chuyển hướng sang trang search với keyword
     navigate(`/hotels?keyword=${encodeURIComponent(keyword)}&guests=1`);
   };
 
   return (
-    <section className="relative w-full min-h-[90vh] flex flex-col justify-center items-center overflow-hidden -mt-[64px]">
+    // 👇 Thêm pb-20 hoặc pb-32 để đẩy nội dung lên cao một chút, tránh sát đáy quá
+    <section className="relative w-full min-h-[95vh] flex flex-col justify-center items-center overflow-hidden -mt-[64px] pb-20">
       
       {/* --- CSS ANIMATIONS --- */}
       <style>{`
@@ -74,25 +74,38 @@ const HeroSection = () => {
       `}</style>
 
       {/* --- BACKGROUND & OVERLAY --- */}
+      {/* z-0: Lớp nền thấp nhất */}
       <div className="absolute inset-0 z-0">
         <img 
           src={HERO_BG} 
           alt="Hero Background" 
           className="w-full h-full object-cover animate-ken-burns" 
         />
-        {/* Gradient phức hợp: Tối ở trên/dưới, sáng ở giữa để focus nội dung */}
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/70 via-gray-900/40 to-gray-900/80" />
+        {/* Lớp phủ tối để text trắng dễ đọc */}
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/60 via-gray-900/30 to-gray-900/60" />
+        
+        {/* Texture noise nhẹ */}
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 mix-blend-overlay"></div>
       </div>
 
-      {/* --- FLOATING SHAPES (Trang trí) --- */}
-      <div className="absolute top-1/4 left-10 w-24 h-24 bg-blue-500/30 rounded-full blur-3xl animate-float opacity-60"></div>
-      <div className="absolute bottom-1/4 right-10 w-32 h-32 bg-purple-500/30 rounded-full blur-3xl animate-float opacity-60" style={{animationDelay: '1s'}}></div>
+      {/* --- BOTTOM GRADIENT FADE (ĐÃ SỬA) --- */}
+      {/* 1. z-0: Đảm bảo nó nằm NGANG HÀNG với ảnh nền, KHÔNG đè lên nội dung (SearchBox z-50).
+          2. h-64 (hoặc h-96): Kéo dài chiều cao ra để màu trắng loang lên từ từ, không bị gắt.
+          3. from-white via-white/80 to-transparent: Chuyển màu mượt hơn.
+      */}
+      <div className="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-white via-white/50 to-transparent z-0 pointer-events-none" />
+
+
+      {/* --- FLOATING SHAPES --- */}
+      {/* z-0: Vẫn là trang trí nền */}
+      <div className="absolute top-1/4 left-10 w-24 h-24 bg-blue-500/30 rounded-full blur-3xl animate-float opacity-60 z-0"></div>
+      <div className="absolute bottom-1/4 right-10 w-32 h-32 bg-purple-500/30 rounded-full blur-3xl animate-float opacity-60 z-0" style={{animationDelay: '1s'}}></div>
 
       {/* --- MAIN CONTENT --- */}
+      {/* z-10: Nội dung chính, cao hơn nền */}
       <div className="relative z-10 container mx-auto px-4 text-center mt-20 md:mt-0">
         
-        {/* Badge: Social Proof */}
+        {/* Badge */}
         <div className="flex justify-center mb-8">
             <div className="inline-flex items-center gap-3 px-2 py-1.5 pl-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-lg animate-fade-in-up hover:bg-white/20 transition-all cursor-default">
                 <div className="flex -space-x-2">
@@ -107,7 +120,7 @@ const HeroSection = () => {
             </div>
         </div>
 
-        {/* Headline với Typing Effect */}
+        {/* Headline */}
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white tracking-tight leading-tight mb-6 drop-shadow-2xl max-w-6xl mx-auto">
           Đánh thức hành trình <br className="hidden md:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400">
@@ -121,8 +134,9 @@ const HeroSection = () => {
         </p>
 
         {/* --- SEARCH BOX CONTAINER --- */}
-        <div className="relative w-full max-w-5xl mx-auto group">
-            {/* Glow Effect phía sau */}
+        {/* z-50: CAO NHẤT - Đảm bảo dropdown đè lên mọi thứ */}
+        <div className="relative w-full max-w-5xl mx-auto group z-50">
+            {/* Glow Effect */}
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 rounded-[2rem] blur-lg opacity-40 group-hover:opacity-60 transition duration-1000 animate-pulse"></div>
             
             {/* Search Box chính */}
@@ -131,8 +145,9 @@ const HeroSection = () => {
             </div>
         </div>
 
-        {/* --- POPULAR KEYWORDS (Interactive) --- */}
-        <div className="mt-10 animate-fade-in-up" style={{animationDelay: '0.5s'}}>
+        {/* --- POPULAR KEYWORDS --- */}
+        {/* z-10: Thấp hơn SearchBox (50) nhưng cao hơn nền (0) */}
+        <div className="mt-10 animate-fade-in-up relative z-10" style={{animationDelay: '0.5s'}}>
             <p className="text-white/60 text-sm font-medium mb-4 uppercase tracking-widest flex items-center justify-center gap-2">
                 <TrendingUp size={14} /> Xu hướng tìm kiếm
             </p>
@@ -150,11 +165,7 @@ const HeroSection = () => {
                 ))}
             </div>
         </div>
-
       </div>
-
-      {/* --- BOTTOM GRADIENT FADE (Để blend với section dưới) --- */}
-      <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white via-white/50 to-transparent z-10 pointer-events-none" />
     </section>
   );
 };
