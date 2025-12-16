@@ -183,6 +183,10 @@ const adminService = {
     status = "ALL",
     rank = "ALL"
   ) => {
+  // ============================
+  // 👥 QUẢN LÝ NGƯỜI DÙNG (USERS)
+  // ============================
+  getAllUsers: async (page = 0, size = 10, search = "", role = "ALL", status = "ALL", rank = "ALL") => {
     const params = {
       page,
       size,
@@ -209,8 +213,8 @@ const adminService = {
       const response = await api.patch(`/admin/users/${userId}/status`, null, {
         params: {
           status: newStatus,
-          reason: reason,
-        },
+          reason: reason
+        }
       });
       return response.data;
     } catch (error) {

@@ -1,51 +1,46 @@
-import api from "./axios.config";
+// src/services/notification.service.js
+import axios from "./axios.config";
+
+const API_URL = "/notifications";
 
 const notificationService = {
-  // [CẬP NHẬT] Thêm tham số scope (Mặc định là 'ALL' để không làm hỏng code cũ)
-  // scope: 'CUSTOMER' | 'OWNER' | 'ALL'
-  getNotifications: async (page = 0, size = 10, scope = 'ALL') => {
+  // Lấy danh sách thông báo (hỗ trợ scope)
+  getNotifications: async (page = 0, size = 10, scope = "ALL") => {
     try {
-      const response = await api.get("/notifications", {
-        params: { page, size, scope } // Truyền scope lên URL
+      const response = await axios.get(`${API_URL}`, {
+        params: { page, size, scope }, // Backend nhận param ?scope=ADMIN
       });
-      return response.data; 
+      return response.data;
     } catch (error) {
       console.error("Error fetching notifications:", error);
-      return { content: [], totalPages: 0, totalElements: 0 };
+      return { content: [], totalElements: 0, totalPages: 0 };
     }
   },
 
-  // [CẬP NHẬT] Lấy số lượng chưa đọc theo scope
-  getUnreadCount: async (scope = 'ALL') => {
+  // Đếm số lượng chưa đọc
+  getUnreadCount: async (scope = "ALL") => {
     try {
-      const response = await api.get("/notifications/unread-count", {
-        params: { scope }
+      const response = await axios.get(`${API_URL}/unread-count`, {
+        params: { scope },
       });
-      return response.data; // Trả về số lượng (Long)
+      return response.data;
     } catch (error) {
+      console.error("Error fetching unread count:", error);
       return 0;
     }
   },
 
-  // Đánh dấu 1 thông báo là đã đọc
+  // Đánh dấu 1 cái đã đọc
   markAsRead: async (id) => {
-    try {
-      await api.put(`/notifications/${id}/read`);
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
-    }
+    return await axios.put(`${API_URL}/${id}/read`);
   },
 
-  // [CẬP NHẬT] Đánh dấu tất cả là đã đọc (theo scope)
-  markAllAsRead: async (scope = 'ALL') => {
-    try {
-      await api.put("/notifications/read-all", null, {
-        params: { scope }
-      });
-    } catch (error) {
-      console.error("Error marking all notifications as read:", error);
-    }
-  }
+  // Đánh dấu tất cả đã đọc theo scope
+  markAllAsRead: async (scope = "ALL") => {
+    return await axios.put(`${API_URL}/read-all`, null, {
+      params: { scope },
+    });
+  },
 };
 
 export default notificationService;

@@ -2,6 +2,7 @@ import axios from "./axios.config";
 
 const API_URL = "/promotions";
 
+// ✅ Helper: Format DateTime chuẩn ISO 8601 để gửi lên Backend
 const formatDateTime = (dateInput, isEndOfDay = false) => {
     if (!dateInput) return null;
     if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
@@ -29,29 +30,39 @@ const formatDateTime = (dateInput, isEndOfDay = false) => {
 // ✅ Helper: Parse số an toàn để tránh gửi chuỗi rỗng lên Backend gây lỗi 400
 const parseNumber = (val) => {
     if (val === "" || val === null || val === undefined) return null;
-    const cleanVal = String(val).replace(/\./g, "");
+    const cleanVal = String(val).replace(/\./g, ""); // Loại bỏ dấu chấm phân cách hàng nghìn nếu có
     return Number(cleanVal);
 };
 
 const promotionService = {
+    // 1. Lấy tất cả khuyến mãi (Admin/System)
     getAllPromotions: async () => {
         const response = await axios.get(`${API_URL}/all`);
         return response.data;
     },
 
-    // ✅ API lấy danh sách của Owner (cho trang quản lý của Owner)
+    // 2. Lấy danh sách của Owner (cho trang quản lý của Owner)
     getOwnerPromotions: async () => {
         const response = await axios.get(`${API_URL}/owner/my-promotions`);
         return response.data;
     },
 
-    // ✅ NEW: API Public lấy danh sách khuyến mãi cho khách hàng (Admin + Owner)
-    // Dùng cho trang chi tiết khách sạn (Customer View)
+    // 3. API Public lấy danh sách khuyến mãi cho khách hàng xem chi tiết khách sạn
     getPromotionsByPropertyPublic: async (propertyId) => {
         const response = await axios.get(`${API_URL}/public/property/${propertyId}`);
         return response.data;
     },
 
+    // 4. ✅ API Gợi ý khuyến mãi tốt nhất (cho tính năng Best Offer)
+    getSuggestions: async (totalAmount) => {
+        // Gọi endpoint: /api/v1/promotions/suggestions?totalAmount=...
+        const response = await axios.get(`${API_URL}/suggestions`, {
+            params: { totalAmount }
+        });
+        return response.data;
+    },
+
+    // 5. Tạo mới khuyến mãi
     createPromotion: async (data) => {
         const payload = {
             code: data.code,
@@ -74,6 +85,7 @@ const promotionService = {
         return await axios.post(`${API_URL}/create`, payload);
     },
 
+    // 6. Cập nhật khuyến mãi
     updatePromotion: async (id, data) => {
         const payload = {
             code: data.code,
@@ -92,11 +104,16 @@ const promotionService = {
         return await axios.put(`${API_URL}/update/${id}`, payload);
     },
 
+    // 7. Xóa mềm (Chuyển trạng thái thành DELETED)
     softDeletePromotion: async (id, currentPromotionData) => {
         const dataToSend = { ...currentPromotionData, status: "DELETED" };
         return await promotionService.updatePromotion(id, dataToSend);
     },
+
+    // 8. Xóa cứng
     deletePromotion: async (id) => { return await axios.delete(`${API_URL}/delete/${id}`); },
+
+    // 9. Upload banner
     uploadBanner: async (id, file) => {
         const formData = new FormData();
         formData.append('file', file);

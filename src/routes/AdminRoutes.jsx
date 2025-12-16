@@ -7,6 +7,7 @@ import HotelSubmissionsPage from "../pages/Admin/Hotels/HotelSubmissionsPage";
 import RefundManagementPage from "../pages/Admin/Transactions/RefundManagementPage"; 
 import ActiveHotelsPage from "../pages/Admin/Hotels/ActiveHotelsPage";
 import AuditLogsPage from "../pages/Admin/AuditLogs/AuditLogsPage";
+import AdminNotificationsPage from "../pages/Admin/Notifications/AdminNotificationsPage"; // [IMPORT]
 
 
 // 👇 (Mới từ nhánh của bạn) Import Component Quản lý Khuyến mãi
@@ -111,7 +112,16 @@ const adminRoutes = [
             </AdminLayout>
         ),
     },
-
+    {
+        path: "/admin/notifications",
+        element: (
+            <AdminLayout>
+                <ProtectedRoute roles={["ADMIN"]}>
+                    <AdminNotificationsPage />
+                </ProtectedRoute>
+            </AdminLayout>
+        ),
+    },
 ];
 
 export default adminRoutes;
