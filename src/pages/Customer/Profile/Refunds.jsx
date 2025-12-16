@@ -224,12 +224,7 @@ export default function Refunds() {
                                                     <div className="flex justify-between items-center text-sm">
                                                         <span className="text-slate-500">Chủ tài khoản</span>
                                                         <span className="font-bold text-slate-800 uppercase">{item.accountHolder}</span>
-                                                    </div>
-
-                                                    {/* Decorative Card Icon */}
-                                                    <div className="absolute top-0 right-0 p-2 opacity-5">
-                                                        <CreditCard size={100} />
-                                                    </div>
+                                                    </div>                                                 
                                                 </div>
                                             </div>
                                         </div>

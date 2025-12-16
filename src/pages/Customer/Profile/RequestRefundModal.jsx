@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    AlertCircle, CreditCard, User, Hash, Building2, X 
+import {
+    AlertCircle, CreditCard, User, Hash, Building2, X
 } from 'lucide-react';
 import Button from '@/components/common/Button/Button';
 
@@ -12,7 +12,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
         accountNumber: '',
         accountHolder: ''
     });
-    
+
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
@@ -24,6 +24,26 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
             setSubmitting(false);
         }
     }, [isOpen]);
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const scrollY = window.scrollY;
+
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.width = "100%";
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.body.style.position = "";
+            document.body.style.top = "";
+            document.body.style.width = "";
+            document.body.style.overflow = "";
+
+            window.scrollTo(0, scrollY);
+        };
+    }, [isOpen]);
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -88,21 +108,21 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
     if (!isOpen) return null;
 
     // Format tiền
-    const refundAmount = booking?.refundAmount 
+    const refundAmount = booking?.refundAmount
         ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(booking.refundAmount)
         : '0 ₫';
 
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
             <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col transform transition-all">
-                
+
                 {/* --- HEADER --- */}
                 <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                     <div>
                         <h3 className="text-lg font-bold text-slate-800">Yêu cầu hoàn tiền</h3>
                         <p className="text-xs text-slate-500 mt-0.5">Đơn hàng: <span className="font-mono font-bold text-slate-700">BK-{booking?.bookingId}</span></p>
                     </div>
-                    <button 
+                    <button
                         onClick={onClose}
                         className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
                         disabled={submitting}
@@ -113,7 +133,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
 
                 {/* --- BODY --- */}
                 <div className="p-6 space-y-5 overflow-y-auto custom-scrollbar max-h-[70vh]">
-                    
+
                     {/* Info Box */}
                     <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 flex gap-3">
                         <div className="bg-white p-2 rounded-full text-orange-500 h-fit shadow-sm">
@@ -130,7 +150,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
 
                     {/* Form Input */}
                     <div className="space-y-4">
-                        
+
                         {/* Lý do */}
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -149,7 +169,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                         <div className="h-px bg-slate-100 my-2" />
 
                         <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                            <CreditCard size={18} className="text-blue-500"/> Thông tin nhận tiền
+                            <CreditCard size={18} className="text-blue-500" /> Thông tin nhận tiền
                         </h4>
 
                         {/* Grid Ngân hàng & STK */}
@@ -182,7 +202,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                                             // Chỉ cho phép nhập số
                                             const val = e.target.value.replace(/\D/g, '');
                                             setFormData(prev => ({ ...prev, accountNumber: val }));
-                                            if(error) setError('');
+                                            if (error) setError('');
                                         }}
                                         maxLength={25}
                                     />
@@ -203,8 +223,8 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                                     value={formData.accountHolder}
                                     onChange={(e) => {
                                         const val = e.target.value.toUpperCase();
-                                        setFormData(prev => ({...prev, accountHolder: val}));
-                                        if(error) setError('');
+                                        setFormData(prev => ({ ...prev, accountHolder: val }));
+                                        if (error) setError('');
                                     }}
                                 />
                             </div>
@@ -224,7 +244,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                     <Button variant="outline" onClick={onClose} disabled={submitting}>
                         Hủy bỏ
                     </Button>
-                    <Button 
+                    <Button
                         className="bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-200 px-6 border-none"
                         onClick={handleSubmit}
                         disabled={submitting}
