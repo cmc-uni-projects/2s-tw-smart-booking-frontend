@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Modal from "@/components/common/Modal/Modal";
 import Button from "@/components/common/Button/Button";
 import TextArea from "@/components/common/Input/TextArea";
-import { XCircle } from "lucide-react";
+import { XCircle , AlertCircle} from "lucide-react";
 import CancelReasonSelect from "./CancelReasonSelect.jsx";
 import LoadingOverlay from "@/components/common/Loading/LoadingOverlay";
 
@@ -24,116 +24,199 @@ const CANCELLATION_REASONS = [
 ];
 
 const Step1_Confirm = ({ onKeep, onContinue }) => (
-    <div className="flex flex-col items-center text-center p-4">
-        <XCircle size={64} className="text-red-500 mb-4" />
-        <h2 className="text-xl font-bold text-gray-800 mb-3">Bạn có chắc chắn muốn hủy bỏ đặt phòng này không?</h2>
-        <p className="text-sm text-gray-500 mb-6 max-w-sm">
-            Ưu đãi và giá của chúng tôi thay đổi liên tục nên ưu đãi này có thể sẽ không còn nữa nếu quý khách hủy ngay bây giờ.
+  <div className="px-7 pt-6 pb-6 sm:px-8">
+    {/* Hero */}
+    <div className="flex items-start gap-4">
+      <div className="h-12 w-12 rounded-2xl bg-red-50 ring-1 ring-red-100 flex items-center justify-center shadow-sm">
+        <XCircle size={22} className="text-red-600" />
+      </div>
+
+      <div className="flex-1">
+        <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-snug">
+          Xác nhận hủy đặt phòng
+        </h2>
+        <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+          Bạn sắp hủy một đặt phòng đang có hiệu lực. Hành động này{" "}
+          <span className="font-semibold text-slate-800">không thể hoàn tác</span>.
         </p>
-        <div className="flex flex-col gap-3 w-full max-w-xs">
-            <Button onClick={onKeep} variant="primary" fullWidth>
-                Giữ đặt phòng này
-            </Button>
-            <Button onClick={onContinue} variant="ghost" fullWidth className="!text-red-600 hover:!bg-red-50">
-                Hủy đặt phòng này
-            </Button>
-        </div>
+      </div>
     </div>
+
+    {/* Info cards */}
+    <div className="mt-5 space-y-3">
+      <div className="rounded-2xl border border-amber-200/60 bg-amber-50/70 p-4">
+        <p className="text-sm font-bold text-amber-900 flex items-center gap-2">
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-white/70 ring-1 ring-amber-200/60">⚠️</span>
+          Trước khi hủy, bạn nên biết
+        </p>
+        <ul className="mt-2 space-y-1.5 text-sm text-amber-900/80 leading-relaxed list-disc list-inside">
+          <li>Ưu đãi hiện tại có thể không còn nếu bạn đặt lại</li>
+          <li>Chính sách hoàn tiền phụ thuộc vào thời điểm hủy</li>
+          <li>Một số quyền lợi đi kèm có thể bị mất</li>
+        </ul>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200/70 bg-slate-50 p-4">
+        <p className="text-sm text-slate-700 leading-relaxed">
+          💡 <span className="font-semibold">Gợi ý:</span> Nếu bạn chỉ muốn thay đổi kế hoạch, hãy xem chính sách hủy/đổi trước khi tiếp tục.
+        </p>
+      </div>
+    </div>
+
+    {/* Actions */}
+    <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+      <Button
+        onClick={onContinue}
+        variant="ghost"
+        fullWidth
+        className="sm:!w-auto !text-red-600 hover:!bg-red-50"
+      >
+        Tôi vẫn muốn hủy
+      </Button>
+
+      <Button
+        onClick={onKeep}
+        variant="primary"
+        fullWidth
+        className="sm:!w-auto shadow-lg shadow-blue-500/20"
+      >
+        Giữ đặt phòng
+      </Button>
+    </div>
+  </div>
 );
 
 const Step2_Reason = ({ onClose, onConfirmSubmit, booking }) => {
-    const [reasonLabel, setReasonLabel] = useState("");
-    const [otherText, setOtherText] = useState("");
-    const [error, setError] = useState("");
+  const [reasonLabel, setReasonLabel] = useState("");
+  const [otherText, setOtherText] = useState("");
+  const [error, setError] = useState("");
 
-    const showOtherInput = reasonLabel === "Khác";
+  const showOtherInput = reasonLabel === "Khác";
 
-    const policyText = booking?.cancellationPolicy?.includes("Miễn phí")
-        ? "Hủy không mất phí!"
-        : "Hủy có thể mất phí";
-    const policyDesc = booking?.cancellationPolicy?.includes("Miễn phí")
-        ? "Nếu hủy phòng bây giờ bạn sẽ không bị tính tiền đâu."
-        : (booking?.cancellationPolicy || "Vui lòng kiểm tra chi tiết chính sách hủy.");
+  const isFreeCancel = booking?.cancellationPolicy?.includes("Miễn phí");
+  const policyText = isFreeCancel ? "Hủy không mất phí" : "Hủy có thể mất phí";
+  const policyDesc = isFreeCancel
+    ? "Nếu hủy phòng bây giờ bạn sẽ không bị tính tiền."
+    : booking?.cancellationPolicy || "Vui lòng kiểm tra chi tiết chính sách hủy.";
 
-    const handleSubmit = () => {
-        const selectedOption = CANCELLATION_REASONS.find(r => r.label === reasonLabel);
-        const reasonValue = selectedOption ? selectedOption.value : "";
+  const handleSubmit = () => {
+    const selectedOption = CANCELLATION_REASONS.find(r => r.label === reasonLabel);
+    const reasonValue = selectedOption ? selectedOption.value : "";
 
-        if (!reasonValue) {
-            setError("Vui lòng chọn lý do hủy.");
-            return;
-        }
-        if (reasonValue === "OTHER" && !otherText.trim()) {
-            setError("Vui lòng cung cấp thêm chi tiết cho lý do 'Khác'.");
-            return;
-        }
-        setError("");
-        
-        // Gộp reasonValue và otherText nếu cần, hoặc chỉ gửi reasonValue
-        // Ở đây ta gửi cả hai, hàm xử lý cha sẽ quyết định dùng cái nào
-        onConfirmSubmit(reasonValue, otherText);
-    };
+    if (!reasonValue) {
+      setError("Vui lòng chọn lý do hủy.");
+      return;
+    }
+    if (reasonValue === "OTHER" && !otherText.trim()) {
+      setError("Vui lòng cung cấp thêm chi tiết cho lý do 'Khác'.");
+      return;
+    }
 
-    const isSubmitDisabled = !reasonLabel || (reasonLabel === "Khác" && !otherText.trim());
+    setError("");
+    onConfirmSubmit(reasonValue, otherText);
+  };
 
-    return (
-        <div className="p-1">
-            <div className="space-y-4">
-                <CancelReasonSelect
-                    label="Lý do hủy phòng:"
-                    options={CANCELLATION_REASONS}
-                    value={reasonLabel}
-                    onChange={(label) => {
-                        setReasonLabel(label);
-                        setError("");
-                    }}
-                />
+  const isSubmitDisabled =
+    !reasonLabel || (reasonLabel === "Khác" && !otherText.trim());
 
-                {showOtherInput && (
-                    <div className="animate-fadeIn">
-                        <TextArea
-                            label="Vui lòng cung cấp thêm chi tiết"
-                            value={otherText}
-                            onChange={(e) => {
-                                setOtherText(e.target.value);
-                                if (reasonLabel === "Khác") setError("");
-                            }}
-                            rows={4}
-                            error={error && reasonLabel === "Khác" ? error : ""}
-                        />
-                    </div>
-                )}
+  return (
+    <div className="px-6 pt-6 pb-7 sm:px-8 bg-gradient-to-b from-white to-slate-50/40">
+      {/* Header */}
+      <div className="mb-5">
+        <h3 className="text-lg font-extrabold text-slate-900">
+          Lý do hủy đặt phòng
+        </h3>
+        <p className="text-sm text-slate-600 mt-1">
+          Thông tin này giúp chúng tôi cải thiện chất lượng dịch vụ.
+        </p>
+      </div>
 
-                {error && !showOtherInput && (
-                    <p className="text-xs text-red-500 -mt-2 ml-1">{error}</p>
-                )}
+      {/* Main card */}
+      <div className="rounded-2xl border border-slate-200/60 bg-white shadow-[0_10px_30px_-20px_rgba(15,23,42,0.25)] p-5 sm:p-6 space-y-4">
+        <CancelReasonSelect
+          label="Lý do hủy phòng:"
+          options={CANCELLATION_REASONS}
+          value={reasonLabel}
+          onChange={(label) => {
+            setReasonLabel(label);
+            setError("");
+          }}
+        />
 
-                <div className="pt-4">
-                    <h4 className={`font-semibold ${policyText === "Hủy không mất phí!" ? "text-green-600" : "text-yellow-700"}`}>
-                        {policyText}
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                        {policyDesc}
-                    </p>
-                </div>
-            </div>
+        {showOtherInput && (
+          <div className="animate-fadeIn">
+            <TextArea
+              label="Vui lòng cung cấp thêm chi tiết"
+              value={otherText}
+              onChange={(e) => {
+                setOtherText(e.target.value);
+                setError("");
+              }}
+              rows={4}
+              error={error && reasonLabel === "Khác" ? error : ""}
+            />
+          </div>
+        )}
 
-            <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-100">
-                <Button variant="outline" onClick={onClose}>
-                    Đóng
-                </Button>
-                <Button
-                    variant="primary"
-                    className="!bg-red-600 hover:!bg-red-700 disabled:!bg-gray-300 disabled:!opacity-70"
-                    onClick={handleSubmit}
-                    disabled={isSubmitDisabled}
-                >
-                    Tiếp tục hủy
-                </Button>
-            </div>
+        {error && !showOtherInput && (
+          <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700 flex items-start gap-2">
+            <AlertCircle size={18} className="mt-0.5" />
+            <span className="font-medium">{error}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Policy */}
+      <div
+        className={[
+          "mt-4 rounded-2xl border p-4 flex items-start gap-3",
+          isFreeCancel
+            ? "bg-emerald-50/60 border-emerald-200/60"
+            : "bg-amber-50/60 border-amber-200/60",
+        ].join(" ")}
+      >
+        <div
+          className={[
+            "h-10 w-10 rounded-2xl bg-white flex items-center justify-center ring-1",
+            isFreeCancel
+              ? "text-emerald-600 ring-emerald-200/70"
+              : "text-amber-700 ring-amber-200/70",
+          ].join(" ")}
+        >
+          <AlertCircle size={18} />
         </div>
-    );
+
+        <div className="flex-1">
+          <h4 className="text-sm font-extrabold text-slate-900">
+            {policyText}
+          </h4>
+          <p className="text-sm text-slate-700 mt-1 leading-relaxed">
+            {policyDesc}
+          </p>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="mt-7 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+        <Button variant="outline" onClick={onClose} fullWidth className="sm:!w-auto">
+          Đóng
+        </Button>
+
+        <Button
+          variant="primary"
+          className="!bg-red-600 hover:!bg-red-700 disabled:!bg-slate-300 disabled:!opacity-70 shadow-lg shadow-red-500/20 sm:!w-auto"
+          onClick={handleSubmit}
+          disabled={isSubmitDisabled}
+          fullWidth
+        >
+          Tiếp tục hủy
+        </Button>
+      </div>
+    </div>
+  );
 };
+
+
 
 export default function CancelBookingModal({ open, onClose, booking, onConfirm }) {
     const [step, setStep] = useState(1);
@@ -145,6 +228,24 @@ export default function CancelBookingModal({ open, onClose, booking, onConfirm }
             setIsLoading(false);
         }
     }, [open]);
+    useEffect(() => {
+  if (!open) return;
+
+  const scrollY = window.scrollY;
+  document.body.style.position = "fixed";
+  document.body.style.top = `-${scrollY}px`;
+  document.body.style.width = "100%";
+  document.body.style.overflow = "hidden";
+
+  return () => {
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.width = "";
+    document.body.style.overflow = "";
+    window.scrollTo(0, scrollY);
+  };
+}, [open]);
+
 
     const handleConfirmCancel = async (reasonValue, otherText) => {
         setIsLoading(true);
@@ -170,7 +271,7 @@ export default function CancelBookingModal({ open, onClose, booking, onConfirm }
                 open={open}
                 onClose={isLoading ? undefined : onClose}
                 title={title}
-                maxWidth={step === 1 ? "max-w-md" : "max-w-lg"}
+                maxWidth={step === 1 ? "max-w-2xl" : "max-w-3xl"}
             >
                 {step === 1 ? (
                     <Step1_Confirm

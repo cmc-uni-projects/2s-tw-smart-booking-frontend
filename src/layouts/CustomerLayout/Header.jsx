@@ -1,7 +1,7 @@
 // src/layouts/CustomerLayout/Header.jsx
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { ChevronDown, HelpCircle, Phone, Menu } from "lucide-react"; 
+import { ChevronDown, HelpCircle, Phone, Menu } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext";
 import { userService } from "../../services/user.service";
@@ -9,7 +9,7 @@ import Button from "../../components/common/Button/Button";
 import ConfirmModal from "../../components/common/Modal/ConfirmModal";
 import Avatar from "../../components/common/Avatar/Avatar";
 import CustomerProfileDropdown from "./CustomerProfileDropdown";
-import CustomerNotificationDropdown from "./CustomerNotificationDropdown"; 
+import CustomerNotificationDropdown from "./CustomerNotificationDropdown";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -70,7 +70,7 @@ const Header = () => {
     const handleScroll = () => {
       const offset = window.scrollY;
       // Dùng ngưỡng 50px để chắc chắn qua khỏi vùng Hero text một chút mới đổi màu
-      if (offset > 50) { 
+      if (offset > 50) {
         setScrolled(true);
       } else {
         setScrolled(false);
@@ -155,39 +155,39 @@ const Header = () => {
 
           {/* 2. MID NAV (Desktop) */}
           <nav className="hidden lg:flex items-center gap-8">
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className={`text-[15px] font-bold tracking-wide transition-colors ${headerStyles.text} ${location.pathname === '/' ? 'opacity-100' : 'opacity-90'}`}
             >
               Trang chủ
             </Link>
-            <Link 
-              to="/promotions" 
+            <Link
+              to="/promotions"
               className={`text-[15px] font-bold tracking-wide transition-colors ${headerStyles.text} ${location.pathname === '/promotions' ? 'opacity-100' : 'opacity-90'}`}
             >
               Khuyến mãi
             </Link>
 
             <div className="relative" ref={supportRef}>
-              <button 
-                onClick={() => setSupportOpen(!supportOpen)} 
+              <button
+                onClick={() => setSupportOpen(!supportOpen)}
                 className={`flex items-center gap-1.5 text-[15px] font-bold tracking-wide transition-colors ${headerStyles.text} opacity-90 hover:opacity-100`}
               >
                 Hỗ trợ <ChevronDown size={14} strokeWidth={3} className={`transition-transform duration-300 ${supportOpen ? "rotate-180" : ""}`} />
               </button>
-              
+
               {/* Support Dropdown */}
               {supportOpen && (
                 <div className="absolute top-full left-0 mt-4 w-56 bg-white rounded-xl shadow-xl border border-gray-100 p-1.5 animate-fade-in-up origin-top-left">
-                  <Link 
-                    to="/help" 
+                  <Link
+                    to="/help"
                     className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50/50 rounded-lg transition-all"
                     onClick={() => setSupportOpen(false)}
                   >
                     <HelpCircle size={18} /> Trung tâm trợ giúp
                   </Link>
-                  <Link 
-                    to="/about#contact" 
+                  <Link
+                    to="/about#contact"
                     className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50/50 rounded-lg transition-all"
                     onClick={() => setSupportOpen(false)}
                   >
@@ -200,50 +200,50 @@ const Header = () => {
 
           {/* 3. RIGHT SIDE ACTIONS */}
           <div className="flex items-center gap-3 md:gap-5">
-            
+
             {/* Partner Button */}
             <div className="hidden lg:block">
-                <Button
-                  variant="ghost"
-                  onClick={handleAccessOwnerChannel}
-                  className={`text-sm font-bold px-5 py-2.5 rounded-full border transition-all hover:shadow-sm ${headerStyles.buttonGhost}`}
-                >
-                  {getPartnerNavigation().label}
-                </Button>
+              <Button
+                variant="ghost"
+                onClick={handleAccessOwnerChannel}
+                className={`text-sm font-bold px-5 py-2.5 rounded-full border transition-all hover:shadow-sm ${headerStyles.buttonGhost}`}
+              >
+                {getPartnerNavigation().label}
+              </Button>
             </div>
 
             {!currentUser ? (
               <div className="flex items-center gap-3">
                 <div className={`h-6 w-[1px] mx-1 hidden lg:block ${isTransparent ? "bg-white/30" : "bg-slate-200"}`}></div>
-                
-                <Button 
-                    variant="ghost" 
-                    onClick={() => navigate("/register")} 
-                    className={`hidden lg:flex text-sm font-bold transition-all ${isTransparent ? "text-white hover:bg-white/10" : "text-slate-600 hover:bg-slate-50"}`}
+
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate("/register")}
+                  className={`hidden lg:flex text-sm font-bold transition-all ${isTransparent ? "text-white hover:bg-white/10" : "text-slate-600 hover:bg-slate-50"}`}
                 >
                   Đăng ký
                 </Button>
-                
-                <Button 
-                    onClick={() => navigate("/login")} 
-                    className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/20 px-6 py-2.5 rounded-full font-bold text-sm transition-all hover:scale-105 active:scale-95 border-none"
+
+                <Button
+                  onClick={() => navigate("/login")}
+                  className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/20 px-6 py-2.5 rounded-full font-bold text-sm transition-all hover:scale-105 active:scale-95 border-none"
                 >
                   Đăng nhập
                 </Button>
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                
+
                 {/* ✅ FIX ICON ẨN: Wrapper này dùng CSS selector cực mạnh [&_*] và !important 
                    để ép màu cho icon chuông bên trong Dropdown
                 */}
-                <div 
+                <div
                   className={`relative transition-colors duration-300 
-                    [&_button]:!text-current 
-                    [&_svg]:!text-current 
-                    ${headerStyles.icon}`}
+                            [&_.notification-trigger]:!text-current
+                            [&_.notification-trigger_svg]:!text-current
+                            ${headerStyles.icon}`}
                 >
-                   <CustomerNotificationDropdown />
+                  <CustomerNotificationDropdown />
                 </div>
 
                 {/* Profile Dropdown */}
@@ -266,7 +266,7 @@ const Header = () => {
 
                   {profileOpen && (
                     <div className="absolute top-full right-0 mt-4 w-72 animate-fade-in-up origin-top-right z-50">
-                        <CustomerProfileDropdown onClose={handleDropdownClose} />
+                      <CustomerProfileDropdown onClose={handleDropdownClose} />
                     </div>
                   )}
                 </div>
@@ -275,7 +275,7 @@ const Header = () => {
 
             {/* Mobile Menu Toggle */}
             <button className={`lg:hidden p-2 rounded-lg transition-colors ${isTransparent ? "text-white hover:bg-white/10" : "text-slate-700 hover:bg-slate-100"}`}>
-                <Menu size={24} />
+              <Menu size={24} />
             </button>
           </div>
         </div>

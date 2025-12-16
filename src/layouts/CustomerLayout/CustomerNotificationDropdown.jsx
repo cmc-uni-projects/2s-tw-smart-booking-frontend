@@ -1,9 +1,9 @@
 // src/layouts/CustomerLayout/CustomerNotificationDropdown.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { 
-    Bell, CheckCheck, Clock, Info, CheckCircle2, XCircle, 
-    Gift, AlertTriangle, RefreshCw 
+import {
+    Bell, CheckCheck, Clock, Info, CheckCircle2, XCircle,
+    Gift, AlertTriangle, RefreshCw
 } from "lucide-react";
 import notificationService from "@/services/notification.service";
 
@@ -12,7 +12,7 @@ const CustomerNotificationDropdown = () => {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(false);
-    
+
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
 
@@ -21,12 +21,12 @@ const CustomerNotificationDropdown = () => {
         if (notifications.length === 0) setLoading(true);
         try {
             // [QUAN TRỌNG] Scope là CUSTOMER
-            const data = await notificationService.getNotifications(0, 5, 'CUSTOMER'); 
+            const data = await notificationService.getNotifications(0, 5, 'CUSTOMER');
             if (data) {
                 setNotifications(data.content || []);
                 // Tính số lượng chưa đọc từ danh sách hoặc dùng API riêng nếu có
-                const count = data.unreadCount !== undefined 
-                    ? data.unreadCount 
+                const count = data.unreadCount !== undefined
+                    ? data.unreadCount
                     : (data.content || []).filter(n => !n.read && !n.isRead).length;
                 setUnreadCount(count);
             }
@@ -40,20 +40,20 @@ const CustomerNotificationDropdown = () => {
     // --- 2. Polling: Tự động cập nhật mỗi 60s ---
     useEffect(() => {
         fetchNotifications();
-        
+
         // Gọi thêm API đếm số lượng chính xác (nếu backend hỗ trợ)
         const fetchCount = async () => {
             try {
                 const count = await notificationService.getUnreadCount('CUSTOMER');
                 setUnreadCount(count);
-            } catch (e) {}
+            } catch (e) { }
         };
         fetchCount();
 
         const interval = setInterval(() => {
             fetchNotifications();
             fetchCount();
-        }, 60000); 
+        }, 60000);
         return () => clearInterval(interval);
     }, []);
 
@@ -82,7 +82,7 @@ const CustomerNotificationDropdown = () => {
         if (!isRead) {
             await notificationService.markAsRead(notification.id);
             setUnreadCount(prev => Math.max(0, prev - 1));
-            setNotifications(prev => 
+            setNotifications(prev =>
                 prev.map(n => n.id === notification.id ? { ...n, read: true, isRead: true } : n)
             );
         }
@@ -93,25 +93,25 @@ const CustomerNotificationDropdown = () => {
     // --- 4. Helper hiển thị ---
     const getIcon = (type) => {
         switch (type) {
-            case 'BOOKING_SUCCESS': 
-            case 'PAYMENT_SUCCESS': 
+            case 'BOOKING_SUCCESS':
+            case 'PAYMENT_SUCCESS':
             case 'APPROVAL':
                 return <CheckCircle2 size={18} className="text-green-500" />;
-            
-            case 'BOOKING_CANCELLED': 
-            case 'BOOKING_FAILED': 
+
+            case 'BOOKING_CANCELLED':
+            case 'BOOKING_FAILED':
             case 'REJECTION':
                 return <XCircle size={18} className="text-red-500" />;
-            
+
             case 'REFUND_PROCESSED':
                 return <RefreshCw size={18} className="text-purple-500" />;
 
             case 'PROMOTION':
                 return <Gift size={18} className="text-pink-500" />;
-            
+
             case 'SECURITY_ALERT':
                 return <AlertTriangle size={18} className="text-orange-500" />;
-            
+
             default: return <Info size={18} className="text-blue-500" />;
         }
     };
@@ -121,7 +121,7 @@ const CustomerNotificationDropdown = () => {
         const date = new Date(dateString);
         const now = new Date();
         const diffInMinutes = Math.floor((now - date) / 60000);
-        
+
         if (diffInMinutes < 1) return "Vừa xong";
         if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
         if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} giờ trước`;
@@ -131,14 +131,30 @@ const CustomerNotificationDropdown = () => {
     return (
         <div className="relative" ref={dropdownRef}>
             {/* Trigger Button */}
-            <button 
+            <button
                 onClick={() => {
                     setOpen(!open);
                     if (!open) fetchNotifications();
                 }}
-                className={`relative p-2 rounded-full transition-colors focus:outline-none ${
-                    open ? 'bg-blue-50 text-[rgb(40,169,224)]' : 'text-gray-600 hover:bg-gray-100 hover:text-[rgb(40,169,224)]'
-                }`}
+                className={`
+    notification-trigger
+    relative p-2 rounded-full
+    transition-all duration-200
+    focus:outline-none
+
+    /* default */
+    text-current
+
+    /* hover */
+    hover:bg-[rgba(40,169,224,0.12)]
+    hover:text-[rgb(40,169,224)]
+
+    /* active (click) */
+    active:scale-95
+
+    /* open state */
+    ${open ? "bg-[rgba(40,169,224,0.18)] text-[rgb(40,169,224)] shadow-sm" : ""}
+  `}
             >
                 <Bell size={24} strokeWidth={2} />
                 {unreadCount > 0 && (
@@ -149,12 +165,12 @@ const CustomerNotificationDropdown = () => {
             {/* Dropdown Content */}
             {open && (
                 <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden z-50 animate-fade-in-up origin-top-right ring-1 ring-black/5">
-                    
+
                     {/* Header */}
                     <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between bg-white sticky top-0 z-10">
                         <h3 className="font-bold text-gray-800 text-sm">Thông báo của bạn</h3>
                         {unreadCount > 0 && (
-                            <button 
+                            <button
                                 onClick={handleMarkAllRead}
                                 className="text-xs font-medium text-[rgb(40,169,224)] hover:text-blue-700 flex items-center gap-1 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
                             >
@@ -174,20 +190,30 @@ const CustomerNotificationDropdown = () => {
                         ) : notifications.length > 0 ? (
                             <div className="divide-y divide-gray-100">
                                 {notifications.map((item) => {
-                                    const isRead = item.read || item.isRead; 
+                                    const isRead = item.read || item.isRead;
                                     return (
-                                        <div 
+                                        <div
                                             key={item.id}
                                             onClick={() => handleNotificationClick(item)}
                                             className={`flex gap-3 px-4 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors relative group
                                                 ${!isRead ? 'bg-white' : 'bg-gray-50/50 opacity-80'}
                                             `}
                                         >
-                                            <div className="flex-shrink-0 mt-0.5">
-                                                <div className={`p-2 rounded-full ${!isRead ? 'bg-white shadow-sm border border-gray-100' : 'bg-transparent'}`}>
-                                                    {getIcon(item.type)}
+                                            <div className="flex-shrink-0 pt-0.5">
+                                                <div
+                                                    className={[
+                                                        "w-10 h-10 rounded-full grid place-items-center", // FIX: size cố định + căn giữa
+                                                        !isRead
+                                                            ? "bg-white shadow-sm border border-gray-100"
+                                                            : "bg-transparent",
+                                                    ].join(" ")}
+                                                >
+                                                    <span className="inline-flex items-center justify-center w-5 h-5">
+                                                        {getIcon(item.type)}
+                                                    </span>
                                                 </div>
                                             </div>
+
 
                                             <div className="flex-1 min-w-0">
                                                 <p className={`text-sm leading-snug mb-1 ${!isRead ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>
@@ -224,8 +250,8 @@ const CustomerNotificationDropdown = () => {
 
                     {/* Footer */}
                     <div className="border-t border-gray-100 p-1 bg-gray-50">
-                        <Link 
-                            to="/customer/my-inbox" 
+                        <Link
+                            to="/customer/my-inbox"
                             onClick={() => setOpen(false)}
                             className="block w-full py-2 text-center text-xs font-semibold text-gray-600 hover:text-[rgb(40,169,224)] hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-200 shadow-sm hover:shadow"
                         >

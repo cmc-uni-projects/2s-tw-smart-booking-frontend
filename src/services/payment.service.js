@@ -45,14 +45,15 @@ const paymentService = {
 
   // 3. Gửi yêu cầu hoàn tiền
   requestRefund: async (bookingId, refundData) => {
-    // refundData: { reason, bankName, accountNumber, accountHolder }
-    try {
-      const response = await api.post(`/payments/${bookingId}/refund-request`, refundData);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
+  try {
+    const response = await api.post(`/payments/${bookingId}/refund-request`, refundData);
+    return response.data;
+  } catch (error) {
+    const data = error.response?.data;
+    const msg = data?.message || data?.error || error.message || "Refund request failed";
+    throw new Error(msg);
+  }
+},
 
   // ============================================================
   // 👮 ADMIN (QUẢN LÝ GIAO DỊCH & HOÀN TIỀN)
