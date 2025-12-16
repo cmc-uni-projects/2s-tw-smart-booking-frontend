@@ -13,10 +13,9 @@ import MapLoadingOverlay from "./components/MapLoadingOverlay";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
-// ✅ 1. HÀM FORMAT GIÁ MỚI (Đầy đủ: 500.000 VND)
+// ✅ 1. HÀM FORMAT GIÁ (Đầy đủ: 500.000 VND)
 const formatFullPrice = (price) => {
   if (!price && price !== 0) return "Liên hệ";
-  // Format dạng 1.000.000
   const formatted = new Intl.NumberFormat('vi-VN').format(price);
   return `${formatted} VND`;
 };
@@ -32,7 +31,6 @@ export default function ExploreMapPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
   const [properties, setProperties] = useState([]);
-  const [showSearchHereBtn, setShowSearchHereBtn] = useState(false);
   
   // Filter States
   const [minRating, setMinRating] = useState(0);
@@ -60,9 +58,10 @@ export default function ExploreMapPage() {
       getUserLocation();
     });
 
+    // Tự động tìm kiếm khi di chuyển bản đồ
     map.current.on("moveend", () => {
        const center = map.current.getCenter();
-      fetchNearbyProperties(center.lat, center.lng);
+       fetchNearbyProperties(center.lat, center.lng);
     });
 
   }, []);
@@ -74,7 +73,7 @@ export default function ExploreMapPage() {
     }
   }, [minRating, priceRange]);
 
-  // --- Handle Search & Filter ---
+  // --- Handle Search & Filter (ĐÃ SỬA LỖI CRASH) ---
   const handleFilterChange = useCallback(async (filters) => {
     setIsSearching(true);
     try {
@@ -95,9 +94,26 @@ export default function ExploreMapPage() {
         }
 
         // 2. Search API Backend
-        const data = await propertyService.searchProperties(filters.keyword, filters.guests);
-        setProperties(data || []);
-        renderMarkers(data || []);
+        const res = await propertyService.searchProperties(filters.keyword, filters.guests);
+        
+        // [FIX] Kiểm tra cấu trúc dữ liệu trả về để lấy đúng mảng
+        let hotels = [];
+        
+        // Trường hợp 1: API trả về ApiResponse bọc Page (Backend hiện tại) -> res.data.content
+        if (res?.data?.content && Array.isArray(res.data.content)) {
+            hotels = res.data.content;
+        } 
+        // Trường hợp 2: API trả về Page trực tiếp -> res.content
+        else if (res?.content && Array.isArray(res.content)) {
+            hotels = res.content;
+        } 
+        // Trường hợp 3: API trả về mảng trực tiếp -> res
+        else if (Array.isArray(res)) {
+            hotels = res;
+        }
+
+        setProperties(hotels);
+        renderMarkers(hotels);
 
     } catch (error) {
         console.error("Search error:", error);
@@ -114,10 +130,12 @@ export default function ExploreMapPage() {
         const { latitude, longitude } = pos.coords;
         if (map.current) {
             map.current.flyTo({ center: [longitude, latitude], zoom: 14, essential: true });
+            
             // User Marker
             const el = document.createElement('div');
             el.innerHTML = `<div class="relative flex items-center justify-center w-6 h-6"><div class="w-4 h-4 bg-blue-600 border-2 border-white rounded-full shadow-lg z-10"></div><div class="absolute w-full h-full bg-blue-500/40 rounded-full animate-ping"></div></div>`;
             new mapboxgl.Marker({ element: el }).setLngLat([longitude, latitude]).addTo(map.current);
+            
             fetchNearbyProperties(latitude, longitude);
         }
       },
@@ -125,17 +143,11 @@ export default function ExploreMapPage() {
     );
   };
 
-  const handleSearchHere = () => {
-    if (!map.current) return;
-    const center = map.current.getCenter();
-    fetchNearbyProperties(center.lat, center.lng);
-    setShowSearchHereBtn(false);
-  };
-
   const fetchNearbyProperties = async (lat, lng) => {
     setIsSearching(true);
     try {
       const data = await propertyService.findNearbyProperties(lat, lng, 15);
+      // API Nearby trả về mảng trực tiếp nên không cần xử lý phức tạp như Search
       setProperties(data || []);
       renderMarkers(data || []);
     } catch (error) {
@@ -145,12 +157,12 @@ export default function ExploreMapPage() {
     }
   };
 
-  // --- ✅ 2. RENDER MARKERS (THIẾT KẾ MỚI) ---
+  // --- RENDER MARKERS ---
   const renderMarkers = (data) => {
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
 
-    if (!data || data.length === 0) return;
+    if (!data || !Array.isArray(data) || data.length === 0) return;
 
     // Filter Logic
     let filteredData = data.filter(p => (p.rating || 0) >= minRating);
@@ -160,12 +172,10 @@ export default function ExploreMapPage() {
 
     filteredData.forEach((hotel) => {
         const el = document.createElement("div");
-        // Thêm class 'group' và 'z-index' cao để marker nổi lên trên các marker khác
         el.className = "custom-marker cursor-pointer hover:z-[999] relative";
         
         const priceText = formatFullPrice(hotel.minPrice);
         
-        // HTML Marker mới: To hơn, đậm hơn, hiển thị đầy đủ giá
         el.innerHTML = `
             <div class="flex flex-col items-center transition-transform duration-200 hover:scale-105 group">
                 <div class="
@@ -206,7 +216,7 @@ export default function ExploreMapPage() {
             );
 
             const popup = new mapboxgl.Popup({
-                offset: 25, // Đẩy popup lên cao hơn chút vì marker giờ to hơn
+                offset: 25,
                 closeButton: false,
                 closeOnClick: true,
                 maxWidth: 'none',
@@ -239,7 +249,6 @@ export default function ExploreMapPage() {
       />
 
       <div ref={mapContainer} className="w-full h-full focus:outline-none" />
-
 
       <MapUserLocationButton onClick={getUserLocation} />
 
