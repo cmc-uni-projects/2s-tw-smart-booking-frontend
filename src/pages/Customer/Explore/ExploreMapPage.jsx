@@ -61,7 +61,8 @@ export default function ExploreMapPage() {
     });
 
     map.current.on("moveend", () => {
-       setShowSearchHereBtn(true);
+       const center = map.current.getCenter();
+      fetchNearbyProperties(center.lat, center.lng);
     });
 
   }, []);
