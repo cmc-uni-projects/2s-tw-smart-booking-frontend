@@ -1,89 +1,87 @@
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { XCircle } from "lucide-react";
-// Import Portal để hiển thị modal đè lên trên cùng
-import ModalPortal from "@/components/common/Modal/ModalPortal";
+import { ShieldAlert, X } from "lucide-react"; // Dùng icon ShieldAlert cho giống Login
 
 export default function SessionExpiredHandler() {
     const [isOpen, setIsOpen] = useState(false);
     const [message, setMessage] = useState("Tài khoản của bạn đã bị khóa.");
 
     useEffect(() => {
-        // Hàm xử lý sự kiện nhận được từ axios
+        // Lắng nghe sự kiện từ axios.config.js
         const handleAccountLocked = (event) => {
             const msg = event.detail || "Tài khoản của bạn đã bị khóa do vi phạm chính sách.";
             setMessage(msg);
             setIsOpen(true);
         };
 
-        // Lắng nghe tín hiệu 'auth:account-locked'
         window.addEventListener("auth:account-locked", handleAccountLocked);
 
-        // Dọn dẹp sự kiện khi component unmount
         return () => {
             window.removeEventListener("auth:account-locked", handleAccountLocked);
         };
     }, []);
 
     const handleLogout = () => {
-        // 1. Xóa thông tin đăng nhập
-        localStorage.removeItem("user");
-        localStorage.removeItem("accessToken");
+        // Xóa sạch thông tin đăng nhập
+        localStorage.clear();
+        sessionStorage.clear();
 
-        // 2. Tắt Modal
+        // Đóng modal
         setIsOpen(false);
 
-        // 3. Chuyển hướng về trang đăng nhập
+        // Chuyển hướng về Login
         window.location.href = "/login";
     };
 
     if (!isOpen) return null;
 
     return (
-        <ModalPortal>
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        className="fixed inset-0 flex items-center justify-center z-[9999] bg-black/40 backdrop-blur-sm"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                    >
-                        {/* Hộp thoại Modal */}
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="bg-white rounded-2xl p-8 w-[90%] max-w-sm shadow-2xl text-center border border-red-100"
-                        >
-                            {/* Icon và Tiêu đề */}
-                            <div className="flex flex-col items-center gap-4 mb-6">
-                                <div className="p-3 bg-red-50 rounded-full">
-                                    <XCircle size={48} className="text-red-500" />
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-800">
-                                    Tài khoản bị khóa
-                                </h3>
-                                <p className="text-gray-600 text-sm leading-relaxed">
-                                    {message}
-                                </p>
-                            </div>
+        // ✅ Giao diện Custom (Giống hệt trang Login bạn gửi)
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-zoom-in relative">
 
-                            {/* Nút bấm (Duy nhất 1 nút Đóng ở giữa) */}
-                            <div className="flex justify-center">
-                                <button
-                                    type="button"
-                                    onClick={handleLogout}
-                                    className="px-8 py-2.5 bg-red-500 hover:bg-red-600 text-white font-medium rounded-xl transition-all shadow-lg shadow-red-200 active:scale-95"
-                                >
-                                    Đóng
-                                </button>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </ModalPortal>
+                {/* Header Modal (Màu đỏ hồng giống ảnh) */}
+                <div className="bg-rose-50 p-6 flex flex-col items-center justify-center text-center border-b border-rose-100">
+                    <div className="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mb-4 shadow-inner animate-bounce-short">
+                        <ShieldAlert size={32} />
+                    </div>
+                    <h3 className="text-xl font-black text-slate-800">Tài khoản bị khóa</h3>
+                </div>
+
+                {/* Body Modal */}
+                <div className="p-6 text-center">
+                    <p className="text-slate-600 font-medium leading-relaxed">
+                        {message}
+                    </p>
+                </div>
+
+                {/* Footer Modal */}
+                <div className="p-4 bg-slate-50 flex justify-center">
+                    <button
+                        onClick={handleLogout}
+                        className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-slate-900/20"
+                    >
+                        Đăng xuất ngay
+                    </button>
+                </div>
+
+                {/* Nút tắt nhanh (cũng sẽ logout) */}
+                <button
+                    onClick={handleLogout}
+                    className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 hover:bg-white rounded-full transition-all"
+                >
+                    <X size={20} />
+                </button>
+            </div>
+
+            {/* Style Animation inline để đảm bảo hiệu ứng chạy mượt */}
+            <style>{`
+                @keyframes zoom-in { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
+                .animate-zoom-in { animation: zoom-in 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+                @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
+                .animate-fade-in { animation: fade-in 0.2s ease-out; }
+                @keyframes bounce-short { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+                .animate-bounce-short { animation: bounce-short 0.5s ease-in-out 1; }
+            `}</style>
+        </div>
     );
 }

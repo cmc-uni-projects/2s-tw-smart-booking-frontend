@@ -1,12 +1,18 @@
 import axios from "axios";
 
+// Lấy URL từ biến môi trường hoặc fallback về localhost
 const API_URL = import.meta.env.VITE_REACT_APP_API_URL || "http://localhost:8386/api/v1";
 
 const api = axios.create({
     baseURL: API_URL,
+    headers: {
+        "Content-Type": "application/json",
+    },
 });
 
-// Thêm token vào request (Giữ nguyên)
+// =========================================================================
+// 1. REQUEST INTERCEPTOR: Tự động đính kèm Token vào mọi request
+// =========================================================================
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
@@ -18,51 +24,63 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// ✅ CẬP NHẬT PHẦN NÀY (Đã sửa logic chặn reload)
+// =========================================================================
+// 2. RESPONSE INTERCEPTOR: Xử lý lỗi tập trung
+// =========================================================================
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        return response; // Request thành công -> trả về data
+    },
     (error) => {
         const { response } = error;
 
         if (response) {
-            // 1. Xử lý lỗi 401 (Unauthorized - Sai pass hoặc Hết hạn token)
-            if (response.status === 401) {
-                // 🛑 QUAN TRỌNG: Kiểm tra xem lỗi này đến từ API nào?
-                // error.config.url chứa đường dẫn API vừa gọi
-                const requestUrl = error.config?.url || "";
+            // Lấy URL của request bị lỗi để kiểm tra nguồn gốc
+            const requestUrl = error.config?.url || "";
 
-                // Nếu lỗi 401 đến từ API Login -> RETURN LUÔN (Không reload trang)
-                // Để component Login nhận lỗi và hiện Modal "Sai mật khẩu"
+            // -----------------------------------------------------------
+            // CASE 1: Lỗi 401 (Unauthorized) - Token hết hạn hoặc Sai mật khẩu
+            // -----------------------------------------------------------
+            if (response.status === 401) {
+                // 🛑 QUAN TRỌNG:
+                // Nếu lỗi 401 đến từ API Login (/auth/login) -> Đừng reload/redirect.
+                // Hãy trả lỗi về cho component Login để nó hiện thông báo "Sai tài khoản/mật khẩu".
                 if (requestUrl.includes("/auth/login") || requestUrl.includes("/auth/token")) {
                     return Promise.reject(error);
                 }
 
-                // Nếu lỗi 401 đến từ các trang khác (Ví dụ đang lướt web mà token hết hạn)
-                // Thì mới đá về trang Login
-                localStorage.removeItem("user");
-                localStorage.removeItem("accessToken");
+                // Nếu lỗi 401 xảy ra ở các trang khác (khi đang lướt web) -> Token hết hạn thật.
+                // Xóa token và đá người dùng về trang đăng nhập.
+                localStorage.clear(); // Xóa sạch user, token, refresh token
                 window.location.href = "/login";
-                return Promise.reject(error); // Ngắt luồng tại đây sau khi redirect
+                return Promise.reject(error);
             }
 
-            // 2. Tài khoản bị khóa (403)
+            // -----------------------------------------------------------
+            // CASE 2: Lỗi 403 (Forbidden) - Tài khoản bị KHÓA hoặc Không có quyền
+            // -----------------------------------------------------------
             if (response.status === 403) {
-                // Kiểm tra xem có phải đang Login không. Nếu đang Login thì để Component Login tự xử lý Modal 403.
-                // Nếu bạn muốn xử lý tập trung ở đây cũng được, nhưng thường Component Login cần bắt lỗi này.
-                
-                // Logic cũ của bạn (Giữ nguyên nếu muốn dùng Event, nhưng Login.jsx tôi gửi đã xử lý rồi)
-                const errorMessage = response.data?.error || response.data?.message || "";
-                if (errorMessage && (errorMessage.toLowerCase().includes("khóa") || errorMessage.toLowerCase().includes("locked") || errorMessage.toLowerCase().includes("banned"))) {
+                const errorMessage = response.data?.message || response.data?.error || "";
+
+                // Kiểm tra xem message có chứa từ khóa liên quan đến việc bị khóa không
+                // (Backend trả về: "Tài khoản bị khóa...", "Account locked...", "User is banned...")
+                const isAccountLocked = [
+                    "khóa", "lock", "ban", "disabled", "inactive"
+                ].some(keyword => errorMessage.toLowerCase().includes(keyword));
+
+                if (isAccountLocked) {
+                    // 🔥 PHÁT SỰ KIỆN TOÀN CỤC "auth:account-locked"
+                    // App.jsx (SessionExpiredHandler) sẽ lắng nghe sự kiện này và bật Modal lên.
                     window.dispatchEvent(new CustomEvent("auth:account-locked", {
-                        detail: errorMessage
+                        detail: errorMessage || "Tài khoản của bạn đã bị khóa."
                     }));
                 }
             }
         }
+
+        // Trả lỗi về cho component gọi API để nó có thể xử lý riêng (nếu cần)
         return Promise.reject(error);
     }
 );
-
-
 
 export default api;
