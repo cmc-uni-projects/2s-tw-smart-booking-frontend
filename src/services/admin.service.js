@@ -1,4 +1,3 @@
-// File: src/services/admin.service.js
 import api from "./axios.config.js";
 
 const adminService = {
@@ -34,8 +33,6 @@ const adminService = {
   // 🏨 QUẢN LÝ KHÁCH SẠN (LIST & ACTIONS)
   // ============================
 
-  // 1. [QUAN TRỌNG] Hàm này dùng cho ActiveHotelsPage để lọc tab Active/Suspended
-  // Gọi API: GET /admin/properties/list
   getPropertiesList: async (page = 0, size = 10, status = "APPROVE") => {
     try {
       const response = await api.get(`/admin/properties/list`, {
@@ -48,7 +45,6 @@ const adminService = {
     }
   },
 
-  // 2. Hàm cũ (giữ lại nếu trang duyệt đơn PENDING cần dùng)
   getPropertiesByStatus: async (status) => {
     try {
       const response = await api.get(`/admin/properties/status`, {
@@ -71,7 +67,6 @@ const adminService = {
     }
   },
 
-  // 3. Dừng hoạt động khách sạn
   suspendProperty: async (propertyId, reason) => {
     try {
       const response = await api.put(`/admin/properties/${propertyId}/suspend`, { reason });
@@ -82,7 +77,6 @@ const adminService = {
     }
   },
 
-  // 4. Mở lại hoạt động khách sạn
   activateProperty: async (propertyId) => {
     try {
       const response = await api.put(`/admin/properties/${propertyId}/activate`);
@@ -106,10 +100,8 @@ const adminService = {
     }
   },
 
-  // 5. Dừng hoạt động phòng
   suspendRoom: async (roomId, reason) => {
     try {
-      // ✅ Đúng: /admin/properties/rooms/${roomId}/suspend
       const response = await api.put(`/admin/properties/rooms/${roomId}/suspend`, { reason });
       return response.data;
     } catch (error) {
@@ -118,10 +110,8 @@ const adminService = {
     }
   },
 
-  // 6. Mở lại hoạt động phòng
   activateRoom: async (roomId) => {
     try {
-      // ✅ Đúng: /admin/properties/rooms/${roomId}/activate
       const response = await api.put(`/admin/properties/rooms/${roomId}/activate`);
       return response.data;
     } catch (error) {
@@ -150,7 +140,6 @@ const adminService = {
     }
   },
 
-  // ✅ dropdown: owners
   getDashboardOwners: async () => {
     try {
       const response = await api.get("/admin/owner-applications/dashboard/owners");
@@ -161,7 +150,6 @@ const adminService = {
     }
   },
 
-  // ✅ dropdown: cities
   getDashboardCities: async () => {
     try {
       const response = await api.get("/admin/owner-applications/dashboard/cities");
@@ -173,25 +161,14 @@ const adminService = {
   },
 
   // ============================
-  // 👥 USERS
-  // ============================
-  getAllUsers: async (
-    page = 0,
-    size = 10,
-    search = "",
-    role = "ALL",
-    status = "ALL",
-    rank = "ALL"
-  ) => {
-  // ============================
   // 👥 QUẢN LÝ NGƯỜI DÙNG (USERS)
   // ============================
+  // 👇 Đã sửa đoạn này 👇
   getAllUsers: async (page = 0, size = 10, search = "", role = "ALL", status = "ALL", rank = "ALL") => {
     const params = {
       page,
       size,
-      // ⚠️ Đã đổi 'search' -> 'keyword' để sửa lỗi tìm kiếm
-      keyword: search || undefined,
+      keyword: search || undefined, // Mapping search -> keyword
     };
 
     if (role !== "ALL") params.role = role;
@@ -207,7 +184,6 @@ const adminService = {
     }
   },
 
-  // Cập nhật trạng thái kèm lý do
   updateUserStatus: async (userId, newStatus, reason = "") => {
     try {
       const response = await api.patch(`/admin/users/${userId}/status`, null, {
