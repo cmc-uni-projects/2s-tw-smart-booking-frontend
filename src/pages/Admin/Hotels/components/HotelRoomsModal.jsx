@@ -8,18 +8,17 @@ import adminService from "@/services/admin.service";
 import SuspendModal from "@/components/common/Modal/SuspendModal";
 import ActionConfirmModal from "./ActionConfirmModal";
 import RoomDetailModal from "./RoomDetailModal";
+import LoadingOverlay from "@/components/common/Loading/LoadingOverlay";
 
 const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(false);
-  
+  const [isProcessing, setIsProcessing] = useState(false); // State Loading toàn màn hình
+
   const [suspendRoomModalOpen, setSuspendRoomModalOpen] = useState(false);
   const [activateRoomModalOpen, setActivateRoomModalOpen] = useState(false); 
   const [detailRoomModalOpen, setDetailRoomModalOpen] = useState(false);
   
-  // [NEW] State loading khi đang thực hiện mở lại phòng
-  const [isActivating, setIsActivating] = useState(false); 
-
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [toast, setToast] = useState(null);
 
@@ -60,38 +59,34 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
     setActivateRoomModalOpen(true);
   };
 
+  // Logic Dừng phòng
   const handleConfirmSuspendRoom = async (reason) => {
+    setIsProcessing(true); // Bật loading
     try {
       await adminService.suspendRoom(selectedRoom.roomId, reason);
       setToast({ message: "Đã dừng phòng thành công", type: "success" });
-      fetchRooms(); 
+      setSuspendRoomModalOpen(false); // Đóng modal suspend
+      await fetchRooms();
     } catch (error) {
       setToast({ message: "Lỗi dừng phòng", type: "error" });
-      throw error;
+    } finally {
+      setIsProcessing(false); // Tắt loading
     }
   };
 
-  // [UPDATED] Hàm xác nhận mở lại phòng có xử lý loading
+  // Logic Mở lại phòng
   const handleConfirmActivateRoom = async () => {
     if (!selectedRoom) return;
-
-    // 1. Bật loading
-    setIsActivating(true);
-
+    setIsProcessing(true); // Bật loading
     try {
       await adminService.activateRoom(selectedRoom.roomId);
       setToast({ message: "Đã mở lại phòng thành công", type: "success" });
-      
-      // 2. Đóng modal sau khi thành công
-      setActivateRoomModalOpen(false);
-      
-      // 3. Load lại danh sách
-      fetchRooms();
+      setActivateRoomModalOpen(false); // Đóng modal activate
+      await fetchRooms(); 
     } catch (error) {
       setToast({ message: "Lỗi mở lại phòng", type: "error" });
     } finally {
-      // 4. Tắt loading (dù thành công hay thất bại)
-      setIsActivating(false);
+      setIsProcessing(false); // Tắt loading
     }
   };
 
@@ -100,17 +95,30 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
 
   return (
     <>
+      {/* [1] GLOBAL LOADING OVERLAY: Phủ toàn màn hình */}
+      {isProcessing && (
+        <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex items-center justify-center">
+            {/* Component LoadingOverlay của bạn sẽ nằm giữa màn hình */}
+            <LoadingOverlay message="Đang xử lý yêu cầu..." />
+        </div>
+      )}
+
+      {/* Modal Danh sách phòng */}
       <Modal 
         open={isOpen} 
         onClose={onClose} 
         title={`Danh sách phòng - ${hotel?.propertyName}`}
         maxWidth="max-w-3xl"
       >
+        {/* Bỏ class relative ở đây vì overlay đã ra ngoài */}
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 pb-2">
+          
           {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
           {loading ? (
-            <div className="text-center py-8 text-gray-500">Đang tải danh sách phòng...</div>
+            <div className="text-center py-8 text-gray-500">
+               <LoadingOverlay message="Đang tải danh sách phòng..." />
+            </div>
           ) : rooms.length > 0 ? (
             <div className="grid grid-cols-1 gap-4">
               {rooms.map((room) => (
@@ -142,7 +150,7 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
                     </div>
                   </div>
 
-                  {/* Status & Actions */}
+                  {/* Actions */}
                   <div className="flex items-center gap-3">
                     {room.roomStatus === 'SUSPENDED' ? (
                       <>
@@ -150,11 +158,11 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
                           <AlertCircle size={14} />
                           Đã dừng
                         </span>
-                        {/* Nút Mở lại */}
                         <Button 
                           size="sm" 
                           className="bg-green-600 text-white hover:bg-green-700 border-none shadow-sm h-9 px-3"
                           onClick={() => handleActivateClick(room)}
+                          disabled={isProcessing}
                           title="Mở lại phòng"
                         >
                           <RotateCcw size={16} />
@@ -172,6 +180,7 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
                           variant="ghost"
                           className="bg-gray-100 text-gray-600 hover:bg-gray-200 border-none h-9 px-3"
                           onClick={() => handleViewDetail(room)}
+                          disabled={isProcessing}
                           title="Xem chi tiết"
                         >
                           <Eye size={18} />
@@ -181,6 +190,7 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
                           size="sm" 
                           className="bg-red-600 text-white hover:bg-red-700 border-none shadow-sm h-9 px-4"
                           onClick={() => handleSuspendClick(room)}
+                          disabled={isProcessing}
                         >
                           <Ban size={16} className="mr-1.5" />
                           Dừng
@@ -206,17 +216,14 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
         onConfirm={handleConfirmSuspendRoom}
         title="Dừng hoạt động Phòng"
         itemName={selectedRoom?.roomName}
+        // Không cần truyền loading vào đây nữa vì overlay tổng đã chặn rồi
       />
 
-      {/* [UPDATED] Modal Xác nhận Mở lại: Thêm prop isLoading */}
       <ActionConfirmModal
         open={activateRoomModalOpen}
         onClose={() => setActivateRoomModalOpen(false)}
         onConfirm={handleConfirmActivateRoom}
-        
-        // Truyền state loading vào đây
-        isLoading={isActivating}
-        
+        // Không cần truyền isLoading vì overlay tổng đã chặn rồi
         title="Mở lại phòng"
         message={`Bạn có muốn kích hoạt lại phòng "${selectedRoom?.roomName}"?`}
         confirmText="Mở lại"
