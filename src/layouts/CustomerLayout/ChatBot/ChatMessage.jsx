@@ -1,4 +1,3 @@
-// src/layouts/CustomerLayout/ChatBot/ChatMessage.jsx
 import React from "react";
 import { Bot } from "lucide-react";
 import AIPayloadCard from "./AIPayloadCard";
@@ -56,9 +55,14 @@ const ChatMessage = ({ message }) => {
     const { text, sender, payload } = message;
     const isBot = sender === "ai" || sender === "bot";
 
+    // ✅ FALLBACK: nếu BE không trả text thì dùng payload.message
+    const displayText = text || payload?.message;
+
+    // Không có gì để hiển thị thì bỏ qua
+    if (!displayText && !payload) return null;
+
     return (
         <div className={`flex w-full ${isBot ? "justify-start" : "justify-end"} mb-4`}>
-
             {/* Bot avatar */}
             {isBot && (
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white mr-2 shadow-sm shrink-0 mt-1">
@@ -76,7 +80,7 @@ const ChatMessage = ({ message }) => {
                 }`}
             >
                 {/* Nội dung text */}
-                {formatMessage(text, isBot)}
+                {formatMessage(displayText, isBot)}
 
                 {/* ========== PAYLOAD ========== */}
                 {isBot && payload && (
