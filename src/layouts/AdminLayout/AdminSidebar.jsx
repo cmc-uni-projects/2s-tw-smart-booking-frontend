@@ -15,11 +15,11 @@ import {
   CreditCard, 
   DollarSign, 
   RotateCcw,
-  // ✅ 1. Import Icon mới
-  Ticket 
+  Ticket,
+  FileSearch,
+  Bell // [THÊM ICON BELL]
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { FileSearch } from "lucide-react";
 
 const AdminSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -69,7 +69,7 @@ const AdminSidebar = () => {
       ]
     },
 
-    // ✅ 2. MENU MỚI: QUẢN LÝ KHUYẾN MÃI
+    // 🎫 QUẢN LÝ KHUYẾN MÃI
     { 
       name: "Quản lý Khuyến mãi", 
       icon: <Ticket size={20} />, 
@@ -82,13 +82,18 @@ const AdminSidebar = () => {
       path: "/admin/approvals" 
     },
 
+    // [BỔ SUNG MỤC THÔNG BÁO]
+    {
+      name: "Thông báo",
+      icon: <Bell size={20} />, // Icon cái chuông
+      path: "/admin/notifications" // Link đến trang thông báo bạn vừa tạo
+    },
+
     {
       name: "Lịch sử hệ thống",
       icon: <FileSearch size={20} />,
       path: "/admin/audit-logs"
     },
-
-
   ];
 
   const handleSubMenuToggle = (key) => {
