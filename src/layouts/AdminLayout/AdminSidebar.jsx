@@ -83,7 +83,7 @@ const AdminSidebar = () => {
     },
 
     {
-      name: "Audit Logs",
+      name: "Lịch sử hệ thống",
       icon: <FileSearch size={20} />,
       path: "/admin/audit-logs"
     },

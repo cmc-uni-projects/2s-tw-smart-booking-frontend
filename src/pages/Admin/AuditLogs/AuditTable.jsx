@@ -8,11 +8,11 @@ export default function AuditTable({ logs = [], onViewDetail }) {
             {/* HEADER */}
             <thead className="bg-gray-50">
             <tr className="text-left text-sm font-semibold text-blue-600">
-                <th className="px-6 py-4">LOG ID</th>
-                <th className="px-6 py-4">LOG ACTION</th>
-                <th className="px-6 py-4">ENTITY TYPE</th>
-                <th className="px-6 py-4">DESCRIPTION</th>
-                <th className="px-6 py-4">ACTOR EMAIL</th>
+                <th className="px-6 py-4">Mã Log</th>
+                <th className="px-6 py-4">Hành Động</th>
+                <th className="px-6 py-4">Đối Tượng</th>
+                <th className="px-6 py-4">Mô Tả</th>
+                <th className="px-6 py-4">Người Thực Hiện</th>
                 <th className="px-6 py-4 text-right"></th>
             </tr>
             </thead>
@@ -29,6 +29,7 @@ export default function AuditTable({ logs = [], onViewDetail }) {
                     </td>
                 </tr>
             )}
+
 
             {logs.map((log) => (
                 <tr

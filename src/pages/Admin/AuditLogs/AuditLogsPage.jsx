@@ -82,7 +82,7 @@ export default function AuditLogsPage() {
         <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
             <div>
                 <h1 className="text-2xl font-bold text-gray-800">
-                    Audit Logs
+                    Lich sử hoạt động
                 </h1>
                 <p className="text-sm text-gray-500 mt-1">
                     Lịch sử hoạt động hệ thống (tạo / sửa / xóa)
