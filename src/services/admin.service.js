@@ -19,8 +19,8 @@ const adminService = {
   reviewOwnerApplication: async (applicationId, reviewData) => {
     try {
       const response = await api.post(
-          `/admin/owner-applications/${applicationId}/review`,
-          reviewData
+        `/admin/owner-applications/${applicationId}/review`,
+        reviewData
       );
       return response.data;
     } catch (error) {
@@ -33,21 +33,18 @@ const adminService = {
   // 🏨 QUẢN LÝ KHÁCH SẠN (LIST & ACTIONS)
   // ============================
 
-  // 1. [QUAN TRỌNG] Hàm này dùng cho ActiveHotelsPage để lọc tab Active/Suspended
-  // Gọi API: GET /api/v1/admin/properties/list
   getPropertiesList: async (page = 0, size = 10, status = "APPROVE") => {
     try {
       const response = await api.get(`/admin/properties/list`, {
-        params: { page, size, status }
+        params: { page, size, status },
       });
-      return response.data; // Trả về ApiResponse chứa data.content
+      return response.data;
     } catch (error) {
       console.error("Error fetching properties list:", error);
       throw error;
     }
   },
 
-  // 2. Hàm cũ (giữ lại nếu trang duyệt đơn PENDING cần dùng)
   getPropertiesByStatus: async (status) => {
     try {
       const response = await api.get(`/admin/properties/status`, {
@@ -62,10 +59,7 @@ const adminService = {
 
   reviewProperty: async (propertyId, reviewData) => {
     try {
-      const response = await api.post(
-          `/admin/properties/${propertyId}/review`,
-          reviewData
-      );
+      const response = await api.post(`/admin/properties/${propertyId}/review`, reviewData);
       return response.data;
     } catch (error) {
       console.error("Error reviewing property:", error);
@@ -73,12 +67,9 @@ const adminService = {
     }
   },
 
-  // 3. Dừng hoạt động khách sạn
   suspendProperty: async (propertyId, reason) => {
     try {
-      const response = await api.put(`/admin/properties/${propertyId}/suspend`, {
-        reason
-      });
+      const response = await api.put(`/admin/properties/${propertyId}/suspend`, { reason });
       return response.data;
     } catch (error) {
       console.error("Error suspending property:", error);
@@ -86,7 +77,6 @@ const adminService = {
     }
   },
 
-  // 4. Mở lại hoạt động khách sạn
   activateProperty: async (propertyId) => {
     try {
       const response = await api.put(`/admin/properties/${propertyId}/activate`);
@@ -100,7 +90,6 @@ const adminService = {
   // ============================
   // 🛏️ QUẢN LÝ PHÒNG
   // ============================
-
   getPropertyRooms: async (propertyId) => {
     try {
       const response = await api.get(`/admin/properties/${propertyId}/rooms`);
@@ -111,14 +100,9 @@ const adminService = {
     }
   },
 
- // 5. Dừng hoạt động phòng
   suspendRoom: async (roomId, reason) => {
     try {
-      // ❌ Cũ (Sai): /admin/rooms/${roomId}/suspend
-      // ✅ Mới (Đúng): /admin/properties/rooms/${roomId}/suspend
-      const response = await api.put(`/admin/properties/rooms/${roomId}/suspend`, {
-        reason
-      });
+      const response = await api.put(`/admin/properties/rooms/${roomId}/suspend`, { reason });
       return response.data;
     } catch (error) {
       console.error("Error suspending room:", error);
@@ -126,11 +110,8 @@ const adminService = {
     }
   },
 
-  // 6. Mở lại hoạt động phòng
   activateRoom: async (roomId) => {
     try {
-      // ❌ Cũ (Sai): /admin/rooms/${roomId}/activate
-      // ✅ Mới (Đúng): /admin/properties/rooms/${roomId}/activate
       const response = await api.put(`/admin/properties/rooms/${roomId}/activate`);
       return response.data;
     } catch (error) {
@@ -139,24 +120,55 @@ const adminService = {
     }
   },
 
-  getDashboardStats: async () => {
+  // ============================
+  // 📊 DASHBOARD (FILTERS + OPTIONS)
+  // ============================
+  getDashboardStats: async (filters = {}) => {
     try {
-      const response = await api.get("/admin/owner-applications/dashboard-stats");
+      const params = {
+        ...(filters.year ? { year: filters.year } : {}),
+        ...(filters.month ? { month: filters.month } : {}),
+        ...(filters.city?.trim() ? { city: filters.city.trim() } : {}),
+        ...(filters.ownerId?.trim() ? { ownerId: filters.ownerId.trim() } : {}),
+      };
+
+      const response = await api.get("/admin/owner-applications/dashboard-stats", { params });
       return response.data;
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
       throw error;
     }
   },
+
+  getDashboardOwners: async () => {
+    try {
+      const response = await api.get("/admin/owner-applications/dashboard/owners");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching dashboard owners:", error);
+      throw error;
+    }
+  },
+
+  getDashboardCities: async () => {
+    try {
+      const response = await api.get("/admin/owner-applications/dashboard/cities");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching dashboard cities:", error);
+      throw error;
+    }
+  },
+
   // ============================
   // 👥 QUẢN LÝ NGƯỜI DÙNG (USERS)
   // ============================
+  // 👇 Đã sửa đoạn này 👇
   getAllUsers: async (page = 0, size = 10, search = "", role = "ALL", status = "ALL", rank = "ALL") => {
     const params = {
       page,
       size,
-      // ⚠️ Đã đổi 'search' -> 'keyword' để sửa lỗi tìm kiếm
-      keyword: search || undefined,
+      keyword: search || undefined, // Mapping search -> keyword
     };
 
     if (role !== "ALL") params.role = role;
@@ -172,7 +184,6 @@ const adminService = {
     }
   },
 
-  // Cập nhật trạng thái kèm lý do
   updateUserStatus: async (userId, newStatus, reason = "") => {
     try {
       const response = await api.patch(`/admin/users/${userId}/status`, null, {
