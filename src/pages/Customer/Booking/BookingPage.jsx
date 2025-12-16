@@ -167,15 +167,20 @@ export default function BookingPage() {
 
     // Validate Form
     const isFormValid =
-        contactData.fullName?.trim() &&
-        contactData.phone?.trim() &&
-        contactData.email?.trim();
+        // contactData.fullName?.trim() &&
+        // contactData.phone?.trim() &&
+        // contactData.email?.trim();
+        !!contactData.isValid;
 
     // 3. Submit Booking
     const handleFinalSubmit = async () => {
         if (!currentUser) {
             alert("Vui lòng đăng nhập để tiếp tục đặt phòng!");
             navigate("/login", { state: { from: location.pathname + location.search } });
+            return;
+        }
+        if (!contactData.isValid) {
+            alert("Vui lòng kiểm tra lại thông tin liên hệ.");
             return;
         }
 

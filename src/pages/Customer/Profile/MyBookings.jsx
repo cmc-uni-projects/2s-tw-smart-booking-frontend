@@ -147,22 +147,28 @@ export default function MyBookings() {
 
   // ✅ SỬA LOGIC GỬI YÊU CẦU HOÀN TIỀN
   const handleConfirmRefundRequest = async (bookingId, refundData) => {
-    if (!bookingId) return;
+  if (!bookingId) return;
 
-    try {
-      await paymentService.requestRefund(bookingId, refundData);
-      showToast("Đã gửi yêu cầu hoàn tiền thành công!", "success");
-      
-      await fetchBookings();
-      
-      // Xong xuôi thì mới đóng modal và reset booking
-      setIsRefundModalOpen(false);
-      setSelectedBooking(null);
+  try {
+    const res = await paymentService.requestRefund(bookingId, refundData);
+    showToast(res?.message || "Đã gửi yêu cầu hoàn tiền thành công!", "success");
 
-    } catch (err) {
-      showToast(err.response?.data?.message || err.message || "Lỗi khi gửi yêu cầu.", "error");
-    }
-  };
+    await fetchBookings();
+
+    setIsRefundModalOpen(false);
+    setSelectedBooking(null);
+  } catch (err) {
+    const msg =
+      err?.message ||
+      err?.error ||
+      err?.data?.message ||
+      err?.message ||
+      (typeof err === "string" ? err : null) ||
+      "Lỗi khi gửi yêu cầu.";
+
+    showToast(msg, "error");
+  }
+};
 
   // --- REVIEW HANDLERS ---
   const handleOpenReviewModal = async (booking) => {
