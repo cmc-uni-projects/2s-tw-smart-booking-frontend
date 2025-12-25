@@ -8,7 +8,12 @@ const ownerService = {
    */
   submitApplication: async (payload) => {
     try {
-      const res = await api.post("/applications/submit-owner", payload);
+      // ✅ FIX: Ghi đè header Content-Type thành multipart/form-data
+      const res = await api.post("/applications/submit-owner", payload, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       return res.data;
     } catch (error) {
       console.error("Error submitting owner application:", error);

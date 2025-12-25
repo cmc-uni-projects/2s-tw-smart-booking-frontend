@@ -54,11 +54,6 @@ const AccountMenu = ({
             icon: <RefreshCw size={20} /> 
         },
         { 
-            label: "Danh sách yêu thích", 
-            path: "/customer/wishlist", 
-            icon: <Heart size={20} /> 
-        },
-        { 
             label: "Cài đặt tài khoản", 
             path: "/customer/settings", 
             icon: <Settings size={20} /> 

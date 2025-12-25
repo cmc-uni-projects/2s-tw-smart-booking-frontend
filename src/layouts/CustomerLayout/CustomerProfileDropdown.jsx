@@ -147,20 +147,6 @@ const CustomerProfileDropdown = ({ onClose }) => {
                     <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
                 </Link>
 
-                <Link
-                    to="/customer/wishlist"
-                    className="flex items-center gap-3 p-3 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors group"
-                    onClick={() => onClose && onClose()}
-                >
-                    <div className="p-2 bg-red-50 text-red-600 rounded-full group-hover:bg-red-100 transition-colors">
-                        <Heart size={18} />
-                    </div>
-                    <div className="flex-1">
-                        <span className="font-medium text-sm">Yêu thích</span>
-                    </div>
-                    <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
-                </Link>
-
                 <div className="h-[1px] bg-gray-100 my-1 mx-2"></div>
 
                 <button
