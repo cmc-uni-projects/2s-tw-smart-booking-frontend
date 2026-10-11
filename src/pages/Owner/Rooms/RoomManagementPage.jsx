@@ -9,8 +9,10 @@ import api from "@/services/axios.config";
 import { motion, AnimatePresence } from "framer-motion";
 import Toast from "@/components/common/Notification/Toast";
 import ConfirmModal from "@/components/common/Modal/ConfirmModal";
+import { useTranslation } from "react-i18next";
 
 const RoomManagementPage = () => {
+  const { t } = useTranslation();
   const { propertyId } = useParams();
   const navigate = useNavigate();
   
@@ -33,7 +35,7 @@ const RoomManagementPage = () => {
 
   // Fetch Data với Log chi tiết
   const fetchData = async () => {
-    console.log(`🚀 [RoomPage] Bắt đầu tải dữ liệu cho Property ID: ${propertyId}`);
+    console.log(`🚀 [RoomPage] Loading data for property ID: ${propertyId}`);
     const totalStart = performance.now();
 
     try {
@@ -69,7 +71,7 @@ const roomsWithCover = await Promise.all(
             };
 
         } catch (err) {
-            console.error("Lỗi load ảnh phòng:", err);
+            console.error("Failed to load room images:", err);
             return {
                 ...room,
                 coverImage: room.images?.[0] || null
@@ -81,11 +83,11 @@ const roomsWithCover = await Promise.all(
 setRooms(roomsWithCover); 
       
     } catch (error) {
-      console.error("❌ [RoomPage] Lỗi tải dữ liệu:", error);
-      showToast("Không thể tải dữ liệu", "error");
+      console.error("❌ [RoomPage] Failed to load data:", error);
+      showToast(t("owner:RoomManagementPage.couldNotLoadData"), "error");
     } finally {
       setLoading(false);
-      console.log(`✅ [RoomPage] TỔNG THỜI GIAN: ${(performance.now() - totalStart).toFixed(2)}ms`);
+      console.log(`✅ [RoomPage] TOTAL TIME: ${(performance.now() - totalStart).toFixed(2)}ms`);
     }
   };
 
@@ -115,19 +117,19 @@ setRooms(roomsWithCover);
           await roomService.deleteRoom(confirmData.id);
           console.timeEnd("DeleteRoomAPI");
           
-          showToast("Đã xóa phòng thành công", "success");
+          showToast(t("owner:RoomManagementPage.roomDeletedSuccessfully"), "success");
           setConfirmData({ open: false, id: null });
           fetchData(); 
       } catch (error) {
-          console.error("Lỗi xóa phòng:", error);
-          showToast("Xóa phòng thất bại", "error");
+          console.error("Failed to delete room:", error);
+          showToast(t("owner:RoomManagementPage.failedToDeleteTheRoom"), "error");
       }
   };
 
   const handleModalSuccess = () => {
       setIsModalOpen(false);
       fetchData();
-      showToast(selectedRoom ? "Cập nhật phòng thành công" : "Thêm phòng mới thành công", "success");
+      showToast(selectedRoom ? t("owner:RoomManagementPage.roomUpdatedSuccessfully") : t("owner:RoomManagementPage.roomAddedSuccessfully"), "success");
   };
 
   if (loading && !property) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin text-blue-600" size={40}/></div>;
@@ -140,10 +142,10 @@ setRooms(roomsWithCover);
           open={confirmData.open}
           onClose={() => setConfirmData({ open: false, id: null })}
           onConfirm={handleDeleteRoom}
-          title="Xác nhận xóa phòng"
-          description="Bạn có chắc chắn muốn xóa phòng này không? Hành động này không thể hoàn tác."
-          confirmText="Xóa ngay"
-          cancelText="Hủy"
+          title={t("owner:RoomManagementPage.confirmRoomDeletion")}
+          description={t("owner:RoomManagementPage.areYouSureYouWant")}
+          confirmText={t("owner:RoomManagementPage.deleteNow")}
+          cancelText={t("owner:RoomManagementPage.cancel")}
           isDanger={true}
       />
 
@@ -154,13 +156,13 @@ setRooms(roomsWithCover);
         </Button>
         <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                Quản lý phòng <span className="text-gray-400 font-light">|</span> <span className="text-blue-600">{property?.propertyName}</span>
+                {t("owner:RoomManagementPage.manageRooms")} <span className="text-gray-400 font-light">|</span> <span className="text-blue-600">{property?.propertyName}</span>
             </h1>
-            <p className="text-gray-500 text-sm mt-1">Thiết lập các loại phòng và giá cho cơ sở này</p>
+            <p className="text-gray-500 text-sm mt-1">{t("owner:RoomManagementPage.setUpRoomTypesAnd")}</p>
         </div>
         <div className="ml-auto">
             <Button onClick={handleAddRoom} leftIcon={<Plus size={20} />} className="shadow-lg shadow-blue-500/20">
-                Thêm phòng mới
+                {t("owner:RoomManagementPage.addNewRoom")}
             </Button>
         </div>
       </div>
@@ -187,9 +189,9 @@ setRooms(roomsWithCover);
               <div className="bg-blue-50 p-6 rounded-full mb-4">
                   <BedDouble size={48} className="text-blue-400" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">Chưa có phòng nào</h3>
-              <p className="text-gray-500 mb-6">Hãy tạo các hạng phòng để khách hàng có thể đặt lịch.</p>
-              <Button onClick={handleAddRoom} variant="outline">Tạo phòng đầu tiên</Button>
+              <h3 className="text-lg font-bold text-gray-900">{t("owner:RoomManagementPage.noRoomsYet")}</h3>
+              <p className="text-gray-500 mb-6">{t("owner:RoomManagementPage.createRoomTypesSoGuests")}</p>
+              <Button onClick={handleAddRoom} variant="outline">{t("owner:RoomManagementPage.createTheFirstRoom")}</Button>
           </motion.div>
       )}
 

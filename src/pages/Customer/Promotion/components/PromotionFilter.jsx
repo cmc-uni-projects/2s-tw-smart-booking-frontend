@@ -1,14 +1,16 @@
 import React from "react";
 import { Search, Sparkles, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const PromotionFilter = ({ searchTerm, onSearchChange, totalCount }) => {
+    const { t } = useTranslation("promotion");
     return (
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-gray-100">
             {/* 1. Phần tiêu đề và số lượng */}
             <div className="flex items-center gap-2">
                 <Sparkles className="text-yellow-500" size={20} />
                 <h2 className="text-xl font-bold text-gray-800">
-                    Tất cả khuyến mãi ({totalCount})
+                    {t("filter.all", { count: totalCount })}
                 </h2>
             </div>
 
@@ -16,7 +18,7 @@ const PromotionFilter = ({ searchTerm, onSearchChange, totalCount }) => {
             <div className="relative w-full md:w-96">
                 <input
                     type="text"
-                    placeholder="Tìm kiếm theo tên, mã code..."
+                    placeholder={t("filter.placeholder")}
                     value={searchTerm}
                     // Gọi callback để cập nhật state ở component cha
                     onChange={(e) => onSearchChange(e.target.value)}

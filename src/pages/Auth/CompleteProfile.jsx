@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mail } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import AuthTextField from "../../components/common/Input/AuthTextField";
 import Button from "../../components/common/Button/Button";
 import { useAuth } from "../../context/AuthContext";
@@ -9,6 +10,7 @@ import api from "../../services/axios.config"; // Import axios instance của b�
 const CompleteProfile = () => {
   const navigate = useNavigate();
   const { updateUser } = useAuth(); // Hàm cập nhật context
+  const { t } = useTranslation("auth");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -37,7 +39,7 @@ const CompleteProfile = () => {
         navigate("/");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Cập nhật email thất bại. Email có thể đã được sử dụng.");
+      setError(err.response?.data?.message || t("complete.failed"));
     } finally {
       setLoading(false);
     }
@@ -47,11 +49,10 @@ const CompleteProfile = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-6">
       <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
-          Hoàn tất đăng ký
+          {t("complete.title")}
         </h2>
         <p className="text-gray-600 text-center mb-6 text-sm">
-          Tài khoản Facebook của bạn chưa cung cấp địa chỉ email. 
-          Vui lòng nhập email để hoàn tất việc tạo tài khoản TravelMate.
+          {t("complete.intro")}
         </p>
 
         {error && (
@@ -62,7 +63,7 @@ const CompleteProfile = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <AuthTextField
-            label="Email của bạn"
+            label={t("complete.emailLabel")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -72,7 +73,7 @@ const CompleteProfile = () => {
           />
 
           <Button type="submit" fullWidth isLoading={loading}>
-            Xác nhận & Tiếp tục
+            {t("complete.submit")}
           </Button>
         </form>
       </div>

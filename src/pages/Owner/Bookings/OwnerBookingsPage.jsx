@@ -13,7 +13,8 @@ import CheckOutModal from "./CheckOutModal"; // ✅ Import Modal Check-out
 
 // Services
 import bookingService from "../../../services/booking.service"; 
-import propertyService from "../../../services/property.service"; 
+import propertyService from "../../../services/property.service";
+import { useTranslation } from "react-i18next"; 
 
 const ITEMS_PER_PAGE = 10;
 const COLOR_MAP = {
@@ -24,6 +25,7 @@ const COLOR_MAP = {
 };
 
 const OwnerBookingsPage = () => {
+  const { t } = useTranslation();
     const { propertyId } = useParams();
     const navigate = useNavigate();
 
@@ -67,7 +69,7 @@ const OwnerBookingsPage = () => {
                     setSelectedPropId(propertyId);
                 }
             } catch (error) {
-                console.error("Lỗi tải danh sách khách sạn:", error);
+                console.error("Failed to load hotels:", error);
             }
         };
         fetchProperties();
@@ -93,11 +95,11 @@ const OwnerBookingsPage = () => {
                 bookingCode: `BK-${b.bookingId}`,
                 
                 // Thông tin phòng & Khách sạn
-                roomName: b.roomName || "Chưa xếp phòng",
+                roomName: b.roomName || t("owner:OwnerBookingsPage.roomNotAssigned"),
                 roomId: b.roomId,
                 
                 // Thông tin khách hàng (Lấy từ object user lồng bên trong)
-                customerName: b.user ? b.user.fullName : "Khách vãng lai",
+                customerName: b.user ? b.user.fullName : t("owner:OwnerBookingsPage.walkInGuest"),
                 phone: b.user ? b.user.phoneNumber : "",
                 email: b.user ? b.user.email : "",
                 
@@ -110,7 +112,7 @@ const OwnerBookingsPage = () => {
                 
                 // Tài chính
                 totalPrice: b.totalPrice,
-                guestCount: `${b.guestCount} người`,
+                guestCount: t("owner:OwnerBookingsPage.guests", { guestCount: b.guestCount }),
                 
                 // Trạng thái
                 status: b.status, // CONFIRMED, CHECKED_IN, ...
@@ -118,15 +120,15 @@ const OwnerBookingsPage = () => {
                 
                 // Thanh toán
                 paymentStatus: b.paymentStatus, // APPROVED, PENDING...
-                paymentMethod: b.paymentMethod || "Chưa xác định",
+                paymentMethod: b.paymentMethod || t("owner:OwnerBookingsPage.notSpecified"),
                 
-                specialRequest: "Không" // Backend chưa có field này
+                specialRequest: t("owner:OwnerBookingsPage.none") // Backend chưa có field này
             }));
 
             // Sắp xếp mới nhất lên đầu
             setRooms(mappedData.reverse());
         } catch (error) {
-            console.error("Lỗi tải booking:", error);
+            console.error("Failed to load bookings:", error);
         } finally {
             setLoading(false);
         }
@@ -302,10 +304,10 @@ const OwnerBookingsPage = () => {
                             <span className="p-2 bg-[#28A9E0] rounded-lg text-white shadow-lg shadow-blue-200">
                                 <BedDouble size={20} />
                             </span>
-                            Quản Lý Lưu Trú
+                            {t("owner:OwnerBookingsPage.stayManagement")}
                         </h1>
                         <p className="text-sm text-slate-500 mt-1 ml-1">
-                            Theo dõi khách hàng check-in, check-out và thanh toán
+                            {t("owner:OwnerBookingsPage.trackGuestCheckInsCheck")}
                         </p>
                     </div>
 
@@ -317,7 +319,7 @@ const OwnerBookingsPage = () => {
                                 value={selectedPropId}
                                 onChange={handlePropertyChange}
                             >
-                                {myProperties.length === 0 && <option value="" disabled>Đang tải danh sách...</option>}
+                                {myProperties.length === 0 && <option value="" disabled>{t("owner:OwnerBookingsPage.loadingList")}</option>}
                                 {myProperties.map(p => (
                                     <option key={p.propertyId} value={p.propertyId}>{p.propertyName}</option>
                                 ))}
@@ -329,7 +331,7 @@ const OwnerBookingsPage = () => {
                             icon={RefreshCw}
                             className={loading ? "opacity-70" : ""}
                         >
-                            Làm mới
+                            {t("owner:OwnerBookingsPage.refresh")}
                         </Button>
                     </div>
                 </div>
@@ -337,9 +339,9 @@ const OwnerBookingsPage = () => {
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {[
-                        { label: "Khách sắp đến", val: stats.upcoming, icon: CalendarCheck, color: "blue" },
-                        { label: "Đang lưu trú", val: stats.inHouse, icon: Users, color: "emerald" },
-                        { label: "Chờ thanh toán", val: stats.pending, icon: AlertCircle, color: "amber" },
+                        { label: t("owner:OwnerBookingsPage.arrivingSoon"), val: stats.upcoming, icon: CalendarCheck, color: "blue" },
+                        { label: t("owner:OwnerBookingsPage.inHouse"), val: stats.inHouse, icon: Users, color: "emerald" },
+                        { label: t("owner:OwnerBookingsPage.awaitingPayment"), val: stats.pending, icon: AlertCircle, color: "amber" },
                     ].map((s, i) => {
                         const C = COLOR_MAP[s.color];
                         return (
@@ -372,7 +374,7 @@ const OwnerBookingsPage = () => {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                             <input
                                 type="text"
-                                placeholder="Tìm phòng, mã booking hoặc tên khách..."
+                                placeholder={t("owner:OwnerBookingsPage.searchRoomBookingCodeOr")}
                                 className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50
                                            focus:bg-white focus:ring-2 focus:ring-[#28A9E0] text-sm transition-all outline-none"
                                 value={searchKeyword}
@@ -383,10 +385,10 @@ const OwnerBookingsPage = () => {
                         {/* Filter Tabs */}
                         <div className="flex gap-2 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0">
                             {[
-                                { id: "upcoming", label: "Sắp đến" },
-                                { id: "in-house", label: "Đang ở" },
-                                { id: "pending", label: "Chờ TT" },
-                                { id: "history", label: "Lịch sử" },
+                                { id: "upcoming", label: t("owner:OwnerBookingsPage.arriving") },
+                                { id: "in-house", label: t("owner:OwnerBookingsPage.staying") },
+                                { id: "pending", label: t("owner:OwnerBookingsPage.unpaid") },
+                                { id: "history", label: t("owner:OwnerBookingsPage.history") },
                             ].map((f) => (
                                 <button
                                     key={f.id}
@@ -417,7 +419,7 @@ const OwnerBookingsPage = () => {
                     <div className="mt-auto border-t border-slate-100">
                         <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between bg-slate-50/50 gap-4">
                             <span className="text-sm text-slate-500">
-                                Hiển thị <span className="font-semibold text-slate-700">{paginatedRooms.length}</span> / <span className="font-semibold text-slate-700">{filteredRooms.length}</span> đơn
+                                {t("owner:OwnerBookingsPage.showing")} <span className="font-semibold text-slate-700">{paginatedRooms.length}</span> / <span className="font-semibold text-slate-700">{filteredRooms.length}</span> {t("owner:OwnerBookingsPage.bookings")}
                             </span>
                             <div className="flex items-center gap-2">
                                 <button
@@ -455,7 +457,7 @@ const OwnerBookingsPage = () => {
                                 
                                 {/* Jump Page */}
                                 <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-200">
-                                    <span className="text-sm text-slate-500 whitespace-nowrap">Đi đến:</span>
+                                    <span className="text-sm text-slate-500 whitespace-nowrap">{t("owner:OwnerBookingsPage.goTo")}</span>
                                     <input
                                         type="text"
                                         className="w-12 h-8 text-center rounded-lg border bg-white border-slate-200 text-sm focus:border-[#28A9E0] focus:ring-1 focus:ring-[#28A9E0] outline-none"

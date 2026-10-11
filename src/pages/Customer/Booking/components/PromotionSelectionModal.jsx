@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Spinner from '@/components/common/Loading/Spinner';
 import promotionService from "@/services/promotion.service";
 import { TicketPercent, Calendar, CheckCircle2, Trophy } from 'lucide-react'; // Thêm Trophy icon
+import { useTranslation } from 'react-i18next';
 
 // ====================================================================
 // UTILS
@@ -21,6 +22,7 @@ const getFullImageUrl = (path) => {
 // SUB-COMPONENT: MỘT DÒNG KHUYẾN MÃI
 // ====================================================================
 const PromotionListItem = ({ promo, isSelected, accentColor, onSelect }) => {
+    const { t } = useTranslation("booking");
     const isSystemPromo = !promo.property;
 
     // Format tiền tệ
@@ -31,7 +33,7 @@ const PromotionListItem = ({ promo, isSelected, accentColor, onSelect }) => {
         : formatCurrency(promo.discountValue);
 
     const maxDiscountText = promo.maxDiscountAmount > 0
-        ? ` (Tối đa ${formatCurrency(promo.maxDiscountAmount)})`
+        ? t("promoList.max", { amount: formatCurrency(promo.maxDiscountAmount) })
         : '';
 
     // Hiển thị số tiền giảm thực tế (nếu có)
@@ -59,7 +61,7 @@ const PromotionListItem = ({ promo, isSelected, accentColor, onSelect }) => {
                 <div className="absolute -top-3 -right-2 z-20">
                     <span className="relative flex items-center justify-center px-3 py-1 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-md border-2 border-white animate-pulse">
                         <Trophy size={11} className="mr-1 text-yellow-300 fill-yellow-300" />
-                        LỰA CHỌN TỐT NHẤT
+                        {t("promoList.best")}
                         {/* Tam giác nhỏ tạo hiệu ứng 3D ở góc */}
                         <div className="absolute top-full right-3 w-0 h-0 border-l-[6px] border-l-transparent border-t-[6px] border-t-red-800 border-r-[0px] border-r-transparent transform -skew-x-12"></div>
                     </span>
@@ -93,7 +95,7 @@ const PromotionListItem = ({ promo, isSelected, accentColor, onSelect }) => {
                     </div>
 
                     <p className="text-gray-600 text-xs font-medium truncate mt-0.5">
-                        Giảm {discountText} {maxDiscountText}
+                        {t("promoList.discount", { amount: discountText, max: maxDiscountText })}
                     </p>
 
                     <span className="text-[10px] text-gray-400 flex items-center gap-1 mt-1">
@@ -114,7 +116,9 @@ const PromotionListItem = ({ promo, isSelected, accentColor, onSelect }) => {
 // ====================================================================
 // SUB-COMPONENT: OPTION KHÔNG DÙNG MÃ
 // ====================================================================
-const NoPromotionOption = ({ isSelected, accentColor, onSelect }) => (
+const NoPromotionOption = ({ isSelected, accentColor, onSelect }) => {
+    const { t } = useTranslation("booking");
+    return (
     <li
         className={`group relative cursor-pointer select-none py-3 pl-3 pr-9 border-l-4 border-transparent hover:bg-gray-50 mb-2
         ${isSelected ? 'bg-gray-50' : ''}`}
@@ -125,7 +129,7 @@ const NoPromotionOption = ({ isSelected, accentColor, onSelect }) => (
                 <TicketPercent size={20} />
             </div>
             <span className={`block truncate text-sm ${isSelected ? 'font-medium text-gray-900' : 'text-gray-500 italic'}`}>
-                Không dùng mã khuyến mãi
+                {t("promoList.none")}
             </span>
         </div>
         {isSelected && (
@@ -134,7 +138,8 @@ const NoPromotionOption = ({ isSelected, accentColor, onSelect }) => (
             </span>
         )}
     </li>
-);
+    );
+};
 
 // ====================================================================
 // MAIN COMPONENT (DROPDOWN)
@@ -148,12 +153,13 @@ const PromotionSelectionDropdown = ({
                                         bookingPropertyId, // ID khách sạn để lọc mã chủ sở hữu
                                         totalAmount = 0 // Nhận tổng tiền để tính toán Best Offer
                                     }) => {
+    const { t } = useTranslation("booking");
     const [promotions, setPromotions] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const isOwnerContext = filterType === 'OWNER';
     const accentColor = isOwnerContext ? 'text-purple-600' : 'text-blue-600';
-    const headerTitle = isOwnerContext ? "Ưu đãi từ Khách sạn" : "Ưu đãi từ TravelMate";
+    const headerTitle = isOwnerContext ? t("promoList.fromHotel") : t("promoList.fromTravelMate");
 
     useEffect(() => {
         if (isOpen) {
@@ -247,7 +253,7 @@ const PromotionSelectionDropdown = ({
 
             setPromotions(activePromotions);
         } catch (error) {
-            console.error("PromotionSelectionDropdown: Lỗi tải dữ liệu", error);
+            console.error("PromotionSelectionDropdown: failed to load data", error);
         } finally {
             setLoading(false);
         }
@@ -270,7 +276,7 @@ const PromotionSelectionDropdown = ({
                 {loading ? (
                     <div className="flex flex-col justify-center items-center py-8 gap-2">
                         <Spinner size="md" color={isOwnerContext ? "border-purple-600" : "border-blue-600"} />
-                        <span className="text-xs text-gray-400">Đang tìm ưu đãi tốt nhất...</span>
+                        <span className="text-xs text-gray-400">{t("promoList.searching")}</span>
                     </div>
                 ) : (
                     <ul className="space-y-1">
@@ -296,7 +302,7 @@ const PromotionSelectionDropdown = ({
                             // Empty State
                             <div className="flex flex-col items-center justify-center py-8 text-gray-400">
                                 <TicketPercent size={32} className="mb-2 opacity-50" />
-                                <p className="text-sm">Chưa có mã khuyến mãi phù hợp.</p>
+                                <p className="text-sm">{t("promoList.empty")}</p>
                             </div>
                         )}
                     </ul>

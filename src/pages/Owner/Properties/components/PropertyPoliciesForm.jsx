@@ -4,7 +4,8 @@ import {
 } from "lucide-react";
 import TextField from "@/components/common/Input/TextField";
 import TextArea from "@/components/common/Input/TextArea";
-import PolicyTimeSelector from "../AddPropertySteps/components/PolicyTimeSelector"; 
+import PolicyTimeSelector from "../AddPropertySteps/components/PolicyTimeSelector";
+import { useTranslation } from "react-i18next"; 
 
 // Component Toggle Switch
 const ToggleSwitch = ({ label, checked, onChange, icon }) => (
@@ -26,6 +27,7 @@ const ToggleSwitch = ({ label, checked, onChange, icon }) => (
 
 // ✅ COMPONENT GỌN GÀNG HƠN (Không cần xử lý initialData)
 const PropertyPoliciesForm = ({ register, watch, setValue }) => {
+  const { t } = useTranslation();
   const policies = watch("policies") || {};
 
   const handleToggle = (field) => {
@@ -35,27 +37,27 @@ const PropertyPoliciesForm = ({ register, watch, setValue }) => {
   return (
     <div className="space-y-8 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
       <h3 className="text-lg font-bold text-[rgb(40,169,224)] flex items-center gap-2 mb-4">
-        <ShieldCheck size={20} /> Thiết lập Chính sách
+        <ShieldCheck size={20} /> {t("owner:PropertyPoliciesForm.policySetup")}
       </h3>
 
       {/* 1. Thời gian */}
       <div className="space-y-4">
-         <h4 className="text-sm font-bold text-gray-700 uppercase border-b border-gray-100 pb-2">Thời gian Nhận & Trả phòng</h4>
+         <h4 className="text-sm font-bold text-gray-700 uppercase border-b border-gray-100 pb-2">{t("owner:PropertyPoliciesForm.checkInCheckOutTimes")}</h4>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <PolicyTimeSelector 
-                label="Giờ Nhận phòng" 
+                label={t("owner:PropertyPoliciesForm.checkInTime")} 
                 // React Hook Form đã có value từ cha reset xuống, watch sẽ lấy được ngay
                 value={policies.checkInTime} 
                 onChange={(val) => setValue("policies.checkInTime", val, { shouldDirty: true })} 
             />
             <PolicyTimeSelector 
-                label="Giờ Trả phòng" 
+                label={t("owner:PropertyPoliciesForm.checkOutTime")} 
                 value={policies.checkOutTime} 
                 onChange={(val) => setValue("policies.checkOutTime", val, { shouldDirty: true })} 
             />
          </div>
          <TextField 
-            label="Giờ yên lặng" 
+            label={t("owner:PropertyPoliciesForm.quietHours")} 
             placeholder="VD: 22:00 - 07:00" 
             {...register("policies.quietHours")} 
          />
@@ -63,9 +65,9 @@ const PropertyPoliciesForm = ({ register, watch, setValue }) => {
 
       {/* 2. Hủy phòng */}
       <div className="space-y-4">
-         <h4 className="text-sm font-bold text-gray-700 uppercase border-b border-gray-100 pb-2">Chính sách Hủy phòng</h4>
+         <h4 className="text-sm font-bold text-gray-700 uppercase border-b border-gray-100 pb-2">{t("owner:PropertyPoliciesForm.cancellationPolicy")}</h4>
          <ToggleSwitch 
-            label="Cho phép hủy miễn phí" 
+            label={t("owner:PropertyPoliciesForm.allowFreeCancellation")} 
             checked={policies.allowFreeCancellation} 
             onChange={() => handleToggle("allowFreeCancellation")}
             icon={<Check size={16} />}
@@ -73,13 +75,13 @@ const PropertyPoliciesForm = ({ register, watch, setValue }) => {
          {policies.allowFreeCancellation && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-xl">
                <TextField 
-                  label="Hủy trước (ngày)" 
+                  label={t("owner:PropertyPoliciesForm.cancelBeforeDays")} 
                   type="number" 
                   {...register("policies.freeCancellationDays", { valueAsNumber: true })}
                />
                <div className="md:col-span-2">
                    <TextArea 
-                      label="Mô tả chính sách hủy" 
+                      label={t("owner:PropertyPoliciesForm.cancellationPolicyDescription")} 
                       rows={2} 
                       {...register("policies.cancellationPolicyDescription")} 
                    />
@@ -90,52 +92,52 @@ const PropertyPoliciesForm = ({ register, watch, setValue }) => {
 
       {/* 3. Quy định khác */}
       <div className="space-y-4">
-         <h4 className="text-sm font-bold text-gray-700 uppercase border-b border-gray-100 pb-2">Quy định khác</h4>
+         <h4 className="text-sm font-bold text-gray-700 uppercase border-b border-gray-100 pb-2">{t("owner:PropertyPoliciesForm.otherRules")}</h4>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Hút thuốc */}
             <div className="space-y-2">
                 <ToggleSwitch 
-                    label="Cho phép hút thuốc" 
+                    label={t("owner:PropertyPoliciesForm.smokingAllowed")} 
                     checked={policies.smokingAllowed} 
                     onChange={() => handleToggle("smokingAllowed")}
                     icon={<Ban size={16} />}
                 />
                 {policies.smokingAllowed && (
-                    <TextField placeholder="Khu vực hút thuốc..." {...register("policies.smokingPolicyDescription")} />
+                    <TextField placeholder={t("owner:PropertyPoliciesForm.smokingArea")} {...register("policies.smokingPolicyDescription")} />
                 )}
             </div>
 
             {/* Thú cưng */}
             <div className="space-y-2">
                 <ToggleSwitch 
-                    label="Cho phép thú cưng" 
+                    label={t("owner:PropertyPoliciesForm.petsAllowed")} 
                     checked={policies.petsAllowed} 
                     onChange={() => handleToggle("petsAllowed")}
                     icon={<Dog size={16} />}
                 />
                 {policies.petsAllowed && (
-                    <TextField placeholder="Quy định thú cưng..." {...register("policies.petPolicyDescription")} />
+                    <TextField placeholder={t("owner:PropertyPoliciesForm.petRules")} {...register("policies.petPolicyDescription")} />
                 )}
             </div>
             
             {/* Trẻ em (Bổ sung) */}
             <div className="space-y-2 md:col-span-2">
                 <ToggleSwitch 
-                    label="Phù hợp với trẻ em" 
+                    label={t("owner:PropertyPoliciesForm.suitableForChildren")} 
                     checked={policies.childrenAllowed} 
                     onChange={() => handleToggle("childrenAllowed")}
                     icon={<Baby size={16} />}
                 />
                 <div className="grid grid-cols-2 gap-4">
                     <TextField 
-                        label="Tuổi tối thiểu" 
+                        label={t("owner:PropertyPoliciesForm.minimumAge")} 
                         type="number" 
                         {...register("policies.minimumAge", { valueAsNumber: true })} 
                     />
                     {policies.childrenAllowed && (
                         <TextField 
-                            label="Ghi chú trẻ em" 
-                            placeholder="VD: Miễn phí dưới 6 tuổi..." 
+                            label={t("owner:PropertyPoliciesForm.notesAboutChildren")} 
+                            placeholder={t("owner:PropertyPoliciesForm.eGFreeForChildren")} 
                             {...register("policies.childrenPolicyDescription")} 
                         />
                     )}

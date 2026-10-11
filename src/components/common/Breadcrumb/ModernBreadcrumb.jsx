@@ -1,8 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, Home } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const ModernBreadcrumb = ({ items }) => {
+  const { t } = useTranslation();
   return (
     <nav className="flex" aria-label="Breadcrumb">
       <ol className="inline-flex items-center space-x-1 md:space-x-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
@@ -14,7 +16,7 @@ const ModernBreadcrumb = ({ items }) => {
             className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-[rgb(40,169,224)] transition-colors"
           >
             <Home size={16} className="mr-1 mb-0.5" />
-            Trang chủ
+            {t("home")}
           </Link>
         </li>
 

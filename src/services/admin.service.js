@@ -1,4 +1,5 @@
 import api from "./axios.config.js";
+import i18n from "@/i18n";
 
 const adminService = {
   // ============================
@@ -180,7 +181,7 @@ const adminService = {
       return response.data;
     } catch (error) {
       console.error("Error fetching users:", error);
-      throw new Error(error.response?.data?.message || "Lỗi khi tải danh sách người dùng");
+      throw new Error(error.response?.data?.message || i18n.t("common:adminservice.failedToLoadUsers"));
     }
   },
 
@@ -195,7 +196,7 @@ const adminService = {
       return response.data;
     } catch (error) {
       console.error("Error updating user status:", error);
-      throw new Error(error.response?.data?.message || "Lỗi cập nhật trạng thái người dùng");
+      throw new Error(error.response?.data?.message || i18n.t("common:adminservice.failedToUpdateTheUser"));
     }
   },
 
@@ -205,7 +206,7 @@ const adminService = {
       return response.data;
     } catch (error) {
       console.error("Error deleting user:", error);
-      throw new Error(error.response?.data?.message || "Lỗi khi xóa người dùng");
+      throw new Error(error.response?.data?.message || i18n.t("common:adminservice.failedToDeleteTheUser"));
     }
   },
 };

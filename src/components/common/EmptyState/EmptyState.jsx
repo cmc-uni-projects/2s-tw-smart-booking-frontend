@@ -1,14 +1,18 @@
 import React from 'react';
+import { useTranslation } from "react-i18next";
 import { PackageOpen } from 'lucide-react'; // Icon mặc định nếu ảnh lỗi hoặc không có
 
 export default function EmptyState({ 
-  title = "Không có dữ liệu", 
-  description = "Hiện tại chưa có dữ liệu nào để hiển thị.", 
+  title,
+  description,
   imageSrc = "/assets/images/empty.png", // Ảnh mặc định của dự án bạn
   icon,     // Cho phép truyền icon Lucide thay thế ảnh
   action,   // Component nút bấm (Button) để thực hiện hành động
   className = "" 
 }) {
+  const { t } = useTranslation();
+  if (title === undefined) title = t("noData");
+  if (description === undefined) description = t("noDataDescription");
   return (
     <div className={`flex flex-col items-center justify-center py-12 px-6 text-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 ${className}`}>
       

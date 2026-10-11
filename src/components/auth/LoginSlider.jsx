@@ -1,31 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { MapPin, Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const SLIDES = [
   {
     id: 1,
     image: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?q=80&w=2668&auto=format&fit=crop",
-    title: "Khám phá vẻ đẹp bất tận",
-    location: "Vịnh Hạ Long, Quảng Ninh",
+    location: "Vịnh Hạ Long, Quảng Ninh", // i18n-ignore (place name)
     color: "from-blue-500 to-cyan-400"
   },
   {
     id: 2,
     image: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?q=80&w=2070&auto=format&fit=crop",
-    title: "Sài Gòn năng động",
-    location: "Thành phố Hồ Chí Minh",
+    location: "Thành phố Hồ Chí Minh", // i18n-ignore (place name)
     color: "from-orange-500 to-red-400"
   },
   {
     id: 3,
     image: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?q=80&w=2070&auto=format&fit=crop",
-    title: "Cầu Vàng huyền thoại",
-    location: "Đà Nẵng",
+    location: "Đà Nẵng", // i18n-ignore (place name)
     color: "from-yellow-400 to-amber-500"
   }
 ];
 
 const LoginSlider = () => {
+  const { t } = useTranslation("auth");
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
@@ -70,7 +69,7 @@ const LoginSlider = () => {
         </div>
 
         <h2 className="text-4xl font-black leading-tight mb-4 drop-shadow-xl animate-fade-in-up" key={`title-${current}`}>
-            {SLIDES[current].title}
+            {t(`slider.${SLIDES[current].id}`)}
         </h2>
 
         <div className="flex items-center gap-2 text-sm font-medium opacity-80 animate-fade-in-up delay-100" key={`loc-${current}`}>

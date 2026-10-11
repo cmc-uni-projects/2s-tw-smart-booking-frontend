@@ -11,17 +11,19 @@ import notificationService from "@/services/notification.service";
 import Toast from "@/components/common/Notification/Toast";
 import ToastPortal from "@/components/common/Notification/ToastPortal";
 import ModalPortal from "@/components/common/Modal/ModalPortal";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 // --- HELPERS ---
 const typeToVietnamese = {
-  'BOOKING_RECEIVED': 'Đơn đặt phòng mới',
-  'BOOKING_CANCELLED_BY_GUEST': 'Khách hủy phòng',
-  'REVENUE_REPORT': 'Báo cáo doanh thu',
-  'PROPERTY_SUSPENDED': 'Cảnh báo tài sản',
-  'PAYOUT_SUCCESS': 'Tiền về ví',
-  'GENERAL': 'Thông báo hệ thống',
-  'APPROVAL': 'Tin được duyệt',
-  'REJECTION': 'Tin bị từ chối'
+  get 'BOOKING_RECEIVED'() { return i18n.t("owner:OwnerNotificationsPage.newBooking"); },
+  get 'BOOKING_CANCELLED_BY_GUEST'() { return i18n.t("owner:OwnerNotificationsPage.guestCancelled"); },
+  get 'REVENUE_REPORT'() { return i18n.t("owner:OwnerNotificationsPage.revenueReport"); },
+  get 'PROPERTY_SUSPENDED'() { return i18n.t("owner:OwnerNotificationsPage.propertyWarning"); },
+  get 'PAYOUT_SUCCESS'() { return i18n.t("owner:OwnerNotificationsPage.payoutReceived"); },
+  get 'GENERAL'() { return i18n.t("owner:OwnerNotificationsPage.systemNotification"); },
+  get 'APPROVAL'() { return i18n.t("owner:OwnerNotificationsPage.listingApproved"); },
+  get 'REJECTION'() { return i18n.t("owner:OwnerNotificationsPage.listingRejected"); }
 };
 
 const formatFullDateTime = (dateString) => {
@@ -36,14 +38,14 @@ const formatTime = (dateString) => {
 };
 
 const formatDateGroup = (dateString) => {
-  if (!dateString) return "Khác";
+  if (!dateString) return i18n.t("owner:OwnerNotificationsPage.other");
   const date = new Date(dateString);
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
 
-  if (date.toDateString() === today.toDateString()) return "Hôm nay";
-  if (date.toDateString() === yesterday.toDateString()) return "Hôm qua";
+  if (date.toDateString() === today.toDateString()) return i18n.t("owner:OwnerNotificationsPage.today");
+  if (date.toDateString() === yesterday.toDateString()) return i18n.t("owner:OwnerNotificationsPage.yesterday");
   return date.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
@@ -66,6 +68,7 @@ const getNotificationStyle = (type) => {
 };
 
 const OwnerNotificationsPage = () => {
+  const { t } = useTranslation();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -122,8 +125,8 @@ const OwnerNotificationsPage = () => {
     try {
       await notificationService.markAllAsRead('OWNER');
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true, read: true })));
-      showToast("Đã đánh dấu tất cả là đã đọc", "success");
-    } catch (e) { showToast("Lỗi hệ thống", "error"); }
+      showToast(t("owner:OwnerNotificationsPage.markedAllAsRead"), "success");
+    } catch (e) { showToast(t("owner:OwnerNotificationsPage.systemError"), "error"); }
   };
 
   const handleMarkRead = async (noti) => {
@@ -143,7 +146,7 @@ const OwnerNotificationsPage = () => {
     if (!notificationToDelete) return;
     setNotifications(prev => prev.filter(n => n.id !== notificationToDelete));
     setNotificationToDelete(null);
-    showToast("Đã ẩn thông báo", "success");
+    showToast(t("owner:OwnerNotificationsPage.notificationHidden"), "success");
   };
 
   // --- FILTER ---
@@ -193,8 +196,8 @@ const OwnerNotificationsPage = () => {
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">Thông báo</h1>
-              <p className="text-gray-500 text-sm">Cập nhật hoạt động kinh doanh</p>
+              <h1 className="text-2xl font-bold text-gray-800">{t("owner:OwnerNotificationsPage.notifications")}</h1>
+              <p className="text-gray-500 text-sm">{t("owner:OwnerNotificationsPage.businessActivityUpdates")}</p>
             </div>
             
             <div className="flex gap-2">
@@ -202,13 +205,13 @@ const OwnerNotificationsPage = () => {
                     onClick={() => setShowUnreadOnly(!showUnreadOnly)}
                     className={`px-3 py-2 rounded-lg text-sm border flex items-center gap-2 transition ${showUnreadOnly ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white hover:bg-gray-50'}`}
                 >
-                    <Filter size={16} /> {showUnreadOnly ? 'Đang lọc: Chưa đọc' : 'Lọc: Chưa đọc'}
+                    <Filter size={16} /> {showUnreadOnly ? t("owner:OwnerNotificationsPage.filteringUnread") : t("owner:OwnerNotificationsPage.filterUnread")}
                 </button>
                 <button 
                     onClick={handleMarkAllRead}
                     className="px-3 py-2 bg-white border rounded-lg text-sm hover:bg-gray-50 flex items-center gap-2"
                 >
-                    <Check size={16} /> Đọc tất cả
+                    <Check size={16} /> {t("owner:OwnerNotificationsPage.readAll")}
                 </button>
             </div>
           </div>
@@ -216,7 +219,7 @@ const OwnerNotificationsPage = () => {
           {/* Filter Tabs */}
           <div className="bg-white rounded-xl shadow-sm border p-1 mb-6 flex flex-col md:flex-row gap-2">
             <div className="flex p-1 gap-1 overflow-x-auto flex-1">
-                {[{id:'ALL',l:'Tất cả'}, {id:'BOOKING',l:'Đặt phòng'}, {id:'MONEY',l:'Tài chính'}, {id:'SYSTEM',l:'Hệ thống'}].map(t => (
+                {[{id:'ALL',l:t("owner:OwnerNotificationsPage.all")}, {id:'BOOKING',l:t("owner:OwnerNotificationsPage.bookings")}, {id:'MONEY',l:t("owner:OwnerNotificationsPage.finance")}, {id:'SYSTEM',l:t("owner:OwnerNotificationsPage.system")}].map(t => (
                     <button
                         key={t.id}
                         onClick={() => setFilterType(t.id)}
@@ -231,7 +234,7 @@ const OwnerNotificationsPage = () => {
             <div className="relative p-1 md:w-64">
                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input 
-                    type="text" placeholder="Tìm kiếm..." 
+                    type="text" placeholder={t("owner:OwnerNotificationsPage.search")} 
                     className="w-full pl-9 pr-3 py-2 bg-gray-50 border-transparent focus:bg-white focus:border-gray-300 rounded-lg text-sm outline-none border transition"
                     value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
                 />
@@ -240,11 +243,11 @@ const OwnerNotificationsPage = () => {
 
           {/* List */}
           {loading ? (
-            <div className="text-center py-20 text-gray-500">Đang tải...</div>
+            <div className="text-center py-20 text-gray-500">{t("owner:OwnerNotificationsPage.loading")}</div>
           ) : !hasData ? (
             <div className="text-center py-16 bg-white rounded-xl border border-dashed">
                 <Bell size={32} className="text-gray-300 mx-auto mb-2" />
-                <p className="text-gray-500">Không có thông báo nào</p>
+                <p className="text-gray-500">{t("owner:OwnerNotificationsPage.noNotifications")}</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -283,7 +286,7 @@ const OwnerNotificationsPage = () => {
                             {openMenuId === noti.id && (
                                 <div className="absolute right-10 top-8 w-32 bg-white border shadow-lg rounded-lg z-20 py-1">
                                     <button onClick={(e) => promptDelete(e, noti.id)} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
-                                        <Trash2 size={14} /> Xóa
+                                        <Trash2 size={14} /> {t("owner:OwnerNotificationsPage.delete")}
                                     </button>
                                 </div>
                             )}
@@ -323,7 +326,7 @@ const OwnerNotificationsPage = () => {
                             </div>
                             <div>
                                 <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">
-                                    {typeToVietnamese[selectedNoti.type] || 'Thông báo'}
+                                    {typeToVietnamese[selectedNoti.type] || t("owner:OwnerNotificationsPage.notifications")}
                                 </p>
                                 <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
                                     <Clock size={12} /> {formatFullDateTime(selectedNoti.createdAt)}
@@ -339,7 +342,7 @@ const OwnerNotificationsPage = () => {
 
                         {selectedNoti.relatedEntityId && (
                             <div className="flex items-center justify-between text-xs text-gray-500 border-t pt-4 mb-4">
-                                <span>Mã tham chiếu:</span>
+                                <span>{t("owner:OwnerNotificationsPage.reference")}</span>
                                 <span className="font-mono font-medium bg-gray-100 px-2 py-0.5 rounded">#{selectedNoti.relatedEntityId}</span>
                             </div>
                         )}
@@ -349,7 +352,7 @@ const OwnerNotificationsPage = () => {
                                 onClick={() => setSelectedNoti(null)} 
                                 className="flex-1 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition"
                             >
-                                Đóng
+                                {t("owner:OwnerNotificationsPage.close")}
                             </button>
 
                             {(selectedNoti.type === 'BOOKING_RECEIVED' || selectedNoti.type === 'BOOKING_CANCELLED_BY_GUEST') && (
@@ -385,20 +388,20 @@ const OwnerNotificationsPage = () => {
                         <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
                             <Trash2 size={24} className="text-red-600" />
                         </div>
-                        <h2 className="text-lg font-bold mb-2 text-gray-900">Ẩn thông báo này?</h2>
-                        <p className="text-gray-500 mb-6 text-sm">Thông báo sẽ bị ẩn khỏi danh sách hiển thị.</p>
+                        <h2 className="text-lg font-bold mb-2 text-gray-900">{t("owner:OwnerNotificationsPage.hideThisNotification")}</h2>
+                        <p className="text-gray-500 mb-6 text-sm">{t("owner:OwnerNotificationsPage.theNotificationWillBeHidden")}</p>
                         <div className="flex justify-center gap-3 w-full">
                             <button 
                                 onClick={() => setNotificationToDelete(null)} 
                                 className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition"
                             >
-                                Huỷ
+                                {t("owner:OwnerNotificationsPage.cancel")}
                             </button>
                             <button 
                                 onClick={handleDeleteConfirm} 
                                 className="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition"
                             >
-                                Ẩn ngay
+                                {t("owner:OwnerNotificationsPage.hideNow")}
                             </button>
                         </div>
                     </div>

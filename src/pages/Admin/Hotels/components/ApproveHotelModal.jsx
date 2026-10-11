@@ -1,24 +1,26 @@
 // src/pages/Admin/HotelSubmissions/components/ApproveHotelModal.jsx
 import React from "react";
 import ConfirmModal from "@/components/common/Modal/ConfirmModal";
+import { useTranslation } from "react-i18next";
 
 const ApproveHotelModal = ({ open, onClose, onConfirm, application }) => {
+  const { t } = useTranslation();
   return (
     <ConfirmModal
       open={open}
       type="success"
-      title="Phê duyệt cơ sở"
+      title={t("admin:ApproveHotelModal.approveProperty")}
       message={
         <>
-          Bạn có chắc chắn muốn phê duyệt cơ sở{" "}
+          {t("admin:ApproveHotelModal.areYouSureYouWant")}{" "}
           <span className="font-semibold text-gray-800">
             {application?.hotelName}
           </span>
           ?
         </>
       }
-      confirmText="Phê duyệt"
-      cancelText="Hủy"
+      confirmText={t("admin:ApproveHotelModal.approve")}
+      cancelText={t("admin:ApproveHotelModal.cancel")}
       onConfirm={onConfirm}
       onClose={onClose}
     />

@@ -5,6 +5,7 @@ import TextField from "@/components/common/Input/TextField";
 import Button from "@/components/common/Button/Button";
 import { Save, X } from "lucide-react";
 import { authService } from "@/services/auth.service";
+import { useTranslation } from "react-i18next";
 
 const initialFormState = {
   currentPassword: "",
@@ -14,6 +15,7 @@ const initialFormState = {
 
 
 export default function ChangePassword() {
+  const { t } = useTranslation(["profile", "common"]);
   const [formData, setFormData] = useState(initialFormState);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -38,7 +40,7 @@ export default function ChangePassword() {
     setSuccess(false);
 
     if (formData.newPassword !== formData.confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp.");
+      setError(t("password.mismatch"));
       return;
     }
 
@@ -58,7 +60,7 @@ export default function ChangePassword() {
       console.error(err);
       const msg =
         err.response?.data?.message ||
-        "Đổi mật khẩu thất bại. Kiểm tra lại mật khẩu cũ.";
+        t("password.failed");
       setError(msg);
     } finally {
       setLoading(false);
@@ -72,11 +74,11 @@ export default function ChangePassword() {
     <Card>
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
         <h3 className="text-xl font-semibold mb-4 text-gray-800">
-          Đổi mật khẩu
+          {t("password.title")}
         </h3>
 
         <TextField
-          label="Mật khẩu hiện tại"
+          label={t("password.current")}
           name="currentPassword"
           type="password"
           value={formData.currentPassword}
@@ -84,7 +86,7 @@ export default function ChangePassword() {
           required
         />
         <TextField
-          label="Mật khẩu mới (Tối thiểu 8 ký tự)"
+          label={t("password.new")}
           name="newPassword"
           type="password"
           value={formData.newPassword}
@@ -92,7 +94,7 @@ export default function ChangePassword() {
           required
         />
         <TextField
-          label="Xác nhận mật khẩu mới"
+          label={t("password.confirm")}
           name="confirmPassword"
           type="password"
           value={formData.confirmPassword}
@@ -103,7 +105,7 @@ export default function ChangePassword() {
         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
         {success && (
           <p className="text-green-500 text-sm mt-2">
-            ✅ Mật khẩu đã được thay đổi thành công!
+            {t("password.changed")}
           </p>
         )}
 
@@ -114,7 +116,7 @@ export default function ChangePassword() {
             isLoading={loading}
             disabled={loading || !isDirty}
           >
-            Lưu mật khẩu
+            {t("password.save")}
           </Button>
 
           {isDirty && (
@@ -124,7 +126,7 @@ export default function ChangePassword() {
               leftIcon={<X size={16} />}
               onClick={handleCancel}
             >
-              Hủy
+              {t("common:actions.cancel")}
             </Button>
           )}
         </div>

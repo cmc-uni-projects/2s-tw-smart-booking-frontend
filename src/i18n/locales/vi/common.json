@@ -1,0 +1,217 @@
+{
+  "actions": {
+    "cancel": "Hủy",
+    "seeAll": "Xem tất cả",
+    "exploreNow": "Khám phá ngay",
+    "apply": "Áp dụng",
+    "close": "Đóng",
+    "search": "Tìm kiếm",
+    "back": "Quay lại",
+    "reset": "Đặt lại",
+    "viewDetails": "Xem chi tiết",
+    "confirm": "Xác nhận",
+    "cancelLong": "Hủy bỏ",
+    "done": "Hoàn tất",
+    "save": "Lưu",
+    "add": "Thêm"
+  },
+  "rank": {
+    "BRONZE": "Hạng Đồng",
+    "SILVER": "Hạng Bạc",
+    "GOLD": "Hạng Vàng",
+    "DIAMOND": "Hạng Kim Cương"
+  },
+  "points_one": "{{count}} điểm",
+  "points_other": "{{count}} điểm",
+  "customer": "Khách hàng",
+  "loading": "Đang tải...",
+  "time": {
+    "justNow": "Vừa xong",
+    "minutesAgo": "{{count}} phút trước",
+    "hoursAgo": "{{count}} giờ trước",
+    "days": "Ngày",
+    "hours": "Giờ",
+    "minutes": "Phút",
+    "seconds": "Giây",
+    "yearsAgo": "{{count}} năm trước",
+    "monthsAgo": "{{count}} tháng trước",
+    "daysAgo": "{{count}} ngày trước",
+    "secondsAgo": "Vài giây trước"
+  },
+  "vietnam": "Việt Nam",
+  "processing": "Đang xử lý...",
+  "loadingMore": "Đang tải thêm...",
+  "perNight": "/đêm",
+  "contact": "Liên hệ",
+  "errorPrefix": "Lỗi: ",
+  "nights_one": "{{count}} đêm",
+  "nights_other": "{{count}} đêm",
+  "checkIn": "Nhận phòng",
+  "checkOut": "Trả phòng",
+  "weekday": "Ngày thường",
+  "weekend": "Cuối tuần",
+  "pleaseWait": "Vui lòng đợi giây lát...",
+  "updating": "Đang cập nhật...",
+  "guests_one": "{{count}} khách",
+  "guests_other": "{{count}} khách",
+  "included": "Đã bao gồm",
+  "total": "Tổng cộng",
+  "rankShort": {
+    "BRONZE": "Đồng",
+    "SILVER": "Bạc",
+    "GOLD": "Vàng",
+    "DIAMOND": "Kim Cương"
+  },
+  "noExpiry": "Vô thời hạn",
+  "home": "Trang chủ",
+  "reviews": "({{count}} đánh giá)",
+  "pricePerNight": "Giá phòng / đêm",
+  "taxIncluded": "Đã bao gồm thuế & phí",
+  "viewRooms": "Xem phòng",
+  "noItems": "Không có mục",
+  "noOptions": "Không có lựa chọn",
+  "noData": "Không có dữ liệu",
+  "noDataDescription": "Hiện tại chưa có dữ liệu nào để hiển thị.",
+  "noDataTable": "Không có dữ liệu để hiển thị",
+  "loadingData": "Đang tải dữ liệu...",
+  "loadingShort": "Đang tải",
+  "notice": "Thông báo",
+  "choose": "Chọn...",
+  "chooseItem": "Chọn một mục...",
+  "searchPlaceholder": "Tìm kiếm địa điểm, khách sạn...",
+  "dateRange": "Khoảng ngày",
+  "password": "Mật khẩu",
+  "confirmPassword": "Xác nhận mật khẩu",
+  "passwordMismatch": "Mật khẩu xác nhận không khớp.",
+  "confirm": {
+    "title": "Xác nhận hành động",
+    "message": "Bạn có chắc chắn muốn tiếp tục?"
+  },
+  "pagination": {
+    "showing": "Hiển thị <b>{{shown}}</b> / <b>{{total}}</b> kết quả",
+    "goTo": "Đi đến:",
+    "prev": "Trước",
+    "next": "Sau",
+    "page": "Trang {{page}} / {{total}}"
+  },
+  "upload": {
+    "preview": "Xem trước",
+    "remove": "Xóa file",
+    "prompt": "<b>Nhấn để tải lên</b> hoặc kéo thả",
+    "formats": "JPG, PNG hoặc WEBP",
+    "cover": "ẢNH BÌA",
+    "addPhoto": "Thêm ảnh"
+  },
+  "toggle": {
+    "active": "Đang kích hoạt (Hiển thị)",
+    "inactive": "Đã vô hiệu hóa (Ẩn)"
+  },
+  "accountReview": {
+    "title": "Thiết lập thành công!",
+    "text": "Tài khoản của bạn đã được bảo mật. Bây giờ bạn có thể đăng nhập bằng Email và Mật khẩu.",
+    "account": "Tài khoản",
+    "loginEmail": "Email đăng nhập",
+    "security": "Trạng thái bảo mật",
+    "passwordEnabled": "Đã kích hoạt mật khẩu"
+  },
+  "createPassword": {
+    "title": "Tạo mật khẩu",
+    "weak": "Mật khẩu chưa đủ mạnh.",
+    "error": "Có lỗi xảy ra.",
+    "loginEmail": "Email đăng nhập",
+    "newPassword": "Mật khẩu mới",
+    "placeholder": "Nhập mật khẩu...",
+    "confirmPlaceholder": "Nhập lại mật khẩu...",
+    "rules": {
+      "length": "Tối thiểu 8 ký tự",
+      "upper": "Chữ in hoa (A-Z)",
+      "lower": "Chữ thường (a-z)",
+      "number": "Số (0-9)",
+      "special": "Ký tự đặc biệt (!@#...)"
+    }
+  },
+  "suspend": {
+    "reasonRequired": "Vui lòng nhập lý do dừng hoạt động.",
+    "title": "Xác nhận dừng hoạt động",
+    "text": "Bạn đang thực hiện dừng hoạt động: <b>{{name}}</b>.",
+    "emailNotice": "Hành động này sẽ gửi email thông báo cho chủ sở hữu.",
+    "reason": "Lý do dừng hoạt động",
+    "placeholder": "Nhập lý do chi tiết (VD: Vi phạm chính sách, nợ phí...)",
+    "confirm": "Xác nhận Dừng"
+  },
+  "bookingStatus": {
+    "PENDING_PAYMENT": "Chờ thanh toán",
+    "CONFIRMED": "Đã xác nhận",
+    "CHECKED_IN": "Đang lưu trú",
+    "COMPLETED": "Hoàn thành",
+    "CANCELLED": "Đã hủy"
+  },
+  "paymentStatus": {
+    "UNPAID": "Chưa thanh toán",
+    "PAID": "Đã thanh toán",
+    "REFUNDED": "Đã hoàn tiền",
+    "REFUND_REQUESTED": "Chờ hoàn tiền"
+  },
+  "notUpdated": "Chưa cập nhật",
+  "CustomerRoutes": {
+    "exploreOnTheMap": "Khám phá trên bản đồ"
+  },
+  "userservice": {
+    "theUploadApiDidNot": "API upload không trả về URL hợp lệ"
+  },
+  "ComponentsPreview": {
+    "fullName": "Họ tên",
+    "role": "Vai trò",
+    "status": "Trạng thái",
+    "nguyenVanA": "Nguyễn Văn A",
+    "customer": "Khách hàng",
+    "approved": "Đã duyệt",
+    "tranThiB": "Trần Thị B",
+    "hotelOwner": "Chủ khách sạn",
+    "pending": "Đang chờ",
+    "book": "Đặt phòng",
+    "continue": "Tiếp tục",
+    "processing": "Đang xử lý",
+    "description": "Mô tả",
+    "searchHotelsPlaces": "Tìm kiếm khách sạn, địa điểm...",
+    "arrivalDate": "Ngày đến",
+    "checkInTime": "Giờ nhận phòng",
+    "roomType": "Loại phòng",
+    "singleRoom": "Phòng đơn",
+    "doubleRoom": "Phòng đôi",
+    "noIcon": "Không icon",
+    "systemInformationIsBeingUpdated": "Thông tin hệ thống đang cập nhật...",
+    "actionCompleted": "Thao tác thành công!",
+    "somethingWentWrongPleaseTry": "Có lỗi xảy ra, vui lòng thử lại!",
+    "requiredInformationIsMissing": "Thiếu thông tin bắt buộc!",
+    "openInfoModal": "Mở modal thông tin",
+    "openMainModal": "Mở Modal Chính",
+    "confirmAction": "Xác nhận hành động",
+    "openConfirmmodal": "Mở ConfirmModal",
+    "deleteHotel": "Xóa khách sạn?",
+    "areYouSureYouWant": "Bạn có chắc chắn muốn xóa Sunrise Resort khỏi danh sách?",
+    "delete": "Xóa",
+    "cancel": "Hủy",
+    "deletedSuccessfully": "Đã xóa thành công!",
+    "noData": "Không có dữ liệu",
+    "pleaseTryAgainLaterOr": "Vui lòng thử lại sau hoặc chọn bộ lọc khác.",
+    "showLoadingoverlay": "Hiện LoadingOverlay",
+    "processingBooking": "Đang xử lý đặt phòng...",
+    "hotel": "Khách sạn",
+    "actions": "Thao tác",
+    "viewDetails": "Xem chi tiết",
+    "copyCode": "Sao chép mã"
+  },
+  "adminservice": {
+    "failedToLoadUsers": "Lỗi khi tải danh sách người dùng",
+    "failedToUpdateTheUser": "Lỗi cập nhật trạng thái người dùng",
+    "failedToDeleteTheUser": "Lỗi khi xóa người dùng"
+  },
+  "ownerservice": {
+    "applicationSubmissionFailed": "Gửi đơn thất bại",
+    "couldNotConnectToThe": "Không thể kết nối máy chủ"
+  },
+  "paymentservice": {
+    "couldNotLoadTransactionData": "Không thể tải dữ liệu giao dịch"
+  }
+}

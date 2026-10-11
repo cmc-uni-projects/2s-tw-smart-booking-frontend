@@ -1,7 +1,9 @@
 import React from "react";
 import { Trophy } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const TopHotels = ({ hotels }) => {
+  const { t } = useTranslation();
   const formatMoney = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(val);
 
   return (
@@ -26,7 +28,7 @@ const TopHotels = ({ hotels }) => {
 
             <div className="flex-1 min-w-0">
               <h4 className="text-sm font-semibold text-gray-800 truncate">{hotel.name}</h4>
-              <p className="text-xs text-gray-500">{hotel.bookings} đơn đặt phòng</p>
+              <p className="text-xs text-gray-500">{t("admin:TopHotels.bookings", { bookings: hotel.bookings })}</p>
             </div>
 
             <div className="text-right">
@@ -34,7 +36,7 @@ const TopHotels = ({ hotels }) => {
             </div>
           </div>
         ))}
-        {(!hotels || hotels.length === 0) && <p className="text-center text-gray-400 py-10">Chưa có dữ liệu</p>}
+        {(!hotels || hotels.length === 0) && <p className="text-center text-gray-400 py-10">{t("admin:TopHotels.noDataYet")}</p>}
       </div>
     </div>
   );

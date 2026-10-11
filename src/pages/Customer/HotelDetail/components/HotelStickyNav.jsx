@@ -1,6 +1,8 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 const HotelStickyNav = ({ activeSection, onReviewClick }) => {
+  const { t } = useTranslation("hotel");
   
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
@@ -19,10 +21,10 @@ const HotelStickyNav = ({ activeSection, onReviewClick }) => {
   };
 
   const navItems = [
-    { id: "overview", label: "Tổng quan" },
-    { id: "rooms", label: "Phòng nghỉ" },
-    { id: "policies", label: "Chính sách" },
-    { id: "reviews", label: "Đánh giá" },
+    { id: "overview", label: t("nav.overview") },
+    { id: "rooms", label: t("nav.rooms") },
+    { id: "policies", label: t("nav.policies") },
+    { id: "reviews", label: t("nav.reviews") },
   ];
 
   return (

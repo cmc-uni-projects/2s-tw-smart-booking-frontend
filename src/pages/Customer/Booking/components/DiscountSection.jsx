@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Card from '@/components/common/Card/Card';
 import { Tag, TicketPercent, X, ShieldCheck, Store, ChevronDown, Calculator, ArrowRight, Coins } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import PromotionSelectionDropdown from './PromotionSelectionModal';
 
 // Đường dẫn Public Path
@@ -14,20 +15,24 @@ const formatMoney = (val) => new Intl.NumberFormat('vi-VN').format(val);
 // ====================================================================
 // COMPONENT: NÚT GỠ BỎ
 // ====================================================================
-const PromoSlotRemoveButton = ({ onRemove }) => (
+const PromoSlotRemoveButton = ({ onRemove }) => {
+    const { t } = useTranslation("booking");
+    return (
     <button
         onClick={(e) => { e.stopPropagation(); onRemove(); }}
         className="p-1.5 hover:bg-red-50 rounded-full text-gray-400 hover:text-red-500 transition-colors shrink-0"
-        title="Gỡ bỏ"
+        title={t("discount.remove")}
     >
         <X size={16} />
     </button>
-);
+    );
+};
 
 // ====================================================================
 // COMPONENT: HIỂN THỊ SLOT MÃ
 // ====================================================================
 const PromoSlotDisplay = ({ promo, icon: Icon, colorClass, emptyText, onClick, isDropdownOpen, isAdminPromo }) => {
+    const { t } = useTranslation("booking");
     const ICON_SIZE_CLASS = "w-12 h-12";
 
     if (promo) {
@@ -39,7 +44,7 @@ const PromoSlotDisplay = ({ promo, icon: Icon, colorClass, emptyText, onClick, i
                     </div>
                     <div className="min-w-0">
                         <p className={`text-sm font-bold ${colorClass.replace('bg-', 'text-')}`}>{promo.code}</p>
-                        <p className="text-xs text-gray-500 truncate">{promo.description || "Đã áp dụng mã ưu đãi"}</p>
+                        <p className="text-xs text-gray-500 truncate">{promo.description || t("discount.appliedDefault")}</p>
                     </div>
                 </div>
             </div>
@@ -57,7 +62,7 @@ const PromoSlotDisplay = ({ promo, icon: Icon, colorClass, emptyText, onClick, i
                 </div>
                 <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-600">{emptyText}</p>
-                    <p className="text-xs text-gray-400">Bấm để chọn mã giảm giá</p>
+                    <p className="text-xs text-gray-400">{t("discount.clickToChoose")}</p>
                 </div>
             </div>
             <ChevronDown size={18} className={`text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-gray-600' : ''}`} />
@@ -109,9 +114,10 @@ const DiscountSection = ({
                              totalAmount = 0,
                              promoOrder = []
                          }) => {
+    const { t } = useTranslation("booking");
 
-    const adminPromoDisplay = selectedAdminCode ? { code: selectedAdminCode, description: `Giảm ${formatMoney(adminDiscount)}₫` } : null;
-    const ownerPromoDisplay = selectedOwnerCode ? { code: selectedOwnerCode, description: `Giảm ${formatMoney(ownerDiscount)}₫` } : null;
+    const adminPromoDisplay = selectedAdminCode ? { code: selectedAdminCode, description: t("discount.minus", { amount: formatMoney(adminDiscount) }) } : null;
+    const ownerPromoDisplay = selectedOwnerCode ? { code: selectedOwnerCode, description: t("discount.minus", { amount: formatMoney(ownerDiscount) }) } : null;
 
     // --- LOGIC TÍNH TOÁN STEP-BY-STEP (Đã cập nhật) ---
     const renderStepByStepCalculation = () => {
@@ -121,7 +127,7 @@ const DiscountSection = ({
             return (
                 <div className="mt-6 pt-4 border-t border-gray-100">
                     <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-500">Giá gốc đơn hàng</span>
+                        <span className="text-sm font-medium text-gray-500">{t("discount.originalOrder")}</span>
                         <span className="font-bold text-gray-800">{formatMoney(totalAmount)}₫</span>
                     </div>
                 </div>
@@ -134,7 +140,7 @@ const DiscountSection = ({
         // 1. Dòng giá gốc
         steps.push(
             <div key="base" className="flex justify-between items-center text-sm text-gray-500 mb-2">
-                <span>Giá gốc:</span>
+                <span>{t("discount.original")}</span>
                 <span className="line-through">{formatMoney(totalAmount)}₫</span>
             </div>
         );
@@ -147,11 +153,11 @@ const DiscountSection = ({
 
             if (type === 'ADMIN' && adminDiscount > 0) {
                 discountAmount = adminDiscount;
-                label = `Mã TravelMate (${selectedAdminCode})`;
+                label = t("discount.adminCode", { code: selectedAdminCode });
                 color = "text-blue-600";
             } else if (type === 'OWNER' && ownerDiscount > 0) {
                 discountAmount = ownerDiscount;
-                label = `Mã Khách Sạn (${selectedOwnerCode})`;
+                label = t("discount.ownerCode", { code: selectedOwnerCode });
                 color = "text-purple-600";
             }
 
@@ -172,7 +178,7 @@ const DiscountSection = ({
                 steps.push(
                     <div key={`${type}-sub`} className="flex justify-between items-center text-sm font-semibold text-gray-600 border-b border-dashed border-gray-200 py-2 mb-1 bg-gray-50/50 px-2 rounded">
                         <span className="flex items-center gap-1 text-xs uppercase tracking-wide">
-                            <ArrowRight size={12}/> Còn lại:
+                            <ArrowRight size={12}/> {t("discount.remaining")}
                         </span>
                         <span>{formatMoney(currentPrice)}₫</span>
                     </div>
@@ -182,7 +188,7 @@ const DiscountSection = ({
 
         return (
             <div className="mt-6 bg-gray-50 rounded-xl p-4 border border-gray-200">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Chi tiết thanh toán</h4>
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{t("discount.details")}</h4>
                 <div className="space-y-1">
                     {steps}
                 </div>
@@ -191,7 +197,7 @@ const DiscountSection = ({
                 <div className="border-t border-gray-200 mt-3 pt-3 flex justify-between items-center">
                     <span className="font-bold text-gray-800 flex items-center gap-2">
                         <Calculator size={18} className="text-blue-600"/>
-                        Cần thanh toán:
+                        {t("discount.toPay")}
                     </span>
                     <span className="text-2xl font-extrabold text-blue-600">
                         {formatMoney(currentPrice)}₫
@@ -205,11 +211,11 @@ const DiscountSection = ({
         <Card className="p-5 border border-gray-200 shadow-sm rounded-xl bg-white">
             <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
                 <div className="bg-blue-100 p-1.5 rounded-md"><Tag size={18} className="text-blue-600" /></div>
-                <h3 className="font-bold text-lg text-gray-800">Mã ưu đãi & Khuyến mãi</h3>
+                <h3 className="font-bold text-lg text-gray-800">{t("discount.title")}</h3>
             </div>
 
             <PromoSlotContainer
-                title="TravelMate Voucher" icon={ShieldCheck} colorClass="text-blue-600 bg-blue-600" emptyText="Chọn mã ưu đãi từ hệ thống"
+                title="TravelMate Voucher" icon={ShieldCheck} colorClass="text-blue-600 bg-blue-600" emptyText={t("discount.adminSlotEmpty")}
                 promo={adminPromoDisplay} onSelect={onApplyAdmin} onRemove={() => onApplyAdmin(null)}
                 filterType={'ADMIN'} logoUrl={TRAVEL_MATE_LOGO_PUBLIC_PATH} totalAmount={totalAmount}
             />
@@ -217,7 +223,7 @@ const DiscountSection = ({
             <div className="my-4 border-t border-dashed border-gray-200" />
 
             <PromoSlotContainer
-                title="Voucher Khách Sạn" icon={Store} colorClass="text-purple-600 bg-purple-600" emptyText="Chọn mã ưu đãi của khách sạn"
+                title={t("discount.ownerSlotTitle")} icon={Store} colorClass="text-purple-600 bg-purple-600" emptyText={t("discount.ownerSlotEmpty")}
                 promo={ownerPromoDisplay} onSelect={onApplyOwner} onRemove={() => onApplyOwner(null)}
                 filterType={'OWNER'} bookingPropertyId={bookingPropertyId} totalAmount={totalAmount}
             />

@@ -8,8 +8,10 @@ import { useAuth } from "../../context/AuthContext";
 import { userService } from "../../services/user.service"; // ✅ Import service
 import Avatar from "../../components/common/Avatar/Avatar";
 import ConfirmModal from "../../components/common/Modal/ConfirmModal";
+import { useTranslation } from "react-i18next";
 
 const AdminProfileDropdown = () => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   
@@ -60,7 +62,7 @@ const AdminProfileDropdown = () => {
   const adminTheme = {
     gradient: "from-indigo-600 to-purple-600",
     icon: <ShieldCheck size={16} className="text-purple-100" />,
-    label: "Quản trị hệ thống"
+    label: t("admin:AdminProfileDropdown.systemAdministration")
   };
 
   // Ưu tiên lấy ảnh từ API chi tiết (profilePhotoUrl) rồi mới đến avatar từ context
@@ -145,7 +147,7 @@ const AdminProfileDropdown = () => {
                         <User size={18} />
                     </div>
                     <div className="flex-1">
-                        <span className="font-medium text-sm">Hồ sơ cá nhân</span>
+                        <span className="font-medium text-sm">{t("admin:AdminProfileDropdown.profile")}</span>
                     </div>
                     <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
                 </Link>
@@ -159,7 +161,7 @@ const AdminProfileDropdown = () => {
                         <Settings size={18} />
                     </div>
                     <div className="flex-1">
-                        <span className="font-medium text-sm">Cài đặt hệ thống</span>
+                        <span className="font-medium text-sm">{t("admin:AdminProfileDropdown.systemSettings")}</span>
                     </div>
                     <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
                 </Link>
@@ -173,7 +175,7 @@ const AdminProfileDropdown = () => {
                     <div className="p-2 bg-red-50 text-red-500 rounded-full group-hover:bg-red-100 transition-colors">
                         <LogOut size={18} />
                     </div>
-                    <span className="font-medium text-sm">Đăng xuất</span>
+                    <span className="font-medium text-sm">{t("admin:AdminProfileDropdown.logOut")}</span>
                 </button>
             </div>
           </div>
@@ -185,11 +187,11 @@ const AdminProfileDropdown = () => {
         open={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
         onConfirm={handleLogout}
-        title="Xác nhận Đăng xuất"
-        message="Bạn có chắc chắn muốn đăng xuất khỏi trang quản trị?"
+        title={t("admin:AdminProfileDropdown.confirmLogout")}
+        message={t("admin:AdminProfileDropdown.areYouSureYouWant")}
         type="danger"
-        confirmText="Đăng xuất"
-        cancelText="Hủy"
+        confirmText={t("admin:AdminProfileDropdown.logOut")}
+        cancelText={t("admin:AdminProfileDropdown.cancel")}
       />
     </>
   );

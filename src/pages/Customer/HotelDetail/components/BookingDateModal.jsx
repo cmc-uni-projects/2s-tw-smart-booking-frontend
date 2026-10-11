@@ -3,7 +3,8 @@ import Modal from "@/components/common/Modal/Modal";
 import Button from "@/components/common/Button/Button";
 import { Info, CalendarDays, ArrowRight, Check, TrendingUp, Sparkles, AlertCircle } from "lucide-react"; // ✅ Import thêm AlertCircle
 import { DateRange } from 'react-date-range';
-import { vi } from 'date-fns/locale';
+import { useTranslation, Trans } from 'react-i18next';
+import { useDateFnsLocale } from '@/i18n/dateLocale';
 import { addDays, differenceInCalendarDays, format, getDay } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from 'recharts';
 
@@ -14,6 +15,8 @@ import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 
 const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], selectedRoomId, roomPrice: initialRoomPrice, weekendPrice }) => {
+    const { t, i18n } = useTranslation(["hotel", "common"]);
+    const vi = useDateFnsLocale(); // name kept: used as `locale` below
 
     // --- 1. Logic Khởi tạo & Fallback ---
     const standardPrice = Number(initialRoomPrice) || 0;
@@ -96,7 +99,7 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
 
                         return {
                             date: dateObj,
-                            dayName: format(dateObj, "EEEE", { locale: vi }).replace("Thứ ", "T"),
+                            dayName: format(dateObj, i18n.resolvedLanguage === "vi" ? "EEEE" : "EEE", { locale: vi }).replace("Thứ ", "T"), // i18n-ignore (shortens Vietnamese weekday)
                             fullDateStr: format(dateObj, "dd/MM"),
                             price: item.price,
                             level: isWeekendDay ? 'weekend' : 'weekday',
@@ -107,7 +110,7 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                     setForecastData(formattedData);
                 }
             } catch (error) {
-                console.error("Lỗi forecast:", error);
+                console.error("Price forecast failed:", error);
             } finally {
                 setLoadingForecast(false);
             }
@@ -150,7 +153,7 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
         if (isRangeValid) {
             setDateError(null);
         } else {
-            setDateError("Khoảng thời gian bạn chọn có ngày đã hết phòng. Vui lòng chọn lại!");
+            setDateError("dates.errors.soldOut");
         }
     }, [selection, isRangeValid]);
 
@@ -185,7 +188,7 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
     const handleConfirm = () => {
         // ✅ [FIX] Chặn submit nếu lịch không hợp lệ
         if (!isRangeValid) {
-            setDateError("Bạn không thể đặt phòng vì khoảng thời gian này đã có người đặt!");
+            setDateError("dates.errors.booked");
             return;
         }
         onConfirm([selection.startDate, selection.endDate], bookingCalculation);
@@ -219,15 +222,15 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
     const CustomTooltip = ({ active, payload }) => {
         if (active && payload && payload.length) {
             const data = payload[0].payload;
-            const compareText = priceComparison.higherType === 'weekend' ? 'cuối tuần' : 'ngày thường';
+            const compareText = priceComparison.higherType === 'weekend' ? t('dates.cheaperThanWeekend') : t('dates.cheaperThanWeekday');
 
             return (
                 <div className="bg-white p-3 border border-gray-100 shadow-xl rounded-xl text-xs transform -translate-y-2 z-50">
                     <div className="font-bold text-gray-700 mb-1 flex items-center gap-2">
                         {data.dayName}, {data.fullDateStr}
                         {data.isWeekend
-                            ? <span className="bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded text-[10px] font-bold">Cuối tuần</span>
-                            : <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-[10px] font-bold">Trong tuần</span>
+                            ? <span className="bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded text-[10px] font-bold">{t("common:weekend")}</span>
+                            : <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-[10px] font-bold">{t("dates.weekdayShort")}</span>
                         }
                     </div>
                     <div className="text-base font-extrabold text-blue-600 mb-1">
@@ -236,7 +239,7 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                     {data.savings > 0 && (
                         <div className="text-green-600 font-medium flex items-center gap-1">
                             <TrendingUp size={12} className="rotate-180"/>
-                            Rẻ hơn {data.savings}% so với {compareText}
+                            {t("dates.cheaperThan", { percent: data.savings, than: compareText })}
                         </div>
                     )}
                 </div>
@@ -249,7 +252,7 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
         <Modal
             open={open}
             onClose={onClose}
-            title="Lên lịch chuyến đi"
+            title={t("dates.title")}
             maxWidth="max-w-7xl"
         >
             <div className="flex flex-col h-full bg-white max-h-[90vh] overflow-hidden">
@@ -260,14 +263,22 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                     <div className="text-sm text-indigo-900">
                         {hasPriceVariation ? (
                             <span>
-                                <span className="font-bold">Mẹo thông minh:</span> Đặt phòng vào các ngày
-                                <span className="font-bold text-green-600 mx-1">
-                                    {priceComparison.higherType === 'weekend' ? 'Trong tuần' : 'Cuối tuần'}
-                                </span>
-                                để tiết kiệm tới <span className="font-bold text-orange-600">{Math.round(((priceComparison.maxPrice - Math.min(prices.weekday, prices.weekend))/priceComparison.maxPrice)*100)}%</span>!
+                                <Trans
+                                    t={t}
+                                    i18nKey="dates.tip"
+                                    values={{
+                                        days: priceComparison.higherType === 'weekend' ? t('dates.tipWeekdays') : t('dates.tipWeekends'),
+                                        percent: Math.round(((priceComparison.maxPrice - Math.min(prices.weekday, prices.weekend)) / priceComparison.maxPrice) * 100),
+                                    }}
+                                    components={{
+                                        b: <span className="font-bold" />,
+                                        hl: <span className="font-bold text-green-600" />,
+                                        save: <span className="font-bold text-orange-600" />,
+                                    }}
+                                />
                             </span>
                         ) : (
-                            <span><span className="font-bold">Yên tâm đặt phòng:</span> Giá phòng ổn định tất cả các ngày trong tuần.</span>
+                            <span><Trans t={t} i18nKey="dates.stable" components={{ b: <span className="font-bold" /> }} /></span>
                         )}
                     </div>
                 </div>
@@ -310,26 +321,26 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                                                 <div className="bg-blue-100 p-1.5 rounded-lg">
                                                     <TrendingUp size={16} className="text-blue-600" />
                                                 </div>
-                                                <h4 className="text-sm font-bold text-gray-800">Xu hướng giá 14 ngày tới</h4>
+                                                <h4 className="text-sm font-bold text-gray-800">{t("dates.trend")}</h4>
                                             </div>
                                             <p className="text-xs text-gray-500 mt-1 pl-9 h-4">
                                                 {hoverInfo ? (
                                                     <span className="text-blue-600 font-medium transition-all">
                                                         {hoverInfo.fullDateStr}: {new Intl.NumberFormat('vi-VN').format(hoverInfo.price)}₫
-                                                        {hoverInfo.savings > 0 ? ` (Rẻ hơn ${hoverInfo.savings}%)` : ''}
+                                                        {hoverInfo.savings > 0 ? t('dates.cheaperShort', { percent: hoverInfo.savings }) : ''}
                                                     </span>
-                                                ) : "Di chuột vào cột để xem chi tiết giá"}
+                                                ) : t("dates.hoverHint")}
                                             </p>
                                         </div>
 
                                         <div className="flex gap-3 text-[10px] font-medium bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
                                             {hasPriceVariation ? (
                                                 <>
-                                                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm"></span> Trong tuần</div>
-                                                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-orange-400 shadow-sm"></span> Cuối tuần</div>
+                                                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm"></span> {t("dates.weekdayShort")}</div>
+                                                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-orange-400 shadow-sm"></span> {t("common:weekend")}</div>
                                                 </>
                                             ) : (
-                                                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-sm"></span> Giá tiêu chuẩn</div>
+                                                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-sm"></span> {t("dates.standardPrice")}</div>
                                             )}
                                         </div>
                                     </div>
@@ -409,15 +420,15 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
 
                         {/* Box hiển thị ngày */}
                         <div>
-                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Thời gian lưu trú</h4>
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{t("dates.stay")}</h4>
                             <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-4">
                                 <div>
-                                    <p className="text-xs text-gray-500 mb-1">Nhận phòng</p>
+                                    <p className="text-xs text-gray-500 mb-1">{t("common:checkIn")}</p>
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600"><CalendarDays size={20} /></div>
                                         <div>
                                             <span className="block text-lg font-bold text-gray-800 leading-tight">{format(selection.startDate, "dd/MM/yyyy")}</span>
-                                            <span className="text-xs text-gray-400 font-medium">Từ 14:00</span>
+                                            <span className="text-xs text-gray-400 font-medium">{t("dates.from", { time: "14:00" })}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -425,12 +436,12 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                                     <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-gray-300"><ArrowRight size={16} /></div>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500 mb-1">Trả phòng</p>
+                                    <p className="text-xs text-gray-500 mb-1">{t("common:checkOut")}</p>
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600"><CalendarDays size={20} /></div>
                                         <div>
                                             <span className="block text-lg font-bold text-gray-800 leading-tight">{format(selection.endDate, "dd/MM/yyyy")}</span>
-                                            <span className="text-xs text-gray-400 font-medium">Trước 12:00</span>
+                                            <span className="text-xs text-gray-400 font-medium">{t("dates.before", { time: "12:00" })}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -441,39 +452,39 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                         {dateError && (
                             <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2 animate-pulse">
                                 <AlertCircle size={18} className="text-red-500 mt-0.5 shrink-0" />
-                                <p className="text-xs text-red-600 font-medium">{dateError}</p>
+                                <p className="text-xs text-red-600 font-medium">{t(dateError)}</p>
                             </div>
                         )}
 
                         {/* Box tính tiền */}
                         <div className="flex-1 min-h-[100px]">
-                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Chi tiết thanh toán</h4>
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{t("dates.paymentDetails")}</h4>
                             <div className="space-y-3 text-sm">
                                 {bookingCalculation.weekdayCount > 0 && (
                                     <div className="flex justify-between text-gray-600">
-                                        <span>Ngày thường ({new Intl.NumberFormat('vi-VN').format(prices.weekday)}₫)</span>
-                                        <span className="font-medium">x {bookingCalculation.weekdayCount} đêm</span>
+                                        <span>{t("common:weekday")} ({new Intl.NumberFormat('vi-VN').format(prices.weekday)}₫)</span>
+                                        <span className="font-medium">x {t("common:nights", { count: bookingCalculation.weekdayCount })}</span>
                                     </div>
                                 )}
                                 {bookingCalculation.weekendCount > 0 && (
                                     <div className="flex justify-between text-orange-600 font-medium">
-                                        <span>Cuối tuần ({new Intl.NumberFormat('vi-VN').format(prices.weekend)}₫)</span>
-                                        <span>x {bookingCalculation.weekendCount} đêm</span>
+                                        <span>{t("common:weekend")} ({new Intl.NumberFormat('vi-VN').format(prices.weekend)}₫)</span>
+                                        <span>x {t("common:nights", { count: bookingCalculation.weekendCount })}</span>
                                     </div>
                                 )}
 
                                 <div className="flex justify-between text-gray-600 items-center pt-2 border-t border-gray-100">
-                                    <span>Tổng số đêm</span>
-                                    <span className="font-bold bg-gray-100 px-2 py-0.5 rounded text-gray-700 text-xs">{bookingCalculation.nights} đêm</span>
+                                    <span>{t("dates.totalNights")}</span>
+                                    <span className="font-bold bg-gray-100 px-2 py-0.5 rounded text-gray-700 text-xs">{t("common:nights", { count: bookingCalculation.nights })}</span>
                                 </div>
 
                                 <div className="border-t-2 border-dashed border-gray-100 my-2 pt-3 flex justify-between items-end">
-                                    <span className="font-bold text-gray-800 text-base">Tổng tạm tính</span>
+                                    <span className="font-bold text-gray-800 text-base">{t("dates.subtotal")}</span>
                                     <span className="text-2xl font-extrabold text-[rgb(40,169,224)]">
                                         {new Intl.NumberFormat('vi-VN').format(bookingCalculation.total)}₫
                                     </span>
                                 </div>
-                                <p className="text-[10px] text-gray-400 text-right italic">*Giá đã bao gồm thuế & phí</p>
+                                <p className="text-[10px] text-gray-400 text-right italic">{t("dates.taxIncluded")}</p>
                             </div>
                         </div>
 
@@ -489,10 +500,10 @@ const BookingDateModal = ({ open, onClose, onConfirm, occupiedDates = [], select
                                         : "shadow-blue-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
                                 }`}
                             >
-                                <Check size={20} strokeWidth={3} /> Xác nhận đặt phòng
+                                <Check size={20} strokeWidth={3} /> {t("dates.confirm")}
                             </Button>
                             <Button variant="ghost" onClick={onClose} className="w-full text-gray-500 hover:text-gray-700 hover:bg-gray-100">
-                                Tôi muốn xem thêm
+                                {t("dates.keepBrowsing")}
                             </Button>
                         </div>
                     </div>

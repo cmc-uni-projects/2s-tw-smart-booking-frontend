@@ -19,6 +19,7 @@ import { useAuth } from "@/context/AuthContext";
 import { userService } from "@/services/user.service";
 import DatePickerInput from "@/components/common/Input/DatePickerInput";
 import CustomSelect from "@/components/common/Select/CustomSelect";
+import { useTranslation } from "react-i18next";
 
 // ✅ 2. ĐỊNH NGHĨA COMPONENT GoogleIcon
 const GoogleIcon = ({ className }) => (
@@ -37,9 +38,9 @@ const GoogleIcon = ({ className }) => (
 );
 
 const PROFILE_TABS = [
-  { id: "info", name: "Thông tin tài khoản" },
-  { id: "social", name: "Liên kết mạng xã hội" },
-  { id: "security", name: "Mật khẩu & Bảo mật" },
+  { id: "info" },
+  { id: "social" },
+  { id: "security" },
 ];
 
 const parseApiDate = (isoDate) => {
@@ -62,6 +63,7 @@ const formatApiDate = (dateObj) => {
 const ProfilePage = () => {
   const { currentUser, updateUser } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation(["profile", "common"]);
 
   const [activeTab, setActiveTab] = useState("info");
   const [activeSection, setActiveSection] = useState("account-settings");
@@ -121,11 +123,11 @@ const ProfilePage = () => {
           setUserData(mapped);
           setFormData(mapped);
         } else {
-          throw new Error("Không nhận được dữ liệu hồ sơ");
+          throw new Error(t("errors.noProfile"));
         }
       } catch (error) {
         console.error("Failed to fetch profile:", error);
-        setError(error.message || "Lỗi kết nối máy chủ");
+        setError(error.message || t("errors.server"));
       }
     };
     if (currentUser) {
@@ -153,11 +155,11 @@ const ProfilePage = () => {
         setFormData(prev => ({ ...prev, profilePhotoUrl: newUrl }));
         setUserData(prev => ({ ...prev, profilePhotoUrl: newUrl }));
         updateUser({ profilePhotoUrl: newUrl });
-        showToastAndDismiss("Cập nhật ảnh đại diện thành công!", "success");
+        showToastAndDismiss(t("avatar.success"), "success");
       }
     } catch (err) {
       console.error("Upload failed:", err);
-      const msg = err.response?.data?.message || "Lỗi khi tải ảnh lên.";
+      const msg = err.response?.data?.message || t("avatar.error");
       showToastAndDismiss(msg, "error");
     } finally {
       setIsUploadingAvatar(false);
@@ -168,7 +170,7 @@ const ProfilePage = () => {
     e.preventDefault();
 
     if (!formData.fullName.trim()) {
-      showToastAndDismiss("Họ tên không được để trống", "warning");
+      showToastAndDismiss(t("info.nameRequired"), "warning");
       return;
     }
     
@@ -192,7 +194,7 @@ const ProfilePage = () => {
           updateUser({ fullName: updatedData.fullName });
         }
 
-        showToastAndDismiss("Lưu thông tin thành công!", "success");
+        showToastAndDismiss(t("info.saved"), "success");
       }
     } catch (err) {
       console.error("Save error:", err);
@@ -215,7 +217,7 @@ const ProfilePage = () => {
                 updateUser({ fullName: retryRes.data.fullName });
               }
 
-              showToastAndDismiss("Đã đồng bộ và cập nhật thành công!", "success");
+              showToastAndDismiss(t("info.synced"), "success");
               return;
             }
           }
@@ -224,7 +226,7 @@ const ProfilePage = () => {
         }
       }
 
-      const errorMsg = err.response?.data?.message || "Có lỗi xảy ra khi lưu.";
+      const errorMsg = err.response?.data?.message || t("info.saveError");
       showToastAndDismiss(errorMsg, "error");
     } finally {
       setLoading(false);
@@ -233,9 +235,10 @@ const ProfilePage = () => {
 
   const renderInfoTab = () => {
     const GENDER_OPTIONS = [
-      { label: "Nam", value: "Nam" },
-      { label: "Nữ", value: "Nữ" },
-      { label: "Khác", value: "Khác" },
+      // values are stored by the backend as Vietnamese words
+      { label: t("gender.male"), value: "Nam" },
+      { label: t("gender.female"), value: "Nữ" }, // i18n-ignore (stored value)
+      { label: t("gender.other"), value: "Khác" }, // i18n-ignore (stored value)
     ];
     const dirty = isFormDirty();
 
@@ -250,37 +253,37 @@ const ProfilePage = () => {
           <Card>
             <div className="p-6 space-y-6">
               <h3 className="text-xl font-semibold text-gray-800 border-b pb-4">
-                Dữ liệu cá nhân
+                {t("info.personalData")}
               </h3>
 
               <div className="flex items-center gap-2 p-3 bg-orange-50 border border-orange-200 text-orange-700 rounded-lg">
                 <Info size={20} className="flex-shrink-0" />
                 <p className="text-sm italic">
-                  Nếu bạn muốn đăng ký trở thành "Chủ sở hữu", hãy điền các trường có dấu *.
+                  {t("info.ownerHint")}
                 </p>
               </div>
 
               <form onSubmit={handleSave} className="space-y-4">
                 <StyledTextField
-                    label={requiredLabel("Họ và tên")}
+                    label={requiredLabel(t("info.fullName"))}
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleChange}
                     icon={<User size={16} />}
-                    placeholder="Nhập họ và tên của bạn"
+                    placeholder={t("info.fullNamePlaceholder")}
                 />
 
                 <StyledTextField
-                    label={requiredLabel("Số điện thoại")}
+                    label={requiredLabel(t("info.phone"))}
                     name="phoneNumber"
                     value={formData.phoneNumber}
                     onChange={handleChange}
                     icon={<Phone size={16} />}
-                    placeholder="Nhập số điện thoại"
+                    placeholder={t("info.phonePlaceholder")}
                 />
 
                 <DatePickerInput
-                    label={requiredLabel("Ngày sinh")}
+                    label={requiredLabel(t("info.dob"))}
                     value={formData.dateOfBirth}
                     onChange={(date) => {
                       setFormData((prev) => ({ ...prev, dateOfBirth: date }));
@@ -288,39 +291,39 @@ const ProfilePage = () => {
                 />
 
                 <CustomSelect
-                    label={requiredLabel("Giới tính")}
+                    label={requiredLabel(t("info.gender"))}
                     value={formData.gender}
                     onChange={(val) => setFormData((prev) => ({ ...prev, gender: val }))}
                     options={GENDER_OPTIONS}
-                    placeholder="Chọn giới tính..."
+                    placeholder={t("info.genderPlaceholder")}
                     icon={<Users size={16} />}
                 />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <StyledTextField
-                      label="Thành phố / Tỉnh"
+                      label={t("info.city")}
                       name="city"
                       value={formData.city}
                       onChange={handleChange}
                       icon={<Building size={16} />}
-                      placeholder="Hà Nội, Hưng Yên,..."
+                      placeholder={t("info.cityPlaceholder")}
                   />
                   <StyledTextField
-                      label="Quốc gia"
+                      label={t("info.country")}
                       name="country"
                       value={formData.country}
                       onChange={handleChange}
                       icon={<Flag size={16} />}
-                      placeholder="Việt Nam"
+                      placeholder={t("info.countryPlaceholder")}
                   />
                 </div>
                 <StyledTextField
-                    label="Địa chỉ chi tiết"
+                    label={t("info.address")}
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
                     icon={<MapPin size={16} />}
-                    placeholder="Số nhà, tên đường, phường/xã..."
+                    placeholder={t("info.addressPlaceholder")}
                 />
 
                 <div className="flex gap-3 pt-4 border-t border-gray-100 mt-4">
@@ -330,7 +333,7 @@ const ProfilePage = () => {
                       isLoading={loading}
                       disabled={loading || !dirty}
                   >
-                    {loading ? "Đang lưu..." : "Lưu thông tin"}
+                    {loading ? t("info.saving") : t("info.save")}
                   </Button>
                   {dirty && (
                       <Button
@@ -339,7 +342,7 @@ const ProfilePage = () => {
                           leftIcon={<X size={16} />}
                           onClick={handleCancel}
                       >
-                        Hủy
+                        {t("common:actions.cancel")}
                       </Button>
                   )}
                 </div>
@@ -352,9 +355,9 @@ const ProfilePage = () => {
             <div className="p-6">
               <div className="flex justify-between items-center border-b pb-4 mb-4">
                 <div>
-                  <h3 className="font-semibold text-lg text-gray-800">Địa chỉ Email</h3>
+                  <h3 className="font-semibold text-lg text-gray-800">{t("social.emailTitle")}</h3>
                   <p className="text-sm text-gray-500">
-                    Quản lý các email liên kết với tài khoản của bạn.
+                    {t("social.emailText")}
                   </p>
                 </div>
               </div>
@@ -368,11 +371,11 @@ const ProfilePage = () => {
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">{currentUser?.email}</p>
-                      <p className="text-xs text-blue-600 font-semibold">Email chính (Đăng nhập)</p>
+                      <p className="text-xs text-blue-600 font-semibold">{t("social.primary")}</p>
                     </div>
                   </div>
                   <span className="text-green-600 text-xs font-medium bg-green-100 px-2 py-1 rounded-full border border-green-200">
-                    Đã xác thực
+                    {t("social.verified")}
                   </span>
                 </div>
 
@@ -393,12 +396,12 @@ const ProfilePage = () => {
                       <div>
                         <p className="font-medium text-gray-800">{acc.email}</p>
                         <p className="text-xs text-gray-500 capitalize">
-                          Tài khoản liên kết {acc.provider?.toLowerCase()}
+                          {t("social.linkedAccount", { provider: acc.provider?.toLowerCase() })}
                         </p>
                       </div>
                     </div>
                     <span className="text-gray-500 text-xs bg-gray-200 px-2 py-1 rounded-full">
-                      Đã liên kết
+                      {t("social.linked")}
                     </span>
                   </div>
                 ))}
@@ -415,17 +418,17 @@ const ProfilePage = () => {
         <Card>
           <div className="p-6 space-y-4">
             <h3 className="font-semibold text-lg border-b pb-2 mb-4 text-red-600">
-              Xóa tài khoản
+              {t("danger.deleteAccount")}
             </h3>
             <div className="flex justify-between items-center">
               <div>
-                <h4 className="font-medium text-red-600">Xóa tài khoản</h4>
+                <h4 className="font-medium text-red-600">{t("danger.deleteAccount")}</h4>
                 <p className="text-sm text-gray-500">
-                  Hành động này không thể hoàn tác. Mọi dữ liệu sẽ bị xóa vĩnh viễn.
+                  {t("danger.irreversible")}
                 </p>
               </div>
               <Button variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
-                Xóa
+                {t("danger.delete")}
               </Button>
             </div>
           </div>
@@ -445,11 +448,11 @@ const ProfilePage = () => {
           <>
             <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 mb-6">
               <h1 className="text-2xl font-bold text-gray-800">
-                Chỉnh sửa hồ sơ cá nhân
+                {t("editTitle")}
               </h1>
             </div>
             <TabsComponent
-                tabs={PROFILE_TABS}
+                tabs={PROFILE_TABS.map((tab) => ({ ...tab, name: t(`tabs.${tab.id}`) }))}
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
             />
@@ -462,8 +465,8 @@ const ProfilePage = () => {
     }
     return (
         <div className="p-6 text-center text-gray-500 border border-dashed rounded-lg bg-white min-h-[300px] flex flex-col justify-center items-center">
-          <h1 className="text-xl font-bold text-gray-700">Chức năng đang phát triển</h1>
-          <p className="mt-2">Mục bạn chọn ({activeSection}) sẽ sớm được cập nhật.</p>
+          <h1 className="text-xl font-bold text-gray-700">{t("wip.title")}</h1>
+          <p className="mt-2">{t("wip.text", { section: activeSection })}</p>
         </div>
     );
   };
@@ -480,10 +483,10 @@ const ProfilePage = () => {
   if (error) {
     return (
         <div className="flex flex-col justify-center items-center h-[50vh] p-6">
-          <p className="text-red-600 font-semibold">Đã xảy ra lỗi:</p>
+          <p className="text-red-600 font-semibold">{t("errorOccurred")}</p>
           <p className="text-gray-700">{error}</p>
           <Button onClick={() => window.location.reload()} className="mt-4">
-            Thử lại
+            {t("retry")}
           </Button>
         </div>
     );
@@ -492,7 +495,7 @@ const ProfilePage = () => {
   if (!currentUser || !userData) {
     return (
         <div className="flex justify-center items-center h-[50vh]">
-          <p className="text-gray-500">Đang tải dữ liệu...</p>
+          <p className="text-gray-500">{t("common:loadingData")}</p>
         </div>
     );
   }

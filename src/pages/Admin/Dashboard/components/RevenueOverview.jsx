@@ -1,18 +1,20 @@
 import React from "react";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import { PieChart as PieIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
 
 const RevenueOverview = ({ data }) => {
+  const { t } = useTranslation();
   // Hàm dịch loại hình sang tiếng Việt
   const translateType = (type) => {
     const map = {
-      'HOTEL': 'Khách sạn',
-      'VILLA': 'Biệt thự',
-      'RESORT': 'Khu nghỉ dưỡng',
+      'HOTEL': t("admin:RevenueOverview.hotel"),
+      'VILLA': t("admin:RevenueOverview.villa"),
+      'RESORT': t("admin:RevenueOverview.resort"),
       'HOMESTAY': 'Homestay',
-      'APARTMENT': 'Căn hộ'
+      'APARTMENT': t("admin:RevenueOverview.apartment")
     };
     return map[type] || type;
   };
@@ -29,9 +31,9 @@ const RevenueOverview = ({ data }) => {
          <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
             <PieIcon size={20} />
          </div>
-         <h3 className="text-lg font-bold text-gray-800">Cơ Cấu Doanh Thu</h3>
+         <h3 className="text-lg font-bold text-gray-800">{t("admin:RevenueOverview.revenueBreakdown")}</h3>
       </div>
-      <p className="text-sm text-gray-500 mb-6 ml-10">Theo loại hình kinh doanh</p>
+      <p className="text-sm text-gray-500 mb-6 ml-10">{t("admin:RevenueOverview.byPropertyType")}</p>
       
       {/* ✅ FIX LỖI WIDTH(-1): Đặt height cố định cho container cha */}
       <div className="w-full h-[300px]">

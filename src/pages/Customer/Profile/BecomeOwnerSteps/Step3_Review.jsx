@@ -3,11 +3,13 @@ import React, { useState, useEffect } from 'react';
 import Card from '@/components/common/Card/Card';
 import Divider from '@/components/common/Divider/Divider';
 import { format } from 'date-fns';
+import { useTranslation } from "react-i18next";
 
 // ===============================
 // Component hiển thị ảnh preview
 // ===============================
 const ImagePreview = ({ fileList, title }) => {
+    const { t } = useTranslation("profile");
     const [preview, setPreview] = useState(null);
 
     useEffect(() => {
@@ -24,7 +26,7 @@ const ImagePreview = ({ fileList, title }) => {
     if (!preview) {
         return (
             <div className="text-gray-500 italic">
-                {title}: Chưa tải lên
+                {t("owner.step3.notUploaded", { title })}
             </div>
         );
     }
@@ -42,34 +44,35 @@ const ImagePreview = ({ fileList, title }) => {
 };
 
 const Step3_Review = ({ watch }) => {
+    const { t } = useTranslation("profile");
     const data = watch();
 
     // Format ngày sinh
     const dobFormatted = data.personalDob
         ? format(new Date(data.personalDob), 'dd/MM/yyyy')
-        : 'Chưa cung cấp';
+        : t("owner.step3.notProvided");
 
     return (
         <div className="space-y-8">
             <h2 className="text-xl font-semibold text-gray-800">
-                3. Kiểm tra và Xác nhận
+                {t("owner.step3.title")}
             </h2>
 
             {/* Thông tin cá nhân */}
             <Card>
                 <div className="p-6">
                     <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                        Thông tin cá nhân
+                        {t("owner.steps.personal")}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
-                        <InfoItem label="Họ và tên" value={data.personalFullName} />
+                        <InfoItem label={t("owner.fields.fullName")} value={data.personalFullName} />
                         <InfoItem label="Email" value={data.personalEmail} />
-                        <InfoItem label="Số điện thoại" value={data.personalPhone} />
-                        <InfoItem label="Số CCCD/Passport" value={data.personalIdCard} />
-                        <InfoItem label="Ngày sinh" value={dobFormatted} />
-                        <InfoItem label="Quê quán" value={data.personalHometown} />
+                        <InfoItem label={t("owner.fields.phone")} value={data.personalPhone} />
+                        <InfoItem label={t("owner.fields.idCard")} value={data.personalIdCard} />
+                        <InfoItem label={t("owner.fields.dob")} value={dobFormatted} />
+                        <InfoItem label={t("owner.fields.hometown")} value={data.personalHometown} />
                         <InfoItem
-                            label="Địa chỉ thường trú"
+                            label={t("owner.fields.address")}
                             value={data.personalAddress}
                             className="md:col-span-2"
                         />
@@ -81,10 +84,10 @@ const Step3_Review = ({ watch }) => {
             <Card>
                 <div className="p-6">
                     <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                        Thông tin kinh doanh
+                        {t("owner.step3.business")}
                     </h3>
                     <InfoItem
-                        label="Mã số ĐKKD"
+                        label={t("owner.step3.licenseShort")}
                         value={data.businessLicenseNumber}
                     />
                 </div>
@@ -96,31 +99,30 @@ const Step3_Review = ({ watch }) => {
             <Card>
                 <div className="p-6">
                     <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                        Tài liệu đính kèm
+                        {t("owner.step3.documents")}
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <ImagePreview
                             fileList={data.cardFrontImage}  // 🔥 ĐÚNG FIELD Step1
-                            title="Ảnh mặt trước CCCD"
+                            title={t("owner.fields.cardFront")}
                         />
 
                         <ImagePreview
                             fileList={data.cardBackImage}   // 🔥 ĐÚNG FIELD Step1
-                            title="Ảnh mặt sau CCCD"
+                            title={t("owner.fields.cardBack")}
                         />
 
                         <ImagePreview
                             fileList={data.businessLicenseImage} // 🔥 ĐÚNG FIELD Step1
-                            title="Giấy phép kinh doanh"
+                            title={t("owner.step3.license")}
                         />
                     </div>
                 </div>
             </Card>
 
             <p className="text-sm text-gray-600 italic mt-6">
-                Bằng việc nhấn "Gửi đơn đăng ký", bạn xác nhận mọi thông tin trên là chính xác
-                và đồng ý với các điều khoản của chúng tôi.
+                {t("owner.step3.agree")}
             </p>
         </div>
     );

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Button from "@/components/common/Button/Button";
 import RatingStars from "@/pages/Customer/MyBookings/components/RatingStars";
+import { useTranslation } from "react-i18next";
 
 // --- HELPER XỬ LÝ ẢNH ---
 const API_BASE_URL = "http://localhost:8386";
@@ -33,6 +34,7 @@ const ReviewBookingModal = ({
   mode = "create", 
   initialData 
 }) => {
+  const { t } = useTranslation(["profile", "common"]);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -127,13 +129,13 @@ const ReviewBookingModal = ({
     e.preventDefault();
 
     if (!rating) {
-      setError("Vui lòng chọn số sao đánh giá.");
+      setError(t("review.errors.stars"));
       scrollToComment();
       return;
     }
 
     if (currentLength < 10) {
-      setError("Nội dung đánh giá quá ngắn (tối thiểu 10 ký tự).");
+      setError(t("review.errors.short"));
       scrollToComment();
       return;
     }
@@ -160,7 +162,7 @@ const ReviewBookingModal = ({
     } catch (err) {
       console.error("Modal catch submit error:", err);
       setSubmitting(false);
-      setError(err?.message || "Đã có lỗi xảy ra. Vui lòng thử lại.");
+      setError(err?.message || t("review.errors.generic"));
       scrollToComment();
     }
   };
@@ -176,7 +178,7 @@ const ReviewBookingModal = ({
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-sky-100/90">
-                {mode === "create" ? "ĐÁNH GIÁ TRẢI NGHIỆM" : "ĐÁNH GIÁ CỦA BẠN"}
+                {mode === "create" ? t("review.titleCreate") : t("review.titleView")}
               </p>
               <h3 className="mt-1 flex items-center gap-2 text-lg font-semibold">
                 <Hotel size={18} className="text-yellow-300" />
@@ -201,11 +203,11 @@ const ReviewBookingModal = ({
 
           <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
             <span className="rounded-full bg-black/20 px-3 py-1 font-mono text-[11px]">
-              Mã đơn: BK-{booking.bookingId}
+              {t("review.bookingCode", { id: booking.bookingId })}
             </span>
             <span className="flex items-center gap-1 rounded-full bg-white/10 px-3 py-1 font-medium text-sky-50 border border-white/30">
               <Star size={12} className="text-yellow-300" />
-              {isReadOnly ? "Bạn đã đánh giá đơn này" : "Hãy chia sẻ cảm nhận chân thật"}
+              {isReadOnly ? t("review.alreadyReviewed") : t("review.shareHonestly")}
             </span>
           </div>
         </div>
@@ -216,17 +218,12 @@ const ReviewBookingModal = ({
           {/* Stars */}
           <div className={`rounded-2xl border border-slate-100 bg-white p-4 shadow-sm ${isReadOnly ? 'pointer-events-none opacity-90' : ''}`}>
             <p className="mb-1 text-sm font-medium text-slate-700">
-              Mức độ hài lòng tổng thể
+              {t("review.overall")}
             </p>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <RatingStars value={rating} onChange={setRating} />
               <span className="text-xs font-medium text-blue-600">
-                {rating === 0 && "Nhấn để chọn số sao"}
-                {rating === 1 && "1 sao – Rất tệ 😡"}
-                {rating === 2 && "2 sao – Chưa hài lòng 😞"}
-                {rating === 3 && "3 sao – Bình thường 😐"}
-                {rating === 4 && "4 sao – Hài lòng 🙂"}
-                {rating === 5 && "5 sao – Tuyệt vời 😍"}
+                {t(`review.stars.${rating}`)}
               </span>
             </div>
           </div>
@@ -235,7 +232,7 @@ const ReviewBookingModal = ({
           <div ref={commentBlockRef} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
             <label className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700">
               <MessageCircle size={16} className="text-[rgb(40,169,224)]" />
-              Trải nghiệm của bạn tại chỗ nghỉ
+              {t("review.experience")}
             </label>
             <textarea
               className={`w-full rounded-xl border p-3 text-sm outline-none transition
@@ -244,7 +241,7 @@ const ReviewBookingModal = ({
                   : "bg-slate-50 text-slate-800 border-slate-300 focus:border-[rgb(40,169,224)] focus:bg-white focus:ring-1 focus:ring-[rgb(40,169,224)]"}
                 ${error ? "border-rose-400 bg-rose-50/40 focus:border-rose-500 focus:ring-rose-500" : ""}`}
               rows={5}
-              placeholder="Ví dụ: Phòng sạch sẽ, nhân viên thân thiện, vị trí thuận tiện..."
+              placeholder={t("review.placeholder")}
               value={comment}
               disabled={isReadOnly}
               onChange={(e) => {
@@ -260,9 +257,9 @@ const ReviewBookingModal = ({
             {!isReadOnly && (
               <div className="mt-2 flex items-center justify-between text-xs">
                 <span className={currentLength < 10 ? "text-amber-600" : "text-emerald-600"}>
-                  {currentLength === 0 ? "Vui lòng nhập nội dung." : currentLength < 10 ? "Còn quá ngắn (min 10)." : "Nội dung hợp lệ."}
+                  {currentLength === 0 ? t("review.enterContent") : currentLength < 10 ? t("review.tooShort") : t("review.valid")}
                 </span>
-                <span className="text-slate-400">{currentLength} ký tự</span>
+                <span className="text-slate-400">{t("review.chars", { count: currentLength })}</span>
               </div>
             )}
           </div>
@@ -273,7 +270,7 @@ const ReviewBookingModal = ({
           {existingImages.length > 0 && (
             <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
               <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                Ảnh đã tải lên
+                {t("review.uploaded")}
               </p>
               <div className="grid grid-cols-4 gap-2">
                 {existingImages.map((imgUrl, index) => (
@@ -293,7 +290,7 @@ const ReviewBookingModal = ({
               {!isReadOnly && newImages.length > 0 && (
                  <div className="mt-2 flex items-start gap-2 rounded bg-amber-50 p-2 text-xs text-amber-700">
                     <Info size={14} className="mt-0.5 shrink-0"/>
-                    <p>Lưu ý: Nếu bạn tải lên ảnh mới, các ảnh cũ ở trên sẽ bị thay thế hoàn toàn.</p>
+                    <p>{t("review.replaceNote")}</p>
                  </div>
               )}
             </div>
@@ -305,16 +302,16 @@ const ReviewBookingModal = ({
               <div className="mb-3 flex items-center justify-between">
                 <p className="flex items-center gap-2 text-sm font-medium text-slate-700">
                   <ImageIcon size={16} className="text-[rgb(40,169,224)]" />
-                  {existingImages.length > 0 ? "Thay đổi ảnh / video" : "Thêm ảnh / video"}
+                  {existingImages.length > 0 ? t("review.changeMedia") : t("review.addMedia")}
                 </p>
                 <span className="text-xs text-slate-400">
-                  {newImages.length}/5 ảnh • {newVideos.length}/1 video
+                  {t("review.mediaCount", { images: newImages.length, videos: newVideos.length })}
                 </span>
               </div>
 
               <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-dashed border-[rgb(40,169,224)] bg-blue-50/50 px-4 py-2 text-xs font-medium text-[rgb(40,169,224)] hover:bg-slate-100">
                 <ImageIcon size={16} />
-                <span>Chọn file mới</span>
+                <span>{t("review.chooseFiles")}</span>
                 <input
                   type="file"
                   accept="image/*,video/*"
@@ -328,7 +325,7 @@ const ReviewBookingModal = ({
                 <div className="mt-4 space-y-4">
                   {newImages.length > 0 && (
                     <div>
-                      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Ảnh mới chọn</p>
+                      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">{t("review.newImages")}</p>
                       <div className="grid grid-cols-4 gap-2">
                         {newImages.map((file, index) => {
                           const url = URL.createObjectURL(file);
@@ -347,7 +344,7 @@ const ReviewBookingModal = ({
                   
                   {newVideos.length > 0 && (
                     <div>
-                      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Video mới chọn</p>
+                      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">{t("review.newVideos")}</p>
                       <div className="grid grid-cols-1 gap-2">
                         {newVideos.map((file, index) => {
                           const url = URL.createObjectURL(file);
@@ -379,7 +376,7 @@ const ReviewBookingModal = ({
             disabled={submitting}
             className="border-slate-300 text-slate-600 hover:bg-slate-100"
           >
-            {isReadOnly ? "Đóng" : "Hủy bỏ"}
+            {isReadOnly ? t("common:actions.close") : t("common:actions.cancelLong")}
           </Button>
 
           {mode === "view" && !isEditing ? (
@@ -392,7 +389,7 @@ const ReviewBookingModal = ({
               }}
               className="flex items-center gap-2 bg-amber-500 text-white hover:bg-amber-600 border-none shadow-sm"
             >
-              <Pencil size={14} /> Chỉnh sửa
+              <Pencil size={14} /> {t("review.edit")}
             </Button>
           ) : (
             // Nút Gửi / Lưu
@@ -404,12 +401,12 @@ const ReviewBookingModal = ({
               {submitting ? (
                 <>
                   <Loader2 size={16} className="animate-spin" />
-                  Đang xử lý...
+                  {t("common:processing")}
                 </>
               ) : (
                 <>
                   <Star size={16} className="fill-yellow-400 text-yellow-300" />
-                  {mode === "view" ? "Lưu thay đổi" : "Gửi đánh giá"}
+                  {mode === "view" ? t("review.saveChanges") : t("review.submit")}
                 </>
               )}
             </Button>

@@ -1,0 +1,84 @@
+{
+  "language": {
+    "switch": "Đổi ngôn ngữ"
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "promotions": "Khuyến mãi",
+    "support": "Hỗ trợ",
+    "helpCenter": "Trung tâm trợ giúp",
+    "contactSupport": "Liên hệ hỗ trợ",
+    "partnerWithUs": "Hợp tác với chúng tôi",
+    "adminPortal": "Trang quản trị",
+    "ownerPortal": "Trang quản lý"
+  },
+  "auth": {
+    "register": "Đăng ký",
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "logoutConfirm": "Bạn có chắc chắn muốn đăng xuất?"
+  },
+  "footer": {
+    "tagline": "Khám phá những điểm đến tuyệt vời và tận hưởng kỳ nghỉ trong mơ với mức giá tốt nhất. Chúng tôi đồng hành cùng bạn trên mọi nẻo đường.",
+    "newsletterTitle": "Đăng ký nhận khuyến mãi",
+    "newsletterText": "Nhận thông tin ưu đãi độc quyền giảm giá đến 50%.",
+    "emailPlaceholder": "Nhập email của bạn...",
+    "subscribe": "Đăng ký",
+    "contact": "Liên hệ",
+    "address": "Tầng 12, Tòa nhà Bitexco, Quận 1, TP. Hồ Chí Minh, Việt Nam",
+    "aboutUs": "Về chúng tôi",
+    "customerSupport": "Hỗ trợ khách hàng",
+    "connect": "Kết nối",
+    "paymentPartners": "Đối tác thanh toán",
+    "copyright": "© {{year}} TravelMate. Bản quyền thuộc về Công ty TNHH TravelMate Việt Nam.",
+    "privacy": "Bảo mật",
+    "terms": "Điều khoản",
+    "links": {
+      "aboutTravelMate": "Về TravelMate",
+      "careers": "Tuyển dụng",
+      "termsOfUse": "Điều khoản sử dụng",
+      "privacyPolicy": "Chính sách bảo mật",
+      "helpCenter": "Trung tâm trợ giúp",
+      "bookingPolicy": "Quy định đặt phòng",
+      "contactSupport": "Liên hệ hỗ trợ",
+      "partnerSignup": "Đăng ký đối tác"
+    }
+  },
+  "sidebar": {
+    "profile": "Hồ sơ cá nhân",
+    "bookings": "Lịch sử đặt phòng",
+    "transactions": "Lịch sử giao dịch",
+    "refunds": "Hoàn tiền",
+    "wishlist": "Yêu thích",
+    "settings": "Cài đặt"
+  },
+  "profileMenu": {
+    "profile": "Hồ sơ cá nhân",
+    "membership": "Hạng thành viên & Điểm",
+    "bookings": "Lịch sử đặt chỗ"
+  },
+  "notifications": {
+    "title": "Thông báo của bạn",
+    "markAllRead": "Đánh dấu đã đọc",
+    "empty": "Chưa có thông báo",
+    "emptyHint": "Cập nhật về đặt phòng và khuyến mãi sẽ hiện ở đây.",
+    "viewAll": "Xem tất cả trong Hộp thư"
+  },
+  "chat": {
+    "welcome": "Xin chào! Tôi là trợ lý ảo TravelMate. Tôi có thể giúp gì cho bạn hôm nay?",
+    "loginRequired": "Vui lòng đăng nhập để sử dụng tính năng Chatbot.",
+    "loginRequiredLong": "Bạn cần đăng nhập để sử dụng tính năng trợ lý thông minh này",
+    "error": "Đã có lỗi xảy ra. Vui lòng thử lại sau.",
+    "typing": "Đang soạn tin...",
+    "inputPlaceholder": "Nhập tin nhắn...",
+    "inputDisabled": "Không thể nhập tin nhắn",
+    "fabTooltip": "Chat với trợ lý AI !",
+    "open": "Mở chat",
+    "close": "Đóng chat",
+    "suggestionsFor": "Gợi ý cho {{place}}",
+    "place": "địa điểm",
+    "foundStays": "Tìm thấy {{count}} chỗ nghỉ tại {{city}}",
+    "guests": "{{count}} khách",
+    "viewDetails": "Xem chi tiết"
+  }
+}

@@ -3,9 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2 } from 'lucide-react';
+import { useTranslation, Trans } from 'react-i18next';
 import Button from '@/components/common/Button/Button';
 
 const SuccessModal = ({ isOpen, onClose }) => {
+    const { t } = useTranslation("booking");
     const navigate = useNavigate();
     const [count, setCount] = useState(3);
 
@@ -41,15 +43,15 @@ const SuccessModal = ({ isOpen, onClose }) => {
                 <CheckCircle2 size={72} className="text-green-500 mx-auto mb-6" />
 
                 <h2 className="text-2xl font-bold mb-4 text-gray-800">
-                    Thanh toán thành công!
+                    {t("success.title")}
                 </h2>
 
                 <p className="text-gray-600 mb-6">
-                    Bạn sẽ được chuyển về trang chủ sau <span className="font-semibold">{count}</span> giây.
+                    <Trans t={t} i18nKey="success.redirect" values={{ count }} components={{ b: <span className="font-semibold" /> }} />
                 </p>
 
                 <Button fullWidth size="lg" onClick={handleCloseAndNavigate}>
-                    Về trang chủ ngay
+                    {t("success.goHome")}
                 </Button>
             </div>
         </div>

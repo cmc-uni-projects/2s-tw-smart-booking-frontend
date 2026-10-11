@@ -5,25 +5,28 @@ import TextArea from "@/components/common/Input/TextArea";
 import { XCircle , AlertCircle} from "lucide-react";
 import CancelReasonSelect from "./CancelReasonSelect.jsx";
 import LoadingOverlay from "@/components/common/Loading/LoadingOverlay";
+import { useTranslation, Trans } from "react-i18next";
 
 // --- Dữ liệu lý do giữ nguyên ---
 const CANCELLATION_REASONS = [
-    { label: "Đặt phòng không được xác nhận kịp thời", value: "NO_CONFIRMATION" },
-    { label: "Không thật sự tin tưởng vào uy tín của dịch vụ", value: "NO_TRUST" },
-    { label: "Lo lắng về sự an toàn cho vị trí khách sạn", value: "SAFETY_CONCERNS" },
-    { label: "Quyết định chọn khách sạn khác", value: "FOUND_ELSEWHERE" },
-    { label: "Không thích chính sách hủy phòng", value: "POLICY_DISLIKE" },
-    { label: "Không hài lòng với cách thanh toán", value: "PAYMENT_DISLIKE" },
-    { label: "Buộc phải hủy phòng hay hoãn hành trình", value: "FORCED_CANCEL" },
-    { label: "Tìm thấy giá thấp hơn trên mạng", value: "FOUND_CHEAPER_ONLINE" },
-    { label: "Tìm được giá thấp hơn qua dịch vụ địa phương", value: "FOUND_CHEAPER_LOCAL" },
-    { label: "Thiên Tai", value: "NATURAL_DISASTER" },
-    { label: "Sẽ đặt khách sạn khác trên website của chúng tôi", value: "BOOK_ANOTHER" },
-    { label: "Sẽ đặt phòng trực tiếp với khách sạn", value: "BOOK_DIRECT" },
-    { label: "Khác", value: "OTHER" },
+    { value: "NO_CONFIRMATION" },
+    { value: "NO_TRUST" },
+    { value: "SAFETY_CONCERNS" },
+    { value: "FOUND_ELSEWHERE" },
+    { value: "POLICY_DISLIKE" },
+    { value: "PAYMENT_DISLIKE" },
+    { value: "FORCED_CANCEL" },
+    { value: "FOUND_CHEAPER_ONLINE" },
+    { value: "FOUND_CHEAPER_LOCAL" },
+    { value: "NATURAL_DISASTER" },
+    { value: "BOOK_ANOTHER" },
+    { value: "BOOK_DIRECT" },
+    { value: "OTHER" },
 ];
 
-const Step1_Confirm = ({ onKeep, onContinue }) => (
+const Step1_Confirm = ({ onKeep, onContinue }) => {
+    const { t } = useTranslation("profile");
+    return (
   <div className="px-7 pt-6 pb-6 sm:px-8">
     {/* Hero */}
     <div className="flex items-start gap-4">
@@ -33,11 +36,10 @@ const Step1_Confirm = ({ onKeep, onContinue }) => (
 
       <div className="flex-1">
         <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-snug">
-          Xác nhận hủy đặt phòng
+          {t("cancel.confirmTitle")}
         </h2>
         <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-          Bạn sắp hủy một đặt phòng đang có hiệu lực. Hành động này{" "}
-          <span className="font-semibold text-slate-800">không thể hoàn tác</span>.
+          <Trans t={t} i18nKey="cancel.confirmText" components={{ b: <span className="font-semibold text-slate-800" /> }} />
         </p>
       </div>
     </div>
@@ -47,18 +49,18 @@ const Step1_Confirm = ({ onKeep, onContinue }) => (
       <div className="rounded-2xl border border-amber-200/60 bg-amber-50/70 p-4">
         <p className="text-sm font-bold text-amber-900 flex items-center gap-2">
           <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-white/70 ring-1 ring-amber-200/60">⚠️</span>
-          Trước khi hủy, bạn nên biết
+          {t("cancel.beforeTitle")}
         </p>
         <ul className="mt-2 space-y-1.5 text-sm text-amber-900/80 leading-relaxed list-disc list-inside">
-          <li>Ưu đãi hiện tại có thể không còn nếu bạn đặt lại</li>
-          <li>Chính sách hoàn tiền phụ thuộc vào thời điểm hủy</li>
-          <li>Một số quyền lợi đi kèm có thể bị mất</li>
+          <li>{t("cancel.before1")}</li>
+          <li>{t("cancel.before2")}</li>
+          <li>{t("cancel.before3")}</li>
         </ul>
       </div>
 
       <div className="rounded-2xl border border-slate-200/70 bg-slate-50 p-4">
         <p className="text-sm text-slate-700 leading-relaxed">
-          💡 <span className="font-semibold">Gợi ý:</span> Nếu bạn chỉ muốn thay đổi kế hoạch, hãy xem chính sách hủy/đổi trước khi tiếp tục.
+          <Trans t={t} i18nKey="cancel.tip" components={{ b: <span className="font-semibold" /> }} />
         </p>
       </div>
     </div>
@@ -71,7 +73,7 @@ const Step1_Confirm = ({ onKeep, onContinue }) => (
         fullWidth
         className="sm:!w-auto !text-red-600 hover:!bg-red-50"
       >
-        Tôi vẫn muốn hủy
+        {t("cancel.stillCancel")}
       </Button>
 
       <Button
@@ -80,35 +82,39 @@ const Step1_Confirm = ({ onKeep, onContinue }) => (
         fullWidth
         className="sm:!w-auto shadow-lg shadow-blue-500/20"
       >
-        Giữ đặt phòng
+        {t("cancel.keep")}
       </Button>
     </div>
   </div>
-);
+    );
+};
 
 const Step2_Reason = ({ onClose, onConfirmSubmit, booking }) => {
+  const { t } = useTranslation("profile");
+  const reasons = CANCELLATION_REASONS.map((r) => ({ ...r, label: t(`cancel.reasons.${r.value}`) }));
   const [reasonLabel, setReasonLabel] = useState("");
   const [otherText, setOtherText] = useState("");
   const [error, setError] = useState("");
 
-  const showOtherInput = reasonLabel === "Khác";
+  const isOther = reasons.find((r) => r.label === reasonLabel)?.value === "OTHER";
+  const showOtherInput = isOther;
 
-  const isFreeCancel = booking?.cancellationPolicy?.includes("Miễn phí");
-  const policyText = isFreeCancel ? "Hủy không mất phí" : "Hủy có thể mất phí";
+  const isFreeCancel = booking?.cancellationPolicy?.includes("Miễn phí"); // i18n-ignore (matches backend text)
+  const policyText = isFreeCancel ? t("cancel.freeTitle") : t("cancel.feeTitle");
   const policyDesc = isFreeCancel
-    ? "Nếu hủy phòng bây giờ bạn sẽ không bị tính tiền."
-    : booking?.cancellationPolicy || "Vui lòng kiểm tra chi tiết chính sách hủy.";
+    ? t("cancel.freeText")
+    : booking?.cancellationPolicy || t("cancel.checkPolicy");
 
   const handleSubmit = () => {
-    const selectedOption = CANCELLATION_REASONS.find(r => r.label === reasonLabel);
+    const selectedOption = reasons.find(r => r.label === reasonLabel);
     const reasonValue = selectedOption ? selectedOption.value : "";
 
     if (!reasonValue) {
-      setError("Vui lòng chọn lý do hủy.");
+      setError(t("cancel.chooseReason"));
       return;
     }
     if (reasonValue === "OTHER" && !otherText.trim()) {
-      setError("Vui lòng cung cấp thêm chi tiết cho lý do 'Khác'.");
+      setError(t("cancel.otherRequired"));
       return;
     }
 
@@ -117,25 +123,25 @@ const Step2_Reason = ({ onClose, onConfirmSubmit, booking }) => {
   };
 
   const isSubmitDisabled =
-    !reasonLabel || (reasonLabel === "Khác" && !otherText.trim());
+    !reasonLabel || (isOther && !otherText.trim());
 
   return (
     <div className="px-6 pt-6 pb-7 sm:px-8 bg-gradient-to-b from-white to-slate-50/40">
       {/* Header */}
       <div className="mb-5">
         <h3 className="text-lg font-extrabold text-slate-900">
-          Lý do hủy đặt phòng
+          {t("cancel.reasonTitle")}
         </h3>
         <p className="text-sm text-slate-600 mt-1">
-          Thông tin này giúp chúng tôi cải thiện chất lượng dịch vụ.
+          {t("cancel.reasonText")}
         </p>
       </div>
 
       {/* Main card */}
       <div className="rounded-2xl border border-slate-200/60 bg-white shadow-[0_10px_30px_-20px_rgba(15,23,42,0.25)] p-5 sm:p-6 space-y-4">
         <CancelReasonSelect
-          label="Lý do hủy phòng:"
-          options={CANCELLATION_REASONS}
+          label={t("cancel.reasonLabel")}
+          options={reasons}
           value={reasonLabel}
           onChange={(label) => {
             setReasonLabel(label);
@@ -146,14 +152,14 @@ const Step2_Reason = ({ onClose, onConfirmSubmit, booking }) => {
         {showOtherInput && (
           <div className="animate-fadeIn">
             <TextArea
-              label="Vui lòng cung cấp thêm chi tiết"
+              label={t("cancel.moreDetails")}
               value={otherText}
               onChange={(e) => {
                 setOtherText(e.target.value);
                 setError("");
               }}
               rows={4}
-              error={error && reasonLabel === "Khác" ? error : ""}
+              error={error && isOther ? error : ""}
             />
           </div>
         )}
@@ -199,7 +205,7 @@ const Step2_Reason = ({ onClose, onConfirmSubmit, booking }) => {
       {/* Actions */}
       <div className="mt-7 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
         <Button variant="outline" onClick={onClose} fullWidth className="sm:!w-auto">
-          Đóng
+          {t("common:actions.close")}
         </Button>
 
         <Button
@@ -209,7 +215,7 @@ const Step2_Reason = ({ onClose, onConfirmSubmit, booking }) => {
           disabled={isSubmitDisabled}
           fullWidth
         >
-          Tiếp tục hủy
+          {t("cancel.continue")}
         </Button>
       </div>
     </div>
@@ -219,6 +225,7 @@ const Step2_Reason = ({ onClose, onConfirmSubmit, booking }) => {
 
 
 export default function CancelBookingModal({ open, onClose, booking, onConfirm }) {
+    const { t } = useTranslation("profile");
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -256,14 +263,14 @@ export default function CancelBookingModal({ open, onClose, booking, onConfirm }
             // Component cha (MyBookings) đã giữ 'selectedBooking' nên không cần truyền lại booking object từ đây.
             await onConfirm(reasonValue, otherText); 
         } catch (error) {
-            console.error("Lỗi khi hủy:", error);
+            console.error("Cancellation failed:", error);
         } finally {
             // ✅ SỬA LỖI LOADING: Luôn tắt loading khi kết thúc (dù thành công hay thất bại)
             setIsLoading(false);
         }
     };
 
-    const title = "Hủy đặt phòng";
+    const title = t("cancel.title");
 
     return (
         <>
@@ -288,7 +295,7 @@ export default function CancelBookingModal({ open, onClose, booking, onConfirm }
             </Modal>
 
             {isLoading && (
-                <LoadingOverlay message="Đang xử lý yêu cầu hủy phòng..." />
+                <LoadingOverlay message={t("cancel.processing")} />
             )}
         </>
     );

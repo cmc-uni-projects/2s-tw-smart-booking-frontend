@@ -9,6 +9,7 @@ import {
 import Skeleton from "@/components/common/Loading/Skeleton";
 import propertyService from "@/services/property.service";
 import placeholderImg from "@/assets/images/placeholder.png";
+import { useTranslation } from "react-i18next";
 
 // Cấu hình đường dẫn ảnh
 const BASE_IMAGE_URL = "http://localhost:8386/images/"; 
@@ -16,14 +17,16 @@ const BASE_IMAGE_URL = "http://localhost:8386/images/";
 // ====================================================================
 // 1. SUB-COMPONENT: HEADER
 // ====================================================================
-const SectionHeader = ({ onSeeAll }) => (
+const SectionHeader = ({ onSeeAll }) => {
+    const { t } = useTranslation("home");
+    return (
     <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-10 px-2">
         <div className="max-w-2xl">
             <h2 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight leading-tight">
-                Điểm Đến <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Nổi Bật Nhất</span>
+                {t("featured.titleLead")} <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{t("featured.titleHighlight")}</span>
             </h2>
             <p className="text-gray-500 mt-3 font-medium text-base leading-relaxed">
-                Được bình chọn bởi cộng đồng du lịch, mang lại trải nghiệm nghỉ dưỡng đẳng cấp và tiện nghi vượt trội.
+                {t("featured.subtitle")}
             </p>
         </div>
 
@@ -31,18 +34,20 @@ const SectionHeader = ({ onSeeAll }) => (
             onClick={onSeeAll}
             className="hidden md:flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-blue-600 transition-all bg-white px-5 py-2.5 rounded-full border border-gray-200 hover:border-blue-200 shadow-sm hover:shadow-md group"
         >
-            Xem tất cả 
+            {t("common:actions.seeAll")}
             <div className="bg-gray-100 group-hover:bg-blue-100 p-1 rounded-full transition-colors">
                 <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
             </div>
         </button>
     </div>
-);
+    );
+};
 
 // ====================================================================
 // 2. SUB-COMPONENT: HOTEL CARD
 // ====================================================================
 const ModernHotelCard = ({ hotel }) => {
+    const { t } = useTranslation("home");
     const navigate = useNavigate();
 
     return (
@@ -100,12 +105,12 @@ const ModernHotelCard = ({ hotel }) => {
 
                 <div className="flex items-center justify-between mt-4">
                     <div>
-                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Giá chỉ từ</p>
+                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">{t("featured.priceFrom")}</p>
                         <div className="flex items-baseline gap-1">
                             <span className="text-xl font-black text-blue-600">
                                 {hotel.formattedPrice}
                             </span>
-                            <span className="text-sm text-gray-400 font-medium">₫/đêm</span>
+                            <span className="text-sm text-gray-400 font-medium">{t("featured.perNight")}</span>
                         </div>
                     </div>
                     
@@ -123,6 +128,7 @@ const ModernHotelCard = ({ hotel }) => {
 // 3. MAIN COMPONENT
 // ====================================================================
 const FeaturedHotels = () => {
+    const { t } = useTranslation("home");
     const navigate = useNavigate();
     const [hotels, setHotels] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -178,7 +184,7 @@ const FeaturedHotels = () => {
                 const mapped = rawData.map(item => ({
                     id: item.propertyId,
                     name: item.propertyName,
-                    location: item.address || item.city || "Việt Nam",
+                    location: item.address || item.city || t("common:vietnam"),
                     price: item.minPrice || 0, // Giá thấp nhất
                     formattedPrice: new Intl.NumberFormat('vi-VN').format(item.minPrice || 0),
                     image: getCoverImage(item),
@@ -189,7 +195,7 @@ const FeaturedHotels = () => {
 
                 setHotels(mapped.slice(0, 4)); // Chỉ lấy 4 cái
             } catch (err) {
-                console.error("❌ Lỗi khi tải khách sạn nổi bật:", err);
+                console.error("Failed to load featured hotels:", err);
                 setHotels([]); // Set mảng rỗng để tránh lỗi render
             } finally {
                 setLoading(false);
@@ -226,7 +232,7 @@ const FeaturedHotels = () => {
                 renderSkeletons()
             ) : hotels.length === 0 ? (
                 <div className="text-center py-20 bg-gray-50 rounded-[2rem] border border-dashed border-gray-200">
-                    <p className="text-gray-500">Hệ thống đang cập nhật danh sách khách sạn...</p>
+                    <p className="text-gray-500">{t("featured.empty")}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">

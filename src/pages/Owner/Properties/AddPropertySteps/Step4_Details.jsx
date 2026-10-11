@@ -5,8 +5,10 @@ import { FileText, Type, Maximize, Sparkles, Loader2, CheckCircle, AlertCircle }
 import TextArea from "@/components/common/Input/TextArea";
 import TextField from "@/components/common/Input/TextField";
 import propertyService from "@/services/property.service";
+import { useTranslation } from "react-i18next";
 
 const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
+  const { t } = useTranslation();
   // Lấy giá trị tên đang nhập theo thời gian thực
   const propertyNameValue = watch("propertyName");
   
@@ -39,14 +41,14 @@ const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
         
         // ✅ FIX QUAN TRỌNG: Chỉ báo lỗi "Trùng tên" nếu status code là 409
         if (error.response && error.response.status === 409) {
-            const serverMessage = error.response.data?.message || "Tên chỗ nghỉ này đã được sử dụng. Vui lòng chọn tên khác.";
+            const serverMessage = error.response.data?.message || t("owner:Step4_Details.thisPropertyNameIsAlready");
             setError("propertyName", {
               type: "manual",
               message: serverMessage
             });
         } else {
             // Nếu lỗi khác (500, 404, Network Error...), log ra console để debug chứ không báo trùng
-            console.error("Lỗi kiểm tra tên (Check Name API):", error);
+            console.error("Name check failed (Check Name API):", error);
         }
       } finally {
         setIsChecking(false);
@@ -72,9 +74,9 @@ const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
           <FileText size={32} strokeWidth={2} />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Thông tin chi tiết</h2>
+          <h2 className="text-2xl font-bold text-gray-800">{t("owner:Step4_Details.details")}</h2>
           <p className="text-gray-500 text-sm mt-1">
-            Hãy đặt một cái tên ấn tượng và mô tả thật hấp dẫn về chỗ nghỉ của bạn.
+            {t("owner:Step4_Details.giveYourPropertyAMemorable")}
           </p>
         </div>
       </div>
@@ -85,10 +87,10 @@ const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
             <Sparkles size={18} className="text-[rgb(40,169,224)]" />
         </div>
         <div className="text-sm text-gray-700 leading-relaxed">
-          <h4 className="font-bold text-gray-900 mb-1">Mẹo nhỏ:</h4>
+          <h4 className="font-bold text-gray-900 mb-1">{t("owner:Step4_Details.tip")}</h4>
           <p>
-            Một mô tả chi tiết (trên 100 ký tự) nêu bật được không gian, view và tiện ích độc đáo thường giúp tăng 
-            <strong> 30% tỷ lệ đặt phòng</strong>. Hãy kể câu chuyện về ngôi nhà của bạn!
+            {t("owner:Step4_Details.aDetailedDescriptionOver100")} 
+            <strong> {t("owner:Step4_Details.bookingsBy30")}</strong>{t("owner:Step4_Details.tellTheStoryOfYour")}
           </p>
         </div>
       </div>
@@ -100,8 +102,8 @@ const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
         <div>
           <div className="relative">
             <TextField
-              label="Tên chỗ nghỉ của bạn"
-              placeholder="Ví dụ: Villa Hạnh Phúc - View Biển Đà Nẵng"
+              label={t("owner:Step4_Details.yourPropertyName")}
+              placeholder={t("owner:Step4_Details.exampleHappyVillaDaNang")}
               required
               icon={<Type size={18} />}
               {...register("propertyName")}
@@ -117,7 +119,7 @@ const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
               {/* Chỉ hiện tích xanh nếu không check, có kết quả available và KHÔNG có lỗi form */}
               {!isChecking && isAvailable === true && !errors.propertyName && (
                 <div className="flex items-center gap-1 text-green-500 bg-green-50 px-2 py-1 rounded-md text-xs font-medium animate-in fade-in zoom-in">
-                  <CheckCircle size={14} /> Hợp lệ
+                  <CheckCircle size={14} /> {t("owner:Step4_Details.valid")}
                 </div>
               )}
               {/* Hiện icon đỏ nếu server báo trùng (isAvailable = false) */}
@@ -129,7 +131,7 @@ const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
 
           {!errors.propertyName && !isChecking && (
              <p className="text-xs text-gray-400 mt-1 ml-1">
-               Tên này sẽ hiển thị nổi bật nhất trên trang tìm kiếm.
+               {t("owner:Step4_Details.thisNameIsShownMost")}
              </p>
           )}
         </div>
@@ -137,7 +139,7 @@ const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
         {/* --- Diện tích --- */}
         <div>
           <TextField
-            label="Diện tích tổng thể (m²)"
+            label={t("owner:Step4_Details.totalAreaM")}
             type="number"
             placeholder="VD: 120"
             required
@@ -150,8 +152,8 @@ const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
         {/* --- Mô tả chi tiết --- */}
         <div>
           <TextArea
-            label="Mô tả chi tiết"
-            placeholder="Mô tả những điểm nổi bật, không gian, tiện ích xung quanh, khoảng cách đến trung tâm..."
+            label={t("owner:Step4_Details.detailedDescription")}
+            placeholder={t("owner:Step4_Details.describeTheHighlightsTheSpace")}
             rows={8}
             required
             {...register("description")}
@@ -160,7 +162,7 @@ const Step4_Details = ({ register, errors, watch, setError, clearErrors }) => {
           <div className="flex justify-between items-center mt-1 ml-1">
              {!errors.description && (
                 <p className="text-xs text-gray-400">
-                  Tối thiểu 50 ký tự để đảm bảo chất lượng nội dung.
+                  {t("owner:Step4_Details.atLeast50CharactersTo")}
                 </p>
              )}
           </div>

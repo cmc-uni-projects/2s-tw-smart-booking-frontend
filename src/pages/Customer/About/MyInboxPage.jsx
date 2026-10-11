@@ -13,22 +13,13 @@ import notificationService from "@/services/notification.service";
 import Button from "@/components/common/Button/Button";
 import Toast from "@/components/common/Notification/Toast";
 import ToastPortal from "@/components/common/Notification/ToastPortal";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 // [CẬP NHẬT] Mapping các Enum mới của Customer
-const typeToVietnamese = {
-  'GENERAL': 'Thông báo chung',
-  'ACCOUNT_UPDATE': 'Tài khoản',
-  'SECURITY_ALERT': 'Bảo mật',
-  'BOOKING_SUCCESS': 'Đặt phòng thành công',
-  'BOOKING_CANCELLED': 'Đã hủy phòng',
-  'BOOKING_FAILED': 'Đặt phòng thất bại',
-  'PAYMENT_SUCCESS': 'Thanh toán thành công',
-  'REFUND_PROCESSED': 'Hoàn tiền',
-  'PROMOTION': 'Khuyến mãi',
-  'REMINDER_CHECKIN': 'Nhắc nhở',
-  'APPROVAL': 'Đơn được duyệt',
-  'REJECTION': 'Đơn bị từ chối'
-};
+// Label for a NotificationType (about:inbox.types.*)
+const notificationTypeLabel = (type) =>
+  type ? i18n.t(`about:inbox.types.${type}`, { defaultValue: "" }) : "";
 
 const formatTimeAgo = (dateString) => {
   if (!dateString) return "";
@@ -36,19 +27,19 @@ const formatTimeAgo = (dateString) => {
   const now = new Date();
   const seconds = Math.floor((now - date) / 1000);
   
-  if (seconds < 0) return "Vừa xong";
+  if (seconds < 0) return i18n.t("common:time.justNow");
   
   let interval = seconds / 31536000;
-  if (interval > 1) return Math.floor(interval) + " năm trước";
+  if (interval > 1) return i18n.t("common:time.yearsAgo", { count: Math.floor(interval) });
   interval = seconds / 2592000;
-  if (interval > 1) return Math.floor(interval) + " tháng trước";
+  if (interval > 1) return i18n.t("common:time.monthsAgo", { count: Math.floor(interval) });
   interval = seconds / 86400;
-  if (interval > 1) return Math.floor(interval) + " ngày trước";
+  if (interval > 1) return i18n.t("common:time.daysAgo", { count: Math.floor(interval) });
   interval = seconds / 3600;
-  if (interval > 1) return Math.floor(interval) + " giờ trước";
+  if (interval > 1) return i18n.t("common:time.hoursAgo", { count: Math.floor(interval) });
   interval = seconds / 60;
-  if (interval > 1) return Math.floor(interval) + " phút trước";
-  return "Vài giây trước";
+  if (interval > 1) return i18n.t("common:time.minutesAgo", { count: Math.floor(interval) });
+  return i18n.t("common:time.secondsAgo");
 };
 
 // [CẬP NHẬT] Icon tương ứng với từng loại thông báo
@@ -79,6 +70,7 @@ const getNotificationIcon = (type) => {
 
 const MyInboxPage = () => {
   const { currentUser, updateUser, logout, hasRole } = useAuth();
+  const { t } = useTranslation(["about", "common"]);
   const navigate = useNavigate();
 
   const [notifications, setNotifications] = useState([]);
@@ -125,8 +117,8 @@ const MyInboxPage = () => {
             setNotifications([]);
         }
       } catch (err) {
-        console.error("Lỗi tải thông báo:", err);
-        setError("Không thể tải thông báo. Vui lòng thử lại sau.");
+        console.error("Failed to load notifications:", err);
+        setError(t("inbox.loadError"));
       } finally {
         setLoading(false);
       }
@@ -141,9 +133,9 @@ const MyInboxPage = () => {
       // [QUAN TRỌNG] Chỉ đánh dấu đã đọc cho Customer Scope
       await notificationService.markAllAsRead('CUSTOMER');
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true, read: true })));
-      showToast("Đã đánh dấu tất cả là đã đọc", "success");
+      showToast(t("inbox.allRead"), "success");
     } catch (error) {
-      showToast("Có lỗi xảy ra khi cập nhật", "error");
+      showToast(t("inbox.updateError"), "error");
     }
   };
 
@@ -158,7 +150,7 @@ const MyInboxPage = () => {
             n.id === noti.id ? { ...n, isRead: true, read: true } : n
         ));
     } catch (error) {
-        console.error("Lỗi đánh dấu đã đọc", error);
+        console.error("Failed to mark as read", error);
     }
   };
 
@@ -183,11 +175,11 @@ const MyInboxPage = () => {
           updateUser(userForContext);
           navigate("/owner");
         } else {
-          showToast("Đơn của bạn vẫn đang chờ hoặc chưa được duyệt.", "info");
+          showToast(t("inbox.stillPending"), "info");
         }
       }
     } catch (error) {
-      showToast("Có lỗi xảy ra, vui lòng đăng nhập lại.", "error");
+      showToast(t("inbox.reLogin"), "error");
       logout();
     } finally {
       setIsRefreshingRole(false);
@@ -204,7 +196,7 @@ const MyInboxPage = () => {
   const handleDeleteConfirm = () => {
     if (!notificationToDelete) return;
     setNotifications(prev => prev.filter(n => n.id !== notificationToDelete));
-    showToast("Đã ẩn thông báo", "success");
+    showToast(t("inbox.hidden"), "success");
     setNotificationToDelete(null); 
   };
 
@@ -226,40 +218,40 @@ const MyInboxPage = () => {
       if (!term) return true;
       const title = (n.title || '').toLowerCase();
       const msg = (n.message || '').toLowerCase();
-      const typeVN = (typeToVietnamese[n.type] || '').toLowerCase();
+      const typeVN = notificationTypeLabel(n.type).toLowerCase();
       
       return title.includes(term) || msg.includes(term) || typeVN.includes(term);
     });
 
   const renderContent = () => {
-    if (loading) return <div className="p-16 text-center text-gray-500">Đang tải thông báo...</div>;
+    if (loading) return <div className="p-16 text-center text-gray-500">{t("inbox.loading")}</div>;
     if (error) return <div className="p-16 text-center text-red-600">{error}</div>;
     
     if (!loading && !error && notifications.length === 0) {
       return (
         <div className="p-8 md:p-16 flex flex-col items-center text-center animate-fadeIn">
-          <img src={inboxIllustration} alt="Hộp thư trống" className="w-full max-w-xs h-auto mb-8" />
-          <h2 className="text-xl md:text-2xl font-semibold mb-2">Hộp thư trống</h2>
-          <p className="text-gray-500">Bạn chưa có thông báo nào.</p>
+          <img src={inboxIllustration} alt={t("inbox.emptyAlt")} className="w-full max-w-xs h-auto mb-8" />
+          <h2 className="text-xl md:text-2xl font-semibold mb-2">{t("inbox.emptyTitle")}</h2>
+          <p className="text-gray-500">{t("inbox.emptyText")}</p>
         </div>
       );
     }
 
     if (filteredNotifications.length === 0) {
-        return <div className="p-16 text-center text-gray-500">Không tìm thấy thông báo nào trong trang này.</div>;
+        return <div className="p-16 text-center text-gray-500">{t("inbox.noneOnPage")}</div>;
     }
 
     return (
       <>
         <div className="flex flex-col md:flex-row justify-between items-center p-4 border-b gap-4">
           <button onClick={handleMarkAllAsRead} className="text-sm text-blue-600 hover:underline">
-            Đánh dấu tất cả là đã đọc
+            {t("inbox.markAll")}
           </button>
           <div className="relative w-full md:w-auto">
             <Search size={18} className="text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Tìm trong trang này..."
+              placeholder={t("inbox.searchPlaceholder")}
               value={currentSearchTerm} 
               onChange={(e) => setCurrentSearchTerm(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') setSearchTerm(e.target.value); }}
@@ -300,7 +292,7 @@ const MyInboxPage = () => {
                 
                 <div className="w-2.5 flex-shrink-0 mt-1.5 flex items-center justify-center">
                     {!isRead && (
-                        <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-sm" title="Chưa đọc" />
+                        <div className="w-2.5 h-2.5 bg-blue-500 rounded-full shadow-sm" title={t("inbox.unread")} />
                     )}
                 </div>
                 
@@ -321,7 +313,7 @@ const MyInboxPage = () => {
                         onClick={(e) => promptDelete(e, noti.id)} 
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 text-left"
                       >
-                        <Trash2 size={16} /> Ẩn thông báo
+                        <Trash2 size={16} /> {t("inbox.hide")}
                       </button>
                     </div>
                   )}
@@ -338,15 +330,15 @@ const MyInboxPage = () => {
                 onClick={() => setCurrentPage(p => p - 1)} 
                 className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
-                Trước
+                {t("common:pagination.prev")}
             </button>
-            <span className="text-sm font-medium">Trang {currentPage} / {totalPages}</span>
+            <span className="text-sm font-medium">{t("common:pagination.page", { page: currentPage, total: totalPages })}</span>
             <button 
                 disabled={currentPage === totalPages} 
                 onClick={() => setCurrentPage(p => p + 1)} 
                 className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
-                Sau
+                {t("common:pagination.next")}
             </button>
           </div>
         )}
@@ -367,38 +359,38 @@ const MyInboxPage = () => {
           
           <aside className="w-full md:w-64 bg-white shadow-lg rounded-lg p-6 h-fit flex-shrink-0 animate-fadeIn">
             <div className="mb-6">
-              <h2 className="text-lg font-bold mb-3">Hộp thư</h2>
+              <h2 className="text-lg font-bold mb-3">{t("inbox.title")}</h2>
               <ul className="space-y-2">
                 <li>
                   <button onClick={() => { setFilter('ALL'); setSearchTerm(''); }} 
                     className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition font-medium ${filter === 'ALL' ? activeFilterClass : 'text-gray-600 hover:bg-gray-100'}`}
                   >
-                    <Bell size={18} /> Tất cả
+                    <Bell size={18} /> {t("inbox.all")}
                   </button>
                 </li>
                 <li>
                   <button onClick={() => setFilter('UNREAD')} 
                     className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition font-medium ${filter === 'UNREAD' ? activeFilterClass : 'text-gray-600 hover:bg-gray-100'}`}
                   >
-                    <span className={`w-2.5 h-2.5 rounded-full ml-1 mr-0.5 ${filter === 'UNREAD' ? 'bg-white' : 'bg-blue-500'}`}></span> Chưa đọc
+                    <span className={`w-2.5 h-2.5 rounded-full ml-1 mr-0.5 ${filter === 'UNREAD' ? 'bg-white' : 'bg-blue-500'}`}></span> {t("inbox.unread")}
                   </button>
                 </li>
                 <li>
                   <button onClick={() => setFilter('READ')} 
                     className={`flex items-center gap-3 w-full px-4 py-2 rounded-lg transition font-medium ${filter === 'READ' ? activeFilterClass : 'text-gray-600 hover:bg-gray-100'}`}
                   >
-                    <CheckCircle2 size={18} /> Đã đọc
+                    <CheckCircle2 size={18} /> {t("inbox.read")}
                   </button>
                 </li>
               </ul>
               <div className="mt-4 p-3 bg-blue-50 rounded text-xs text-blue-600">
-                * Bộ lọc và tìm kiếm hiện chỉ áp dụng trên danh sách hiển thị.
+                {t("inbox.filterNote")}
               </div>
             </div>
           </aside>
 
           <div className="flex-1">
-            <h1 className="text-3xl font-bold mb-6 text-gray-800">Thông báo của tôi</h1>
+            <h1 className="text-3xl font-bold mb-6 text-gray-800">{t("inbox.pageTitle")}</h1>
             <div className="bg-white rounded-lg shadow-xl overflow-hidden border border-gray-100">
               {renderContent()}
             </div>
@@ -420,7 +412,7 @@ const MyInboxPage = () => {
                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
                     selectedNoti.type === 'REJECTION' || selectedNoti.type === 'BOOKING_CANCELLED' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
                 }`}>
-                    {typeToVietnamese[selectedNoti.type] || 'Thông báo'}
+                    {notificationTypeLabel(selectedNoti.type) || t("inbox.notification")}
                 </span>
             </div>
 
@@ -438,7 +430,7 @@ const MyInboxPage = () => {
             {selectedNoti.type === 'APPROVAL' && (
               <div className="mt-6">
                 <Button fullWidth onClick={handleAccessOwnerChannel} isLoading={isRefreshingRole} disabled={isRefreshingRole}>
-                    {isRefreshingRole ? "Đang xử lý..." : "Truy cập Kênh Chủ nhà"}
+                    {isRefreshingRole ? t("common:processing") : t("inbox.ownerChannel")}
                 </Button>
               </div>
             )}
@@ -453,20 +445,20 @@ const MyInboxPage = () => {
               <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
                 <AlertTriangle size={24} className="text-red-600" />
               </div>
-              <h2 className="text-xl font-bold mb-2 text-gray-900">Ẩn thông báo này?</h2>
-              <p className="text-gray-500 mb-6 text-sm">Thông báo sẽ bị ẩn khỏi danh sách hiển thị tạm thời.</p>
+              <h2 className="text-xl font-bold mb-2 text-gray-900">{t("inbox.hideConfirmTitle")}</h2>
+              <p className="text-gray-500 mb-6 text-sm">{t("inbox.hideConfirmText")}</p>
               <div className="flex justify-center gap-3 w-full">
                 <button 
                   onClick={() => setNotificationToDelete(null)} 
                   className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition"
                 >
-                  Huỷ
+                  {t("inbox.cancel")}
                 </button>
                 <button 
                   onClick={handleDeleteConfirm} 
                   className="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition"
                 >
-                  Ẩn
+                  {t("inbox.hideShort")}
                 </button>
               </div>
             </div>

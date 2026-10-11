@@ -1,12 +1,14 @@
 import React from "react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { TrendingUp } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const HotelRevenueChart = ({ data }) => {
+  const { t } = useTranslation();
     // Nếu không có data hoặc data rỗng, không render gì cả để tránh lỗi Recharts
     if (!data || data.length === 0) return (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-full flex items-center justify-center min-h-[300px]">
-            <p className="text-gray-400">Đang tải dữ liệu biểu đồ...</p>
+            <p className="text-gray-400">{t("owner:HotelRevenueChart.loadingChartData")}</p>
         </div>
     );
 
@@ -17,8 +19,8 @@ const HotelRevenueChart = ({ data }) => {
                     <TrendingUp size={20} />
                 </div>
                 <div>
-                    <h3 className="text-lg font-bold text-gray-800">Biểu đồ Doanh Thu</h3>
-                    <p className="text-xs text-gray-500">Tổng quan năm nay</p>
+                    <h3 className="text-lg font-bold text-gray-800">{t("owner:HotelRevenueChart.revenueChart")}</h3>
+                    <p className="text-xs text-gray-500">{t("owner:HotelRevenueChart.thisYearSOverview")}</p>
                 </div>
             </div>
 

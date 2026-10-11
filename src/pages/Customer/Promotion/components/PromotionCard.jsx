@@ -3,9 +3,11 @@ import { Link } from "react-router-dom";
 import Button from "@/components/common/Button/Button";
 import Card from "@/components/common/Card/Card";
 import { Bookmark, Flame, Crown, Clock, TicketPercent } from "lucide-react"; // ❌ Đã xóa ThumbsUp
+import { useTranslation } from "react-i18next";
 import placeholderImg from "@/assets/images/placeholder.png";
 
 export default function PromotionCard({ promo, onClick, isSaved, onToggleSave }) {
+    const { t } = useTranslation("promotion");
     const isClickable = typeof onClick === 'function';
 
     // --- 1. CHUẨN HÓA DỮ LIỆU ---
@@ -28,10 +30,10 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
         if (!rank) return { show: false };
         const r = rank.toUpperCase();
         switch (r) {
-            case 'BRONZE': return { label: 'Đồng', className: 'bg-orange-600 text-white', show: true };
-            case 'SILVER': return { label: 'Bạc', className: 'bg-slate-500 text-white', show: true };
-            case 'GOLD': return { label: 'Vàng', className: 'bg-yellow-500 text-white', show: true };
-            case 'DIAMOND': return { label: 'Kim Cương', className: 'bg-blue-600 text-white', show: true };
+            case 'BRONZE': return { label: t('common:rankShort.BRONZE'), className: 'bg-orange-600 text-white', show: true };
+            case 'SILVER': return { label: t('common:rankShort.SILVER'), className: 'bg-slate-500 text-white', show: true };
+            case 'GOLD': return { label: t('common:rankShort.GOLD'), className: 'bg-yellow-500 text-white', show: true };
+            case 'DIAMOND': return { label: t('common:rankShort.DIAMOND'), className: 'bg-blue-600 text-white', show: true };
             default: return { show: false };
         }
     };
@@ -65,7 +67,7 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
                 >
                     <img
                         src={bgImage}
-                        alt={promo.code || "Khuyến mãi"}
+                        alt={promo.code || t("fallbackAlt")}
                         onError={(e) => {e.target.src = placeholderImg}}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
@@ -107,7 +109,7 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
                                 title={promo.name || promo.title}
                                 onClick={handleClick}
                             >
-                                {promo.name || promo.title || "Chương trình khuyến mãi"}
+                                {promo.name || promo.title || t("fallbackName")}
                             </h3>
 
                             <button
@@ -117,7 +119,7 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
                                     ? "text-yellow-500 bg-yellow-50 hover:bg-yellow-100"
                                     : "text-gray-400 hover:text-yellow-500 hover:bg-yellow-50"
                                 }`}
-                                title={isSaved ? "Bỏ lưu" : "Lưu ưu đãi"}
+                                title={isSaved ? t("unsave") : t("save")}
                             >
                                 <Bookmark
                                     size={20}
@@ -131,7 +133,7 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
                             className="text-sm text-gray-500 font-medium line-clamp-2 leading-snug min-h-[40px]"
                             title={promo.description}
                         >
-                            {promo.discountDetail || promo.description || "Ưu đãi đặc biệt dành cho bạn"}
+                            {promo.discountDetail || promo.description || t("fallbackDescription")}
                         </p>
                     </div>
 
@@ -141,7 +143,7 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
                             {limit > 0 && (
                                 <div className="mb-3">
                                     <div className="flex justify-between text-[11px] text-gray-500 font-medium mb-1.5 px-0.5">
-                                        <span>Đã dùng: {used}</span>
+                                        <span>{t("used", { count: used })}</span>
                                         <span>{Math.round(usagePercent)}%</span>
                                     </div>
                                     <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden relative">
@@ -159,7 +161,7 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
                         <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
                             <div className="flex items-center gap-1.5 text-[11px] text-gray-600 font-medium bg-gray-100/80 px-2.5 py-1.5 rounded-full">
                                 <Clock size={13} className="text-gray-500" />
-                                <span>{promo.endDate ? new Date(promo.endDate).toLocaleDateString('vi-VN') : 'Vô thời hạn'}</span>
+                                <span>{promo.endDate ? new Date(promo.endDate).toLocaleDateString('vi-VN') : t('common:noExpiry')}</span>
                             </div>
 
                             {isClickable ? (
@@ -168,7 +170,7 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
                                     className="h-9 px-4 text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md transition-all rounded-full"
                                     onClick={handleClick}
                                 >
-                                    Sử dụng
+                                    {t("use")}
                                 </Button>
                             ) : (
                                 <Link to={`/promotions/${promo.promotionId || promo.id}`}>
@@ -177,7 +179,7 @@ export default function PromotionCard({ promo, onClick, isSaved, onToggleSave })
                                         variant="outline"
                                         className="h-9 px-4 text-xs font-semibold border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all rounded-full"
                                     >
-                                        Chi tiết
+                                        {t("details")}
                                     </Button>
                                 </Link>
                             )}

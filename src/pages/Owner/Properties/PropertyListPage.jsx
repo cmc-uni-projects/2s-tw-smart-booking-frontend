@@ -9,9 +9,11 @@ import PropertyCard from "./components/PropertyCard";
 import ViewPropertyModal from "./components/ViewPropertyModal";
 import EditPropertyModal from "./components/EditPropertyModal";
 import DeactivateConfirmModal from "./components/DeactivateConfirmModal"; // ✅ Import Modal Xác nhận
-import Toast from "@/components/common/Notification/Toast"; 
+import Toast from "@/components/common/Notification/Toast";
+import { useTranslation } from "react-i18next"; 
 
 const PropertyListPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +48,7 @@ const PropertyListPage = () => {
       setProperties(res.data || []); 
     } catch (error) {
       console.error("Failed to fetch properties", error);
-      showToast("Không thể tải danh sách tài sản", "error");
+      showToast(t("owner:PropertyListPage.couldNotLoadTheProperty"), "error");
     } finally {
       setLoading(false);
     }
@@ -91,12 +93,12 @@ const PropertyListPage = () => {
         // Nếu active = false -> đang Bật -> "Đã kích hoạt"
         const isTurningOff = property.active; 
         showToast(
-            isTurningOff ? `Đã tạm ngưng hoạt động "${property.propertyName}"` : `Đã kích hoạt lại "${property.propertyName}"`, 
+            isTurningOff ? t("owner:PropertyListPage.suspended", { propertyName: property.propertyName }) : t("owner:PropertyListPage.reactivated", { propertyName: property.propertyName }), 
             "success"
         );
     } catch (error) {
-        console.error("Lỗi khi cập nhật trạng thái:", error);
-        showToast("Không thể cập nhật trạng thái. Vui lòng thử lại!", "error");
+        console.error("Failed to update status:", error);
+        showToast(t("owner:PropertyListPage.couldNotUpdateTheStatus"), "error");
     }
   };
 
@@ -186,7 +188,7 @@ const PropertyListPage = () => {
       setIsEditModalOpen(false);
       setSelectedProperty(null);
       fetchProperties(); 
-      showToast("Cập nhật thông tin thành công!", "success");
+      showToast(t("owner:PropertyListPage.informationUpdatedSuccessfully"), "success");
   };
   const closeModals = () => {
       setIsViewModalOpen(false);
@@ -214,15 +216,15 @@ const PropertyListPage = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tài sản của tôi</h1>
-          <p className="text-gray-500 mt-1">Quản lý và theo dõi trạng thái các cơ sở lưu trú của bạn</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t("owner:PropertyListPage.myProperties")}</h1>
+          <p className="text-gray-500 mt-1">{t("owner:PropertyListPage.manageAndTrackTheStatus")}</p>
         </div>
         <Button 
             onClick={() => navigate("/owner/properties/new")} 
             leftIcon={<Plus size={20} />}
             className="shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all"
         >
-          Thêm cơ sở mới
+          {t("owner:PropertyListPage.addNewProperty")}
         </Button>
       </div>
 
@@ -233,7 +235,7 @@ const PropertyListPage = () => {
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input 
                     type="text"
-                    placeholder="Tìm kiếm tài sản..."
+                    placeholder={t("owner:PropertyListPage.searchProperties")}
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all text-sm"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -241,9 +243,9 @@ const PropertyListPage = () => {
              </div>
              <div className="flex p-1 bg-gray-100 rounded-xl overflow-hidden w-full lg:w-auto">
                 {[
-                    { id: "ALL", label: "Tất cả" },
-                    { id: "ACTIVE", label: "Đang hoạt động" },
-                    { id: "PENDING", label: "Chờ duyệt" }
+                    { id: "ALL", label: t("owner:PropertyListPage.all") },
+                    { id: "ACTIVE", label: t("owner:PropertyListPage.active") },
+                    { id: "PENDING", label: t("owner:PropertyListPage.pending") }
                 ].map(tab => (
                     <button
                         key={tab.id}
@@ -258,9 +260,9 @@ const PropertyListPage = () => {
                 ))}
              </div>
              <div className="hidden xl:flex gap-4 text-sm text-gray-500">
-                 <span>Tổng: <b>{stats.total}</b></span>
+                 <span>{t("owner:PropertyListPage.total")} <b>{stats.total}</b></span>
                  <span className="text-gray-300">|</span>
-                 <span className="text-green-600">Hoạt động: <b>{stats.active}</b></span>
+                 <span className="text-green-600">{t("owner:PropertyListPage.active2")} <b>{stats.active}</b></span>
              </div>
          </div>
       </div>
@@ -269,7 +271,7 @@ const PropertyListPage = () => {
       {loading ? (
         <div className="flex flex-col items-center justify-center h-64">
           <Loader2 className="animate-spin text-blue-600 mb-4" size={40} />
-          <p className="text-gray-500 font-medium">Đang tải dữ liệu...</p>
+          <p className="text-gray-500 font-medium">{t("owner:PropertyListPage.loadingData")}</p>
         </div>
       ) : filteredProperties.length > 0 ? (
         <>
@@ -289,7 +291,7 @@ const PropertyListPage = () => {
             <div className="mt-8 pt-6 border-t border-gray-200 bg-white rounded-xl p-4 shadow-sm border">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                     <span className="text-sm text-gray-500">
-                        Hiển thị <span className="font-semibold text-gray-700">{paginatedProperties.length}</span> / <span className="font-semibold text-gray-700">{filteredProperties.length}</span> kết quả
+                        {t("owner:PropertyListPage.showing")} <span className="font-semibold text-gray-700">{paginatedProperties.length}</span> / <span className="font-semibold text-gray-700">{filteredProperties.length}</span> {t("owner:PropertyListPage.results")}
                     </span>
                     <div className="flex items-center gap-2">
                         <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center">
@@ -312,9 +314,9 @@ const PropertyListPage = () => {
             <div className="bg-blue-50 p-6 rounded-full mb-6">
                <Building2 size={64} className="text-blue-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">{searchTerm ? "Không tìm thấy kết quả" : "Bạn chưa có cơ sở lưu trú nào"}</h3>
-            <p className="text-gray-500 mb-8 max-w-md text-center leading-relaxed">{searchTerm ? `Không tìm thấy khách sạn nào phù hợp.` : "Hãy bắt đầu hành trình kinh doanh của bạn!"}</p>
-            {!searchTerm && (<Button onClick={() => navigate("/owner/properties/new")} className="shadow-lg shadow-blue-500/20">Đăng ký ngay</Button>)}
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{searchTerm ? t("owner:PropertyListPage.noResultsFound") : t("owner:PropertyListPage.youHaveNoPropertiesYet")}</h3>
+            <p className="text-gray-500 mb-8 max-w-md text-center leading-relaxed">{searchTerm ? t("owner:PropertyListPage.noMatchingHotelsFound") : t("owner:PropertyListPage.startYourBusinessJourney")}</p>
+            {!searchTerm && (<Button onClick={() => navigate("/owner/properties/new")} className="shadow-lg shadow-blue-500/20">{t("owner:PropertyListPage.registerNow")}</Button>)}
         </div>
       )}
       </div>

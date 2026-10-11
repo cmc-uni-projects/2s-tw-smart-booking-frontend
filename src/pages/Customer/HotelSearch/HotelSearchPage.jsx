@@ -4,8 +4,10 @@ import FilterSidebar from "./FilterSidebar";
 import SearchResultsList from "./SearchResultsList";
 import propertyService from "@/services/property.service";
 import SearchBox from "@/components/search/SearchBox"; 
+import { useTranslation } from "react-i18next";
 
 const HotelSearchPage = () => {
+  const { t } = useTranslation("search");
   const [searchParams, setSearchParams] = useSearchParams();
   
   // State dữ liệu
@@ -185,16 +187,16 @@ const HotelSearchPage = () => {
                {/* Header kết quả & Sort */}
                <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-800">
-                  {loading && page === 0 ? "Đang tìm kiếm..." : `Tìm thấy ${totalElements} chỗ nghỉ`}
+                  {loading && page === 0 ? t("results.searching") : t("results.found", { count: totalElements })}
                 </h2>
                 <select 
                   className="border border-gray-300 rounded-lg p-2 text-sm bg-white outline-none cursor-pointer"
                   value={activeFilters.sort}
                   onChange={(e) => handleFilterChange({ sort: e.target.value })}
                 >
-                  <option value="id,desc">Mới nhất</option>
-                  <option value="price,asc">Giá thấp đến cao</option>
-                  <option value="price,desc">Giá cao đến thấp</option>
+                  <option value="id,desc">{t("results.sort.newest")}</option>
+                  <option value="price,asc">{t("results.sort.priceAsc")}</option>
+                  <option value="price,desc">{t("results.sort.priceDesc")}</option>
                 </select>
               </div>
 
@@ -208,7 +210,7 @@ const HotelSearchPage = () => {
               {loading && page > 0 && (
                  <div className="py-6 text-center">
                    <div className="inline-block w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                   <p className="text-gray-500 text-xs mt-2 font-medium">Đang tải thêm...</p>
+                   <p className="text-gray-500 text-xs mt-2 font-medium">{t("common:loadingMore")}</p>
                  </div>
               )}
             </div>

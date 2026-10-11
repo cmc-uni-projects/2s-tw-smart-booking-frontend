@@ -1,4 +1,4 @@
-console.warn("LOG BẮT BUỘC: File CustomerRoutes.jsx (bản mới nhất) ĐÃ CHẠY!");
+console.warn("REQUIRED LOG: CustomerRoutes.jsx (latest version) LOADED!");
 import React from "react";
 import CustomerLayout from "@/layouts/CustomerLayout/CustomerLayout";
 import CustomerDashboardLayout from "@/layouts/CustomerLayout/CustomerDashboardLayout";
@@ -28,6 +28,7 @@ import PromotionDetailPage from "@/pages/Customer/Promotion/components/Promotion
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import PartnerRoute from "@/routes/PartnerRoute";
 import CompleteProfile from "@/pages/Auth/CompleteProfile";
+import i18n from "@/i18n";
 
 
 const customerRoutes = [
@@ -171,7 +172,7 @@ const customerRoutes = [
     {
         path: "explore",
         element: <ExploreMapPage />,
-        title: "Khám phá trên bản đồ"
+        get title() { return i18n.t("common:CustomerRoutes.exploreOnTheMap"); }
     },
     {
         path: "/customer/settings",

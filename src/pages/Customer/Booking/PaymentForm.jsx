@@ -3,6 +3,7 @@
 import React from 'react';
 import './PaymentForm.css'; // Import CSS
 import { CreditCard } from 'lucide-react'; // Import icon
+import { useTranslation } from 'react-i18next';
 
 // Import Logo
 import VnpayLogo from '../../../assets/logo/vnpay_logo.png';
@@ -10,6 +11,7 @@ import MomoLogo from '../../../assets/logo/momo_logo.png';
 import ZaloPayLogo from '../../../assets/logo/zalopay_logo.png';
 
 const PaymentForm = ({ onChange, selected }) => {
+    const { t } = useTranslation("booking");
     // Component này giờ nhận props:
     // - selected: giá trị phương thức đang chọn (từ component cha truyền xuống)
     // - onChange: hàm callback để cập nhật state ở component cha
@@ -25,7 +27,7 @@ const PaymentForm = ({ onChange, selected }) => {
         <div className="payment-form-container bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
             <div className="form-header flex items-center gap-2 mb-4">
                 <CreditCard size={20} className="text-blue-600" />
-                <h2 className="text-lg font-bold text-gray-800 m-0">Phương thức thanh toán</h2>
+                <h2 className="text-lg font-bold text-gray-800 m-0">{t("method.title")}</h2>
             </div>
 
             <div className="payment-options flex flex-col gap-3">
@@ -37,7 +39,7 @@ const PaymentForm = ({ onChange, selected }) => {
                     <div className="payment-logo w-10 h-10 mr-3 flex-shrink-0 bg-white rounded-md p-1 border border-gray-100 flex items-center justify-center">
                         <img src={VnpayLogo} alt="VNPay" className="w-full h-full object-contain" />
                     </div>
-                    <span className="payment-name flex-1 font-medium text-gray-700 text-sm">Cổng thanh toán VNPay</span>
+                    <span className="payment-name flex-1 font-medium text-gray-700 text-sm">{t("method.vnpay")}</span>
                     <input
                         type="radio"
                         name="paymentMethod"
@@ -56,7 +58,7 @@ const PaymentForm = ({ onChange, selected }) => {
                     <div className="payment-logo w-10 h-10 mr-3 flex-shrink-0 bg-white rounded-md p-1 border border-gray-100 flex items-center justify-center">
                         <img src={MomoLogo} alt="MoMo" className="w-full h-full object-contain" />
                     </div>
-                    <span className="payment-name flex-1 font-medium text-gray-700 text-sm">Ví điện tử MoMo</span>
+                    <span className="payment-name flex-1 font-medium text-gray-700 text-sm">{t("method.momo")}</span>
                     <input
                         type="radio"
                         name="paymentMethod"
@@ -75,7 +77,7 @@ const PaymentForm = ({ onChange, selected }) => {
                     <div className="payment-logo w-10 h-10 mr-3 flex-shrink-0 bg-white rounded-md p-1 border border-gray-100 flex items-center justify-center">
                         <img src={ZaloPayLogo} alt="ZaloPay" className="w-full h-full object-contain" />
                     </div>
-                    <span className="payment-name flex-1 font-medium text-gray-700 text-sm">Ví điện tử ZaloPay</span>
+                    <span className="payment-name flex-1 font-medium text-gray-700 text-sm">{t("method.zalopay")}</span>
                     <input
                         type="radio"
                         name="paymentMethod"
@@ -94,7 +96,7 @@ const PaymentForm = ({ onChange, selected }) => {
                     <div className="payment-logo w-10 h-10 mr-3 flex-shrink-0 bg-white rounded-md p-1 border border-gray-100 flex items-center justify-center text-gray-600">
                         <CreditCard size={24} />
                     </div>
-                    <span className="payment-name flex-1 font-medium text-gray-700 text-sm">Quét mã QR Ngân hàng</span>
+                    <span className="payment-name flex-1 font-medium text-gray-700 text-sm">{t("method.bankQr")}</span>
                     <input
                         type="radio"
                         name="paymentMethod"

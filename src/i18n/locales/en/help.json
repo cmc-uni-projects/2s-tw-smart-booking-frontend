@@ -1,0 +1,90 @@
+{
+  "categories": {
+    "booking": {
+      "name": "Bookings",
+      "desc": "Booking, cancelling & changing your trip"
+    },
+    "payment": {
+      "name": "Payments",
+      "desc": "Payment methods, refunds & invoices"
+    },
+    "account": {
+      "name": "Account",
+      "desc": "Profile, security & password recovery"
+    },
+    "partner": {
+      "name": "Partners (hosts)",
+      "desc": "Listing, managing your property & revenue"
+    }
+  },
+  "faqs": {
+    "1": {
+      "question": "How do I know my booking was successful?",
+      "answer": "After you pay, you'll receive a confirmation email at your registered address. The booking status under \"My bookings\" will also change to \"Confirmed\". If you don't get the email within 15 minutes, check your spam folder or contact support."
+    },
+    "2": {
+      "question": "How are cancellations and refunds calculated?",
+      "answer": "The cancellation policy depends on each hotel/host. Typical options are:\n- Free cancellation up to 24h/48h before.\n- Paid cancellation (50% or 100% of the first night).\nYou can see the policy on the room page before booking or in your confirmation email."
+    },
+    "3": {
+      "question": "Can I change my check-in/check-out dates after booking?",
+      "answer": "Date changes depend on the hotel's availability. Go to \"My bookings\", choose the booking and click \"Request a change\". The host will review and respond. Note: the price may change for the new dates."
+    },
+    "4": {
+      "question": "What are the check-in and check-out times?",
+      "answer": "Check-in is usually at 14:00 and check-out at 12:00 noon the next day. Some places offer early check-in or late check-out (fees may apply). Message the host via chat to arrange it in advance."
+    },
+    "5": {
+      "question": "Which payment methods are supported?",
+      "answer": "We support many secure payment methods, including:\n- International credit/debit cards (Visa, Mastercard, JCB).\n- E-wallets (VNPay, MoMo).\n- Bank transfer (QR code).\n- Pay at the property (only where the hotel allows it)."
+    },
+    "6": {
+      "question": "How long does a refund take after cancelling?",
+      "answer": "Once your cancellation is accepted, the refund is issued immediately. How long it takes to reach you depends on your provider:\n- E-wallets: 24-48 business hours.\n- International cards/banks: 5-10 business days (excluding weekends)."
+    },
+    "7": {
+      "question": "Why was my card declined?",
+      "answer": "Common reasons:\n1. Insufficient balance.\n2. Online payments not enabled on the card.\n3. Incorrect card details (CVV, expiry date).\n4. The bank's system is under maintenance.\nPlease check again or try another payment method."
+    },
+    "8": {
+      "question": "How do I recover my password if I forget it?",
+      "answer": "On the login screen, click \"Forgot password\". Enter your registered email and we'll send you a link to set a new password. For security, the link is only valid for 15 minutes."
+    },
+    "9": {
+      "question": "Can I change my personal details (email, phone)?",
+      "answer": "You can change your phone number, name and profile photo under \"My profile\". Your login email usually can't be changed to keep the account verified. If you must change it, please contact an admin."
+    },
+    "10": {
+      "question": "How do I permanently delete my account?",
+      "answer": "Deleting your account removes all booking history and loyalty points. If you're sure, submit a deletion request under \"Settings\" -> \"Security\". Requests are processed within 7 days."
+    },
+    "11": {
+      "question": "How do I become a rental partner?",
+      "answer": "Go to the \"Seller channel\" (or \"Become a host\") page, fill in your property details and upload photos and business documents. Our admins will review your application within 24-48h."
+    },
+    "12": {
+      "question": "What commission does the platform charge?",
+      "answer": "We charge a standard 15% commission on each successful booking. It covers platform operations, marketing and payment gateway fees. There's no monthly fee."
+    },
+    "13": {
+      "question": "Can I manage my own prices and availability?",
+      "answer": "Absolutely. As a partner you get a management dashboard where you can open/close rooms, update daily or weekly prices and set up your own promotions."
+    }
+  },
+  "contact": {
+    "title": "Still need help?",
+    "subtitle": "The TravelMate team is always here for you",
+    "email": "Send an email",
+    "emailText": "Reply within 24h",
+    "hotlineText": "Urgent support"
+  },
+  "header": {
+    "title": "Hi, how can TravelMate help?",
+    "subtitle": "Find answers for your next great trip.",
+    "placeholder": "E.g. change dates, refunds, e-tickets..."
+  },
+  "faq": {
+    "none": "No questions match your search.",
+    "title": "Frequently asked questions"
+  }
+}

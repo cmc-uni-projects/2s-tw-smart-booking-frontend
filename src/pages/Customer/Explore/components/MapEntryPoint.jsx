@@ -1,10 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 const MapEntryPoint = () => {
+  const { t } = useTranslation("search");
   const navigate = useNavigate();
 
   // Toạ độ mặc định để hiển thị ảnh map tĩnh (Hà Nội)
@@ -32,7 +34,7 @@ const MapEntryPoint = () => {
       <div className="absolute inset-0 flex items-center justify-center">
         <button className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 transition-all transform group-hover:scale-105 active:scale-95">
            <MapPin size={16} />
-           Khám phá ngay trên bản đồ
+           {t("map.entry")}
         </button>
       </div>
 

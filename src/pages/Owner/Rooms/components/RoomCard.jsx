@@ -2,6 +2,7 @@ import React from "react";
 import { Edit, Trash2, Users, Image as ImageIcon, Crown, Sparkles, CheckCircle2 } from "lucide-react"; // ❌ Đã bỏ DollarSign
 import Button from "@/components/common/Button/Button";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 // Helper ảnh
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
@@ -43,6 +44,7 @@ const CategoryBadge = ({ category }) => {
 };
 
 const RoomCard = ({ room, onEdit, onDelete }) => {
+  const { t } = useTranslation();
   const coverImage = room.coverImage 
     ? getFullImageUrl(room.coverImage) 
     : null;
@@ -58,7 +60,7 @@ const RoomCard = ({ room, onEdit, onDelete }) => {
          ) : (
              <div className="absolute inset-0 flex items-center justify-center text-gray-400 flex-col bg-gray-50">
                  <ImageIcon size={24} className="opacity-40 mb-1" />
-                 <span className="text-[10px] font-medium opacity-60">Chưa có ảnh</span>
+                 <span className="text-[10px] font-medium opacity-60">{t("owner:RoomCard.noPhotoYet")}</span>
              </div>
          )}
          <CategoryBadge category={room.roomCategory} />
@@ -74,20 +76,20 @@ const RoomCard = ({ room, onEdit, onDelete }) => {
              {/* ✅ SỬA ĐỔI Ở ĐÂY: Định dạng tiền tệ VND */}
              <p className="text-blue-600 font-bold text-lg flex items-baseline">
                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(room.pricePerNight)}
-                 <span className="text-sm text-gray-400 font-normal ml-1">/ đêm</span>
+                 <span className="text-sm text-gray-400 font-normal ml-1">{t("owner:RoomCard.night")}</span>
              </p>
          </div>
 
          <div className="flex items-center gap-4 text-sm text-gray-500 my-2">
-             <div className="flex items-center bg-gray-50 px-2 py-1 rounded-md border border-gray-100" title="Sức chứa">
+             <div className="flex items-center bg-gray-50 px-2 py-1 rounded-md border border-gray-100" title={t("owner:RoomCard.capacity")}>
                 <Users size={14} className="mr-1.5 text-blue-500"/> 
-                <span className="font-medium text-gray-700">{room.capacity} người</span>
+                <span className="font-medium text-gray-700">{t("owner:RoomCard.guests", { capacity: room.capacity })}</span>
              </div>
          </div>
 
          <div className="flex gap-2 mt-auto pt-2 border-t border-gray-50">
              <Button size="sm" variant="outline" className="flex-1 border-gray-200 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50" onClick={onEdit}>
-                 <Edit size={14} className="mr-1.5" /> Sửa
+                 <Edit size={14} className="mr-1.5" /> {t("owner:RoomCard.edit")}
              </Button>
              <Button size="sm" variant="outline" className="text-red-500 border-gray-200 hover:bg-red-50 hover:border-red-500 px-3" onClick={onDelete}>
                  <Trash2 size={16} />

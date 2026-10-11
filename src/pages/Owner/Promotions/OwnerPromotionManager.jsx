@@ -13,6 +13,7 @@ import {
     ChevronLeft, ChevronRight, MoreVertical, PauseCircle, PlayCircle, XCircle,
     AlertTriangle, Clock, RotateCw, Image as ImageIcon, Building2, MapPin
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // --- CONFIG ---
 const R2_PUBLIC_URL = "https://pub-fed047aa2ebd4dcaad827464c190ea28.r2.dev";
@@ -67,6 +68,7 @@ const BannerImage = ({ url }) => {
 
 
 const StatusConfirmModal = ({ isOpen, onClose, onConfirm, promo }) => {
+  const { t } = useTranslation();
     if (!isOpen || !promo) return null;
     const willPause = promo.isActive;
     return (
@@ -76,16 +78,16 @@ const StatusConfirmModal = ({ isOpen, onClose, onConfirm, promo }) => {
                     <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${willPause ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>
                         {willPause ? <AlertTriangle size={32} /> : <CheckCircle2 size={32} />}
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">{willPause ? "Tạm dừng khuyến mãi?" : "Kích hoạt khuyến mãi?"}</h3>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">{willPause ? t("owner:OwnerPromotionManager.pausePromotion") : t("owner:OwnerPromotionManager.activatePromotion")}</h3>
                     <p className="text-gray-500 text-sm mb-6">
-                        Bạn có chắc muốn {willPause ? <span className="text-orange-600 font-bold">tạm dừng</span> : <span className="text-green-600 font-bold">kích hoạt</span>} mã
-                        <span className="font-bold text-gray-800 mx-1">{promo.code}</span> không?
+                        {t("owner:OwnerPromotionManager.areYouSureYouWant")} {willPause ? <span className="text-orange-600 font-bold">{t("owner:OwnerPromotionManager.pause")}</span> : <span className="text-green-600 font-bold">{t("owner:OwnerPromotionManager.activate")}</span>} {t("owner:OwnerPromotionManager.code")}
+                        <span className="font-bold text-gray-800 mx-1">{promo.code}</span> {t("owner:OwnerPromotionManager.text")}
                     </p>
                     <div className="flex gap-3 justify-center">
-                        <button onClick={onClose} className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors w-1/2">Hủy bỏ</button>
+                        <button onClick={onClose} className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors w-1/2">{t("owner:OwnerPromotionManager.cancel")}</button>
                         <button onClick={onConfirm} className={`px-5 py-2.5 rounded-xl text-white font-semibold shadow-lg transition-transform active:scale-95 w-1/2 flex items-center justify-center gap-2 ${willPause ? 'bg-orange-500 hover:bg-orange-600 shadow-orange-200' : 'bg-green-500 hover:bg-green-600 shadow-green-200'}`}>
                             {willPause ? <PauseCircle size={18}/> : <PlayCircle size={18}/>}
-                            {willPause ? "Tạm dừng" : "Kích hoạt"}
+                            {willPause ? t("owner:OwnerPromotionManager.pause2") : t("owner:OwnerPromotionManager.activate2")}
                         </button>
                     </div>
                 </div>
@@ -95,17 +97,18 @@ const StatusConfirmModal = ({ isOpen, onClose, onConfirm, promo }) => {
 };
 
 const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, promoCode }) => {
+  const { t } = useTranslation();
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity animate-fadeIn p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100 animate-slideUp">
                 <div className="p-6 text-center">
                     <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-red-100 text-red-600"><Trash2 size={32} /></div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">Xóa khuyến mãi?</h3>
-                    <p className="text-gray-500 text-sm mb-6">Bạn có chắc chắn muốn xóa mã <span className="font-bold text-gray-800 mx-1">{promoCode}</span> không?<br/><span className="text-red-500 font-medium italic mt-1 block">Mã sẽ bị vô hiệu hóa và chuyển vào thùng rác.</span></p>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">{t("owner:OwnerPromotionManager.deletePromotion")}</h3>
+                    <p className="text-gray-500 text-sm mb-6">{t("owner:OwnerPromotionManager.areYouSureYouWant2")} <span className="font-bold text-gray-800 mx-1">{promoCode}</span> {t("owner:OwnerPromotionManager.text")}<br/><span className="text-red-500 font-medium italic mt-1 block">{t("owner:OwnerPromotionManager.theCodeWillBeDisabled")}</span></p>
                     <div className="flex gap-3 justify-center">
-                        <button onClick={onClose} className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors w-1/2">Hủy bỏ</button>
-                        <button onClick={onConfirm} className="px-5 py-2.5 rounded-xl text-white font-semibold shadow-lg shadow-red-200 bg-red-500 hover:bg-red-600 transition-transform active:scale-95 w-1/2 flex items-center justify-center gap-2"><Trash2 size={18}/> Xóa ngay</button>
+                        <button onClick={onClose} className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors w-1/2">{t("owner:OwnerPromotionManager.cancel")}</button>
+                        <button onClick={onConfirm} className="px-5 py-2.5 rounded-xl text-white font-semibold shadow-lg shadow-red-200 bg-red-500 hover:bg-red-600 transition-transform active:scale-95 w-1/2 flex items-center justify-center gap-2"><Trash2 size={18}/> {t("owner:OwnerPromotionManager.deleteNow")}</button>
                     </div>
                 </div>
             </div>
@@ -114,6 +117,7 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, promoCode }) => {
 };
 
 const ActionMenu = ({ promo, onEdit, onDelete, onRequestToggle }) => {
+  const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const [menuStyle, setMenuStyle] = useState({});
     const buttonRef = useRef(null);
@@ -165,15 +169,15 @@ const ActionMenu = ({ promo, onEdit, onDelete, onRequestToggle }) => {
         <div ref={menuRef} style={menuStyle} className="bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] border border-gray-100 overflow-hidden animate-fadeIn">
             <div className="py-1">
                 <button onClick={() => { onEdit(promo); setIsOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
-                    <Edit size={16} className="text-blue-500"/> Sửa
+                    <Edit size={16} className="text-blue-500"/> {t("owner:OwnerPromotionManager.edit")}
                 </button>
                 {!isExpired && (
                     <button onClick={() => { onRequestToggle(promo); setIsOpen(false); }} className={`w-full px-4 py-2.5 text-left text-sm text-gray-700 transition-colors flex items-center gap-2 ${isPaused ? 'hover:bg-green-50 hover:text-green-600' : 'hover:bg-orange-50 hover:text-orange-600'}`}>
-                        {isPaused ? <><PlayCircle size={16} className="text-green-500"/> Kích hoạt</> : <><PauseCircle size={16} className="text-orange-500"/> Tạm dừng</>}
+                        {isPaused ? <><PlayCircle size={16} className="text-green-500"/> {t("owner:OwnerPromotionManager.activate2")}</> : <><PauseCircle size={16} className="text-orange-500"/> {t("owner:OwnerPromotionManager.pause2")}</>}
                     </button>
                 )}
                 <div className="border-t border-gray-100 my-1"></div>
-                <button onClick={() => { onDelete(promo); setIsOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"><Trash2 size={16} /> Xóa</button>
+                <button onClick={() => { onDelete(promo); setIsOpen(false); }} className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"><Trash2 size={16} /> {t("owner:OwnerPromotionManager.delete")}</button>
             </div>
         </div>
     );
@@ -197,6 +201,7 @@ const StatCard = ({ title, value, icon: Icon, colorClass, bgClass }) => (
 
 
 const OwnerPromotionManager = () => {
+  const { t } = useTranslation();
     const [promotions, setPromotions] = useState([]);
 
     const [properties, setProperties] = useState([]);
@@ -241,7 +246,7 @@ const OwnerPromotionManager = () => {
             setPromotions(mappedData);
         } catch (error) {
             console.error("Failed to fetch promotions:", error);
-            showToast("error", "Lỗi tải dữ liệu!");
+            showToast("error", t("owner:OwnerPromotionManager.failedToLoadData"));
         } finally {
             setIsLoading(false);
         }
@@ -262,7 +267,7 @@ const OwnerPromotionManager = () => {
 
     const handleReload = async () => {
         await fetchPromotions();
-        showToast("success", "Dữ liệu đã được làm mới!");
+        showToast("success", t("owner:OwnerPromotionManager.dataRefreshed"));
     };
 
     const getPromoStatus = (promo) => {
@@ -332,18 +337,18 @@ const OwnerPromotionManager = () => {
     };
 
     const columns = [
-        { key: "codeDisplay", label: "Mã Code" },
+        { key: "codeDisplay", label: t("owner:OwnerPromotionManager.code2") },
         { key: "bannerDisplay", label: "Banner" },
-        { key: "name", label: "Tên chương trình" },
-        { key: "propertyDisplay", label: "Cơ sở áp dụng" },
-        { key: "details", label: "Chi tiết giảm" },
-        { key: "usageProgress", label: "Lượt sử dụng" },
-        { key: "endDateDisplay", label: "Hết hạn" },
-        { key: "statusLabel", label: "Trạng thái" },
-        { key: "actions", label: "Hành động" },
+        { key: "name", label: t("owner:OwnerPromotionManager.campaignName") },
+        { key: "propertyDisplay", label: t("owner:OwnerPromotionManager.appliesTo") },
+        { key: "details", label: t("owner:OwnerPromotionManager.discount") },
+        { key: "usageProgress", label: t("owner:OwnerPromotionManager.usage") },
+        { key: "endDateDisplay", label: t("owner:OwnerPromotionManager.expires") },
+        { key: "statusLabel", label: t("owner:OwnerPromotionManager.status") },
+        { key: "actions", label: t("owner:OwnerPromotionManager.actions") },
     ];
 
-    const handleCopy = (text) => showToast("success", `Đã copy mã: ${text}`);
+    const handleCopy = (text) => showToast("success", t("owner:OwnerPromotionManager.copiedCode", { text }));
     const handleRequestToggleStatus = (promo) => setStatusConfirm({ isOpen: true, promo });
 
     const handleConfirmToggleStatus = async () => {
@@ -354,10 +359,10 @@ const OwnerPromotionManager = () => {
                 const propId = statusConfirm.promo.property ? statusConfirm.promo.property.propertyId : null;
                 await promotionService.updatePromotion(dataToSend.id, { ...dataToSend, propertyId: propId });
                 await fetchPromotions();
-                showToast("success", "Cập nhật trạng thái thành công!");
+                showToast("success", t("owner:OwnerPromotionManager.statusUpdatedSuccessfully"));
             } catch (error) {
-                console.error("Lỗi update:", error);
-                showToast("error", error.response?.data?.message || error.message || "Lỗi cập nhật trạng thái");
+                console.error("Update error:", error);
+                showToast("error", error.response?.data?.message || error.message || t("owner:OwnerPromotionManager.failedToUpdateStatus"));
             }
             setStatusConfirm({ isOpen: false, promo: null });
         }
@@ -370,10 +375,10 @@ const OwnerPromotionManager = () => {
             try {
                 await promotionService.deletePromotion(deleteConfirm.promo.id);
                 await fetchPromotions();
-                showToast("success", "Đã xóa mã khuyến mãi thành công!");
+                showToast("success", t("owner:OwnerPromotionManager.promotionCodeDeletedSuccessfully"));
             } catch (error) {
                 console.error(error);
-                showToast("error", error.response?.data?.message || "Lỗi khi xóa mã khuyến mãi");
+                showToast("error", error.response?.data?.message || t("owner:OwnerPromotionManager.failedToDeleteThePromotion"));
             }
             setDeleteConfirm({ isOpen: false, promo: null });
         }
@@ -402,7 +407,7 @@ const OwnerPromotionManager = () => {
             return {
                 ...item,
                 codeDisplay: (
-                    <div className="flex items-center gap-2 group cursor-pointer" onClick={() => handleCopy(item.code)} title="Click để copy">
+                    <div className="flex items-center gap-2 group cursor-pointer" onClick={() => handleCopy(item.code)} title={t("owner:OwnerPromotionManager.clickToCopy")}>
                         <span className={`font-mono font-bold px-2 py-1 rounded border transition-colors ${status === 'ACTIVE' ? 'text-[rgb(40,169,224)] bg-blue-50 border-blue-100 group-hover:bg-blue-100' : (status === 'PAUSED' ? 'text-orange-600 bg-orange-50 border-orange-100 group-hover:bg-orange-100' : 'text-gray-500 bg-gray-100 border-gray-200')}`}>{item.code}</span>
                         <Copy size={14} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"/>
                     </div>
@@ -429,19 +434,19 @@ const OwnerPromotionManager = () => {
                         </div>
                     </div>
                 ) : (
-                    <span className="text-sm text-gray-400 italic">Toàn hệ thống (Admin)</span>
+                    <span className="text-sm text-gray-400 italic">{t("owner:OwnerPromotionManager.platformWideAdmin")}</span>
                 ),
 
 
                 details: item.type === 'PERCENT'
                     ? (item.maxDiscount > 0
-                        ? `${item.value}% (Tối đa ${Number(item.maxDiscount).toLocaleString()}đ)`
+                        ? t("owner:OwnerPromotionManager.upTo", { value: item.value, value2: Number(item.maxDiscount).toLocaleString() })
                         : `${item.value}%`)
-                    : `${Number(item.value).toLocaleString()}đ`,
+                    : t("owner:OwnerPromotionManager.text2", { value: Number(item.value).toLocaleString() }),
 
                 usageProgress: (
                     <div className="w-32">
-                        <div className="relative w-full h-5 bg-gray-100 rounded-full overflow-hidden shadow-inner border border-gray-100 group" title={`${item.usedCount} đã dùng / ${item.quantity} tổng số`}>
+                        <div className="relative w-full h-5 bg-gray-100 rounded-full overflow-hidden shadow-inner border border-gray-100 group" title={t("owner:OwnerPromotionManager.usedTotal", { usedCount: item.usedCount, quantity: item.quantity })}>
                             <div className="absolute inset-0 flex items-center justify-center z-0">
                                 <span className="text-[10px] font-bold text-gray-500 select-none">{item.usedCount} / {item.quantity}</span>
                             </div>
@@ -457,18 +462,18 @@ const OwnerPromotionManager = () => {
                     <div className="flex flex-col">
                         <span className="text-gray-600 whitespace-nowrap font-medium text-sm">{formatDateTimeDisplay(item.endDate)}</span>
                         {status === 'ACTIVE' && daysRemaining > 0 && daysRemaining <= 7 && (
-                            <span className="text-[10px] text-orange-500 flex items-center gap-1 font-medium mt-0.5"><Clock size={10} /> Còn {daysRemaining} ngày</span>
+                            <span className="text-[10px] text-orange-500 flex items-center gap-1 font-medium mt-0.5"><Clock size={10} /> {t("owner:OwnerPromotionManager.expiresIn")} {daysRemaining} {t("owner:OwnerPromotionManager.days")}</span>
                         )}
                         {status === 'EXPIRED' && (
-                            <span className="text-[10px] text-red-400 flex items-center gap-1 font-medium mt-0.5">Đã kết thúc</span>
+                            <span className="text-[10px] text-red-400 flex items-center gap-1 font-medium mt-0.5">{t("owner:OwnerPromotionManager.ended")}</span>
                         )}
                     </div>
                 ),
                 statusLabel: (
                     <>
-                        {status === 'ACTIVE' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200 whitespace-nowrap"><span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Hoạt động</span>}
-                        {status === 'PAUSED' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200 whitespace-nowrap"><span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Tạm dừng</span>}
-                        {status === 'EXPIRED' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200 whitespace-nowrap"><XCircle size={12} /> Hết hạn</span>}
+                        {status === 'ACTIVE' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200 whitespace-nowrap"><span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> {t("owner:OwnerPromotionManager.active")}</span>}
+                        {status === 'PAUSED' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200 whitespace-nowrap"><span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> {t("owner:OwnerPromotionManager.pause2")}</span>}
+                        {status === 'EXPIRED' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200 whitespace-nowrap"><XCircle size={12} /> {t("owner:OwnerPromotionManager.expires")}</span>}
                     </>
                 ),
                 actions: (
@@ -491,35 +496,35 @@ const OwnerPromotionManager = () => {
         <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
             <Toaster containerStyle={{ zIndex: 100000, top: 20, left: 20, bottom: 20, right: 20 }} />
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div><h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2"><Tag className="text-[rgb(40,169,224)]" /> Quản lý Khuyến mãi</h1><p className="text-gray-500 mt-1 text-sm">Tạo và quản lý các mã giảm giá, voucher cho khách sạn của bạn.</p></div>
+                <div><h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2"><Tag className="text-[rgb(40,169,224)]" /> {t("owner:OwnerPromotionManager.promotionManagement")}</h1><p className="text-gray-500 mt-1 text-sm">{t("owner:OwnerPromotionManager.createAndManageDiscountCodes")}</p></div>
                 <div className="flex gap-3">
-                    <button onClick={handleReload} disabled={isLoading} className="p-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 hover:text-[rgb(40,169,224)] hover:border-[rgb(40,169,224)] transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group" title="Làm mới dữ liệu"><RotateCw size={20} className={`transition-transform ${isLoading ? 'animate-spin' : 'group-hover:rotate-180'}`} /></button>
-                    <Button onClick={() => { setEditingPromo(null); setIsModalOpen(true); }} leftIcon={<Plus size={18} />}>Thêm mã mới</Button>
+                    <button onClick={handleReload} disabled={isLoading} className="p-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 hover:text-[rgb(40,169,224)] hover:border-[rgb(40,169,224)] transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group" title={t("owner:OwnerPromotionManager.refreshData")}><RotateCw size={20} className={`transition-transform ${isLoading ? 'animate-spin' : 'group-hover:rotate-180'}`} /></button>
+                    <Button onClick={() => { setEditingPromo(null); setIsModalOpen(true); }} leftIcon={<Plus size={18} />}>{t("owner:OwnerPromotionManager.addNewCode")}</Button>
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <StatCard title="Tổng mã khuyến mãi" value={stats.total} icon={Ticket} bgClass="bg-blue-50" colorClass="text-blue-600" />
-                <StatCard title="Đang hoạt động" value={stats.active} icon={CheckCircle2} bgClass="bg-green-50" colorClass="text-green-600" />
-                <StatCard title="Đã tạm dừng" value={stats.inactive} icon={AlertCircle} bgClass="bg-orange-50" colorClass="text-orange-600" />
+                <StatCard title={t("owner:OwnerPromotionManager.totalPromotionCodes")} value={stats.total} icon={Ticket} bgClass="bg-blue-50" colorClass="text-blue-600" />
+                <StatCard title={t("owner:OwnerPromotionManager.active2")} value={stats.active} icon={CheckCircle2} bgClass="bg-green-50" colorClass="text-green-600" />
+                <StatCard title={t("owner:OwnerPromotionManager.paused")} value={stats.inactive} icon={AlertCircle} bgClass="bg-orange-50" colorClass="text-orange-600" />
             </div>
 
             <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 flex flex-col xl:flex-row gap-4 justify-between items-center">
-                <div className="relative w-full xl:w-96"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} /><input type="text" placeholder="Tìm kiếm theo mã code hoặc tên..." className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
+                <div className="relative w-full xl:w-96"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} /><input type="text" placeholder={t("owner:OwnerPromotionManager.searchByCodeOrName")} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
 
                 <div className="flex w-full xl:w-auto gap-3 overflow-x-auto pb-2 xl:pb-0">
                     <select className={`${selectClassName} min-w-[200px]`} value={filterPropertyId} onChange={(e) => setFilterPropertyId(e.target.value)}>
-                        <option value="ALL">Tất cả khách sạn</option>
+                        <option value="ALL">{t("owner:OwnerPromotionManager.allHotels")}</option>
                         {properties.map(p => (
                             <option key={p.propertyId} value={p.propertyId}>{p.propertyName}</option>
                         ))}
                     </select>
 
-                    <select className={selectClassName} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}><option value="ALL">Tất cả trạng thái</option><option value="ACTIVE">Đang hoạt động</option><option value="PAUSED">Tạm dừng</option><option value="EXPIRED">Đã hết hạn</option></select>
-                    <select className={selectClassName} value={filterType} onChange={(e) => setFilterType(e.target.value)}><option value="ALL">Tất cả loại giảm</option><option value="PERCENT">Giảm theo %</option><option value="FIXED">Giảm tiền mặt</option></select>
+                    <select className={selectClassName} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}><option value="ALL">{t("owner:OwnerPromotionManager.allStatuses")}</option><option value="ACTIVE">{t("owner:OwnerPromotionManager.active2")}</option><option value="PAUSED">{t("owner:OwnerPromotionManager.pause2")}</option><option value="EXPIRED">{t("owner:OwnerPromotionManager.expired")}</option></select>
+                    <select className={selectClassName} value={filterType} onChange={(e) => setFilterType(e.target.value)}><option value="ALL">{t("owner:OwnerPromotionManager.allDiscountTypes")}</option><option value="PERCENT">{t("owner:OwnerPromotionManager.percentageDiscount")}</option><option value="FIXED">{t("owner:OwnerPromotionManager.fixedAmountDiscount")}</option></select>
 
                     {(searchTerm || filterStatus !== 'ALL' || filterType !== 'ALL' || filterPropertyId !== 'ALL') && (
                         <button onClick={() => { setSearchTerm(""); setFilterStatus("ALL"); setFilterType("ALL"); setFilterPropertyId("ALL"); }} className="px-4 py-2.5 text-red-500 bg-red-50 hover:bg-red-100 rounded-xl text-sm font-medium whitespace-nowrap transition-colors">
-                            Xóa lọc
+                            {t("owner:OwnerPromotionManager.clearFilters")}
                         </button>
                     )}
                 </div>
@@ -532,18 +537,18 @@ const OwnerPromotionManager = () => {
                         <Table columns={columns} data={getDisplayData(paginatedData)} />
                         <div className="mt-auto border-t border-gray-100">
                             <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between bg-gray-50/50 gap-4">
-                                <span className="text-sm text-gray-500">Hiển thị <span className="font-semibold text-gray-700">{paginatedData.length}</span> / <span className="font-semibold text-gray-700">{filteredPromotions.length}</span> kết quả</span>
+                                <span className="text-sm text-gray-500">{t("owner:OwnerPromotionManager.showing")} <span className="font-semibold text-gray-700">{paginatedData.length}</span> / <span className="font-semibold text-gray-700">{filteredPromotions.length}</span> {t("owner:OwnerPromotionManager.results")}</span>
                                 <div className="flex items-center gap-2">
                                     <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"><ChevronLeft size={18} /></button>
                                     <div className="flex gap-1">{getPaginationGroup().map((item, index) => (<button key={index} onClick={() => typeof item === 'number' && setCurrentPage(item)} disabled={item === '...'} className={`w-8 h-8 rounded-lg text-sm font-medium transition-all flex items-center justify-center ${item === currentPage ? 'bg-[rgb(40,169,224)] text-white shadow-sm' : item === '...' ? 'bg-transparent text-gray-400 cursor-default' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>{item}</button>))}</div>
                                     <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"><ChevronRight size={18} /></button>
-                                    <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200"><span className="text-sm text-gray-500 whitespace-nowrap">Đi đến:</span><div className="relative"><input type="text" className="w-12 h-8 pl-2 pr-1 rounded-lg border border-gray-200 text-sm text-center focus:outline-none focus:border-[rgb(40,169,224)] focus:ring-1 focus:ring-[rgb(40,169,224)] transition-all" placeholder={currentPage} value={jumpPage} onChange={(e) => { const val = e.target.value; if (val === '' || /^[0-9]+$/.test(val)) setJumpPage(val); }} onKeyDown={handleJumpPage} /></div></div>
+                                    <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200"><span className="text-sm text-gray-500 whitespace-nowrap">{t("owner:OwnerPromotionManager.goTo")}</span><div className="relative"><input type="text" className="w-12 h-8 pl-2 pr-1 rounded-lg border border-gray-200 text-sm text-center focus:outline-none focus:border-[rgb(40,169,224)] focus:ring-1 focus:ring-[rgb(40,169,224)] transition-all" placeholder={currentPage} value={jumpPage} onChange={(e) => { const val = e.target.value; if (val === '' || /^[0-9]+$/.test(val)) setJumpPage(val); }} onKeyDown={handleJumpPage} /></div></div>
                                 </div>
                             </div>
                         </div>
                     </>
                 ) : (
-                    !isLoading && (<div className="flex flex-col items-center justify-center py-20 text-center min-h-[400px]"><div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-4"><Search size={40} className="text-gray-300" /></div><h3 className="text-lg font-semibold text-gray-800">Không tìm thấy kết quả</h3><button onClick={() => { setSearchTerm(""); setFilterStatus("ALL"); setFilterType("ALL"); setFilterPropertyId("ALL"); }} className="mt-4 text-blue-600 font-medium hover:underline">Xóa bộ lọc & tìm lại</button></div>)
+                    !isLoading && (<div className="flex flex-col items-center justify-center py-20 text-center min-h-[400px]"><div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-4"><Search size={40} className="text-gray-300" /></div><h3 className="text-lg font-semibold text-gray-800">{t("owner:OwnerPromotionManager.noResultsFound")}</h3><button onClick={() => { setSearchTerm(""); setFilterStatus("ALL"); setFilterType("ALL"); setFilterPropertyId("ALL"); }} className="mt-4 text-blue-600 font-medium hover:underline">{t("owner:OwnerPromotionManager.clearFiltersSearchAgain")}</button></div>)
                 )}
             </div>
             <OwnerPromotionFormModal open={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={fetchPromotions} initialData={editingPromo} />

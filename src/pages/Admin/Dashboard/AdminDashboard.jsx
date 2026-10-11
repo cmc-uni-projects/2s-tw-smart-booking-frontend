@@ -11,8 +11,10 @@ import RevenueOverview from "./components/RevenueOverview";
 import TopHotels from "./components/TopHotels";
 import RecentBookingsTable from "./components/RecentBookingsTable";
 import DashboardFilterBar from "./components/DashboardFilterBar";
+import { useTranslation } from "react-i18next";
 
 const AdminDashboard = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
 
@@ -64,7 +66,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6 pb-10">
-      <h2 className="text-2xl font-bold text-gray-800">Thống kê hệ thống</h2>
+      <h2 className="text-2xl font-bold text-gray-800">{t("admin:AdminDashboard.platformStatistics")}</h2>
 
       <DashboardFilterBar
         filters={filters}
@@ -76,7 +78,7 @@ const AdminDashboard = () => {
       {/* Loading nhẹ khi đang lọc lại dữ liệu mà không che toàn màn hình */}
       {loading && data && (
         <div className="text-center py-2 text-gray-600 font-medium">
-          Đang cập nhật dữ liệu...
+          {t("admin:AdminDashboard.updatingData")}
         </div>
       )}
 

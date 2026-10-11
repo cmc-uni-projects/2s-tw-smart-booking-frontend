@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { format, addDays } from 'date-fns';
 import { Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // Components Common
 import Spinner from "@/components/common/Loading/Spinner";
@@ -44,6 +45,7 @@ const getAmenityIcon = (amenityName) => {
 
 export default function HotelDetailPage() {
     const { hotelId } = useParams();
+    const { t } = useTranslation("hotel");
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
@@ -133,7 +135,7 @@ export default function HotelDetailPage() {
 
             } catch (err) {
                 console.error("Failed to load data:", err);
-                setError("Không thể tải thông tin. Vui lòng thử lại sau.");
+                setError(t("loadError"));
             } finally {
                 setLoading(false);
             }
@@ -147,24 +149,24 @@ export default function HotelDetailPage() {
     // Handlers
     const openHotelGallery = (index) => {
         if (!hotel || !hotel.images) return;
-        const images = hotel.images.map((imgUrl, i) => ({ url: imgUrl, caption: `${hotel.name} - Ảnh ${i + 1}` }));
+        const images = hotel.images.map((imgUrl, i) => ({ url: imgUrl, caption: t("imageCaption", { name: hotel.name, index: i + 1 }) }));
         setViewerImages(images); setSelectedImageIndex(index); setViewerOpen(true);
     };
 
     const openReviewGallery = (index, rawImages) => {
         if (!rawImages || rawImages.length === 0) return;
-        const images = rawImages.map((imgUrl, i) => ({ url: getFullImageUrl(imgUrl), caption: `Ảnh đánh giá ${i + 1}` }));
+        const images = rawImages.map((imgUrl, i) => ({ url: getFullImageUrl(imgUrl), caption: t("reviewImageCaption", { index: i + 1 }) }));
         setViewerImages(images); setSelectedImageIndex(index); setViewerOpen(true);
     };
 
     const handleUnpinReview = async (reviewId) => {
         if (!isOwner && !isAdmin) return;
-        if (!window.confirm("Bỏ ghim bình luận này?")) return;
+        if (!window.confirm(t("confirmUnpin"))) return;
         try {
             await pinRating(reviewId, false);
             setPinnedReviews(prev => prev.filter(r => r.ratingId !== reviewId));
         } catch (err) {
-            alert("Lỗi: " + (err.response?.data?.message || err.message));
+            alert(t("common:errorPrefix") + (err.response?.data?.message || err.message));
         }
     };
 

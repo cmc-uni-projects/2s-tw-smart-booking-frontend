@@ -3,11 +3,13 @@ import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import LoadingOverlay from '../../components/common/Loading/LoadingOverlay';
+import { useTranslation } from 'react-i18next';
 
 const OAuth2RedirectHandler = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { loginWithOAuth2 } = useAuth();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -32,7 +34,7 @@ const OAuth2RedirectHandler = () => {
     }
   }, [searchParams, navigate, loginWithOAuth2]);
 
-  return <LoadingOverlay isLoading={true} message="Đang xử lý..." />;
+  return <LoadingOverlay isLoading={true} message={t("processing")} />;
 };
 
 export default OAuth2RedirectHandler;

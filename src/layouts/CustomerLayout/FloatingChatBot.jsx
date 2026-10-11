@@ -4,11 +4,13 @@ import ChatFab from "./ChatBot/ChatFab";
 import ChatPanel from "./ChatBot/ChatPanel";
 import aiService from "@/services/ai.service";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "react-i18next";
 
 const STORAGE_KEY = "travelmate_chat_history";
 
 const FloatingChatBot = () => {
     const { currentUser } = useAuth();
+    const { t } = useTranslation("layout");
     const [open, setOpen] = useState(false);
 
     const [messages, setMessages] = useState(() => {
@@ -23,7 +25,7 @@ const FloatingChatBot = () => {
             {
                 id: 1,
                 sender: "ai",
-                text: "Xin chào! Tôi là trợ lý ảo TravelMate. Tôi có thể giúp gì cho bạn hôm nay?",
+                text: t("chat.welcome"),
                 timestamp: new Date(),
             },
         ];
@@ -46,7 +48,7 @@ const FloatingChatBot = () => {
                 {
                     id: 1,
                     sender: "ai",
-                    text: "Xin chào! Tôi là trợ lý ảo TravelMate. Tôi có thể giúp gì cho bạn hôm nay?",
+                    text: t("chat.welcome"),
                     timestamp: new Date(),
                 },
             ]);
@@ -62,7 +64,7 @@ const FloatingChatBot = () => {
                 {
                     id: Date.now(),
                     sender: "ai",
-                    text: "Vui lòng đăng nhập để sử dụng tính năng Chatbot.",
+                    text: t("chat.loginRequired"),
                     timestamp: new Date(),
                 },
             ]);
@@ -146,7 +148,7 @@ const FloatingChatBot = () => {
                 {
                     id: Date.now(),
                     sender: "ai",
-                    text: "Đã có lỗi xảy ra. Vui lòng thử lại sau.",
+                    text: t("chat.error"),
                     timestamp: new Date(),
                 },
             ]);

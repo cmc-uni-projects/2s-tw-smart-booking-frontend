@@ -8,9 +8,12 @@ import FAQAccordion from '@/components/HelpCenter/FAQAccordion';
 import ContactSupport from '@/components/HelpCenter/ContactSupport';
 
 // DATA
-import { faqs } from '@/data/helpData';
+import { useFaqs } from '@/data/helpData';
+import { useTranslation } from "react-i18next";
 
 const HelpPage = () => {
+    const { t } = useTranslation("about");
+    const faqs = useFaqs();
     // 1. State quản lý
     const [searchTerm, setSearchTerm] = useState('');
     const [activeCategory, setActiveCategory] = useState('all');
@@ -18,7 +21,7 @@ const HelpPage = () => {
 
     // 2. Setup Title & Scroll
     useEffect(() => {
-        document.title = "Trung tâm trợ giúp | TravelMate";
+        document.title = t("help.docTitle");
         window.scrollTo(0, 0);
     }, []);
 
@@ -36,7 +39,7 @@ const HelpPage = () => {
 
             return matchesSearch && matchesCategory;
         });
-    }, [searchTerm, activeCategory]);
+    }, [searchTerm, activeCategory, t]); // t changes with the language -> faqs re-translated
 
     // 4. Logic hiển thị giới hạn
     const displayedFAQs = filteredFAQs.slice(0, visibleCount);
@@ -73,10 +76,10 @@ const HelpPage = () => {
                 {/* Tiêu đề & Đếm số lượng */}
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold text-gray-800">
-                        {activeCategory === 'all' ? 'Câu hỏi thường gặp' : 'Danh sách câu hỏi'}
+                        {activeCategory === 'all' ? t('help.faq') : t('help.list')}
                     </h2>
                     <span className="text-sm font-medium text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200 shadow-sm">
-                        Hiển thị {displayedFAQs.length} / {filteredFAQs.length} kết quả
+                        {t("help.showing", { shown: displayedFAQs.length, total: filteredFAQs.length })}
                     </span>
                 </div>
 
@@ -91,7 +94,7 @@ const HelpPage = () => {
                             // UPDATE: Đổi hover màu Blue -> Teal
                             className="px-6 py-3 bg-white border border-gray-300 text-gray-700 font-medium rounded-full shadow-sm hover:bg-gray-50 hover:border-teal-500 hover:text-teal-600 transition-all duration-300 transform hover:-translate-y-1"
                         >
-                            Xem thêm câu hỏi cũ hơn
+                            {t("help.more")}
                         </button>
                     </div>
                 )}
@@ -99,13 +102,13 @@ const HelpPage = () => {
                 {/* Thông báo nếu không tìm thấy gì */}
                 {filteredFAQs.length === 0 && (
                     <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
-                        <p className="text-gray-500">Không tìm thấy kết quả nào phù hợp.</p>
+                        <p className="text-gray-500">{t("help.noResults")}</p>
                         <button
                             onClick={() => {setSearchTerm(''); setActiveCategory('all');}}
                             // UPDATE: Đổi màu Blue -> Teal
                             className="mt-2 text-teal-600 font-medium hover:underline"
                         >
-                            Xóa bộ lọc
+                            {t("help.clear")}
                         </button>
                     </div>
                 )}

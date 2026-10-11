@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import CtaButton from "./CtaButton";
 // 2. Import icon CheckCircle từ lucid-react
 import { CheckCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // Component con cho mỗi Quyền lợi
 const BenefitItem = ({ text }) => (
@@ -14,6 +15,7 @@ const BenefitItem = ({ text }) => (
 );
 
 export default function PartnerCTASection() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   return (
@@ -37,13 +39,13 @@ export default function PartnerCTASection() {
           {/* CỘT 1: Quyền lợi */}
           <div className="text-left">
             <h3 className="text-3xl font-bold mb-6 drop-shadow-md">
-              Quyền lợi đối tác
+              {t("partner:PartnerCTASection.partnerBenefits")}
             </h3>
             <ul className="space-y-4">
-              <BenefitItem text="Tiếp cận hàng triệu khách hàng tiềm năng trên TravelMate." />
-              <BenefitItem text="Công cụ quản lý đặt phòng và giá cả trực quan, dễ sử dụng." />
-              <BenefitItem text="Hệ thống báo cáo, phân tích doanh thu chi tiết." />
-              <BenefitItem text="Đội ngũ hỗ trợ đối tác chuyên nghiệp 24/7." />
+              <BenefitItem text={t("partner:PartnerCTASection.reachMillionsOfPotentialCustomers")} />
+              <BenefitItem text={t("partner:PartnerCTASection.intuitiveEasyToUseBooking")} />
+              <BenefitItem text={t("partner:PartnerCTASection.detailedRevenueReportsAndAnalytics")} />
+              <BenefitItem text={t("partner:PartnerCTASection.professional247PartnerSupport")} />
             </ul>
           </div>
 
@@ -54,16 +56,15 @@ export default function PartnerCTASection() {
           {/* 5. Căn lề trái (text-left) thay vì text-center */}
           <div className="relative text-left md:pl-12">
             <h2 className="text-4xl font-extrabold mb-6 drop-shadow-md">
-              Sẵn sàng để bắt đầu?
+              {t("partner:PartnerCTASection.readyToGetStarted")}
             </h2>
             <p className="text-lg text-gray-100 mb-10 max-w-xl drop-shadow-sm">
-              Chỉ mất vài phút để điền thông tin. Tham gia cộng đồng
-              đối tác của chúng tôi và phát triển doanh thu ngay!
+              {t("partner:PartnerCTASection.itOnlyTakesAFew")}
             </p>
 
             {/* Sử dụng CtaButton mới */}
             <CtaButton onClick={() => navigate("/partner/register")}>
-              Điền form đăng ký ngay
+              {t("partner:PartnerCTASection.fillInTheRegistrationForm")}
             </CtaButton>
           </div>
 

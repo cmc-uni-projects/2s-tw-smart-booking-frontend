@@ -14,6 +14,7 @@ import {
   Tag
 } from "lucide-react";
 import Button from "@/components/common/Button/Button";
+import { useTranslation } from "react-i18next";
 
 // Helper lấy ảnh
 const R2_PUBLIC_URL = "https://pub-fed047aa2ebd4dcaad827464c190ea28.r2.dev";
@@ -25,6 +26,7 @@ const getImageUrl = (path) => {
   return `${R2_PUBLIC_URL}/${path.replace(/^\/+/, "")}`;
 };
 const BookingCard = ({ booking, onClick, onReviewClick }) => {
+  const { t } = useTranslation(["profile", "common"]);
 
   // ==================================================================
   // 👇 [SỬA LẠI LOGIC TÍNH GIÁ] 
@@ -51,27 +53,27 @@ const BookingCard = ({ booking, onClick, onReviewClick }) => {
     const config = {
       PENDING_PAYMENT: {
         style: "bg-orange-100 text-orange-700 border-orange-200",
-        label: "Chờ thanh toán",
+        label: t("common:bookingStatus.PENDING_PAYMENT"),
         icon: Clock,
       },
       CONFIRMED: {
         style: "bg-blue-100 text-blue-700 border-blue-200",
-        label: "Đã xác nhận",
+        label: t("common:bookingStatus.CONFIRMED"),
         icon: CalendarCheck,
       },
       CHECKED_IN: {
         style: "bg-purple-100 text-purple-700 border-purple-200",
-        label: "Đang lưu trú",
+        label: t("common:bookingStatus.CHECKED_IN"),
         icon: Building2,
       },
       COMPLETED: {
         style: "bg-emerald-100 text-emerald-700 border-emerald-200",
-        label: "Hoàn thành",
+        label: t("common:bookingStatus.COMPLETED"),
         icon: CheckCircle2,
       },
       CANCELLED: {
         style: "bg-rose-100 text-rose-700 border-rose-200",
-        label: "Đã hủy",
+        label: t("common:bookingStatus.CANCELLED"),
         icon: XCircle,
       },
     };
@@ -135,7 +137,7 @@ const BookingCard = ({ booking, onClick, onReviewClick }) => {
                   <CalendarDays size={16} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Nhận phòng</p>
+                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">{t("common:checkIn")}</p>
                   <p className="font-bold text-slate-700">
                     {new Date(booking.checkInDate).toLocaleDateString("vi-VN")}
                   </p>
@@ -146,7 +148,7 @@ const BookingCard = ({ booking, onClick, onReviewClick }) => {
                   <FileText size={16} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Loại phòng</p>
+                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">{t("card.roomType")}</p>
                   <p className="truncate font-bold text-slate-700 max-w-[120px]" title={booking.roomName}>
                     {booking.roomName}
                   </p>
@@ -160,16 +162,16 @@ const BookingCard = ({ booking, onClick, onReviewClick }) => {
               {/* ... (Giữ nguyên logic hiển thị trạng thái Refund) ... */}
               {booking.paymentStatus === "REFUND_REQUESTED" && (
                   <span className="mb-1 flex items-center gap-1 text-xs font-bold text-orange-600 animate-pulse">
-                <Loader2 size={12} className="animate-spin" /> Đang chờ hoàn tiền
+                <Loader2 size={12} className="animate-spin" /> {t("card.refundPending")}
               </span>
               )}
               {booking.paymentStatus === "REFUNDED" && (
                   <span className="mb-1 flex items-center gap-1 text-xs font-bold text-green-600">
-                <CheckCircle2 size={12} /> Đã hoàn tiền
+                <CheckCircle2 size={12} /> {t("card.refunded")}
               </span>
               )}
 
-              <p className="text-xs font-medium text-slate-400">Tổng thanh toán</p>
+              <p className="text-xs font-medium text-slate-400">{t("card.total")}</p>
 
               {/* 👇 [UPDATE] Hiển thị giá tiền đã sửa logic */}
               <div className="flex flex-col items-start">
@@ -207,7 +209,7 @@ const BookingCard = ({ booking, onClick, onReviewClick }) => {
                             }}
                         >
                           <Star size={14} className="fill-yellow-900" />
-                          Viết đánh giá
+                          {t("card.writeReview")}
                         </Button>
                     ) : (
                         <Button
@@ -219,13 +221,13 @@ const BookingCard = ({ booking, onClick, onReviewClick }) => {
                             }}
                         >
                           <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                          Xem đánh giá
+                          {t("card.viewReview")}
                         </Button>
                     )}
                   </>
               )}
               <Button size="sm" variant="outline" className="border-slate-300 text-slate-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600">
-                Chi tiết
+                {t("card.details")}
               </Button>
             </div>
           </div>

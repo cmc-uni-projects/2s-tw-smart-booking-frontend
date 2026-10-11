@@ -1,7 +1,8 @@
 import React from 'react';
-import { categories } from '@/data/helpData'; // Đảm bảo đúng đường dẫn data
+import { useHelpCategories } from '@/data/helpData';
 
 const HelpCategories = ({ activeCategory, setActiveCategory }) => {
+    const categories = useHelpCategories();
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 -mt-10 px-4 max-w-7xl mx-auto relative z-20">
             {categories.map((cat) => {

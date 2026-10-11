@@ -5,6 +5,7 @@ import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
 import HotelResultCard from "./HotelResultCard";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "react-i18next";
 
 const panelVariants = {
   hidden: {
@@ -23,6 +24,7 @@ const panelVariants = {
 
 const ChatPanel = ({ onClose, messages, isLoading, onSendMessage }) => {
   const messagesEndRef = useRef(null);
+  const { t } = useTranslation("layout");
   const { currentUser } = useAuth();
   const isGuest = !currentUser;
 
@@ -55,7 +57,7 @@ const ChatPanel = ({ onClose, messages, isLoading, onSendMessage }) => {
           {isGuest && (
               <div className="flex justify-start mb-3">
                 <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-none px-4 py-2 text-gray-600 text-sm shadow-sm max-w-[80%]">
-                  Bạn cần đăng nhập để sử dụng tính năng trợ lý thông minh này
+                  {t("chat.loginRequiredLong")}
                 </div>
               </div>
           )}
@@ -75,7 +77,7 @@ const ChatPanel = ({ onClose, messages, isLoading, onSendMessage }) => {
                 {isLoading && (
                     <div className="flex justify-start animate-pulse">
                       <div className="bg-gray-200 text-gray-500 rounded-2xl rounded-tl-none px-4 py-2 text-xs">
-                        Đang soạn tin...
+                        {t("chat.typing")}
                       </div>
                     </div>
                 )}

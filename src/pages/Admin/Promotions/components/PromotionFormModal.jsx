@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import Toast from "@/components/common/Notification/Toast";
 import CustomSelect from "@/components/common/Select/CustomSelect";
 import DatePickerInput from "@/components/common/Input/DatePickerInput";
+import { useTranslation } from "react-i18next";
 
 const BE_BASE_URL = "http://127.0.0.1:8386";
 const UPLOAD_DIR = "/uploads/";
@@ -102,6 +103,7 @@ const TimePicker = ({ value, onChange, error }) => {
 
 
 const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
+  const { t } = useTranslation();
     const [promotionTypeOption, setPromotionTypeOption] = useState("FIXED_AMOUNT");
     const [formData, setFormData] = useState({
         code: "", name: "", value: "", quantity: "", minOrder: "", maxDiscount: "",
@@ -177,7 +179,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.size > 5 * 1024 * 1024) { showToast("error", "Ảnh quá lớn (Max 5MB)"); return; }
+            if (file.size > 5 * 1024 * 1024) { showToast("error", t("admin:PromotionFormModal.imageTooLargeMax5mb")); return; }
             setBannerFile(file);
             setPreviewUrl(URL.createObjectURL(file));
         }
@@ -235,45 +237,45 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
 
     const validateForm = () => {
         const newErrors = {};
-        if (!formData.code.trim()) newErrors.code = "Mã không được để trống";
-        if (!formData.name.trim()) newErrors.name = "Tên chương trình là bắt buộc";
+        if (!formData.code.trim()) newErrors.code = t("admin:PromotionFormModal.codeIsRequired");
+        if (!formData.name.trim()) newErrors.name = t("admin:PromotionFormModal.campaignNameIsRequired");
 
-        if (!formData.value) newErrors.value = "Nhập mức giảm";
+        if (!formData.value) newErrors.value = t("admin:PromotionFormModal.enterTheDiscount");
         else {
             const val = Number(formData.value);
             if (promotionTypeOption === "FIXED_AMOUNT") {
-                if (val < MIN_VND) newErrors.value = `Giảm tối thiểu ${formatCurrency(MIN_VND)}đ`;
+                if (val < MIN_VND) newErrors.value = t("admin:PromotionFormModal.minimumDiscountIs", { value: formatCurrency(MIN_VND) });
             } else {
-                if (val <= 0) newErrors.value = "Phần trăm phải > 0";
-                if (val > 100) newErrors.value = "Không được quá 100%";
+                if (val <= 0) newErrors.value = t("admin:PromotionFormModal.percentageMustBe0");
+                if (val > 100) newErrors.value = t("admin:PromotionFormModal.cannotExceed100");
             }
         }
 
-        if (formData.minOrder === "" || formData.minOrder === null) newErrors.minOrder = "Nhập giá trị đơn tối thiểu";
+        if (formData.minOrder === "" || formData.minOrder === null) newErrors.minOrder = t("admin:PromotionFormModal.enterTheMinimumOrderValue");
         else {
             const minOrd = Number(formData.minOrder);
-            if (minOrd < 0) newErrors.minOrder = "Không được âm";
-            else if (minOrd > 0 && minOrd < MIN_VND) newErrors.minOrder = `Phải từ ${formatCurrency(MIN_VND)}đ trở lên`;
+            if (minOrd < 0) newErrors.minOrder = t("admin:PromotionFormModal.cannotBeNegative");
+            else if (minOrd > 0 && minOrd < MIN_VND) newErrors.minOrder = t("admin:PromotionFormModal.mustBeAtLeast", { value: formatCurrency(MIN_VND) });
         }
 
         if (promotionTypeOption === 'PERCENTAGE_CAPPED') {
             if (!formData.maxDiscount || Number(formData.maxDiscount) <= 0) {
-                newErrors.maxDiscount = "Bắt buộc nhập mức giảm tối đa";
+                newErrors.maxDiscount = t("admin:PromotionFormModal.maximumDiscountIsRequired");
             } else {
                 const maxDisc = Number(formData.maxDiscount);
-                if (maxDisc < MIN_VND) newErrors.maxDiscount = `Phải từ ${formatCurrency(MIN_VND)}đ trở lên`;
+                if (maxDisc < MIN_VND) newErrors.maxDiscount = t("admin:PromotionFormModal.mustBeAtLeast", { value: formatCurrency(MIN_VND) });
             }
         }
 
-        if (formData.quantity && Number(formData.quantity) <= 0) newErrors.quantity = "Số lượng phải lớn hơn 0";
+        if (formData.quantity && Number(formData.quantity) <= 0) newErrors.quantity = t("admin:PromotionFormModal.quantityMustBeGreaterThan");
 
-        if (!formData.startDate) { newErrors.startDate = "Chọn ngày giờ bắt đầu"; }
-        else if (!formData.startDate.includes('T')) { newErrors.startDate = "Thiếu thông tin giờ"; }
-        else if (!validateYear(formData.startDate)) { newErrors.startDate = "Năm không hợp lệ"; }
+        if (!formData.startDate) { newErrors.startDate = t("admin:PromotionFormModal.chooseTheStartDateAnd"); }
+        else if (!formData.startDate.includes('T')) { newErrors.startDate = t("admin:PromotionFormModal.timeIsMissing"); }
+        else if (!validateYear(formData.startDate)) { newErrors.startDate = t("admin:PromotionFormModal.invalidYear"); }
 
-        if (!formData.endDate) { newErrors.endDate = "Chọn ngày giờ kết thúc"; }
-        else if (!formData.endDate.includes('T')) { newErrors.endDate = "Thiếu thông tin giờ"; }
-        else if (!validateYear(formData.endDate)) { newErrors.endDate = "Năm không hợp lệ"; }
+        if (!formData.endDate) { newErrors.endDate = t("admin:PromotionFormModal.chooseTheEndDateAnd"); }
+        else if (!formData.endDate.includes('T')) { newErrors.endDate = t("admin:PromotionFormModal.timeIsMissing"); }
+        else if (!validateYear(formData.endDate)) { newErrors.endDate = t("admin:PromotionFormModal.invalidYear"); }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -285,8 +287,8 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
             const end = new Date(formData.endDate);
             const today = new Date(); today.setHours(0, 0, 0, 0);
 
-            if (!initialData && start < today) { showToast("error", "Ngày bắt đầu không được chọn trong quá khứ."); return; }
-            if (end <= start) { showToast("error", "Thời gian kết thúc phải lớn hơn thời gian bắt đầu."); return; }
+            if (!initialData && start < today) { showToast("error", t("admin:PromotionFormModal.theStartDateCannotBe")); return; }
+            if (end <= start) { showToast("error", t("admin:PromotionFormModal.theEndTimeMustBe")); return; }
 
             setIsLoading(true);
             try {
@@ -304,12 +306,12 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                     promotionId = res.data?.data?.promotionId || res.data?.promotionId;
                 }
                 if (bannerFile && promotionId) await promotionService.uploadBanner(promotionId, bannerFile);
-                showToast("success", initialData ? "Cập nhật thành công!" : "Tạo khuyến mãi thành công!");
+                showToast("success", initialData ? t("admin:PromotionFormModal.updatedSuccessfully") : t("admin:PromotionFormModal.promotionCreatedSuccessfully"));
                 if (onSuccess) onSuccess();
                 onClose();
             } catch (error) {
                 console.error(error);
-                showToast("error", error.response?.data?.message || "Có lỗi xảy ra!");
+                showToast("error", error.response?.data?.message || t("admin:PromotionFormModal.somethingWentWrong"));
             } finally {
                 setIsLoading(false);
             }
@@ -324,52 +326,52 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity p-4 animate-fadeIn">
             <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl transform transition-all scale-100 overflow-hidden flex flex-col max-h-[90vh] animate-slideUp">
                 <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-[rgb(40,169,224)] to-[rgb(26,140,189)] text-white">
-                    <div><h3 className="text-xl font-bold flex items-center gap-2">{initialData ? <CheckCircle2 size={22}/> : <Tag size={22}/>} {initialData ? "Cập nhật Khuyến mãi" : "Tạo Khuyến mãi Mới"}</h3><p className="text-blue-100 text-xs mt-1 opacity-90">Điền đầy đủ thông tin để kích hoạt mã giảm giá.</p></div>
+                    <div><h3 className="text-xl font-bold flex items-center gap-2">{initialData ? <CheckCircle2 size={22}/> : <Tag size={22}/>} {initialData ? t("admin:PromotionFormModal.updatePromotion") : t("admin:PromotionFormModal.createNewPromotion")}</h3><p className="text-blue-100 text-xs mt-1 opacity-90">{t("admin:PromotionFormModal.fillInAllTheInformation")}</p></div>
                     <button onClick={onClose} className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"><X size={20} /></button>
                 </div>
                 <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
 
                     <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-700 ml-1">Banner Khuyến Mãi</label>
+                        <label className="text-sm font-semibold text-gray-700 ml-1">{t("admin:PromotionFormModal.promotionBanner")}</label>
                         <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50/50 transition-colors relative overflow-hidden group">
-                            {previewUrl ? <img src={previewUrl} alt="Banner" className="w-full h-full object-contain z-10" onError={handleImageError} /> : <div className="flex flex-col items-center text-gray-400"><ImageIcon size={40} className="mb-2 opacity-50" /><span className="text-sm font-medium">Nhấn để tải ảnh lên</span><span className="text-xs opacity-70">(JPG, PNG - Max 5MB)</span></div>}
+                            {previewUrl ? <img src={previewUrl} alt="Banner" className="w-full h-full object-contain z-10" onError={handleImageError} /> : <div className="flex flex-col items-center text-gray-400"><ImageIcon size={40} className="mb-2 opacity-50" /><span className="text-sm font-medium">{t("admin:PromotionFormModal.clickToUploadAnImage")}</span><span className="text-xs opacity-70">(JPG, PNG - Max 5MB)</span></div>}
                             <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
-                            {previewUrl && <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none"><p className="text-white font-semibold flex items-center gap-2"><Upload size={18}/> Thay đổi ảnh</p></div>}
+                            {previewUrl && <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none"><p className="text-white font-semibold flex items-center gap-2"><Upload size={18}/> {t("admin:PromotionFormModal.changeImage")}</p></div>}
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-start">
-                        <div className="sm:col-span-1"><CustomInput label="Mã Code" name="code" value={formData.code} onChange={handleChange} placeholder="VD: SALE50" icon={Tag} error={errors.code} /></div>
-                        <div className="sm:col-span-2"><CustomInput label="Tên chương trình" name="name" value={formData.name} onChange={handleChange} placeholder="VD: Siêu sale tháng 11" icon={CheckCircle2} error={errors.name} /></div>
+                        <div className="sm:col-span-1"><CustomInput label={t("admin:PromotionFormModal.code")} name="code" value={formData.code} onChange={handleChange} placeholder="VD: SALE50" icon={Tag} error={errors.code} /></div>
+                        <div className="sm:col-span-2"><CustomInput label={t("admin:PromotionFormModal.campaignName")} name="name" value={formData.name} onChange={handleChange} placeholder={t("admin:PromotionFormModal.eGNovemberSuperSale")} icon={CheckCircle2} error={errors.name} /></div>
                     </div>
 
                     <div className="bg-orange-50/50 border border-orange-100 rounded-xl p-5">
-                        <CustomSelect label="Đối tượng áp dụng (Hạng thành viên tối thiểu)" name="minMembershipRank" value={formData.minMembershipRank} onChange={(val) => setFormData(prev => ({ ...prev, minMembershipRank: val }))} icon={<Crown />}
-                                      options={[{ value: "BRONZE", label: "Đồng (Tất cả thành viên)" }, { value: "SILVER", label: "Bạc (Silver - Chi tiêu > 1 triệu đồng)" }, { value: "GOLD", label: "Vàng (Gold - Chi tiêu > 5 triệu đồng)" }, { value: "DIAMOND", label: "Kim Cương (Diamond - Chi tiêu > 10 triệu đồng)" }]}
+                        <CustomSelect label={t("admin:PromotionFormModal.eligibleMembersMinimumTier")} name="minMembershipRank" value={formData.minMembershipRank} onChange={(val) => setFormData(prev => ({ ...prev, minMembershipRank: val }))} icon={<Crown />}
+                                      options={[{ value: "BRONZE", label: t("admin:PromotionFormModal.bronzeAllMembers") }, { value: "SILVER", label: t("admin:PromotionFormModal.silverSpending1MillionVnd") }, { value: "GOLD", label: t("admin:PromotionFormModal.goldSpending5MillionVnd") }, { value: "DIAMOND", label: t("admin:PromotionFormModal.diamondSpending10MillionVnd") }]}
                         />
-                        <p className="text-xs text-gray-500 mt-2 ml-1 italic">* Khuyến mãi này sẽ áp dụng cho các thành viên có hạng này trở lên.</p>
+                        <p className="text-xs text-gray-500 mt-2 ml-1 italic">{t("admin:PromotionFormModal.thisPromotionAppliesToMembers")}</p>
                     </div>
 
                     <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
-                        <CustomSelect label="Loại giảm giá" name="type" value={promotionTypeOption} onChange={(val) => handleTypeChange(val)} icon={<Layers />}
+                        <CustomSelect label={t("admin:PromotionFormModal.discountType")} name="type" value={promotionTypeOption} onChange={(val) => handleTypeChange(val)} icon={<Layers />}
                                       options={[
-                                          { value: "FIXED_AMOUNT", label: "Giảm tiền trực tiếp" },
-                                          { value: "PERCENTAGE_UNLIMITED", label: "Giảm giá theo % (Không giới hạn)" },
-                                          { value: "PERCENTAGE_CAPPED", label: "Giảm giá theo % (Có giới hạn)" }
+                                          { value: "FIXED_AMOUNT", label: t("admin:PromotionFormModal.fixedAmountOff") },
+                                          { value: "PERCENTAGE_UNLIMITED", label: t("admin:PromotionFormModal.percentageOffNoCap") },
+                                          { value: "PERCENTAGE_CAPPED", label: t("admin:PromotionFormModal.percentageOffCapped") }
                                       ]}
                         />
-                        <CustomInput label={isPercentage ? "Mức giảm (%)" : "Số tiền giảm (VNĐ)"} name="value" type={isPercentage ? "number" : "text"} value={isPercentage ? formData.value : formatCurrency(formData.value)} onChange={isPercentage ? handleChange : handleCurrencyChange} placeholder={isPercentage ? "VD: 20" : "VD: 50.000"} icon={isPercentage ? Percent : Banknote} error={errors.value} min="0" onFocus={(e) => e.target.select()} />
+                        <CustomInput label={isPercentage ? t("admin:PromotionFormModal.discount") : t("admin:PromotionFormModal.discountAmountVnd")} name="value" type={isPercentage ? "number" : "text"} value={isPercentage ? formData.value : formatCurrency(formData.value)} onChange={isPercentage ? handleChange : handleCurrencyChange} placeholder={isPercentage ? "VD: 20" : "VD: 50.000"} icon={isPercentage ? Percent : Banknote} error={errors.value} min="0" onFocus={(e) => e.target.select()} />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-start">
-                        <CustomInput label="Đơn tối thiểu (VNĐ)" name="minOrder" type="text" value={formatCurrency(formData.minOrder)} onChange={handleCurrencyChange} icon={Banknote} error={errors.minOrder} placeholder="0 (Không giới hạn)" />
-                        <CustomInput label="Giảm tối đa (VNĐ)" name="maxDiscount" type="text" value={formatCurrency(formData.maxDiscount)} onChange={handleCurrencyChange} icon={Banknote} placeholder={isMaxDiscountDisabled ? "Không áp dụng" : "VD: 200.000"} onFocus={(e) => e.target.select()} error={errors.maxDiscount} disabled={isMaxDiscountDisabled} />
-                        <CustomInput label="Tổng số lượng" name="quantity" type="number" value={formData.quantity} onChange={handleChange} icon={Hash} error={errors.quantity} placeholder="1000" min="1" onFocus={(e) => e.target.select()} />
+                        <CustomInput label={t("admin:PromotionFormModal.minimumOrderVnd")} name="minOrder" type="text" value={formatCurrency(formData.minOrder)} onChange={handleCurrencyChange} icon={Banknote} error={errors.minOrder} placeholder={t("admin:PromotionFormModal.n0NoMinimum")} />
+                        <CustomInput label={t("admin:PromotionFormModal.maximumDiscountVnd")} name="maxDiscount" type="text" value={formatCurrency(formData.maxDiscount)} onChange={handleCurrencyChange} icon={Banknote} placeholder={isMaxDiscountDisabled ? t("admin:PromotionFormModal.notApplicable") : "VD: 200.000"} onFocus={(e) => e.target.select()} error={errors.maxDiscount} disabled={isMaxDiscountDisabled} />
+                        <CustomInput label={t("admin:PromotionFormModal.totalQuantity")} name="quantity" type="number" value={formData.quantity} onChange={handleChange} icon={Hash} error={errors.quantity} placeholder="1000" min="1" onFocus={(e) => e.target.select()} />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian bắt đầu {errors.startDate && <span className="text-red-500">*</span>}</label>
+                            <label className="text-sm font-semibold text-gray-700 ml-1">{t("admin:PromotionFormModal.startTime")} {errors.startDate && <span className="text-red-500">*</span>}</label>
                             <div className="flex gap-2 items-start">
                                 {/* [FIX] DatePickerInput + minDate */}
                                 <div className="w-3/5">
@@ -384,7 +386,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                             {errors.startDate && <p className="text-xs text-red-500 flex items-center gap-1 ml-1 mt-1"><AlertCircle size={12}/> {errors.startDate}</p>}
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian kết thúc {errors.endDate && <span className="text-red-500">*</span>}</label>
+                            <label className="text-sm font-semibold text-gray-700 ml-1">{t("admin:PromotionFormModal.endTime")} {errors.endDate && <span className="text-red-500">*</span>}</label>
                             <div className="flex gap-2 items-start">
                                 {/* [FIX] DatePickerInput + minDate dynamic */}
                                 <div className="w-3/5">
@@ -404,7 +406,7 @@ const PromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
 
                 <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
                     <button onClick={handleSubmit} disabled={isLoading} className={`px-6 py-2.5 rounded-xl bg-[rgb(40,169,224)] text-white font-semibold shadow-lg shadow-blue-200 hover:bg-[rgb(26,140,189)] hover:shadow-none transition-all transform active:scale-95 flex items-center gap-2 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}>
-                        {isLoading ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>Đang xử lý...</> : initialData ? "Lưu thay đổi" : "Thêm"}
+                        {isLoading ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>{t("admin:PromotionFormModal.processing")}</> : initialData ? t("admin:PromotionFormModal.saveChanges") : t("admin:PromotionFormModal.add")}
                     </button>
                 </div>
             </div>

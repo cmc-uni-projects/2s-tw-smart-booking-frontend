@@ -8,20 +8,22 @@ import {
 
 // Import component con
 import AmenityOption from "./components/AmenityOption";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 const AMENITIES_LIST = [
-  { id: "pool", label: "Hồ bơi", icon: <Waves size={24} /> },
-  { id: "parking", label: "Bãi đỗ xe", icon: <ParkingCircle size={24} /> },
-  { id: "sauna", label: "Phòng xông hơi", icon: <Droplet size={24} /> },
+  { id: "pool", get label() { return i18n.t("owner:Step2_Amenities.swimmingPool"); }, icon: <Waves size={24} /> },
+  { id: "parking", get label() { return i18n.t("owner:Step2_Amenities.parking"); }, icon: <ParkingCircle size={24} /> },
+  { id: "sauna", get label() { return i18n.t("owner:Step2_Amenities.sauna"); }, icon: <Droplet size={24} /> },
   { id: "spa", label: "Spa & Massage", icon: <Sparkles size={24} /> },
-  { id: "non_smoking", label: "Không hút thuốc", icon: <Ban size={24} /> },
-  { id: "wifi", label: "Wi-Fi miễn phí", icon: <Wifi size={24} /> },
-  { id: "airport_transfer", label: "Đưa đón sân bay", icon: <Plane size={24} /> },
-  { id: "pets", label: "Cho phép thú cưng", icon: <PawPrint size={24} /> },
-  { id: "gym", label: "Phòng Gym", icon: <Dumbbell size={24} /> },
-  { id: "smoking_area", label: "Khu vực hút thuốc", icon: <Cigarette size={24} /> },
-  { id: "reception_24h", label: "Lễ tân 24/7", icon: <ConciergeBell size={24} /> },
-  { id: "ac", label: "Điều hòa", icon: <Wind size={24} /> },
+  { id: "non_smoking", get label() { return i18n.t("owner:Step2_Amenities.nonSmoking"); }, icon: <Ban size={24} /> },
+  { id: "wifi", get label() { return i18n.t("owner:Step2_Amenities.freeWiFi"); }, icon: <Wifi size={24} /> },
+  { id: "airport_transfer", get label() { return i18n.t("owner:Step2_Amenities.airportTransfer"); }, icon: <Plane size={24} /> },
+  { id: "pets", get label() { return i18n.t("owner:Step2_Amenities.petsAllowed"); }, icon: <PawPrint size={24} /> },
+  { id: "gym", get label() { return i18n.t("owner:Step2_Amenities.gym"); }, icon: <Dumbbell size={24} /> },
+  { id: "smoking_area", get label() { return i18n.t("owner:Step2_Amenities.smokingArea"); }, icon: <Cigarette size={24} /> },
+  { id: "reception_24h", get label() { return i18n.t("owner:Step2_Amenities.n247Reception"); }, icon: <ConciergeBell size={24} /> },
+  { id: "ac", get label() { return i18n.t("owner:Step2_Amenities.airConditioning"); }, icon: <Wind size={24} /> },
 ];
 
 // Animation variants
@@ -39,6 +41,7 @@ const itemVariants = {
 };
 
 export default function Step2_Amenities({ register, watch }) {
+  const { t } = useTranslation();
   // Theo dõi toàn bộ object amenities để biết cái nào đang được chọn (true)
   const selectedAmenities = watch("amenities") || {};
 
@@ -55,9 +58,9 @@ export default function Step2_Amenities({ register, watch }) {
           <Sparkle size={32} strokeWidth={2} />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Tiện nghi & Dịch vụ</h2>
+          <h2 className="text-2xl font-bold text-gray-800">{t("owner:Step2_Amenities.amenitiesServices")}</h2>
           <p className="text-gray-500 text-sm mt-1">
-            Chọn những tiện ích nổi bật nhất để thu hút khách hàng.
+            {t("owner:Step2_Amenities.chooseYourMostOutstandingAmenities")}
           </p>
         </div>
       </div>

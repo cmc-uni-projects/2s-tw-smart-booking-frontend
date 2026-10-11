@@ -2,6 +2,7 @@ import React from "react";
 import { MapPin, Star, Edit, Eye, Clock, CheckCircle2, AlertCircle, Image as ImageIcon } from "lucide-react";
 import Button from "@/components/common/Button/Button";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
 const getFullImageUrl = (url) => {
@@ -15,6 +16,7 @@ const getFullImageUrl = (url) => {
 };
 
 const PropertyCard = ({ property, onView, onEdit, onToggleStatus }) => {
+  const { t } = useTranslation();
   
   const isPending = property.propertyStatus === "PENDING";
   // Check nếu trạng thái là APPROVED (đã duyệt hoạt động)
@@ -71,34 +73,34 @@ const PropertyCard = ({ property, onView, onEdit, onToggleStatus }) => {
         ) : null}
         <div className={`absolute inset-0 flex flex-col items-center justify-center text-gray-400 ${imageUrl ? 'hidden' : 'flex'}`}>
             <ImageIcon size={40} className="mb-2 opacity-40" />
-            <span className="text-xs font-medium">Không có ảnh bìa</span>
+            <span className="text-xs font-medium">{t("owner:PropertyCard.noCoverPhoto")}</span>
         </div>
         
         {/* Badge trạng thái */}
         <div className="absolute top-3 right-3 z-10">
             {isPending && (
                 <span className="bg-yellow-500/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center shadow-sm">
-                    <Clock size={14} className="mr-1.5" /> Chờ duyệt
+                    <Clock size={14} className="mr-1.5" /> {t("owner:PropertyCard.pending")}
                 </span>
             )}
             
             {/* ✅ SỬA 2: Nếu Active = true -> Hiện "Đang hoạt động" */}
             {isApproved && property.active && (
                 <span className="bg-green-500/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center shadow-sm">
-                    <CheckCircle2 size={14} className="mr-1.5" /> Đang hoạt động
+                    <CheckCircle2 size={14} className="mr-1.5" /> {t("owner:PropertyCard.active")}
                 </span>
             )}
 
             {/* ✅ SỬA 3: Nếu Active = false -> Hiện "Tạm đóng" (Dù status vẫn là APPROVE) */}
             {isApproved && !property.active && (
                  <span className="bg-gray-500/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center shadow-sm">
-                    <AlertCircle size={14} className="mr-1.5" /> Tạm đóng
+                    <AlertCircle size={14} className="mr-1.5" /> {t("owner:PropertyCard.temporarilyClosed")}
                 </span>
             )}
 
              {isRejected && (
                 <span className="bg-red-500/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center shadow-sm">
-                    <AlertCircle size={14} className="mr-1.5" /> Từ chối
+                    <AlertCircle size={14} className="mr-1.5" /> {t("owner:PropertyCard.rejected")}
                 </span>
             )}
         </div>
@@ -106,7 +108,7 @@ const PropertyCard = ({ property, onView, onEdit, onToggleStatus }) => {
         <div className="absolute bottom-3 left-3 z-10">
              <div className="flex items-center bg-white/90 backdrop-blur-md text-gray-800 text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm">
                 <Star size={14} className="fill-yellow-400 text-yellow-400 mr-1" />
-                {property.rating || "Mới"}
+                {property.rating || t("owner:PropertyCard.new")}
             </div>
         </div>
       </div>
@@ -128,7 +130,7 @@ const PropertyCard = ({ property, onView, onEdit, onToggleStatus }) => {
              
              {/* Cột 1: Loại hình */}
              <div className="bg-gray-50 p-2.5 flex flex-col justify-center items-center group-hover:bg-blue-50/30 transition-colors">
-                <p className="text-xs text-gray-500 mb-0.5">Loại hình</p>
+                <p className="text-xs text-gray-500 mb-0.5">{t("owner:PropertyCard.type")}</p>
                 <p className="font-semibold text-gray-800 text-sm line-clamp-1 text-center px-1">
                   {property.propertyType}
                 </p>
@@ -140,11 +142,11 @@ const PropertyCard = ({ property, onView, onEdit, onToggleStatus }) => {
                   ${(!isPending && !isRejected) ? 'cursor-pointer hover:bg-blue-50/30' : ''}`}
                 onClick={handleSwitchClick} // Bắt sự kiện click ngay tại ô này
              >
-                <p className="text-xs text-gray-500 mb-1.5 select-none">Trạng thái KS</p>
+                <p className="text-xs text-gray-500 mb-1.5 select-none">{t("owner:PropertyCard.hotelStatus")}</p>
                 
                 {isPending || isRejected ? (
                    <span className="text-xs font-semibold text-gray-400 italic">
-                      {isPending ? "Chờ duyệt" : "Bị từ chối"}
+                      {isPending ? t("owner:PropertyCard.pending") : t("owner:PropertyCard.rejected2")}
                    </span>
                 ) : (
                   // Switch vẽ bằng div thuần túy
@@ -173,7 +175,7 @@ const PropertyCard = ({ property, onView, onEdit, onToggleStatus }) => {
             disabled={isRejected}
             leftIcon={<Edit size={16}/>}
           >
-            Chỉnh sửa
+            {t("owner:PropertyCard.edit")}
           </Button>
           
           <Button
@@ -182,7 +184,7 @@ const PropertyCard = ({ property, onView, onEdit, onToggleStatus }) => {
              iconOnly
              className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-colors"
              onClick={onView} 
-             title="Xem chi tiết"
+             title={t("owner:PropertyCard.viewDetails")}
           >
               <Eye size={18} />
           </Button>

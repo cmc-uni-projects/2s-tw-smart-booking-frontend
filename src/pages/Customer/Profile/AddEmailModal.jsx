@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react"; // 1. Import thêm useEffect
 import Modal from "@/components/common/Modal/Modal";
 import TextField from "@/components/common/Input/TextField";
 import Button from "@/components/common/Button/Button";
+import { useTranslation } from "react-i18next";
 
 // 2. Thêm prop `existingEmail`, mặc định là null
 export default function AddEmailModal({ isOpen, onClose, onSave, existingEmail = null }) {
+    const { t } = useTranslation(["profile", "common"]);
     const [email, setEmail] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -24,11 +26,11 @@ export default function AddEmailModal({ isOpen, onClose, onSave, existingEmail =
     const validateEmail = () => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!email) {
-            setError("Vui lòng nhập địa chỉ email.");
+            setError(t("emailModal.required"));
             return false;
         }
         if (!emailRegex.test(email)) {
-            setError("Địa chỉ email không hợp lệ.");
+            setError(t("emailModal.invalid"));
             return false;
         }
         return true;
@@ -49,8 +51,8 @@ export default function AddEmailModal({ isOpen, onClose, onSave, existingEmail =
 
     // 4. Quyết định text dựa trên việc có `existingEmail` hay không
     const isEditing = !!existingEmail;
-    const title = isEditing ? "CẬP NHẬT EMAIL" : "THÊM EMAIL";
-    const buttonText = isEditing ? "Lưu" : "Thêm"; // <-- ĐÚNG YÊU CẦU CỦA BẠN
+    const title = isEditing ? t("emailModal.titleEdit") : t("emailModal.titleAdd");
+    const buttonText = isEditing ? t("common:actions.save") : t("common:actions.add");
 
     return (
         <Modal
@@ -60,15 +62,15 @@ export default function AddEmailModal({ isOpen, onClose, onSave, existingEmail =
         >
             <p className="text-sm text-gray-600 mb-4">
                 {isEditing
-                    ? "Cập nhật email sẽ yêu cầu xác minh lại."
-                    : "Thêm email đang sử dụng của bạn để đăng nhập và nhận thông báo"}
+                    ? t("emailModal.textEdit")
+                    : t("emailModal.textAdd")}
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <TextField
                     name="email"
                     type="email"
-                    placeholder="Ví dụ: yourname@email.com"
+                    placeholder={t("emailModal.placeholder")}
                     value={email}
                     onChange={(e) => { setEmail(e.target.value); setError(''); }}
                     error={error}
@@ -90,7 +92,7 @@ export default function AddEmailModal({ isOpen, onClose, onSave, existingEmail =
                         onClick={onClose}
                         className="bg-blue-100 border-blue-100 text-[rgb(40,169,224)] hover:bg-blue-200"
                     >
-                        Hủy
+                        {t("common:actions.cancel")}
                     </Button>
                 </div>
             </form>

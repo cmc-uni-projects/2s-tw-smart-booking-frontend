@@ -1,32 +1,20 @@
-// src/pages/Customer/Profile/LanguageSettings.jsx (ĐÃ FIX LỖI IMPORT)
-
-import React from 'react';
-// ✅ SỬ DỤNG ALIAS CHO CÁC COMPONENTS CHUNG
+// src/pages/Customer/Profile/LanguageSettings.jsx
+import React from "react";
 import Card from "@/components/common/Card/Card";
-import Select from "@/components/common/Select/Select";
-import { Globe } from 'lucide-react';
+import { Globe } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import LanguagePicker from "./components/LanguagePicker";
 
-const LANGUAGE_OPTIONS = [
-    { label: "Tiếng Việt (Vietnamese)", value: "vi" },
-    { label: "Tiếng Anh (English)", value: "en" },
-];
-
-export default function LanguageSettings({ value, onChange }) {
+export default function LanguageSettings() {
+    const { t } = useTranslation("profile");
     return (
         <Card>
-            <div className="p-6 flex items-center justify-between">
+            <div className="p-6 space-y-4">
                 <div className="flex items-center gap-3">
                     <Globe size={20} className="text-[rgb(40,169,224)]" />
-                    <h3 className="font-semibold text-lg">Ngôn ngữ giao diện</h3>
+                    <h3 className="font-semibold text-lg">{t("language.uiLanguage")}</h3>
                 </div>
-
-                <div className="w-60">
-                    <Select
-                        value={value}
-                        onChange={onChange}
-                        options={LANGUAGE_OPTIONS}
-                    />
-                </div>
+                <LanguagePicker />
             </div>
         </Card>
     );

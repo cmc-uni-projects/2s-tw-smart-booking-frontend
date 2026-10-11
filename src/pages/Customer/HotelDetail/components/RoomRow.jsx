@@ -1,9 +1,11 @@
 import React from "react";
 import Button from "@/components/common/Button/Button";
 import { BedDouble, Maximize, Wifi, Users, ChevronRight, Sparkles, Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // ✅ Nhận prop onBookNow thay vì dùng navigate trực tiếp
 const RoomRow = ({ room, onInfoClick, onBookNow }) => {
+    const { t } = useTranslation("hotel");
 
     return (
         <div className="group bg-white hover:bg-blue-50/30 transition-colors duration-200 p-5 lg:p-6">
@@ -23,7 +25,7 @@ const RoomRow = ({ room, onInfoClick, onBookNow }) => {
                         />
                         {room.images.length > 1 && (
                             <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-md">
-                                +{room.images.length - 1} ảnh
+                                {t("room.morePhotos", { count: room.images.length - 1 })}
                             </div>
                         )}
                     </div>
@@ -44,7 +46,7 @@ const RoomRow = ({ room, onInfoClick, onBookNow }) => {
                                     <Maximize size={12} /> {room.size} m²
                                 </span>
                                 <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-md">
-                                    <BedDouble size={12} /> {room.beds || "Giường đôi"}
+                                    <BedDouble size={12} /> {room.beds || t("room.defaultBed")}
                                 </span>
                             </div>
 
@@ -52,15 +54,15 @@ const RoomRow = ({ room, onInfoClick, onBookNow }) => {
                             <div className="space-y-1">
                                 <div className="flex items-center gap-2 text-sm text-green-700">
                                     <Wifi size={14} /> 
-                                    <span className="font-medium">Miễn phí Wifi tốc độ cao</span>
+                                    <span className="font-medium">{t("room.freeWifi")}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-green-700">
                                     <Check size={14} /> 
-                                    <span>Hủy miễn phí (trước 3 ngày)</span>
+                                    <span>{t("room.freeCancel3")}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-blue-600 mt-1">
                                     <Sparkles size={14} /> 
-                                    <span className="font-medium">Bao gồm ăn sáng</span>
+                                    <span className="font-medium">{t("room.breakfast")}</span>
                                 </div>
                             </div>
                         </div>
@@ -69,15 +71,15 @@ const RoomRow = ({ room, onInfoClick, onBookNow }) => {
                             className="text-sm text-[rgb(40,169,224)] font-semibold mt-3 flex items-center hover:underline w-fit"
                             onClick={() => onInfoClick(room)}
                         >
-                            Xem chi tiết phòng <ChevronRight size={14} />
+                            {t("room.viewDetails")} <ChevronRight size={14} />
                         </button>
                     </div>
                 </div>
 
                 {/* 2. CỘT GIỮA: SỨC CHỨA (Chiếm 2/12) */}
                 <div className="col-span-6 lg:col-span-2 flex lg:flex-col items-center lg:justify-center gap-2 border-t lg:border-t-0 lg:border-l lg:border-r border-gray-100 pt-4 lg:pt-0">
-                    <span className="lg:hidden text-sm text-gray-500">Sức chứa:</span>
-                    <div className="flex items-center gap-1 text-gray-600" title={`${room.guests} người lớn`}>
+                    <span className="lg:hidden text-sm text-gray-500">{t("room.capacityLabel")}</span>
+                    <div className="flex items-center gap-1 text-gray-600" title={t("room.adults", { count: room.guests })}>
                         <Users size={20} />
                         <span className="text-lg font-bold">x{room.guests}</span>
                     </div>
@@ -92,7 +94,7 @@ const RoomRow = ({ room, onInfoClick, onBookNow }) => {
                 <div className="col-span-6 lg:col-span-3 flex flex-col justify-center items-end text-right border-t lg:border-t-0 border-gray-100 pt-4 lg:pt-0 pl-0 lg:pl-4">
                     <div className="mb-1">
                         <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-sm">
-                            GIẢM 45%
+                            {t("room.discount", { percent: 45 })}
                         </span>
                     </div>
                     <div className="text-xs text-gray-400 line-through mb-0.5">
@@ -101,16 +103,16 @@ const RoomRow = ({ room, onInfoClick, onBookNow }) => {
                     <div className="text-2xl font-bold text-gray-900 leading-none">
                         {room.price.toLocaleString('vi-VN')} ₫
                     </div>
-                    <p className="text-[10px] text-gray-500 mb-4">đã bao gồm thuế & phí</p>
+                    <p className="text-[10px] text-gray-500 mb-4">{t("room.taxIncluded")}</p>
 
                     <Button 
                         className="w-full bg-[rgb(40,169,224)] hover:bg-[#1b98d6] text-white shadow-md shadow-blue-200 transition-all active:scale-95"
                         onClick={() => onBookNow(room)} // ✅ Gọi hàm callback mở modal
                     >
-                        Đặt phòng ngay
+                        {t("header.bookNow")}
                     </Button>
                     <p className="text-[10px] text-red-500 mt-2 font-medium">
-                        Chỉ còn 2 phòng trống!
+                        {t("room.onlyLeft", { count: 2 })}
                     </p>
                 </div>
 

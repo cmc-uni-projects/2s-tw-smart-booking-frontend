@@ -8,6 +8,8 @@ import {
 import Toast from "@/components/common/Notification/Toast";
 import ToastPortal from "@/components/common/Notification/ToastPortal";
 import LoginSlider from "@/components/auth/LoginSlider";
+import LanguageSwitcher from "@/layouts/CustomerLayout/LanguageSwitcher";
+import { useTranslation, Trans } from "react-i18next";
 
 // URL Backend (Cổng OAuth2)
 const API_BASE_URL = "http://localhost:8386";
@@ -17,6 +19,7 @@ const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { updateUser } = useAuth();
+    const { t } = useTranslation("auth");
 
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [showPassword, setShowPassword] = useState(false);
@@ -53,7 +56,7 @@ const Login = () => {
         e.preventDefault();
 
         if (!formData.email || !formData.password) {
-            setError("Vui lòng nhập đầy đủ thông tin.");
+            setError(t("login.errors.required"));
             return;
         }
 
@@ -65,7 +68,7 @@ const Login = () => {
                 if (updateUser) {
                     await updateUser(res.user);
                 }
-                setToast({ show: true, message: "Đăng nhập thành công!", type: "success" });
+                setToast({ show: true, message: t("login.success"), type: "success" });
                 setTimeout(() => {
                     navigate(from, { replace: true });
                 }, 800);
@@ -73,8 +76,8 @@ const Login = () => {
         } catch (err) {
             console.error("Login Error:", err);
 
-            let modalTitle = "Đăng nhập thất bại";
-            let modalMsg = "Có lỗi xảy ra, vui lòng thử lại.";
+            let modalTitle = t("login.errors.failedTitle");
+            let modalMsg = t("login.errors.failedMsg");
             let shouldShowModal = false;
 
             if (err.response) {
@@ -83,32 +86,34 @@ const Login = () => {
 
                 // Lấy message từ BE
                 const backendMessage = data.message || data.error || "";
-                const lowerMsg = backendMessage.toLowerCase();
 
-                // 🛑 TRƯỜNG HỢP 1: Tài khoản bị KHÓA (403 Forbidden + từ khóa lock/ban)
-                if (status === 403 && (lowerMsg.includes("khóa") || lowerMsg.includes("locked") || lowerMsg.includes("banned"))) {
-                    modalTitle = "Tài khoản bị khóa";
-                    modalMsg = backendMessage || "Tài khoản của bạn đã bị khóa do vi phạm chính sách.";
+                // Backend errors carry a stable code (the i18n key); the message is already in the UI language
+                const code = data.code || "";
+
+                // 🛑 TRƯỜNG HỢP 1: Tài khoản bị KHÓA
+                if (status === 403 && (code === "auth.locked" || code === "auth.lockedOrSuspended")) {
+                    modalTitle = t("login.errors.lockedTitle");
+                    modalMsg = backendMessage || t("login.errors.lockedMsg");
                     shouldShowModal = true;
                 }
                 // ⚠️ TRƯỜNG HỢP 2: Tài khoản chưa kích hoạt / Xác thực email
-                else if (status === 403 || lowerMsg.includes("disabled") || lowerMsg.includes("chưa được xác thực")) {
-                    modalTitle = "Tài khoản chưa kích hoạt";
-                    modalMsg = "Vui lòng kiểm tra email của bạn để xác thực tài khoản trước khi đăng nhập.";
+                else if (status === 403) {
+                    modalTitle = t("login.errors.inactiveTitle");
+                    modalMsg = t("login.errors.inactiveMsg");
                     shouldShowModal = true;
                 }
                 // ❌ TRƯỜNG HỢP 3: Sai thông tin (401 Unauthorized)
-                else if (status === 401 || lowerMsg.includes("bad credentials")) {
-                    modalTitle = "Thông tin không chính xác";
-                    modalMsg = "Email hoặc mật khẩu bạn nhập không đúng. Vui lòng thử lại.";
+                else if (status === 401) {
+                    modalTitle = t("login.errors.badCredentialsTitle");
+                    modalMsg = t("login.errors.badCredentialsMsg");
                     shouldShowModal = true;
                 }
                 // Các lỗi khác thì hiện thông báo nhỏ (inline)
                 else {
-                    setError(backendMessage || "Lỗi hệ thống.");
+                    setError(backendMessage || t("login.errors.system"));
                 }
             } else {
-                setError("Không thể kết nối đến máy chủ.");
+                setError(t("login.errors.network"));
             }
 
             // ✅ Nếu rơi vào các trường hợp nghiêm trọng -> Hiện Modal của bạn
@@ -142,8 +147,12 @@ const Login = () => {
                 className="absolute top-6 left-6 z-30 flex items-center gap-2 text-white/90 hover:text-white px-4 py-2 rounded-full bg-white/10 border border-white/20 shadow-lg hover:bg-white/20 transition-all group backdrop-blur-md"
             >
                 <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-                <span className="text-sm font-bold">Trang chủ</span>
+                <span className="text-sm font-bold">{t("backHome")}</span>
             </button>
+
+            <div className="absolute top-6 right-6 z-30 px-4 py-2 rounded-full bg-white/10 border border-white/20 shadow-lg backdrop-blur-md">
+                <LanguageSwitcher className="text-white/90 hover:text-white" />
+            </div>
 
             {/* MAIN CARD */}
             <div className="relative z-10 w-full h-full md:h-auto md:max-w-6xl md:aspect-[16/9] bg-white md:rounded-[2.5rem] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-2 animate-zoom-in">
@@ -154,25 +163,18 @@ const Login = () => {
                 {/* --- RIGHT SIDE: FORM --- */}
                 <div className="flex flex-col relative overflow-y-auto custom-scrollbar bg-white">
 
-                    <div className="absolute top-0 right-0 p-8 hidden md:flex gap-4">
-                        <span className="text-sm font-semibold text-slate-400">Bạn chưa có tài khoản?</span>
-                        <Link to="/register" className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
-                            Đăng ký ngay
-                        </Link>
-                    </div>
-
-                    <div className="flex-1 flex flex-col justify-center p-8 md:p-12 lg:p-16">
+                    <div className="flex-1 flex flex-col justify-center p-8 md:p-12 lg:px-16 lg:py-10">
                         <div className="max-w-md mx-auto w-full">
 
                             {/* HEADLINE */}
-                            <div className="mb-10 relative">
+                            <div className="mb-8 relative">
                                 <div className="absolute -top-10 -left-10 w-20 h-20 bg-blue-100 rounded-full blur-xl opacity-50"></div>
                                 <h1 className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mb-2 flex items-center gap-3">
-                                    Tiếp tục hành trình
+                                    {t("login.title")}
                                     <Plane className="text-blue-500 animate-pulse" size={28} />
                                 </h1>
                                 <p className="text-slate-500 text-lg font-medium">
-                                    Đăng nhập để mở khóa những <span className="text-blue-600 font-bold">ưu đãi độc quyền</span>.
+                                    <Trans t={t} i18nKey="login.subtitle" components={{ hl: <span className="text-blue-600 font-bold" /> }} />
                                 </p>
                                 <div className="h-1.5 w-20 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full mt-4"></div>
                             </div>
@@ -209,7 +211,7 @@ const Login = () => {
                                         : 'top-4 text-slate-400 font-medium'
                                     }
                              `}>
-                                        Email đăng nhập
+                                        {t("fields.loginEmail")}
                                     </label>
                                 </div>
 
@@ -236,7 +238,7 @@ const Login = () => {
                                         : 'top-4 text-slate-400 font-medium'
                                     }
                              `}>
-                                        Mật khẩu
+                                        {t("fields.password")}
                                     </label>
                                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-200 transition-all">
                                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -246,10 +248,10 @@ const Login = () => {
                                 <div className="flex justify-between items-center">
                                     <label className="flex items-center gap-2 cursor-pointer group">
                                         <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
-                                        <span className="text-sm font-semibold text-slate-500 group-hover:text-slate-700 transition-colors">Ghi nhớ</span>
+                                        <span className="text-sm font-semibold text-slate-500 group-hover:text-slate-700 transition-colors">{t("login.remember")}</span>
                                     </label>
                                     <Link to="/forgot-password" className="text-sm font-bold text-blue-600 hover:text-blue-800 hover:underline decoration-2 underline-offset-4 transition-colors">
-                                        Quên mật khẩu?
+                                        {t("login.forgot")}
                                     </Link>
                                 </div>
 
@@ -258,13 +260,13 @@ const Login = () => {
                                     disabled={loading}
                                     className="group w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-black text-lg shadow-xl shadow-blue-500/20 transition-all duration-300 flex items-center justify-center gap-3 active:scale-[0.98]"
                                 >
-                                    {loading ? <Loader2 className="animate-spin" /> : <>Đăng nhập ngay <LogIn size={20} className="group-hover:translate-x-1 transition-transform" /></>}
+                                    {loading ? <Loader2 className="animate-spin" /> : <>{t("login.submit")} <LogIn size={20} className="group-hover:translate-x-1 transition-transform" /></>}
                                 </button>
                             </form>
 
-                            <div className="my-8 flex items-center gap-4">
+                            <div className="my-6 flex items-center gap-4">
                                 <div className="h-[1px] bg-slate-200 flex-1"></div>
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Hoặc tiếp tục với</span>
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t("login.orContinueWith")}</span>
                                 <div className="h-[1px] bg-slate-200 flex-1"></div>
                             </div>
 
@@ -284,11 +286,14 @@ const Login = () => {
                                     <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="F" className="w-5 h-5 group-hover:scale-110 transition-transform" /> Facebook
                                 </button>
                             </div>
-                        </div>
 
-                        <p className="mt-8 text-center text-slate-500 font-medium md:hidden">
-                            Chưa có tài khoản? <Link to="/register" className="text-blue-600 font-black hover:underline">Đăng ký ngay</Link>
-                        </p>
+                            <Link
+                                to="/register"
+                                className="mt-4 w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-black text-lg shadow-xl shadow-blue-500/20 transition-all duration-300 active:scale-[0.98]"
+                            >
+                                {t("login.createAccount")}
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -323,7 +328,7 @@ const Login = () => {
                                 onClick={closeErrorModal}
                                 className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all active:scale-95"
                             >
-                                Đã hiểu
+                                {t("gotIt")}
                             </button>
                         </div>
 

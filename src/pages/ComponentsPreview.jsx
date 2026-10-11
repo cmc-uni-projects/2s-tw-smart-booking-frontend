@@ -29,8 +29,10 @@ import Table from "../components/common/Table/Table";
 import Spinner from "../components/common/Loading/Spinner";
 import Skeleton from "../components/common/Loading/Skeleton";
 import LoadingOverlay from "../components/common/Loading/LoadingOverlay";
+import { useTranslation } from "react-i18next";
 
 export default function ComponentsPreview() {
+  const { t } = useTranslation();
   // state
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -45,14 +47,14 @@ export default function ComponentsPreview() {
 
   // table data
   const columns = [
-    { key: "name", label: "Họ tên" },
+    { key: "name", label: t("common:ComponentsPreview.fullName") },
     { key: "email", label: "Email" },
-    { key: "role", label: "Vai trò" },
-    { key: "status", label: "Trạng thái" },
+    { key: "role", label: t("common:ComponentsPreview.role") },
+    { key: "status", label: t("common:ComponentsPreview.status") },
   ];
   const data = [
-    { name: "Nguyễn Văn A", email: "a..example.com", role: "Khách hàng", status: "Đã duyệt" },
-    { name: "Trần Thị B", email: "b..example.com", role: "Chủ khách sạn", status: "Đang chờ" },
+    { name: t("common:ComponentsPreview.nguyenVanA"), email: "a..example.com", role: t("common:ComponentsPreview.customer"), status: t("common:ComponentsPreview.approved") },
+    { name: t("common:ComponentsPreview.tranThiB"), email: "b..example.com", role: t("common:ComponentsPreview.hotelOwner"), status: t("common:ComponentsPreview.pending") },
   ];
 
   return (
@@ -69,13 +71,13 @@ export default function ComponentsPreview() {
           <Button variant="outline">Outline</Button>
           <Button variant="ghost">Ghost</Button>
           <Button size="lg" leftIcon={<Plane size={18} />}>
-            Đặt phòng
+            {t("common:ComponentsPreview.book")}
           </Button>
           <Button size="md" rightIcon={<ArrowRight size={16} />}>
-            Tiếp tục
+            {t("common:ComponentsPreview.continue")}
           </Button>
           <Button size="sm" isLoading>
-            Đang xử lý
+            {t("common:ComponentsPreview.processing")}
           </Button>
           <Button disabled>Disabled</Button>
         </div>
@@ -88,7 +90,7 @@ export default function ComponentsPreview() {
         <h2 className="text-xl font-semibold mb-4">Form Components</h2>
         <div className="grid md:grid-cols-2 gap-6">
           <TextField
-            label="Họ tên"
+            label={t("common:ComponentsPreview.fullName")}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             required
@@ -100,13 +102,13 @@ export default function ComponentsPreview() {
             onChange={(e) => setInputValue(e.target.value)}
           />
           <TextArea
-            label="Mô tả"
+            label={t("common:ComponentsPreview.description")}
             value={textareaValue}
             onChange={(e) => setTextareaValue(e.target.value)}
           />
-          <SearchInput placeholder="Tìm kiếm khách sạn, địa điểm..." icon={<Search size={18} />} />
-          <DatePicker label="Ngày đến" value={date} onChange={(e) => setDate(e.target.value)} />
-          <TimePicker label="Giờ nhận phòng" value={time} onChange={(e) => setTime(e.target.value)} />
+          <SearchInput placeholder={t("common:ComponentsPreview.searchHotelsPlaces")} icon={<Search size={18} />} />
+          <DatePicker label={t("common:ComponentsPreview.arrivalDate")} value={date} onChange={(e) => setDate(e.target.value)} />
+          <TimePicker label={t("common:ComponentsPreview.checkInTime")} value={time} onChange={(e) => setTime(e.target.value)} />
           <DateRangePicker
             startDate={startDate}
             endDate={endDate}
@@ -114,12 +116,12 @@ export default function ComponentsPreview() {
             onEndChange={(e) => setEndDate(e.target.value)}
           />
           <Select
-            label="Loại phòng"
+            label={t("common:ComponentsPreview.roomType")}
             value={selected}
             onChange={(e) => setSelected(e.target.value)}
             options={[
-              { label: "Phòng đơn", value: "single" },
-              { label: "Phòng đôi", value: "double" },
+              { label: t("common:ComponentsPreview.singleRoom"), value: "single" },
+              { label: t("common:ComponentsPreview.doubleRoom"), value: "double" },
               { label: "Suite", value: "suite" },
             ]}
           />
@@ -144,14 +146,14 @@ export default function ComponentsPreview() {
           <Badge color="success">Success</Badge>
           <Badge color="warning">Warning</Badge>
           <Badge color="danger">Danger</Badge>
-          <Badge color="gray" icon={false}>Không icon</Badge>
+          <Badge color="gray" icon={false}>{t("common:ComponentsPreview.noIcon")}</Badge>
         </div>
 
         <div className="flex flex-col gap-3">
-          <Toast message="Thông tin hệ thống đang cập nhật..." type="info" />
-          <Toast message="Thao tác thành công!" type="success" />
-          <Toast message="Có lỗi xảy ra, vui lòng thử lại!" type="error" />
-          <Toast message="Thiếu thông tin bắt buộc!" type="warning" />
+          <Toast message={t("common:ComponentsPreview.systemInformationIsBeingUpdated")} type="info" />
+          <Toast message={t("common:ComponentsPreview.actionCompleted")} type="success" />
+          <Toast message={t("common:ComponentsPreview.somethingWentWrongPleaseTry")} type="error" />
+          <Toast message={t("common:ComponentsPreview.requiredInformationIsMissing")} type="warning" />
         </div>
       </Card>
 
@@ -161,13 +163,13 @@ export default function ComponentsPreview() {
       <Card>
         <h2 className="text-xl font-semibold mb-4">Tooltip & Modal</h2>
         <div className="flex gap-6 items-center flex-wrap">
-          <Tooltip text="Mở modal thông tin" position="top">
-            <Button onClick={() => setOpen(true)}>Mở Modal Chính</Button>
+          <Tooltip text={t("common:ComponentsPreview.openInfoModal")} position="top">
+            <Button onClick={() => setOpen(true)}>{t("common:ComponentsPreview.openMainModal")}</Button>
           </Tooltip>
 
-          <Tooltip text="Xác nhận hành động" position="top">
+          <Tooltip text={t("common:ComponentsPreview.confirmAction")} position="top">
             <Button variant="outline" onClick={() => setConfirmOpen(true)}>
-              Mở ConfirmModal
+              {t("common:ComponentsPreview.openConfirmmodal")}
             </Button>
           </Tooltip>
         </div>
@@ -179,11 +181,11 @@ export default function ComponentsPreview() {
         <ConfirmModal
           open={confirmOpen}
           type="warning"
-          title="Xóa khách sạn?"
-          message="Bạn có chắc chắn muốn xóa Sunrise Resort khỏi danh sách?"
-          confirmText="Xóa"
-          cancelText="Hủy"
-          onConfirm={() => alert("Đã xóa thành công!")}
+          title={t("common:ComponentsPreview.deleteHotel")}
+          message={t("common:ComponentsPreview.areYouSureYouWant")}
+          confirmText={t("common:ComponentsPreview.delete")}
+          cancelText={t("common:ComponentsPreview.cancel")}
+          onConfirm={() => alert(t("common:ComponentsPreview.deletedSuccessfully"))}
           onClose={() => setConfirmOpen(false)}
         />
       </Card>
@@ -194,8 +196,8 @@ export default function ComponentsPreview() {
       <Card>
         <h2 className="text-xl font-semibold mb-4">Empty State</h2>
         <EmptyState
-          title="Không có dữ liệu"
-          description="Vui lòng thử lại sau hoặc chọn bộ lọc khác."
+          title={t("common:ComponentsPreview.noData")}
+          description={t("common:ComponentsPreview.pleaseTryAgainLaterOr")}
         />
       </Card>
 
@@ -217,10 +219,10 @@ export default function ComponentsPreview() {
               setTimeout(() => setLoading(false), 2000);
             }}
           >
-            Hiện LoadingOverlay
+            {t("common:ComponentsPreview.showLoadingoverlay")}
           </Button>
         </div>
-        {loading && <LoadingOverlay message="Đang xử lý đặt phòng..." />}
+        {loading && <LoadingOverlay message={t("common:ComponentsPreview.processingBooking")} />}
       </Card>
       {/* ===== Breadcrumb & Dropdown Demo ===== */}
 <Card>
@@ -229,19 +231,19 @@ export default function ComponentsPreview() {
   <div className="mb-4">
     <Breadcrumb
       items={[
-        { label: "Khách sạn", href: "/hotels" },
+        { label: t("common:ComponentsPreview.hotel"), href: "/hotels" },
         { label: "Sunrise Resort", href: "/hotels/sunrise" },
-        { label: "Đặt phòng" },
+        { label: t("common:ComponentsPreview.book") },
       ]}
     />
   </div>
 
   <Dropdown
-    label="Thao tác"
+    label={t("common:ComponentsPreview.actions")}
     items={[
-      { label: "Xem chi tiết", onClick: () => console.log("detail") },
-      { label: "Sao chép mã", onClick: () => console.log("copy") },
-      { label: "Xóa", danger: true, onClick: () => console.log("delete") },
+      { label: t("common:ComponentsPreview.viewDetails"), onClick: () => console.log("detail") },
+      { label: t("common:ComponentsPreview.copyCode"), onClick: () => console.log("copy") },
+      { label: t("common:ComponentsPreview.delete"), danger: true, onClick: () => console.log("delete") },
     ]}
   />
 </Card>

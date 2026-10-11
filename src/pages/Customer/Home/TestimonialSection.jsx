@@ -3,53 +3,52 @@ import { MessageCircleHeart } from "lucide-react"; // Icon mới
 
 // Components
 import TestimonialCard from "@/components/common/Card/TestimonialCard";
+import { useTranslation } from "react-i18next";
 
 // Mock Data (Dữ liệu giả lập với Avatar thật)
 const TESTIMONIALS = [
   {
     id: 1,
-    name: "Nguyễn Thùy Chi",
-    role: "Travel Blogger",
+    name: "Nguyễn Thùy Chi", // i18n-ignore
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150&h=150",
     rating: 5,
-    comment: "TravelMate thực sự là cứu cánh cho những chuyến đi ngẫu hứng của mình. Giao diện đặt phòng quá mượt, giá cả lại minh bạch. Chắc chắn sẽ ủng hộ dài dài!"
   },
   {
     id: 2,
-    name: "Trần Minh Đức",
-    role: "Doanh nhân",
+    name: "Trần Minh Đức", // i18n-ignore
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150&h=150",
     rating: 5,
-    comment: "Tôi thường xuyên phải đi công tác và cần hóa đơn đỏ nhanh chóng. Hệ thống này hỗ trợ xuất hóa đơn và quản lý lịch sử đặt phòng rất chuyên nghiệp."
   },
   {
     id: 3,
-    name: "Lê Hoàng Bảo",
-    role: "Nhiếp ảnh gia",
+    name: "Lê Hoàng Bảo", // i18n-ignore
     avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=150&h=150",
     rating: 4,
-    comment: "Rất thích tính năng gợi ý khách sạn theo địa điểm chụp ảnh. Mình đã tìm được homestay view đồi thông Đà Lạt cực chill nhờ TravelMate."
   }
 ];
 
-const SectionHeader = () => (
+const SectionHeader = () => {
+    const { t } = useTranslation("home");
+    return (
     <div className="text-center max-w-3xl mx-auto mb-12 px-4">
         <div className="inline-flex items-center gap-2 bg-pink-50 text-pink-600 px-4 py-1.5 rounded-full mb-4 shadow-sm">
             <MessageCircleHeart size={18} />
-            <span className="text-xs font-bold uppercase tracking-wider">Đánh giá từ cộng đồng</span>
+            <span className="text-xs font-bold uppercase tracking-wider">{t("testimonials.badge")}</span>
         </div>
         
         <h2 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight leading-tight mb-4">
-            Khách hàng nói gì về <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-600">TravelMate?</span>
+            {t("testimonials.titleLead")} <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-600">TravelMate?</span>
         </h2>
         
         <p className="text-gray-500 font-medium text-base md:text-lg">
-            Hơn 10,000+ khách hàng đã tin tưởng và đồng hành cùng chúng tôi trong mọi hành trình.
+            {t("testimonials.subtitle")}
         </p>
     </div>
-);
+    );
+};
 
 const TestimonialSection = () => {
+  const { t } = useTranslation("home");
   return (
     <section className="bg-gradient-to-b from-white to-gray-50 py-20 font-sans relative overflow-hidden">
       
@@ -64,7 +63,10 @@ const TestimonialSection = () => {
         {/* Grid Layout */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {TESTIMONIALS.map((item) => (
-            <TestimonialCard key={item.id} data={item} />
+            <TestimonialCard
+              key={item.id}
+              data={{ ...item, role: t(`testimonials.items.${item.id}.role`), comment: t(`testimonials.items.${item.id}.comment`) }}
+            />
           ))}
         </div>
       </div>

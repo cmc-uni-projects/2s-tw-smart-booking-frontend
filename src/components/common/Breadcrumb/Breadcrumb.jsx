@@ -1,4 +1,5 @@
 // src/components/common/Breadcrumb/Breadcrumb.jsx
+import { useTranslation } from "react-i18next";
 import React from "react";
 import { ChevronRight, Home } from "lucide-react";
 import { Link } from "react-router-dom"; // nếu chưa dùng router, thay <Link> bằng <a>
@@ -6,8 +7,10 @@ import { Link } from "react-router-dom"; // nếu chưa dùng router, thay <Link
 export default function Breadcrumb({
   items = [], // [{ label, href }]
   maxItems = 5,
-  home = { label: "Trang chủ", href: "/" },
+  home, // mặc định: { label: common:home, href: "/" }; truyền null để ẩn
 }) {
+  const { t } = useTranslation();
+  if (home === undefined) home = { label: t("home"), href: "/" };
   const list = home ? [home, ...items] : items;
 
   let display = list;

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Button from "@/components/common/Button/Button";
 import api from "@/services/axios.config";
+import { useTranslation } from "react-i18next";
 
 // Helper xử lý ảnh
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
@@ -27,6 +28,7 @@ const getFullImageUrl = (url) => {
 };
 
 const ViewPropertyModal = ({ open, onClose, property }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("info");
   const [details, setDetails] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -55,10 +57,10 @@ const ViewPropertyModal = ({ open, onClose, property }) => {
   if (!property) return null;
 
   const tabs = [
-    { id: "info", name: "Thông tin chung" },
-    { id: "amenities", name: "Tiện nghi" },
-    { id: "images", name: "Hình ảnh" },
-    { id: "location", name: "Vị trí" },
+    { id: "info", name: t("owner:ViewPropertyModal.generalInformation") },
+    { id: "amenities", name: t("owner:ViewPropertyModal.amenities") },
+    { id: "images", name: t("owner:ViewPropertyModal.photos") },
+    { id: "location", name: t("owner:ViewPropertyModal.location") },
   ];
 
   return (
@@ -84,20 +86,20 @@ const ViewPropertyModal = ({ open, onClose, property }) => {
             {/* TAB 1: INFO */}
             {activeTab === "info" && (
               <div className="space-y-6 animate-fadeIn">
-                <Section title="Tổng quan" icon={<Info />}>
-                  <InfoRow label="Tên cơ sở" value={property.propertyName} />
-                  <InfoRow label="Loại hình" value={property.propertyType} />
-                  <InfoRow label="Địa chỉ" value={`${property.address}, ${property.city}`} />
-                  {details?.property?.area && <InfoRow label="Diện tích" value={`${details.property.area} m²`} />}
-                  <InfoRow label="Trạng thái" value={
-                      property.propertyStatus === "PENDING" ? "Chờ duyệt" :
-                      property.propertyStatus === "APPROVED" || property.propertyStatus === "APPROVE" ? "Đang hoạt động" : "Bị từ chối"
+                <Section title={t("owner:ViewPropertyModal.overview")} icon={<Info />}>
+                  <InfoRow label={t("owner:ViewPropertyModal.propertyName")} value={property.propertyName} />
+                  <InfoRow label={t("owner:ViewPropertyModal.type")} value={property.propertyType} />
+                  <InfoRow label={t("owner:ViewPropertyModal.address")} value={`${property.address}, ${property.city}`} />
+                  {details?.property?.area && <InfoRow label={t("owner:ViewPropertyModal.area")} value={`${details.property.area} m²`} />}
+                  <InfoRow label={t("owner:ViewPropertyModal.status")} value={
+                      property.propertyStatus === "PENDING" ? t("owner:ViewPropertyModal.pending") :
+                      property.propertyStatus === "APPROVED" || property.propertyStatus === "APPROVE" ? t("owner:ViewPropertyModal.active") : t("owner:ViewPropertyModal.rejected")
                   } />
                 </Section>
 
-                <Section title="Mô tả" icon={<List />}>
+                <Section title={t("owner:ViewPropertyModal.description")} icon={<List />}>
                   <p className="text-gray-700 whitespace-pre-line bg-gray-50 p-4 rounded-lg border border-gray-100 text-sm leading-relaxed">
-                    {property.description || "Chưa có mô tả."}
+                    {property.description || t("owner:ViewPropertyModal.noDescriptionYet")}
                   </p>
                 </Section>
               </div>
@@ -108,7 +110,7 @@ const ViewPropertyModal = ({ open, onClose, property }) => {
               <div className="animate-fadeIn">
                  <h4 className="flex items-center text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">
                   <CheckCircle2 className="mr-3 text-blue-600" size={20} />
-                  Tiện nghi & Dịch vụ
+                  {t("owner:ViewPropertyModal.amenitiesServices")}
                 </h4>
                 {details?.amenities && details.amenities.length > 0 ? (
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -120,7 +122,7 @@ const ViewPropertyModal = ({ open, onClose, property }) => {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 italic text-center py-8">Chưa cập nhật tiện nghi.</p>
+                  <p className="text-gray-500 italic text-center py-8">{t("owner:ViewPropertyModal.noAmenitiesYet")}</p>
                 )}
               </div>
             )}
@@ -130,7 +132,7 @@ const ViewPropertyModal = ({ open, onClose, property }) => {
               <div className="animate-fadeIn">
                  <h4 className="flex items-center text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">
                   <ImageIcon className="mr-3 text-blue-600" size={20} />
-                  Thư viện ảnh
+                  {t("owner:ViewPropertyModal.photoGallery")}
                 </h4>
                 {details?.images && details.images.length > 0 ? (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -143,14 +145,14 @@ const ViewPropertyModal = ({ open, onClose, property }) => {
                         />
                         {img.isCover && (
                            <div className="absolute top-2 left-2 bg-yellow-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm z-10">
-                              Ảnh bìa
+                              {t("owner:ViewPropertyModal.coverPhoto")}
                            </div>
                         )}
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 italic text-center py-8">Chưa có hình ảnh nào.</p>
+                  <p className="text-gray-500 italic text-center py-8">{t("owner:ViewPropertyModal.noPhotosYet")}</p>
                 )}
               </div>
             )}
@@ -158,10 +160,10 @@ const ViewPropertyModal = ({ open, onClose, property }) => {
             {/* TAB 4: LOCATION */}
             {activeTab === "location" && (
               <div className="space-y-6 animate-fadeIn">
-                <Section title="Vị trí bản đồ" icon={<Globe />}>
-                  <InfoRow label="Tỉnh/Thành" value={property.province || property.city} />
-                  <InfoRow label="Quận/Huyện" value={property.city} />
-                  <InfoRow label="Địa chỉ cụ thể" value={property.address} />
+                <Section title={t("owner:ViewPropertyModal.mapLocation")} icon={<Globe />}>
+                  <InfoRow label={t("owner:ViewPropertyModal.provinceCity")} value={property.province || property.city} />
+                  <InfoRow label={t("owner:ViewPropertyModal.district")} value={property.city} />
+                  <InfoRow label={t("owner:ViewPropertyModal.streetAddress")} value={property.address} />
                 </Section>
               </div>
             )}
@@ -170,7 +172,7 @@ const ViewPropertyModal = ({ open, onClose, property }) => {
       </div>
 
       <div className="mt-8 flex justify-end pt-4 border-t border-gray-100">
-        <Button variant="secondary" onClick={onClose}>Đóng</Button>
+        <Button variant="secondary" onClick={onClose}>{t("owner:ViewPropertyModal.close")}</Button>
       </div>
     </Modal>
   );

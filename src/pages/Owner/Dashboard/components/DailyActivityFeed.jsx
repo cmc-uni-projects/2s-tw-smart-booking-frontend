@@ -1,7 +1,9 @@
 import React from "react";
 import { FileText, Clock, CheckCircle, XCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const DailyActivityFeed = ({ bookings }) => {
+  const { t } = useTranslation();
     
     // Hàm chọn icon dựa trên trạng thái booking
     const getIcon = (status) => {
@@ -15,17 +17,17 @@ const DailyActivityFeed = ({ bookings }) => {
 
     const getMessage = (booking) => {
         switch(booking.status) {
-            case 'CONFIRMED': return `đã đặt phòng ${booking.propertyName}`;
-            case 'CANCELLED': return `đã hủy đơn đặt tại ${booking.propertyName}`;
-            case 'PENDING_PAYMENT': return `vừa tạo đơn mới tại ${booking.propertyName}`;
-            case 'CHECKED_IN': return `đã check-in tại ${booking.propertyName}`;
-            default: return `đã tương tác với ${booking.propertyName}`;
+            case 'CONFIRMED': return t("owner:DailyActivityFeed.booked", { propertyName: booking.propertyName });
+            case 'CANCELLED': return t("owner:DailyActivityFeed.cancelledABookingAt", { propertyName: booking.propertyName });
+            case 'PENDING_PAYMENT': return t("owner:DailyActivityFeed.justCreatedABookingAt", { propertyName: booking.propertyName });
+            case 'CHECKED_IN': return t("owner:DailyActivityFeed.checkedInAt", { propertyName: booking.propertyName });
+            default: return t("owner:DailyActivityFeed.interactedWith", { propertyName: booking.propertyName });
         }
     };
 
     return (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-full flex flex-col">
-            <h3 className="text-lg font-bold text-gray-800 mb-6">Hoạt động gần đây</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-6">{t("owner:DailyActivityFeed.recentActivity")}</h3>
             
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-5">
                 {bookings?.slice(0, 5).map((item) => (
@@ -54,7 +56,7 @@ const DailyActivityFeed = ({ bookings }) => {
                 ))}
 
                 {(!bookings || bookings.length === 0) && (
-                    <p className="text-center text-gray-400 py-10">Chưa có hoạt động mới</p>
+                    <p className="text-center text-gray-400 py-10">{t("owner:DailyActivityFeed.noNewActivity")}</p>
                 )}
             </div>
         </div>

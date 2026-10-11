@@ -7,8 +7,10 @@ import {
   Check, Ban
 } from "lucide-react";
 import Button from "@/components/common/Button/Button";
+import { useTranslation } from "react-i18next";
 
 const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }) => {
+  const { t } = useTranslation();
   useEffect(() => {
     if (!isOpen) return;
 
@@ -33,7 +35,7 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
 
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
-    alert("Đã sao chép: " + text);
+    alert(t("admin:AdminRefundDetailModal.copied") + text);
   };
 
   const formatMoney = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val || 0);
@@ -67,9 +69,9 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
               <div>
                 <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                   <FileText className="text-blue-600" size={20} />
-                  Chi tiết yêu cầu hoàn tiền
+                  {t("admin:AdminRefundDetailModal.refundRequestDetails")}
                 </h3>
-                <p className="text-sm text-slate-500 mt-1">Mã đơn: <span className="font-mono font-bold text-slate-700">BK-{bookingId}</span></p>
+                <p className="text-sm text-slate-500 mt-1">{t("admin:AdminRefundDetailModal.orderCode")} <span className="font-mono font-bold text-slate-700">BK-{bookingId}</span></p>
               </div>
               <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
                 <X size={20} className="text-slate-500" />
@@ -84,9 +86,9 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
                 <div className="bg-orange-50 border border-orange-100 p-4 rounded-lg flex gap-3">
                   <AlertTriangle className="text-orange-600 shrink-0" size={20} />
                   <div>
-                    <p className="text-sm font-bold text-orange-800">Yêu cầu đang chờ xử lý</p>
+                    <p className="text-sm font-bold text-orange-800">{t("admin:AdminRefundDetailModal.requestPending")}</p>
                     <p className="text-xs text-orange-600 mt-1">
-                      Vui lòng kiểm tra kỹ thông tin ngân hàng bên dưới trước khi thực hiện chuyển khoản hoàn tiền.
+                      {t("admin:AdminRefundDetailModal.pleaseCheckTheBankDetails")}
                     </p>
                   </div>
                 </div>
@@ -98,10 +100,10 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
                   {refundInfo.status === 'APPROVED' ? <CheckCircle className="text-emerald-600" /> : <XCircle className="text-rose-600" />}
                   <div>
                     <p className={`text-sm font-bold ${refundInfo.status === 'APPROVED' ? 'text-emerald-800' : 'text-rose-800'}`}>
-                      {refundInfo.status === 'APPROVED' ? 'Đã hoàn tiền thành công' : 'Đã từ chối yêu cầu'}
+                      {refundInfo.status === 'APPROVED' ? t("admin:AdminRefundDetailModal.refundedSuccessfully") : t("admin:AdminRefundDetailModal.requestRejected")}
                     </p>
                     <p className="text-xs mt-1 opacity-80">
-                      Xử lý lúc: {formatDate(refundInfo.resolveDate)}
+                      {t("admin:AdminRefundDetailModal.processedAt", { value: formatDate(refundInfo.resolveDate) })}
                     </p>
                   </div>
                 </div>
@@ -110,28 +112,28 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
               {/* Grid Thông tin */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider border-b pb-2">Thông tin yêu cầu</h4>
+                  <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider border-b pb-2">{t("admin:AdminRefundDetailModal.requestInformation")}</h4>
 
                   {/* ✅ HIỂN THỊ CẢ 2 SỐ TIỀN */}
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <p className="text-xs text-slate-500">Số tiền gốc</p>
+                      <p className="text-xs text-slate-500">{t("admin:AdminRefundDetailModal.originalAmount")}</p>
                       <p className="text-base font-semibold text-slate-700">{formatMoney(amount)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">Cần hoàn lại</p>
+                      <p className="text-xs text-slate-500">{t("admin:AdminRefundDetailModal.toRefund")}</p>
                       <p className="text-xl font-bold text-blue-600">{formatMoney(refundInfo.amount)}</p>
                     </div>
                   </div>
 
                   <div>
-                    <p className="text-xs text-slate-500">Lý do khách hủy/yêu cầu</p>
+                    <p className="text-xs text-slate-500">{t("admin:AdminRefundDetailModal.guestSCancellationRequestReason")}</p>
                     <div className="bg-slate-50 p-3 rounded border border-slate-100 text-sm text-slate-700 italic">
                       "{refundInfo.reason}"
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500">Ngày gửi yêu cầu</p>
+                    <p className="text-xs text-slate-500">{t("admin:AdminRefundDetailModal.requestDate")}</p>
                     <p className="text-sm font-medium text-slate-700 flex items-center gap-2">
                       <Calendar size={14} /> {formatDate(refundInfo.requestDate)}
                     </p>
@@ -139,15 +141,15 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider border-b pb-2">Tài khoản nhận tiền</h4>
+                  <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider border-b pb-2">{t("admin:AdminRefundDetailModal.receivingAccount")}</h4>
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
                     <div className="flex items-start gap-3">
                       <div className="bg-white p-2 rounded shadow-sm text-blue-600">
                         <CreditCard size={20} />
                       </div>
                       <div className="flex-1">
-                        <p className="text-xs text-slate-500">Ngân hàng</p>
-                        <p className="font-bold text-slate-800">{refundInfo.bankName || "Không có dữ liệu"}</p>
+                        <p className="text-xs text-slate-500">{t("admin:AdminRefundDetailModal.bank")}</p>
+                        <p className="font-bold text-slate-800">{refundInfo.bankName || t("admin:AdminRefundDetailModal.noData")}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
@@ -155,7 +157,7 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
                         <User size={20} />
                       </div>
                       <div className="flex-1">
-                        <p className="text-xs text-slate-500">Chủ tài khoản</p>
+                        <p className="text-xs text-slate-500">{t("admin:AdminRefundDetailModal.accountHolder")}</p>
                         <p className="font-bold text-slate-800 uppercase">{refundInfo.accountHolder || "---"}</p>
                       </div>
                     </div>
@@ -164,7 +166,7 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
                         <FileText size={20} />
                       </div>
                       <div className="flex-1 group cursor-pointer" onClick={() => handleCopy(refundInfo.accountNumber)}>
-                        <p className="text-xs text-slate-500">Số tài khoản</p>
+                        <p className="text-xs text-slate-500">{t("admin:AdminRefundDetailModal.accountNumber")}</p>
                         <p className="font-mono font-bold text-lg text-slate-800 flex items-center gap-2">
                           {refundInfo.accountNumber || "---"}
                           {refundInfo.accountNumber && <Copy size={14} className="text-slate-400 group-hover:text-blue-500" />}
@@ -177,7 +179,7 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
 
               {refundInfo.adminNote && (
                 <div className="mt-4">
-                  <p className="text-xs text-slate-500 mb-1">Ghi chú của Admin</p>
+                  <p className="text-xs text-slate-500 mb-1">{t("admin:AdminRefundDetailModal.adminNote")}</p>
                   <div className="bg-gray-100 p-3 rounded text-sm text-gray-700">
                     {refundInfo.adminNote}
                   </div>
@@ -194,7 +196,7 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
                   onClick={handleRejectClick}
                 >
                   <Ban size={18} />
-                  Từ chối hoàn tiền
+                  {t("admin:AdminRefundDetailModal.rejectRefund")}
                 </Button>
 
                 <Button
@@ -202,7 +204,7 @@ const AdminRefundDetailModal = ({ isOpen, onClose, refund, onApprove, onReject }
                   onClick={handleApproveClick}
                 >
                   <Check size={18} />
-                  Xác nhận hoàn tiền
+                  {t("admin:AdminRefundDetailModal.confirmRefund")}
                 </Button>
               </div>
             )}

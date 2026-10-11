@@ -2,8 +2,10 @@
 import React from "react";
 // ✅ Đã thêm Calendar vào danh sách import
 import { MapPin, Star, Users, Banknote, Search, ExternalLink, Building2, ArrowRight, Calendar } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const HotelResultCard = ({ data }) => {
+    const { t } = useTranslation("layout");
     // Kiểm tra dữ liệu an toàn
     if (!data || !data.properties || data.properties.length === 0) return null;
 
@@ -16,13 +18,13 @@ const HotelResultCard = ({ data }) => {
                 </div>
                 <div>
                     <h3 className="text-sm font-bold text-gray-800">
-                        Tìm thấy {data.properties.length} chỗ nghỉ tại {data.city}
+                        {t("chat.foundStays", { count: data.properties.length, city: data.city })}
                     </h3>
                     {/* ✅ Đã thay Emoji bằng Icon và căn chỉnh lại layout */}
                     <div className="text-xs text-gray-500 flex flex-wrap gap-3 mt-1">
                         <div className="flex items-center gap-1.5">
                             <Users size={12} className="text-gray-400" />
-                            <span>{data.capacity} khách</span>
+                            <span>{t("chat.guests", { count: data.capacity })}</span>
                         </div>
                     </div>
                 </div>
@@ -68,11 +70,11 @@ const HotelResultCard = ({ data }) => {
                                         <div className="flex flex-col">
                                             <span className="font-medium text-gray-700">{room.roomName}</span>
                                             <span className="text-[10px] text-gray-500 flex items-center gap-1">
-                                                <Users size={10} /> {room.capacity} khách
+                                                <Users size={10} /> {t("chat.guests", { count: room.capacity })}
                                             </span>
                                         </div>
                                         <div className="font-bold text-blue-600">
-                                            {room.price.toLocaleString()}đ
+                                            {room.price.toLocaleString("vi-VN")}₫
                                         </div>
                                     </div>
                                 ))}
@@ -87,7 +89,7 @@ const HotelResultCard = ({ data }) => {
                                 rel="noopener noreferrer"
                                 className="flex items-center justify-center w-full gap-2 bg-[rgb(40,169,224)] hover:bg-[#1b98d6] text-white text-xs font-bold py-2.5 rounded-lg transition-colors shadow-sm"
                             >
-                                Xem chi tiết <ExternalLink size={14} />
+                                {t("chat.viewDetails")} <ExternalLink size={14} />
                             </a>
                         </div>
                     </div>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Star, Eye, EyeOff, Trash2, Pin } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 /* ================== CHỈ SỬA PHẦN NÀY ================== */
 
@@ -34,6 +35,7 @@ const ReviewCard = ({
                         onOpenGallery,
                         onPin,
                     }) => {
+    const { t } = useTranslation("hotel");
     const [isExpanded, setIsExpanded] = useState(false);
 
     // Admin hoặc Owner được phép ghim
@@ -80,12 +82,12 @@ const ReviewCard = ({
                         <div>
                             <div className="flex items-center gap-2">
                                 <h4 className="font-bold text-slate-800">
-                                    {review.userName || "Người dùng ẩn danh"}
+                                    {review.userName || t("reviews.anonymous")}
                                 </h4>
 
                                 {review.isPinned && (
                                     <span className="flex items-center gap-1 text-[10px] font-extrabold text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-full border border-yellow-200 shadow-sm">
-                    Đánh giá nổi bật
+                    {t("reviews.featured")}
                   </span>
                                 )}
                             </div>
@@ -113,8 +115,8 @@ const ReviewCard = ({
                                     }`}
                                     title={
                                         review.isPinned
-                                            ? "Bỏ ghim đánh giá này"
-                                            : "Ghim đánh giá này lên đầu (Max 3)"
+                                            ? t("reviews.unpin")
+                                            : t("reviews.pin")
                                     }
                                 >
                                     <Pin
@@ -128,7 +130,7 @@ const ReviewCard = ({
                                 <button
                                     onClick={onHide}
                                     className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
-                                    title={review.hidden ? "Hiện đánh giá" : "Ẩn đánh giá"}
+                                    title={review.hidden ? t("reviews.show") : t("reviews.hide")}
                                 >
                                     {review.hidden ? <Eye size={16} /> : <EyeOff size={16} />}
                                 </button>
@@ -138,7 +140,7 @@ const ReviewCard = ({
                                 <button
                                     onClick={onDelete}
                                     className="p-1.5 rounded-full hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
-                                    title="Xóa đánh giá vĩnh viễn"
+                                    title={t("reviews.deleteForever")}
                                 >
                                     <Trash2 size={16} />
                                 </button>
@@ -163,7 +165,7 @@ const ReviewCard = ({
 
                     {review.hidden && isAdmin && (
                         <p className="mt-1 text-xs font-bold text-red-500 bg-red-50 inline-block px-2 py-0.5 rounded border border-red-100">
-                            Đánh giá này đang bị ẩn với khách hàng
+                            {t("reviews.hiddenNotice")}
                         </p>
                     )}
 
@@ -177,7 +179,7 @@ const ReviewCard = ({
                                 onClick={() => setIsExpanded(!isExpanded)}
                                 className="mt-1 text-xs font-bold text-slate-500 hover:text-slate-800 underline"
                             >
-                                {isExpanded ? "Thu gọn" : "Xem thêm"}
+                                {isExpanded ? t("reviews.showLess") : t("reviews.showMore")}
                             </button>
                         )}
                     </div>
@@ -214,7 +216,7 @@ const ReviewCard = ({
                             <div className="flex items-center gap-2 mb-1">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
                                 <p className="font-bold text-slate-800 text-xs">
-                                    Phản hồi từ chỗ nghỉ
+                                    {t("reviews.propertyReply")}
                                 </p>
                             </div>
                             <p className="text-slate-600 text-sm italic pl-3.5">

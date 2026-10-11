@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import Button from "@/components/common/Button/Button";
 import ReviewCard from "./ReviewCard";
+import { useTranslation } from "react-i18next";
 // ✅ Import thêm pinRating
 import { getRatingsByProperty, hideRating, deleteRating, pinRating } from "@/services/rating.service";
 import { useAuth } from "@/context/AuthContext";
@@ -12,6 +13,7 @@ import { useAuth } from "@/context/AuthContext";
 // ✅ Nhận thêm prop isOwner
 const HotelReviews = ({ propertyId, isAdmin, onOpenGallery, isOwner }) => {
   const { currentUser } = useAuth();
+  const { t } = useTranslation("hotel");
   
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -128,7 +130,7 @@ const HotelReviews = ({ propertyId, isAdmin, onOpenGallery, isOwner }) => {
   };
 
   const handleDeleteReview = async (reviewId) => {
-      if(!window.confirm("Xóa đánh giá này?")) return;
+      if(!window.confirm(t("reviews.confirmDelete"))) return;
       try {
           await deleteRating(reviewId);
           setReviews(prev => prev.filter(r => r.ratingId !== reviewId));
@@ -154,7 +156,7 @@ const HotelReviews = ({ propertyId, isAdmin, onOpenGallery, isOwner }) => {
           });
           
       } catch (err) {
-          alert("Lỗi: " + (err.response?.data?.message || err.message));
+          alert(t("common:errorPrefix") + (err.response?.data?.message || err.message));
       }
   };
 
@@ -171,7 +173,7 @@ const HotelReviews = ({ propertyId, isAdmin, onOpenGallery, isOwner }) => {
                <Star key={s} size={16} className={`${s <= Math.round(stats.avg) ? "fill-yellow-400 text-yellow-400" : "fill-slate-200 text-slate-200"}`} />
              ))}
           </div>
-          <p className="text-sm text-slate-500">Dựa trên {totalElements} nhận xét</p>
+          <p className="text-sm text-slate-500">{t("reviews.basedOn", { count: totalElements })}</p>
         </div>
 
         {/* Progress Bars */}
@@ -204,7 +206,7 @@ const HotelReviews = ({ propertyId, isAdmin, onOpenGallery, isOwner }) => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
           <input 
             type="text" 
-            placeholder="Tìm trong đánh giá..." 
+            placeholder={t("reviews.searchPlaceholder")} 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
@@ -219,18 +221,18 @@ const HotelReviews = ({ propertyId, isAdmin, onOpenGallery, isOwner }) => {
             onChange={(e) => setSortOption(e.target.value)}
             className="w-full sm:w-auto px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
           >
-            <option value="NEWEST">Mới nhất</option>
-            <option value="OLDEST">Cũ nhất</option>
-            <option value="HIGHEST">Điểm cao nhất</option>
-            <option value="LOWEST">Điểm thấp nhất</option>
+            <option value="NEWEST">{t("reviews.sort.newest")}</option>
+            <option value="OLDEST">{t("reviews.sort.oldest")}</option>
+            <option value="HIGHEST">{t("reviews.sort.highest")}</option>
+            <option value="LOWEST">{t("reviews.sort.lowest")}</option>
           </select>
         </div>
       </div>
 
       {/* 3. FILTER TABS */}
       <div className="flex flex-wrap gap-2">
-        <FilterButton label="Tất cả" active={activeFilter === "ALL"} onClick={() => setActiveFilter("ALL")} />
-        <FilterButton label="Có hình ảnh" icon={<ImageIcon size={14}/>} active={activeFilter === "HAS_IMAGE"} onClick={() => setActiveFilter("HAS_IMAGE")} />
+        <FilterButton label={t("reviews.filter.all")} active={activeFilter === "ALL"} onClick={() => setActiveFilter("ALL")} />
+        <FilterButton label={t("reviews.filter.withPhotos")} icon={<ImageIcon size={14}/>} active={activeFilter === "HAS_IMAGE"} onClick={() => setActiveFilter("HAS_IMAGE")} />
         <div className="w-[1px] h-8 bg-slate-200 mx-2 hidden sm:block"></div>
         {[5, 4, 3, 2, 1].map(star => (
            <FilterButton 
@@ -250,13 +252,13 @@ const HotelReviews = ({ propertyId, isAdmin, onOpenGallery, isOwner }) => {
       ) : processedReviews.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-slate-500 bg-white rounded-2xl border border-dashed border-slate-300">
           <MessageSquare size={48} className="mb-3 text-slate-300" />
-          <p>Không tìm thấy đánh giá nào phù hợp.</p>
+          <p>{t("reviews.noMatch")}</p>
           {(activeFilter !== "ALL" || searchQuery) && (
              <button 
                 onClick={() => { setActiveFilter("ALL"); setSearchQuery(""); }} 
                 className="mt-2 text-blue-600 hover:underline text-sm font-medium"
              >
-                Xóa bộ lọc & tìm kiếm
+                {t("reviews.clearFilters")}
              </button>
           )}
         </div>
@@ -285,7 +287,7 @@ const HotelReviews = ({ propertyId, isAdmin, onOpenGallery, isOwner }) => {
                 onClick={handleLoadMore}
                 className="min-w-[200px] border-slate-300 hover:bg-white hover:border-blue-500 hover:text-blue-600 transition-all rounded-full"
               >
-                {loading ? <Loader2 className="animate-spin mx-auto" size={16}/> : "Xem thêm đánh giá cũ hơn"}
+                {loading ? <Loader2 className="animate-spin mx-auto" size={16}/> : t("reviews.loadOlder")}
               </Button>
             </div>
           )}

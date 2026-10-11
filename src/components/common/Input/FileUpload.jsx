@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { UploadCloud, X, File as FileIcon } from 'lucide-react';
+import { useTranslation, Trans } from "react-i18next";
 
 /**
  * Component Upload File đã được nâng cấp với tính năng PREVIEW ẢNH.
@@ -10,6 +11,7 @@ import { UploadCloud, X, File as FileIcon } from 'lucide-react';
  * @param {string} error - Tin nhắn lỗi (nếu có)
  */
 const FileUpload = ({ name, label, watch, setValue, error }) => {
+  const { t } = useTranslation();
   // 1. State để lưu URL preview (vd: "blob:http://...")
   const [preview, setPreview] = useState(null);
   const fileInputRef = useRef(null);
@@ -66,7 +68,7 @@ const FileUpload = ({ name, label, watch, setValue, error }) => {
             // 5a. Nếu là ảnh -> Hiển thị ảnh
             <img
               src={preview}
-              alt="Xem trước"
+              alt={t("upload.preview")}
               className="w-full h-32 object-contain rounded-md"
             />
           ) : (
@@ -82,7 +84,7 @@ const FileUpload = ({ name, label, watch, setValue, error }) => {
             type="button"
             onClick={handleRemoveFile}
             className="absolute -top-2 -right-2 z-10 p-1 bg-red-600 text-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-            aria-label="Xóa file"
+            aria-label={t("upload.remove")}
           >
             <X size={16} />
           </button>
@@ -98,9 +100,9 @@ const FileUpload = ({ name, label, watch, setValue, error }) => {
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
             <UploadCloud className={`w-8 h-8 mb-3 ${error ? 'text-red-500' : 'text-gray-400'}`} />
             <p className="mb-2 text-sm text-gray-500 text-center">
-              <span className="font-semibold">Nhấn để tải lên</span> hoặc kéo thả
+              <Trans t={t} i18nKey="upload.prompt" components={{ b: <span className="font-semibold" /> }} />
             </p>
-            <p className="text-xs text-gray-500">JPG, PNG hoặc WEBP</p>
+            <p className="text-xs text-gray-500">{t("upload.formats")}</p>
           </div>
           <input
             ref={fileInputRef}

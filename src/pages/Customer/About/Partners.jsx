@@ -1,14 +1,17 @@
 // src/pages/Customer/About/Partners.jsx
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 const partners = [
     { name: "Vinhomes Ocean Park", logo: "/assets/images/partners/vinhomes.jpg" },
     { name: "InterContinental Hanoi Westlake", logo: "/assets/images/partners/intercontinental.jpg" },
     { name: "Sofitel Legend Metropole Hanoi", logo: "/assets/images/partners/metropole.png" },
-    { name: "Flamingo Đại Lải Resort", logo: "/assets/images/partners/flamingo.png" },
+    { name: "Flamingo Đại Lải Resort", // i18n-ignore (brand)
+      logo: "/assets/images/partners/flamingo.png" },
     { name: "Vinpearl Resort & Spa", logo: "/assets/images/partners/vinpearl.png" },
     { name: "Hanoi Daewoo Hotel", logo: "/assets/images/partners/daewoo.png" },
-    { name: "Mường Thanh Luxury", logo: "/assets/images/partners/muongthanh.png" },
+    { name: "Mường Thanh Luxury", // i18n-ignore (brand)
+      logo: "/assets/images/partners/muongthanh.png" },
     { name: "FLC Grand Hotel Samson", logo: "/assets/images/partners/flc.jpg" },
     { name: "Novotel Danang Premier", logo: "/assets/images/partners/novotel.png" },
     { name: "Melia Hanoi", logo: "/assets/images/partners/melia.png" },
@@ -20,10 +23,11 @@ const partners = [
 ];
 
 export default function Partners() {
+    const { t } = useTranslation("about");
     return (
         <section className="py-20 bg-white text-center">
             <h2 className="text-3xl font-bold text-gray-800 mb-12">
-                Đối tác khách sạn & chỗ ở
+                {t("partners.title")}
             </h2>
 
             <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-10 gap-y-12 place-items-center">

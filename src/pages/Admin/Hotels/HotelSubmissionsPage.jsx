@@ -22,11 +22,13 @@ import RejectHotelModal from "./components/RejectHotelModal";
 
 // Services
 import adminService from "@/services/admin.service";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = (import.meta.env.VITE_REACT_APP_API_URL || "http://localhost:8386/api/v1")
     .replace("/api/v1", "");
 
 const HotelSubmissionsPage = () => {
+  const { t } = useTranslation();
   const [allSubmissions, setAllSubmissions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -107,7 +109,7 @@ const HotelSubmissionsPage = () => {
           ...hotel,
           id: hotel.propertyId,
           hotelName: hotel.propertyName,
-          ownerName: hotel.ownerName || hotel.owner?.fullName || "Chưa rõ",
+          ownerName: hotel.ownerName || hotel.owner?.fullName || t("admin:HotelSubmissionsPage.unknown"),
           imageUrl: displayImage,
           images: images,
           submittedDate: hotel.createdAt
@@ -121,7 +123,7 @@ const HotelSubmissionsPage = () => {
 
     } catch (error) {
       console.error(error);
-      showToast("Lỗi tải dữ liệu. Vui lòng thử lại.", "error");
+      showToast(t("admin:HotelSubmissionsPage.failedToLoadDataPlease"), "error");
     } finally {
       setIsLoading(false);
     }
@@ -192,11 +194,11 @@ const HotelSubmissionsPage = () => {
         status: "APPROVE",
         reason: null,
       });
-      showToast(`Đã phê duyệt "${selectedHotel.hotelName}"`, "success");
+      showToast(t("admin:HotelSubmissionsPage.approved", { hotelName: selectedHotel.hotelName }), "success");
       await fetchSubmissions();
       closeModals();
     } catch (err) {
-      showToast(err.message || "Lỗi khi duyệt cơ sở", "error");
+      showToast(err.message || t("admin:HotelSubmissionsPage.failedToApproveTheProperty"), "error");
     } finally {
       setIsActionLoading(false);
     }
@@ -210,11 +212,11 @@ const HotelSubmissionsPage = () => {
         status: "REJECTED",
         reason,
       });
-      showToast(`Đã từ chối "${selectedHotel.hotelName}"`, "success");
+      showToast(t("admin:HotelSubmissionsPage.rejected", { hotelName: selectedHotel.hotelName }), "success");
       await fetchSubmissions();
       closeModals();
     } catch (err) {
-      showToast(err.message || "Lỗi khi từ chối cơ sở", "error");
+      showToast(err.message || t("admin:HotelSubmissionsPage.failedToRejectTheProperty"), "error");
     } finally {
       setIsActionLoading(false);
     }
@@ -228,14 +230,14 @@ const HotelSubmissionsPage = () => {
             </div>
         )}
 
-        {isActionLoading && <LoadingOverlay message="Đang xử lý yêu cầu..." />}
+        {isActionLoading && <LoadingOverlay message={t("admin:HotelSubmissionsPage.processingRequest")} />}
 
         <Card className="overflow-hidden min-h-screen bg-gray-50/50 border-none shadow-none">
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <CardHeader
-                title="Quản lý Đơn đăng ký"
-                subtitle="Phê duyệt và quản lý các cơ sở lưu trú mới"
+                title={t("admin:HotelSubmissionsPage.applicationManagement")}
+                subtitle={t("admin:HotelSubmissionsPage.approveAndManageNewProperties")}
                 icon={<Hotel className="text-blue-600" />}
                 className="p-0"
             />
@@ -247,7 +249,7 @@ const HotelSubmissionsPage = () => {
                 leftIcon={<RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />}
                 className="bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
             >
-              Làm mới
+              {t("admin:HotelSubmissionsPage.refresh")}
             </Button>
           </div>
 
@@ -272,7 +274,7 @@ const HotelSubmissionsPage = () => {
             {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-dashed border-gray-200">
                   <Loader2 className="animate-spin text-blue-500 mb-3" size={42} />
-                  <p className="text-gray-500 text-sm font-medium">Đang tải dữ liệu...</p>
+                  <p className="text-gray-500 text-sm font-medium">{t("admin:HotelSubmissionsPage.loadingData")}</p>
                 </div>
             ) : filteredSubmissions.length > 0 ? (
                 <>
@@ -293,7 +295,7 @@ const HotelSubmissionsPage = () => {
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
 
                     <span className="text-sm text-gray-500">
-                      Hiển thị <span className="font-semibold text-gray-700">{startItem}-{endItem}</span> trong tổng số <span className="font-semibold text-gray-700">{totalItems}</span> đơn
+                      {t("admin:HotelSubmissionsPage.showing")} <span className="font-semibold text-gray-700">{startItem}-{endItem}</span> {t("admin:HotelSubmissionsPage.of")} <span className="font-semibold text-gray-700">{totalItems}</span> {t("admin:HotelSubmissionsPage.bookings")}
                     </span>
 
                           <div className="flex items-center gap-2">
@@ -366,7 +368,7 @@ const HotelSubmissionsPage = () => {
                             </button>
 
                             <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200">
-                              <span className="text-sm text-gray-500 whitespace-nowrap">Đi đến:</span>
+                              <span className="text-sm text-gray-500 whitespace-nowrap">{t("admin:HotelSubmissionsPage.goTo")}</span>
                               <div className="relative">
                                 <input
                                     type="text"
@@ -398,8 +400,8 @@ const HotelSubmissionsPage = () => {
                 <div className="col-span-full">
                   <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
                     <EmptyState
-                        title="Không tìm thấy dữ liệu"
-                        description="Danh sách hiện tại đang trống hoặc không khớp với bộ lọc."
+                        title={t("admin:HotelSubmissionsPage.noDataFound")}
+                        description={t("admin:HotelSubmissionsPage.theListIsEmptyOr")}
                     />
                   </div>
                 </div>

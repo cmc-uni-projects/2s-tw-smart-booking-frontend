@@ -1,13 +1,16 @@
 import React, { useState } from "react";
 import { Eye, EyeOff, Lock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function ConfirmPasswordField({
-  label = "Xác nhận mật khẩu",
+  label,
   password = "",
   value = "",
   onChange,
   required = false,
 }) {
+  const { t } = useTranslation();
+  if (label === undefined) label = t("confirmPassword");
   const [show, setShow] = useState(false);
   const [focused, setFocused] = useState(false);
   const isFloating = focused || value?.length > 0;
@@ -60,7 +63,7 @@ export default function ConfirmPasswordField({
 
       {mismatch && (
         <p className="text-xs text-red-500 mt-1 ml-1">
-          Mật khẩu xác nhận không khớp.
+          {t("passwordMismatch")}
         </p>
       )}
     </div>

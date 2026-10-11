@@ -1,10 +1,13 @@
 import React from "react";
 import { Controller } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
 /**
  * Component Giao diện Toggle (Dùng nội bộ hoặc dùng trực tiếp nếu không qua RHF)
  */
-const ToggleSwitchUI = ({ label, checked, onChange }) => (
+const ToggleSwitchUI = ({ label, checked, onChange }) => {
+  const { t } = useTranslation();
+    return (
   <label className="flex flex-col justify-center items-start cursor-pointer w-full">
     {/* Label (nếu có) */}
     {label && (
@@ -15,7 +18,7 @@ const ToggleSwitchUI = ({ label, checked, onChange }) => (
     
     <div className="relative flex items-center justify-between w-full rounded-xl border border-gray-300 bg-white py-3 px-4 shadow-sm h-[58px] hover:border-blue-300 transition-colors">
       <span className="text-sm font-medium text-gray-700 select-none">
-        {checked ? "Đang kích hoạt (Hiển thị)" : "Đã vô hiệu hóa (Ẩn)"}
+        {checked ? t("toggle.active") : t("toggle.inactive")}
       </span>
       
       {/* Toggle Button */}
@@ -40,7 +43,8 @@ const ToggleSwitchUI = ({ label, checked, onChange }) => (
     {/* Giữ chỗ cho lỗi (nếu cần layout cố định) */}
     <div className="h-1"></div>
   </label>
-);
+    );
+};
 
 /**
  * Component Wrapper hỗ trợ cả React Hook Form và State thường

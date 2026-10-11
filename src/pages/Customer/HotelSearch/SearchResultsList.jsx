@@ -2,8 +2,10 @@ import React from "react";
 import HotelListCard from "@/components/common/Card/HotelListCard";
 import { Map } from "lucide-react";
 import Button from "@/components/common/Button/Button";
+import { useTranslation } from "react-i18next";
 
 const SearchResultsList = ({ hotels, loading, searchInfo, lastElementRef }) => {
+  const { t } = useTranslation("search");
   
   // --- SKELETON LOADING COMPONENT ---
   const HotelSkeleton = () => (
@@ -45,16 +47,16 @@ const SearchResultsList = ({ hotels, loading, searchInfo, lastElementRef }) => {
             <Map size={48} className="text-[rgb(40,169,224)]" />
         </div>
         <h3 className="text-xl font-bold text-gray-800 mb-2">
-          Không tìm thấy chỗ nghỉ nào
+          {t("results.emptyTitle")}
         </h3>
         <p className="text-gray-500 max-w-md mx-auto mb-6">
-          Chúng tôi không tìm thấy chỗ nghỉ nào phù hợp với từ khóa "{searchInfo?.location}" của bạn. Hãy thử thay đổi ngày hoặc tìm kiếm địa điểm khác.
+          {t("results.emptyText", { keyword: searchInfo?.location ?? "" })}
         </p>
         <Button 
             className="bg-[rgb(40,169,224)] hover:bg-[#1b98d6]"
             onClick={() => window.location.reload()} // Hoặc reset filter
         >
-           Tải lại trang
+           {t("results.reload")}
         </Button>
       </div>
     );

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import FilterSection from "./FilterSection";
 import DualRangeSlider from "./DualRangeSlider";
+import { useTranslation } from "react-i18next";
 import { DollarSign } from "lucide-react";
 
 const PriceRangeFilter = ({ onChange, initialMin = 0, initialMax = 10000000 }) => {
+    const { t } = useTranslation("search");
     const [range, setRange] = useState({ min: initialMin, max: initialMax });
 
     // Debounce: Chỉ gọi onChange lên cha khi người dùng dừng thao tác 600ms
@@ -19,7 +21,7 @@ const PriceRangeFilter = ({ onChange, initialMin = 0, initialMax = 10000000 }) =
     };
 
     return (
-        <FilterSection title="Khoảng giá (1 đêm)" icon={DollarSign}>
+        <FilterSection title={t("filters.priceRange")} icon={DollarSign}>
             <div className="mb-2">
                 <DualRangeSlider 
                     min={0} 

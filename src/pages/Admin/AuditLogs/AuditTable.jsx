@@ -1,18 +1,20 @@
 // src/pages/Admin/AuditLogs/AuditTable.jsx
 
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 export default function AuditTable({ logs = [], onViewDetail }) {
+  const { t } = useTranslation();
     return (
         <table className="w-full border-collapse">
             {/* HEADER */}
             <thead className="bg-gray-50">
             <tr className="text-left text-sm font-semibold text-blue-600">
-                <th className="px-6 py-4">Mã Log</th>
-                <th className="px-6 py-4">Hành Động</th>
-                <th className="px-6 py-4">Đối Tượng</th>
-                <th className="px-6 py-4">Mô Tả</th>
-                <th className="px-6 py-4">Người Thực Hiện</th>
+                <th className="px-6 py-4">{t("admin:AuditTable.logId")}</th>
+                <th className="px-6 py-4">{t("admin:AuditTable.action")}</th>
+                <th className="px-6 py-4">{t("admin:AuditTable.entity")}</th>
+                <th className="px-6 py-4">{t("admin:AuditTable.description")}</th>
+                <th className="px-6 py-4">{t("admin:AuditTable.performedBy")}</th>
                 <th className="px-6 py-4 text-right"></th>
             </tr>
             </thead>
@@ -25,7 +27,7 @@ export default function AuditTable({ logs = [], onViewDetail }) {
                         colSpan={6}
                         className="text-center py-10 text-gray-400"
                     >
-                        Không có dữ liệu
+                        {t("admin:AuditTable.noData")}
                     </td>
                 </tr>
             )}
@@ -66,7 +68,7 @@ export default function AuditTable({ logs = [], onViewDetail }) {
                             onClick={() => onViewDetail(log.logId)}
                             className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
                         >
-                            Xem chi tiết
+                            {t("admin:AuditTable.viewDetails")}
                         </button>
                     </td>
                 </tr>

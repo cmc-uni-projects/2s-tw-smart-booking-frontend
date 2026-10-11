@@ -2,8 +2,10 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "@/components/common/Button/Button";
 import { ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function PartnerHeroSection() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   return (
@@ -12,12 +14,10 @@ export default function PartnerHeroSection() {
         {/* 1. Phần Text (Bên trái) */}
         <div className="text-center md:text-left animate-fadeIn">
           <h1 className="text-4xl md:text-5xl font-extrabold text-[#006494] mb-6 tracking-tight">
-            Trở thành đối tác của TravelMate
+            {t("partner:PartnerHeroSection.becomeATravelmatePartner")}
           </h1>
           <p className="text-lg text-gray-600 mb-10 leading-relaxed">
-            Phát triển kinh doanh cùng chúng tôi. Tiếp cận hàng triệu
-            khách hàng và quản lý cơ sở lưu trú của bạn một cách
-            dễ dàng, hiệu quả.
+            {t("partner:PartnerHeroSection.growYourBusinessWithUs")}
           </p>
           <Button
             size="lg"
@@ -25,7 +25,7 @@ export default function PartnerHeroSection() {
             rightIcon={<ArrowRight size={20} />}
             onClick={() => navigate("/partner/register")}
           >
-            Đăng ký ngay
+            {t("partner:PartnerHeroSection.registerNow")}
           </Button>
         </div>
 
@@ -36,7 +36,7 @@ export default function PartnerHeroSection() {
         >
           <img
             src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80"
-            alt="Hợp tác khách sạn"
+            alt={t("partner:PartnerHeroSection.hotelPartnership")}
             className="w-full h-auto max-h-[400px] rounded-2xl shadow-xl object-cover"
           />
         </div>

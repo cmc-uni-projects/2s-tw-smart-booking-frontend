@@ -1,8 +1,10 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Lock, Unlock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function ActionMenu({ onLock, isLocked }) {
+  const { t } = useTranslation();
     return (
         <div className="flex justify-center w-full">
             <button
@@ -13,7 +15,7 @@ export default function ActionMenu({ onLock, isLocked }) {
                         ? "text-orange-500 hover:bg-orange-50 bg-orange-50/50"
                         : "text-gray-400 hover:text-orange-600 hover:bg-orange-50"
                 }`}
-                title={isLocked ? "Mở khóa tài khoản" : "Khóa tài khoản"}
+                title={isLocked ? t("admin:ActionMenu.unlockAccount") : t("admin:ActionMenu.lockAccount")}
             >
                 {isLocked ? <Unlock size={18} /> : <Lock size={18} />}
             </button>

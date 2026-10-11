@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Calendar } from "lucide-react";
 import { format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
+import { useDateFnsLocale } from "@/i18n/dateLocale";
 import { DateRange } from "react-date-range";
 
 // Import CSS của thư viện (Bắt buộc)
@@ -9,6 +10,8 @@ import "react-date-range/dist/styles.css"; // main style file
 import "react-date-range/dist/theme/default.css"; // theme css file
 
 const MapDateSelector = ({ dateRange, onChange }) => {
+  const { t } = useTranslation("search");
+  const vi = useDateFnsLocale(); // name kept: used as `locale` below
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
@@ -51,7 +54,7 @@ const MapDateSelector = ({ dateRange, onChange }) => {
         
         <div className="flex flex-col">
           <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider hidden md:block">
-            Ngày nhận phòng
+            {t("map.checkInDate")}
           </label>
           <span className="text-sm font-bold text-gray-700 truncate">
             {format(dateRange.startDate, "dd/MM", { locale: vi })} - {format(dateRange.endDate, "dd/MM", { locale: vi })}
@@ -78,13 +81,13 @@ const MapDateSelector = ({ dateRange, onChange }) => {
                     onClick={() => setIsOpen(false)}
                     className="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
                 >
-                    Đóng
+                    {t("common:actions.close")}
                 </button>
                 <button 
                     onClick={() => setIsOpen(false)}
                     className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md transition-colors"
                 >
-                    Áp dụng
+                    {t("common:actions.apply")}
                 </button>
             </div>
         </div>

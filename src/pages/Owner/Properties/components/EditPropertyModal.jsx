@@ -21,35 +21,37 @@ import {
   Dumbbell, Wind, ConciergeBell, Cigarette, Image as ImageIcon, MapPin,
   ClipboardList, Package, XCircle, Star, RefreshCw, Trash2
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 // --- Constants & Validation ---
 const fileListValidation = (min = 0) => yup.mixed();
 
 const editSchema = yup.object({
-    province: yup.string().required("Vui lòng nhập tỉnh/thành"),
-    city: yup.string().required("Vui lòng nhập thành phố/quận"),
-    address: yup.string().required("Vui lòng nhập địa chỉ chi tiết"),
+    province: yup.string().required(() => i18n.t("owner:EditPropertyModal.pleaseEnterTheProvinceCity")),
+    city: yup.string().required(() => i18n.t("owner:EditPropertyModal.pleaseEnterTheCityDistrict")),
+    address: yup.string().required(() => i18n.t("owner:EditPropertyModal.pleaseEnterTheDetailedAddress")),
     // amenities là object nullable
     amenities: yup.object().nullable(),
-    propertyName: yup.string().required("Tên cơ sở là bắt buộc"),
-    description: yup.string().min(50, "Mô tả phải có ít nhất 50 ký tự").required("Mô tả là bắt buộc"),
-    area: yup.number().min(1, "Diện tích phải > 0").required("Bắt buộc").typeError("Phải là số"),
+    propertyName: yup.string().required(() => i18n.t("owner:EditPropertyModal.propertyNameIsRequired")),
+    description: yup.string().min(50, () => i18n.t("owner:EditPropertyModal.theDescriptionMustBeAt")).required(() => i18n.t("owner:EditPropertyModal.descriptionIsRequired")),
+    area: yup.number().min(1, () => i18n.t("owner:EditPropertyModal.areaMustBe0")).required(() => i18n.t("owner:EditPropertyModal.required")).typeError(() => i18n.t("owner:EditPropertyModal.mustBeANumber")),
     // policies không bắt buộc validate chặt ở đây vì form con đã handle hoặc optional
 });
 
 const AMENITIES_LIST = [
-    { id: "pool", label: "Hồ bơi", icon: <Waves size={20} /> },
-    { id: "parking", label: "Bãi đỗ xe", icon: <ParkingCircle size={20} /> },
-    { id: "sauna", label: "Phòng xông hơi", icon: <Droplet size={20} /> },
+    { id: "pool", get label() { return i18n.t("owner:EditPropertyModal.swimmingPool"); }, icon: <Waves size={20} /> },
+    { id: "parking", get label() { return i18n.t("owner:EditPropertyModal.parking"); }, icon: <ParkingCircle size={20} /> },
+    { id: "sauna", get label() { return i18n.t("owner:EditPropertyModal.sauna"); }, icon: <Droplet size={20} /> },
     { id: "spa", label: "Spa", icon: <Sparkles size={20} /> },
-    { id: "non_smoking", label: "Không hút thuốc", icon: <Ban size={20} /> },
-    { id: "wifi", label: "Wi-Fi (miễn phí)", icon: <Wifi size={20} /> },
-    { id: "airport_transfer", label: "Đưa đón sân bay", icon: <Plane size={20} /> },
-    { id: "pets", label: "Cho phép thú cưng", icon: <PawPrint size={20} /> },
-    { id: "gym", label: "Trung tâm thể dục", icon: <Dumbbell size={20} /> },
-    { id: "smoking_area", label: "Khu vực hút thuốc", icon: <Cigarette size={20} /> },
-    { id: "reception_24h", label: "Lễ tân [24 giờ]", icon: <ConciergeBell size={20} /> },
-    { id: "ac", label: "Điều hòa không khí", icon: <Wind size={20} /> },
+    { id: "non_smoking", get label() { return i18n.t("owner:EditPropertyModal.nonSmoking"); }, icon: <Ban size={20} /> },
+    { id: "wifi", get label() { return i18n.t("owner:EditPropertyModal.wiFiFree"); }, icon: <Wifi size={20} /> },
+    { id: "airport_transfer", get label() { return i18n.t("owner:EditPropertyModal.airportTransfer"); }, icon: <Plane size={20} /> },
+    { id: "pets", get label() { return i18n.t("owner:EditPropertyModal.petsAllowed"); }, icon: <PawPrint size={20} /> },
+    { id: "gym", get label() { return i18n.t("owner:EditPropertyModal.fitnessCentre"); }, icon: <Dumbbell size={20} /> },
+    { id: "smoking_area", get label() { return i18n.t("owner:EditPropertyModal.smokingArea"); }, icon: <Cigarette size={20} /> },
+    { id: "reception_24h", get label() { return i18n.t("owner:EditPropertyModal.reception24Hours"); }, icon: <ConciergeBell size={20} /> },
+    { id: "ac", get label() { return i18n.t("owner:EditPropertyModal.airConditioning"); }, icon: <Wind size={20} /> },
 ];
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
@@ -69,6 +71,7 @@ const formatTimeForInput = (timeStr) => {
 };
 
 export default function EditPropertyModal({ open, onClose, property, onSuccess, showToast }) {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [currentImages, setCurrentImages] = useState([]); 
   const [uploadedFiles, setUploadedFiles] = useState([]); 
@@ -148,7 +151,7 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
           setUploadedFiles([]); 
         } catch (error) {
           console.error("Failed to load data", error);
-          if (showToast) showToast("Lỗi tải dữ liệu", "error");
+          if (showToast) showToast(t("owner:EditPropertyModal.failedToLoadData"), "error");
         } finally {
           setIsLoading(false);
         }
@@ -168,9 +171,9 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
               isCover: img.propertyImageId === imageId
           }));
           setCurrentImages(updated);
-          if (showToast) showToast("Đã đặt ảnh bìa thành công", "success"); 
+          if (showToast) showToast(t("owner:EditPropertyModal.coverPhotoSetSuccessfully"), "success"); 
       } catch (error) {
-          if (showToast) showToast("Đặt ảnh bìa thất bại", "error");
+          if (showToast) showToast(t("owner:EditPropertyModal.failedToSetTheCover"), "error");
       } finally {
           setIsLoading(false);
       }
@@ -180,8 +183,8 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
   const handleRequestDelete = (imageId) => {
       setConfirmData({
           open: true,
-          title: "Xác nhận xóa ảnh",
-          message: "Bạn có chắc chắn muốn xóa ảnh này không? Hành động này không thể hoàn tác.",
+          title: t("owner:EditPropertyModal.confirmPhotoDeletion"),
+          message: t("owner:EditPropertyModal.areYouSureYouWant"),
           onConfirm: () => processDeleteImage(imageId)
       });
   };
@@ -195,9 +198,9 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
           await propertyService.deletePropertyImage(property.propertyId, imageId);
           setCurrentImages(prev => prev.filter(img => img.propertyImageId !== imageId));
           
-          if (showToast) showToast("Đã xóa ảnh", "success");
+          if (showToast) showToast(t("owner:EditPropertyModal.photoDeleted"), "success");
       } catch (e) {
-          if (showToast) showToast("Xóa ảnh thất bại", "error");
+          if (showToast) showToast(t("owner:EditPropertyModal.failedToDeleteThePhoto"), "error");
       } finally {
           setIsLoading(false);
       }
@@ -241,7 +244,7 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
       onClose();
     } catch (error) {
       console.error(error);
-      if (showToast) showToast(error.message || "Cập nhật thất bại", "error");
+      if (showToast) showToast(error.message || t("owner:EditPropertyModal.updateFailed"), "error");
     } finally {
       setIsLoading(false);
     }
@@ -251,7 +254,7 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
 
   return (
     <>
-      {isLoading && <LoadingOverlay message="Đang xử lý..." />}
+      {isLoading && <LoadingOverlay message={t("owner:EditPropertyModal.processing")} />}
       
       {/* Confirm Modal cho xóa ảnh */}
       <ConfirmModal
@@ -260,36 +263,36 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
           onConfirm={confirmData.onConfirm}
           title={confirmData.title}
           description={confirmData.message}
-          confirmText="Xóa ảnh"
-          cancelText="Hủy"
+          confirmText={t("owner:EditPropertyModal.deletePhoto")}
+          cancelText={t("owner:EditPropertyModal.cancel")}
           isDanger={true}
       />
 
-      <Modal open={open} onClose={onClose} title={`Chỉnh sửa: ${property.propertyName}`} maxWidth="max-w-5xl">
+      <Modal open={open} onClose={onClose} title={t("owner:EditPropertyModal.edit", { propertyName: property.propertyName })} maxWidth="max-w-5xl">
         <form onSubmit={handleSubmit(handleFinalSubmit)}>
           <div className="max-h-[75vh] overflow-y-auto p-1 pr-4 space-y-8 custom-scrollbar">
             
             {/* SECTION 1: INFO */}
             <section>
               <h3 className="text-lg font-semibold text-[rgb(40,169,224)] flex items-center gap-2 mb-4">
-                <ClipboardList size={20} /> Thông tin cơ bản
+                <ClipboardList size={20} /> {t("owner:EditPropertyModal.basicInformation")}
               </h3>
               <div className="space-y-3">
                 <FloatingTextField
-                  label="Tên cơ sở lưu trú"
+                  label={t("owner:EditPropertyModal.propertyName")}
                   {...register("propertyName")}
                   value={watch("propertyName")}
                   error={errors.propertyName?.message}
                 />
                 <TextArea
-                  label="Mô tả"
+                  label={t("owner:EditPropertyModal.description")}
                   rows={5}
                   {...register("description")}
                   value={watch("description")}
                   error={errors.description?.message}
                 />
                 <FloatingTextField
-                  label="Diện tích (m²)"
+                  label={t("owner:EditPropertyModal.areaM")}
                   type="number"
                   {...register("area")}
                   value={watch("area")}
@@ -301,24 +304,24 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
             {/* SECTION 2: LOCATION */}
             <section>
               <h3 className="text-lg font-semibold text-[rgb(40,169,224)] flex items-center gap-2 mb-4">
-                <MapPin size={20} /> Vị trí
+                <MapPin size={20} /> {t("owner:EditPropertyModal.location")}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FloatingTextField
-                  label="Tỉnh/Thành"
+                  label={t("owner:EditPropertyModal.provinceCity")}
                   {...register("province")}
                   value={watch("province")}
                   error={errors.province?.message}
                 />
                 <FloatingTextField
-                  label="Thành phố/Quận/Huyện"
+                  label={t("owner:EditPropertyModal.cityDistrict")}
                   {...register("city")}
                   value={watch("city")}
                   error={errors.city?.message}
                 />
                 <div className="md:col-span-2">
                     <FloatingTextField
-                    label="Địa chỉ chi tiết"
+                    label={t("owner:EditPropertyModal.detailedAddress")}
                     {...register("address")}
                     value={watch("address")}
                     error={errors.address?.message}
@@ -330,7 +333,7 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
             {/* SECTION 3: AMENITIES */}
             <section>
               <h3 className="text-lg font-semibold text-[rgb(40,169,224)] flex items-center gap-2 mb-4">
-                <Package size={20} /> Tiện nghi
+                <Package size={20} /> {t("owner:EditPropertyModal.amenities")}
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {AMENITIES_LIST.map((item) => (
@@ -359,7 +362,7 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
             <section>
               <div className="flex justify-between items-center mb-4">
                  <h3 className="text-lg font-semibold text-[rgb(40,169,224)] flex items-center gap-2">
-                    <ImageIcon size={20} /> Quản lý hình ảnh
+                    <ImageIcon size={20} /> {t("owner:EditPropertyModal.photoManagement")}
                  </h3>
                  <Button 
                     type="button" 
@@ -378,7 +381,7 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
               
               <div className="mb-6">
                 <h4 className="text-sm font-medium text-gray-600 mb-3">
-                    Album hiện tại ({currentImages.length} ảnh):
+                    {t("owner:EditPropertyModal.currentAlbumPhotos", { length: currentImages.length })}
                 </h4>
                 
                 {currentImages.length > 0 ? (
@@ -403,7 +406,7 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
                                         size="sm"
                                         className="bg-white text-yellow-500 hover:bg-yellow-400 hover:text-white border-none p-2 h-auto rounded-full shadow-lg transform hover:scale-110 transition-all"
                                         onClick={() => handleSetCover(img.propertyImageId)}
-                                        title="Đặt làm ảnh bìa"
+                                        title={t("owner:EditPropertyModal.setAsCoverPhoto")}
                                     >
                                         <Star size={20} />
                                     </Button>
@@ -414,7 +417,7 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
                                     size="sm"
                                     className="bg-white text-red-500 hover:bg-red-500 hover:text-white border-none p-2 h-auto rounded-full shadow-lg transform hover:scale-110 transition-all"
                                     onClick={() => handleRequestDelete(img.propertyImageId)}
-                                    title="Xóa ảnh"
+                                    title={t("owner:EditPropertyModal.deletePhoto")}
                                 >
                                     <Trash2 size={20} />
                                 </Button>
@@ -425,13 +428,13 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
                 ) : (
                     <div className="p-8 text-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
                         <ImageIcon className="mx-auto text-gray-300 mb-2" size={40} />
-                        <p className="text-gray-400 italic text-sm">Chưa có ảnh nào trong album.</p>
+                        <p className="text-gray-400 italic text-sm">{t("owner:EditPropertyModal.theAlbumHasNoPhotos")}</p>
                     </div>
                 )}
               </div>
 
               <div>
-                <h4 className="text-sm font-medium text-gray-600 mb-2">Tải lên ảnh mới:</h4>
+                <h4 className="text-sm font-medium text-gray-600 mb-2">{t("owner:EditPropertyModal.uploadNewPhotos")}</h4>
                 <ImageUploadGrid
                   multiple={true}
                   accept="image/png, image/jpeg, image/webp"
@@ -445,10 +448,10 @@ export default function EditPropertyModal({ open, onClose, property, onSuccess, 
           
           <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 mt-4">
             <Button type="button" variant="ghost" onClick={onClose}>
-              Hủy
+              {t("owner:EditPropertyModal.cancel")}
             </Button>
             <Button type="submit">
-              Lưu tất cả thay đổi
+              {t("owner:EditPropertyModal.saveAllChanges")}
             </Button>
           </div>
         </form>

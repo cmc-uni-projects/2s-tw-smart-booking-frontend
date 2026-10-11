@@ -1,0 +1,154 @@
+{
+  "trust": {
+    "secureTitle": "Secure payment",
+    "secureText": "International-grade security",
+    "noFeesTitle": "No hidden fees",
+    "noFeesText": "Transparent pricing",
+    "supportTitle": "24/7 support",
+    "supportText": "Always here to help"
+  },
+  "page": {
+    "loginRequired": "Please log in to continue booking!",
+    "checkContact": "Please check your contact details.",
+    "noBookingId": "No booking ID was returned.",
+    "failed": "Booking failed. Please try again.",
+    "notFound": "Booking details not found",
+    "backToSearch": "Back to search",
+    "processing": "Processing your booking...",
+    "backToDetail": "Back to details",
+    "title": "Confirm & book"
+  },
+  "form": {
+    "contactTitle": "Booking contact",
+    "contactText": "Add a contact to receive the booking confirmation.",
+    "fullName": "Full name",
+    "nameHint": "As on your ID/passport",
+    "phone": "Phone number",
+    "forSelf": "I'm booking for myself",
+    "guestTitle": "Guest details",
+    "specialTitle": "Special requests",
+    "nonSmoking": "Non-smoking room",
+    "connecting": "Connecting rooms",
+    "highFloor": "High floor",
+    "policyTitle": "Property policies",
+    "smoking": "Smoking",
+    "noSmoking": "Smoking is not allowed at this property."
+  },
+  "validation": {
+    "nameRequired": "Full name is required.",
+    "nameLetters": "Full name may only contain letters and spaces.",
+    "phoneRequired": "Phone number is required.",
+    "phoneFormat": "Phone number must be 10 digits starting with 0.",
+    "emailRequired": "Email is required.",
+    "emailInvalid": "Invalid email."
+  },
+  "history": {
+    "confirmCancel": "Are you sure you want to cancel this booking?",
+    "cancelled": "Booking cancelled",
+    "cancelFailed": "Cancellation failed: ",
+    "status": "Status: {{status}}",
+    "cancel": "Cancel booking"
+  },
+  "dates": {
+    "stay": "Your stay"
+  },
+  "summary": {
+    "hotel": "Hotel",
+    "weekdayPrice": "Weekday rate (x{{count}})",
+    "weekendPrice": "Weekend rate (x{{count}})",
+    "roomPrice": "Room rate (x{{count}} nights)",
+    "taxes": "Taxes & fees",
+    "payNow": "Pay now"
+  },
+  "contact": {
+    "title": "Contact details",
+    "checking": "Checking...",
+    "ticketEmail": "Email for confirmation",
+    "autoFilled": "Filled in automatically from your profile.",
+    "specialPlaceholder": "E.g. early check-in, non-smoking room..."
+  },
+  "pay": {
+    "roomType": "Room type",
+    "guests": "Guests",
+    "contact": "Contact details",
+    "walkIn": "Guest",
+    "subtotal": "Subtotal",
+    "total": "Total to pay",
+    "taxIncluded": "Taxes & fees included",
+    "payNow": "Pay now",
+    "applied": "Applied",
+    "loadError": "Failed to load the booking.",
+    "adminPromoRemoved": "TravelMate promo code removed.",
+    "ownerPromoRemoved": "Hotel promo code removed.",
+    "promoApplied": "Promo code {{code}} applied!",
+    "promoError": "Couldn't update the promo code.",
+    "confirmBack": "Go back? The current booking will be cancelled so you can book again.",
+    "failed": "Payment failed: ",
+    "errorOccurred": "An error occurred: ",
+    "title": "Payment",
+    "holdEnding": "Your room hold is about to expire!",
+    "holdRemaining": "Room held for",
+    "successTitle": "Payment successful",
+    "done": "All done!",
+    "confirmed": "Your booking is confirmed.",
+    "goToBookings": "Go to My bookings"
+  },
+  "method": {
+    "title": "Payment method",
+    "vnpay": "VNPay gateway",
+    "momo": "MoMo e-wallet",
+    "zalopay": "ZaloPay e-wallet",
+    "bankQr": "Bank QR code"
+  },
+  "qr": {
+    "title": "Scan the QR code to pay",
+    "expiresIn": "Code expires in:",
+    "alt": "Payment QR code",
+    "paid": "I've paid"
+  },
+  "success": {
+    "title": "Payment successful!",
+    "redirect": "You'll be redirected to the home page in <b>{{count}}</b> seconds.",
+    "goHome": "Go to home page"
+  },
+  "discount": {
+    "remove": "Remove",
+    "appliedDefault": "Promo code applied",
+    "clickToChoose": "Click to choose a promo code",
+    "minus": "{{amount}}₫ off",
+    "originalOrder": "Original price",
+    "original": "Original price:",
+    "adminCode": "TravelMate code ({{code}})",
+    "ownerCode": "Hotel code ({{code}})",
+    "remaining": "Remaining:",
+    "details": "Price details",
+    "toPay": "Amount due:",
+    "title": "Promo codes & deals",
+    "adminSlotEmpty": "Choose a TravelMate promo code",
+    "ownerSlotTitle": "Hotel voucher",
+    "ownerSlotEmpty": "Choose a hotel promo code"
+  },
+  "missing": {
+    "title": "Update your profile",
+    "heading": "Incomplete profile",
+    "text": "To use \"I'm booking for myself\", please add the following to your profile:",
+    "manual": "I'll enter it manually",
+    "update": "Update now"
+  },
+  "timeout": {
+    "title": "Room hold expired",
+    "heading": "Your booking has expired",
+    "text": "Sorry, the 5-minute room hold has ended. The booking was cancelled automatically so other guests can book.",
+    "home": "Back to home"
+  },
+  "promoList": {
+    "max": " (up to {{amount}})",
+    "best": "BEST CHOICE",
+    "discount": "{{amount}} off{{max}}",
+    "none": "Don't use a promo code",
+    "fromHotel": "Deals from the hotel",
+    "fromTravelMate": "Deals from TravelMate",
+    "searching": "Finding the best deals...",
+    "empty": "No matching promo codes yet."
+  }
+}

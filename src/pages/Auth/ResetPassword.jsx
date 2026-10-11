@@ -8,6 +8,7 @@ import { authService } from "../../services/auth.service";
 
 import Toast from "../../components/common/Notification/Toast";
 import ToastPortal from "../../components/common/Notification/ToastPortal";
+import { useTranslation, Trans } from "react-i18next";
 
 // Ảnh nền (Tone xanh dương đậm, bảo mật)
 const BG_URL = "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop";
@@ -16,6 +17,7 @@ const ResetPassword = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const navigate = useNavigate();
+  const { t } = useTranslation("auth");
 
   // Form State
   const [password, setPassword] = useState("");
@@ -59,15 +61,15 @@ const ResetPassword = () => {
 
     // Validate
     if (!password || !confirm) {
-      showToastOnce("Vui lòng nhập đầy đủ thông tin.");
+      showToastOnce(t("reset.errors.required"));
       return;
     }
     if (password !== confirm) {
-      showToastOnce("Mật khẩu xác nhận không khớp.");
+      showToastOnce(t("reset.errors.mismatch"));
       return;
     }
     if (passwordScore < 2) {
-        showToastOnce("Mật khẩu quá yếu. Vui lòng đặt mật khẩu mạnh hơn.");
+        showToastOnce(t("reset.errors.weak"));
         return;
     }
 
@@ -77,7 +79,7 @@ const ResetPassword = () => {
       await authService.resetPassword(token, password);
       setIsSuccess(true); // Chuyển sang giao diện thành công
     } catch (err) {
-      const msg = err.response?.data?.message || "Liên kết không hợp lệ hoặc đã hết hạn.";
+      const msg = err.response?.data?.message || t("reset.errors.invalidLink");
       showToastOnce(msg, "error");
     } finally {
       setLoading(false);
@@ -94,10 +96,10 @@ const ResetPassword = () => {
 
   const getStrengthText = () => {
     if (passwordScore === 0) return "";
-    if (passwordScore <= 1) return "Yếu";
-    if (passwordScore === 2) return "Trung bình";
-    if (passwordScore === 3) return "Tốt";
-    return "Tuyệt vời";
+    if (passwordScore <= 1) return t("reset.weak");
+    if (passwordScore === 2) return t("register.strength.fair");
+    if (passwordScore === 3) return t("register.strength.good");
+    return t("register.strength.excellent");
   };
 
   return (
@@ -129,11 +131,11 @@ const ResetPassword = () => {
                 )}
              </div>
              <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-                {isSuccess ? "Thành công!" : "Đặt lại mật khẩu"}
+                {isSuccess ? t("successTitle") : t("reset.title")}
              </h2>
              {!isSuccess && (
                  <p className="text-slate-500 text-sm mt-2 font-medium">
-                    Vui lòng nhập mật khẩu mới của bạn.
+                    {t("reset.intro")}
                  </p>
              )}
           </div>
@@ -142,14 +144,13 @@ const ResetPassword = () => {
           {isSuccess ? (
              <div className="text-center animate-fade-in-up">
                 <p className="text-slate-600 mb-8 leading-relaxed">
-                    Mật khẩu của bạn đã được cập nhật. <br/>
-                    Bạn có thể đăng nhập bằng mật khẩu mới ngay bây giờ.
+                    <Trans t={t} i18nKey="reset.done" components={{ br: <br /> }} />
                 </p>
                 <button 
                     onClick={() => navigate("/login")}
                     className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-emerald-500/30 transition-all active:scale-[0.98]"
                 >
-                    Đăng nhập ngay
+                    {t("loginNow")}
                 </button>
              </div>
           ) : (
@@ -168,7 +169,7 @@ const ResetPassword = () => {
                         onFocus={() => setFocusedField('password')}
                         onBlur={() => setFocusedField(null)}
                         className={`w-full pl-12 pr-12 py-3.5 bg-slate-50 border-2 rounded-xl outline-none font-semibold text-slate-800 transition-all ${focusedField === 'password' ? 'border-blue-500 bg-white shadow-lg shadow-blue-500/10' : 'border-slate-100 hover:border-slate-300'}`}
-                        placeholder="Mật khẩu mới"
+                        placeholder={t("reset.newPassword")}
                     />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-2">
                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -179,7 +180,7 @@ const ResetPassword = () => {
                 <div className={`overflow-hidden transition-all duration-500 ease-in-out ${password ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                         <div className="flex justify-between items-center mb-1.5">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase">Độ mạnh</span>
+                            <span className="text-[10px] font-bold text-slate-500 uppercase">{t("reset.strength")}</span>
                             <span className={`text-[10px] font-bold ${passwordScore <= 1 ? "text-red-500" : passwordScore === 2 ? "text-yellow-500" : "text-green-500"}`}>
                                 {getStrengthText()}
                             </span>
@@ -188,10 +189,10 @@ const ResetPassword = () => {
                             <div className={`h-full rounded-full transition-all duration-500 ${getStrengthColor()}`} style={{ width: `${(passwordScore / 4) * 100}%` }}></div>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                             <Badge active={passwordCriteria.length} text="6+ ký tự" />
-                             <Badge active={passwordCriteria.hasNumber} text="Số" />
-                             <Badge active={passwordCriteria.hasUpper} text="In hoa" />
-                             <Badge active={passwordCriteria.hasSpecial} text="Đặc biệt" />
+                             <Badge active={passwordCriteria.length} text={t("reset.criteria.length")} />
+                             <Badge active={passwordCriteria.hasNumber} text={t("reset.criteria.number")} />
+                             <Badge active={passwordCriteria.hasUpper} text={t("reset.criteria.upper")} />
+                             <Badge active={passwordCriteria.hasSpecial} text={t("reset.criteria.special")} />
                         </div>
                     </div>
                 </div>
@@ -208,7 +209,7 @@ const ResetPassword = () => {
                         onFocus={() => setFocusedField('confirm')}
                         onBlur={() => setFocusedField(null)}
                         className={`w-full pl-12 pr-12 py-3.5 bg-slate-50 border-2 rounded-xl outline-none font-semibold text-slate-800 transition-all ${focusedField === 'confirm' ? 'border-blue-500 bg-white shadow-lg shadow-blue-500/10' : 'border-slate-100 hover:border-slate-300'}`}
-                        placeholder="Xác nhận mật khẩu"
+                        placeholder={t("reset.confirmPassword")}
                     />
                     <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-2">
                         {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -220,7 +221,7 @@ const ResetPassword = () => {
                     disabled={loading}
                     className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg shadow-xl shadow-blue-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                 >
-                    {loading ? <Loader2 className="animate-spin" /> : "Đặt lại mật khẩu"}
+                    {loading ? <Loader2 className="animate-spin" /> : t("reset.title")}
                 </button>
 
                 <div className="text-center mt-4">
@@ -229,7 +230,7 @@ const ResetPassword = () => {
                         onClick={() => navigate("/login")}
                         className="text-sm font-bold text-slate-500 hover:text-blue-600 hover:underline flex items-center justify-center gap-1 mx-auto transition-colors"
                     >
-                        <ArrowLeft size={16} /> Quay lại đăng nhập
+                        <ArrowLeft size={16} /> {t("backToLogin")}
                     </button>
                 </div>
              </form>

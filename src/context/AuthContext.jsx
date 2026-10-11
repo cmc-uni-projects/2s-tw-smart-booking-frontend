@@ -1,3 +1,5 @@
+import i18n from "@/i18n";
+import { applyUserLanguage } from "@/i18n/language";
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { authService } from '../services/auth.service';
 
@@ -19,14 +21,15 @@ export const AuthContextProvider = ({ children }) => {
 
       if (data && data.user && data.accessToken) { 
         setCurrentUser(data.user);
+        applyUserLanguage(data.user);
         localStorage.setItem('accessToken', data.accessToken); 
         return true;
       } else {
-        setError('Login failed: Invalid data received');
+        setError(i18n.t('auth:login.errors.failedMsg'));
         return false;
       }
     } catch (err) {
-      setError(err.message || 'Login failed'); 
+      setError(err.message || i18n.t('auth:login.errors.failedMsg')); 
       return false;
     } finally {
       setLoading(false);
@@ -47,16 +50,17 @@ export const AuthContextProvider = ({ children }) => {
       
       if (user) {
         setCurrentUser(user);
+        applyUserLanguage(user);
         localStorage.setItem('user', JSON.stringify(user));
         return true;
       } else {
-        setError("Không thể lấy thông tin người dùng.");
+        setError(i18n.t("auth:oauth.profileFailed"));
         authService.logout(); // Xóa token nếu lỗi
         return false;
       }
     } catch (err) {
       console.error("OAuth2 Login Error:", err);
-      setError("Đăng nhập Google/Facebook thất bại.");
+      setError(i18n.t("auth:oauth.failed"));
       authService.logout();
       return false;
     } finally {

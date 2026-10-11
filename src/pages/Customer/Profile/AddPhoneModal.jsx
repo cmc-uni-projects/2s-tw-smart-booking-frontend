@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react"; // 1. Import thêm useEffect
 import Modal from "@/components/common/Modal/Modal";
 import TextField from "@/components/common/Input/TextField";
 import Button from "@/components/common/Button/Button";
+import { useTranslation } from "react-i18next";
 
 // 2. Thêm prop `existingPhone`
 export default function AddPhoneModal({ isOpen, onClose, onSave, existingPhone = null }) {
+    const { t } = useTranslation(["profile", "common"]);
     const [phone, setPhone] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -23,11 +25,11 @@ export default function AddPhoneModal({ isOpen, onClose, onSave, existingPhone =
 
     const validatePhone = () => {
         if (!phone) {
-            setError("Vui lòng nhập số điện thoại.");
+            setError(t("phoneModal.required"));
             return false;
         }
         if (!/^0\d{9,10}$/.test(phone)) {
-            setError("Số điện thoại không hợp lệ (10-11 chữ số).");
+            setError(t("phoneModal.invalid"));
             return false;
         }
         return true;
@@ -48,8 +50,8 @@ export default function AddPhoneModal({ isOpen, onClose, onSave, existingPhone =
 
     // 4. Quyết định text
     const isEditing = !!existingPhone;
-    const title = isEditing ? "CẬP NHẬT SỐ DI ĐỘNG" : "THÊM SỐ DI ĐỘNG";
-    const buttonText = isEditing ? "Lưu" : "Thêm";
+    const title = isEditing ? t("phoneModal.titleEdit") : t("phoneModal.titleAdd");
+    const buttonText = isEditing ? t("common:actions.save") : t("common:actions.add");
 
     return (
         <Modal
@@ -58,14 +60,14 @@ export default function AddPhoneModal({ isOpen, onClose, onSave, existingPhone =
             title={title} // 5. Dùng title động
         >
             <p className="text-sm text-gray-600 mb-4">
-                Thêm số di động của bạn để đăng nhập và nhận thông báo khẩn cấp
+                {t("phoneModal.text")}
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <TextField
                     name="phone"
                     type="tel"
-                    placeholder="Ví dụ: 0901234567"
+                    placeholder={t("phoneModal.placeholder")}
                     value={phone}
                     onChange={(e) => { setPhone(e.target.value); setError(''); }}
                     error={error}
@@ -87,7 +89,7 @@ export default function AddPhoneModal({ isOpen, onClose, onSave, existingPhone =
                         onClick={onClose}
                         className="bg-blue-100 border-blue-100 text-[rgb(40,169,224)] hover:bg-blue-200"
                     >
-                        Hủy
+                        {t("common:actions.cancel")}
                     </Button>
                 </div>
             </form>

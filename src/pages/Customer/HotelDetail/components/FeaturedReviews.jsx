@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { Star, Pin, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import Button from "@/components/common/Button/Button";
 import ReviewCard from "./ReviewCard";
 
@@ -13,6 +14,7 @@ const FeaturedReviews = ({
   onOpenGallery,
   onUnpin
 }) => {
+  const { t } = useTranslation("hotel");
 
   // 1. Tính toán thống kê sao (Dựa trên list reviews truyền vào)
   const stats = useMemo(() => {
@@ -29,11 +31,11 @@ const FeaturedReviews = ({
   }, [reviews]);
 
   const getRatingText = (score) => {
-      if (!score) return "Chưa có đánh giá";
-      if (score >= 4.5) return "Tuyệt vời";
-      if (score >= 4.0) return "Rất tốt";
-      if (score >= 3.0) return "Hài lòng";
-      return "Cần cải thiện";
+      if (!score) return t("ratingLabel.none");
+      if (score >= 4.5) return t("ratingLabel.excellent");
+      if (score >= 4.0) return t("ratingLabel.veryGood");
+      if (score >= 3.0) return t("ratingLabel.good");
+      return t("ratingLabel.needsWork");
   };
 
   return (
@@ -50,7 +52,7 @@ const FeaturedReviews = ({
              </div>
              <div className="flex flex-col items-start">
                 <h3 className="text-lg font-bold text-slate-800">{getRatingText(hotel.rating)}</h3>
-                <p className="text-sm text-slate-500">{hotel.reviewsCount || 0} đánh giá</p>
+                <p className="text-sm text-slate-500">{t("reviews.count", { count: hotel.reviewsCount || 0 })}</p>
              </div>
           </div>
         </div>
@@ -84,7 +86,7 @@ const FeaturedReviews = ({
         <div className="border-t border-gray-100 bg-slate-50/30 p-6 pb-24"> {/* pb-24 để chừa chỗ cho nút mờ */}
           <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
             <Pin size={14} className="text-blue-500 fill-blue-500" />
-            Đánh giá nổi bật
+            {t("reviews.featured")}
           </h4>
           
           <div className="grid grid-cols-1 gap-4">
@@ -110,7 +112,7 @@ const FeaturedReviews = ({
             onClick={onViewAll}
             className="group bg-yellow-400 text-yellow-950 hover:bg-yellow-500 font-bold rounded-full px-8 py-3 shadow-xl shadow-yellow-100 hover:shadow-yellow-200 hover:-translate-y-1 transition-all flex items-center gap-2"
         >
-            Xem tất cả {hotel.reviewsCount} đánh giá
+            {t("reviews.viewAll", { count: hotel.reviewsCount })}
             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform"/>
         </Button>
       </div>

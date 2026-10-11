@@ -8,8 +8,10 @@ import { useAuth } from "../../context/AuthContext";
 import { userService } from "../../services/user.service";
 import Avatar from "../../components/common/Avatar/Avatar";
 import ConfirmModal from "../../components/common/Modal/ConfirmModal";
+import { useTranslation } from "react-i18next";
 
 const OwnerProfileDropdown = () => {
+  const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
@@ -59,7 +61,7 @@ const OwnerProfileDropdown = () => {
     const ownerTheme = {
         gradient: "from-teal-600 to-emerald-600",
         icon: <Briefcase size={16} className="text-emerald-100" />,
-        label: "Đối tác"
+        label: t("owner:OwnerProfileDropdown.partners")
     };
 
     // =====================================================
@@ -149,7 +151,7 @@ const OwnerProfileDropdown = () => {
                                     <Briefcase size={18} />
                                 </div>
                                 <div className="flex-1">
-                                    <span className="font-medium text-sm">Quản lý tài sản</span>
+                                    <span className="font-medium text-sm">{t("owner:OwnerProfileDropdown.propertyManagement")}</span>
                                 </div>
                                 <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
                             </Link>
@@ -163,7 +165,7 @@ const OwnerProfileDropdown = () => {
                                     <User size={18} />
                                 </div>
                                 <div className="flex-1">
-                                    <span className="font-medium text-sm">Hồ sơ cá nhân</span>
+                                    <span className="font-medium text-sm">{t("owner:OwnerProfileDropdown.profile")}</span>
                                 </div>
                                 <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
                             </Link>
@@ -177,7 +179,7 @@ const OwnerProfileDropdown = () => {
                                     <Settings size={18} />
                                 </div>
                                 <div className="flex-1">
-                                    <span className="font-medium text-sm">Cài đặt</span>
+                                    <span className="font-medium text-sm">{t("owner:OwnerProfileDropdown.settings")}</span>
                                 </div>
                                 <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
                             </Link>
@@ -191,7 +193,7 @@ const OwnerProfileDropdown = () => {
                                 <div className="p-2 bg-red-50 text-red-500 rounded-full group-hover:bg-red-100 transition-colors">
                                     <LogOut size={18} />
                                 </div>
-                                <span className="font-medium text-sm">Đăng xuất</span>
+                                <span className="font-medium text-sm">{t("owner:OwnerProfileDropdown.logOut")}</span>
                             </button>
                         </div>
                     </div>
@@ -203,11 +205,11 @@ const OwnerProfileDropdown = () => {
                 open={showLogoutConfirm}
                 onClose={() => setShowLogoutConfirm(false)}
                 onConfirm={handleLogout}
-                title="Xác nhận Đăng xuất"
-                message="Bạn có chắc chắn muốn đăng xuất khỏi trang quản lý?"
+                title={t("owner:OwnerProfileDropdown.confirmLogout")}
+                message={t("owner:OwnerProfileDropdown.areYouSureYouWant")}
                 type="danger"
-                confirmText="Đăng xuất"
-                cancelText="Hủy"
+                confirmText={t("owner:OwnerProfileDropdown.logOut")}
+                cancelText={t("owner:OwnerProfileDropdown.cancel")}
             />
         </>
     );

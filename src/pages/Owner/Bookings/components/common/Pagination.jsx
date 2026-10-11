@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  const { t } = useTranslation();
   const [jumpPage, setJumpPage] = useState("");
 
   // Tạo nhóm trang thông minh (1 ... 3 4 5 ... N)
@@ -91,7 +93,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 
       {/* Ô nhập đi đến trang */}
       <div className="flex items-center gap-2 ml-4">
-        <span className="text-sm text-gray-600">Đi đến:</span>
+        <span className="text-sm text-gray-600">{t("owner:Pagination.goTo")}</span>
         <input
           type="text"
           value={jumpPage}

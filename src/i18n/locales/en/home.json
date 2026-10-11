@@ -1,0 +1,111 @@
+{
+  "hero": {
+    "trustedBy": "Trusted by 10k+ travelers",
+    "headline": "Awaken your",
+    "rotatingWords": [
+      "dream journey",
+      "luxury escape",
+      "perfect trip",
+      "endless adventure"
+    ],
+    "subtitle": "Explore Vietnam's most unique hotels, resorts and homestays. A first-class experience in a single tap.",
+    "trending": "Trending searches"
+  },
+  "featured": {
+    "titleLead": "Most Popular",
+    "titleHighlight": "Stays",
+    "subtitle": "Voted by the travel community for first-class stays and outstanding amenities.",
+    "priceFrom": "From",
+    "perNight": "₫/night",
+    "empty": "We're updating our hotel list..."
+  },
+  "ai": {
+    "title": "Recommended for you",
+    "more": "More suggestions"
+  },
+  "destinations": {
+    "titleLead": "Favorite",
+    "titleHighlight": "Destinations",
+    "subtitle": "Plan your next trip to top destinations voted by the TravelMate community.",
+    "regions": {
+      "north": "Northern Vietnam",
+      "south": "Southern Vietnam",
+      "central": "Central Vietnam"
+    }
+  },
+  "newsletter": {
+    "title": "Don't miss out on huge deals!",
+    "text": "Subscribe to our newsletter to be the first to get 50% discount codes and exclusive travel tips.",
+    "placeholder": "Enter your email...",
+    "subscribe": "Subscribe"
+  },
+  "promo": {
+    "endsIn": "Ends in:",
+    "discount": "{{amount}} off",
+    "exclusive": "EXCLUSIVE DEAL",
+    "discountToday": "Save <hl>{{amount}}</hl> when you book today",
+    "genericDescription": "Enjoy a wonderful trip with a {{amount}} discount exclusively for TravelMate members.",
+    "titleLead": "Golden Hour",
+    "titleHighlight": "Deals",
+    "subtitle": "The hottest deals, constantly updated",
+    "list": "All deals"
+  },
+  "testimonials": {
+    "badge": "Community reviews",
+    "titleLead": "What customers say about",
+    "subtitle": "More than 10,000 customers have trusted us on their journeys.",
+    "items": {
+      "1": {
+        "role": "Travel blogger",
+        "comment": "TravelMate is a lifesaver for my spontaneous trips. Booking is super smooth and prices are transparent. I'll definitely keep using it!"
+      },
+      "2": {
+        "role": "Entrepreneur",
+        "comment": "I travel for work a lot and need VAT invoices quickly. The system handles invoices and booking history very professionally."
+      },
+      "3": {
+        "role": "Photographer",
+        "comment": "I love the hotel suggestions by photo spot. Thanks to TravelMate I found a super chill homestay overlooking Da Lat's pine hills."
+      }
+    }
+  },
+  "why": {
+    "items": {
+      "bestPrice": {
+        "title": "Best price",
+        "desc": "Best price guaranteed on every booking. Earn points for great rewards."
+      },
+      "secure": {
+        "title": "Secure booking",
+        "desc": "Your data stays private. Payments are encrypted to international standards."
+      },
+      "support": {
+        "title": "24/7 support",
+        "desc": "Our customer care team is ready to help anytime, anywhere."
+      },
+      "flexiblePay": {
+        "title": "Flexible payment",
+        "desc": "Many methods supported: cards, MoMo, VNPay, ZaloPay and pay later."
+      }
+    }
+  },
+  "blog": {
+    "badge": "Travel blog",
+    "titleLead": "Travel",
+    "titleHighlight": "Inspiration",
+    "subtitle": "News, tips and the most exciting journeys from our community.",
+    "seeAll": "See all articles",
+    "readTime": "{{count}} min read",
+    "readMore": "Read more",
+    "categories": {
+      "hotSpots": "Hot spots",
+      "food": "Food",
+      "tips": "Travel tips"
+    },
+    "articles": {
+      "1": "Top 25 cafés with the best views in Da Lat (2025)",
+      "2": "Hai Phong food tour: a guide to the port city's tasty, cheap eats",
+      "3": "Planning a DIY Phu Quoc trip with young children"
+    }
+  }
+}

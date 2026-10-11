@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Eye, EyeOff, Lock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function PasswordField({
-  label = "Mật khẩu",
+  label,
   value = "",
   onChange,
   required = false,
@@ -12,6 +13,8 @@ export default function PasswordField({
   // ... các props khác nếu có
   ...props 
 }) {
+  const { t } = useTranslation();
+  if (label === undefined) label = t("password");
   const [show, setShow] = useState(false);
   const [focused, setFocused] = useState(false); // State nội bộ để làm hiệu ứng floating label
   const isFloating = focused || value?.length > 0;

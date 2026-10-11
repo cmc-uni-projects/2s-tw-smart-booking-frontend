@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { format, addDays } from 'date-fns';
 import { ArrowLeft, ShieldCheck, Headset, Wallet } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // Components
 import Button from '@/components/common/Button/Button';
@@ -27,34 +28,38 @@ const getFullImageUrl = (path) => {
 };
 
 // Component con: Khối An Tâm Đặt Phòng
-const TrustBadges = () => (
+const TrustBadges = () => {
+    const { t } = useTranslation("booking");
+    return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
             <div className="bg-white p-2 rounded-full text-blue-600 shadow-sm"><ShieldCheck size={20}/></div>
             <div>
-                <p className="font-bold text-sm text-gray-800">Thanh toán an toàn</p>
-                <p className="text-xs text-gray-500">Bảo mật chuẩn quốc tế</p>
+                <p className="font-bold text-sm text-gray-800">{t("trust.secureTitle")}</p>
+                <p className="text-xs text-gray-500">{t("trust.secureText")}</p>
             </div>
         </div>
         <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-100">
             <div className="bg-white p-2 rounded-full text-green-600 shadow-sm"><Wallet size={20}/></div>
             <div>
-                <p className="font-bold text-sm text-gray-800">Không phí ẩn</p>
-                <p className="text-xs text-gray-500">Minh bạch giá cả</p>
+                <p className="font-bold text-sm text-gray-800">{t("trust.noFeesTitle")}</p>
+                <p className="text-xs text-gray-500">{t("trust.noFeesText")}</p>
             </div>
         </div>
         <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-xl border border-purple-100">
             <div className="bg-white p-2 rounded-full text-purple-600 shadow-sm"><Headset size={20}/></div>
             <div>
-                <p className="font-bold text-sm text-gray-800">Hỗ trợ 24/7</p>
-                <p className="text-xs text-gray-500">Luôn sẵn sàng giúp đỡ</p>
+                <p className="font-bold text-sm text-gray-800">{t("trust.supportTitle")}</p>
+                <p className="text-xs text-gray-500">{t("trust.supportText")}</p>
             </div>
         </div>
     </div>
-);
+    );
+};
 
 export default function BookingPage() {
     const { propertyId } = useParams();
+    const { t } = useTranslation("booking");
     const location = useLocation();
     const navigate = useNavigate();
     const { currentUser } = useAuth();
@@ -175,12 +180,12 @@ export default function BookingPage() {
     // 3. Submit Booking
     const handleFinalSubmit = async () => {
         if (!currentUser) {
-            alert("Vui lòng đăng nhập để tiếp tục đặt phòng!");
+            alert(t("page.loginRequired"));
             navigate("/login", { state: { from: location.pathname + location.search } });
             return;
         }
         if (!contactData.isValid) {
-            alert("Vui lòng kiểm tra lại thông tin liên hệ.");
+            alert(t("page.checkContact"));
             return;
         }
 
@@ -229,12 +234,12 @@ export default function BookingPage() {
                     }
                 });
             } else {
-                throw new Error("Không nhận được Mã đặt phòng.");
+                throw new Error(t("page.noBookingId"));
             }
 
         } catch (error) {
             console.error("Booking Error:", error);
-            alert("Lỗi: " + (error.response?.data?.message || "Đặt phòng thất bại. Vui lòng thử lại."));
+            alert(t("common:errorPrefix") + (error.response?.data?.message || t("page.failed")));
         } finally {
             setSubmitting(false);
         }
@@ -244,14 +249,14 @@ export default function BookingPage() {
 
     if (!hotel || !room) return (
         <div className="text-center py-20 max-w-7xl mx-auto px-6">
-            <h1 className="text-2xl font-bold mb-4 text-slate-800">Không tìm thấy thông tin</h1>
-            <Button onClick={() => navigate('/hotels')}>Quay lại tìm kiếm</Button>
+            <h1 className="text-2xl font-bold mb-4 text-slate-800">{t("page.notFound")}</h1>
+            <Button onClick={() => navigate('/hotels')}>{t("page.backToSearch")}</Button>
         </div>
     );
 
     return (
         <main className="max-w-7xl mx-auto px-4 md:px-6 py-8 bg-gray-50 min-h-screen">
-            {submitting && <LoadingOverlay message="Đang xử lý đơn đặt phòng..." />}
+            {submitting && <LoadingOverlay message={t("page.processing")} />}
 
             <Button
                 variant="ghost"
@@ -259,10 +264,10 @@ export default function BookingPage() {
                 leftIcon={<ArrowLeft size={18} />}
                 className="mb-6 text-slate-500 hover:text-blue-600 pl-0 hover:bg-transparent"
             >
-                Quay lại chi tiết
+                {t("page.backToDetail")}
             </Button>
 
-            <h1 className="text-3xl font-bold mb-8 text-slate-900">Xác nhận & Đặt phòng</h1>
+            <h1 className="text-3xl font-bold mb-8 text-slate-900">{t("page.title")}</h1>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 

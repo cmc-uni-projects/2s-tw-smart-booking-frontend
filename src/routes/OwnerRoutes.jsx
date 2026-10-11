@@ -119,7 +119,7 @@ const ownerRoutes = [
         element: (
             <OwnerLayout>
                 <ProtectedRoute requiredRole="OWNER">
-                    <PlaceholderPage title="Quản lý Tác vụ" />
+                    <PlaceholderPage titleKey="owner:OwnerRoutes.taskManagement" />
                 </ProtectedRoute>
             </OwnerLayout>
         ),
@@ -129,7 +129,7 @@ const ownerRoutes = [
         element: (
             <OwnerLayout>
                 <ProtectedRoute requiredRole="OWNER">
-                    <PlaceholderPage title="Quản lý Đánh giá" />
+                    <PlaceholderPage titleKey="owner:OwnerRoutes.reviewManagement" />
                 </ProtectedRoute>
             </OwnerLayout>
         ),
@@ -139,7 +139,7 @@ const ownerRoutes = [
         element: (
             <OwnerLayout>
                 <ProtectedRoute requiredRole="OWNER">
-                    <PlaceholderPage title="Cài đặt Khách sạn" />
+                    <PlaceholderPage titleKey="owner:OwnerRoutes.hotelSettings" />
                 </ProtectedRoute>
             </OwnerLayout>
         ),
@@ -149,7 +149,7 @@ const ownerRoutes = [
         element: (
             <OwnerLayout>
                 <ProtectedRoute requiredRole="OWNER">
-                    <PlaceholderPage title="Hồ sơ Chủ nhà" />
+                    <PlaceholderPage titleKey="owner:OwnerRoutes.hostProfile" />
                 </ProtectedRoute>
             </OwnerLayout>
         ),

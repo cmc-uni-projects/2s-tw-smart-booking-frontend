@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { X, MapPin, User, Mail, Phone, Star, Building, Expand } from "lucide-react";
 import Modal from "@/components/common/Modal/Modal";
 import Button from "@/components/common/Button/Button";
-import ImageViewerModal from "@/components/common/Modal/ImageViewerModal"; // [NEW] Import
+import ImageViewerModal from "@/components/common/Modal/ImageViewerModal";
+import { useTranslation } from "react-i18next"; // [NEW] Import
 
 const PropertyDetailModal = ({ isOpen, onClose, property }) => {
+  const { t } = useTranslation();
   if (!property) return null;
 
   const [isViewerOpen, setIsViewerOpen] = useState(false); // [NEW]
@@ -30,7 +32,7 @@ const PropertyDetailModal = ({ isOpen, onClose, property }) => {
   // Chuyển đổi sang format mà ImageViewerModal yêu cầu: { url, caption }
   const viewerImages = rawImages.map((img, idx) => ({
     url: typeof img === 'string' ? img : img.imageUrl,
-    caption: `${property.propertyName} - Ảnh ${idx + 1}`
+    caption: t("admin:PropertyDetailModal.photo", { propertyName: property.propertyName, value: idx + 1 })
   }));
 
   // Hàm mở xem ảnh
@@ -44,7 +46,7 @@ const PropertyDetailModal = ({ isOpen, onClose, property }) => {
       <Modal
         open={isOpen}
         onClose={onClose}
-        title="Chi tiết Cơ sở lưu trú"
+        title={t("admin:PropertyDetailModal.propertyDetails")}
         maxWidth="max-w-4xl"
       >
         <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-2 pb-4">
@@ -99,12 +101,12 @@ const PropertyDetailModal = ({ isOpen, onClose, property }) => {
               
               <div className="flex items-center gap-2 mb-2">
                 <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold uppercase tracking-wider">
-                  {property.propertyType || "Khách sạn"}
+                  {property.propertyType || t("admin:PropertyDetailModal.hotel")}
                 </span>
                 <div className="flex items-center gap-1 text-yellow-500">
                   <Star size={16} fill="currentColor" />
                   <span className="font-medium text-gray-700">{property.rating || 0}</span>
-                  <span className="text-gray-400 text-sm">({property.reviewCount || 0} đánh giá)</span>
+                  <span className="text-gray-400 text-sm">({property.reviewCount || 0} {t("admin:PropertyDetailModal.reviews")}</span>
                 </div>
               </div>
             </div>
@@ -112,11 +114,11 @@ const PropertyDetailModal = ({ isOpen, onClose, property }) => {
             {/* Thông tin chủ sở hữu */}
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
               <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                <User size={18} /> Thông tin Chủ sở hữu
+                <User size={18} /> {t("admin:PropertyDetailModal.ownerInformation")}
               </h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Họ tên:</span>
+                  <span className="text-gray-500">{t("admin:PropertyDetailModal.name")}</span>
                   <span className="font-medium text-gray-800">{property.ownerName || "---"}</span>
                 </div>
                 <div className="flex justify-between">
@@ -124,7 +126,7 @@ const PropertyDetailModal = ({ isOpen, onClose, property }) => {
                   <span className="font-medium text-gray-800">{property.emailContact || "---"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500 flex items-center gap-1"><Phone size={14}/> SĐT:</span>
+                  <span className="text-gray-500 flex items-center gap-1"><Phone size={14}/> {t("admin:PropertyDetailModal.phone")}</span>
                   <span className="font-medium text-gray-800">{property.phoneContact || "---"}</span>
                 </div>
               </div>
@@ -133,16 +135,16 @@ const PropertyDetailModal = ({ isOpen, onClose, property }) => {
 
           {/* 3. Mô tả */}
           <div>
-            <h3 className="font-semibold text-gray-800 mb-2 border-b border-gray-100 pb-2">Mô tả giới thiệu</h3>
+            <h3 className="font-semibold text-gray-800 mb-2 border-b border-gray-100 pb-2">{t("admin:PropertyDetailModal.description")}</h3>
             <p className="text-gray-600 leading-relaxed whitespace-pre-line text-sm">
-              {property.description || "Chưa có mô tả."}
+              {property.description || t("admin:PropertyDetailModal.noDescriptionYet")}
             </p>
           </div>
 
           {/* 4. Tiện ích */}
           {property.amenities && property.amenities.length > 0 && (
             <div>
-              <h3 className="font-semibold text-gray-800 mb-3 border-b border-gray-100 pb-2">Tiện ích nổi bật</h3>
+              <h3 className="font-semibold text-gray-800 mb-3 border-b border-gray-100 pb-2">{t("admin:PropertyDetailModal.featuredAmenities")}</h3>
               <div className="flex flex-wrap gap-2">
                 {property.amenities.map((am, idx) => (
                   <span key={idx} className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-sm border border-gray-200">
@@ -156,7 +158,7 @@ const PropertyDetailModal = ({ isOpen, onClose, property }) => {
 
         <div className="mt-6 flex justify-end border-t border-gray-100 pt-4">
           <Button onClick={onClose} variant="ghost" className="bg-gray-100 hover:bg-gray-200 text-gray-700">
-            Đóng
+            {t("admin:PropertyDetailModal.close")}
           </Button>
         </div>
       </Modal>

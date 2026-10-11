@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { X, CheckCircle, XCircle, AlertTriangle, Send } from "lucide-react";
 import Button from "@/components/common/Button/Button";
 import ModalPortal from "@/components/common/Modal/ModalPortal";
+import { useTranslation } from "react-i18next";
 
 const AdminRefundModal = ({ isOpen, onClose, onConfirm, type }) => {
+  const { t } = useTranslation();
   const [note, setNote] = useState("");
   const isApprove = type === "APPROVE";
 
@@ -65,7 +67,7 @@ const AdminRefundModal = ({ isOpen, onClose, onConfirm, type }) => {
                 ].join(" ")}
               >
                 {isApprove ? <CheckCircle size={20} /> : <XCircle size={20} />}
-                {isApprove ? "Xác nhận Duyệt" : "Xác nhận Từ chối"}
+                {isApprove ? t("admin:AdminRefundModal.confirmApproval") : t("admin:AdminRefundModal.confirmRejection")}
               </h3>
 
               <button
@@ -82,31 +84,30 @@ const AdminRefundModal = ({ isOpen, onClose, onConfirm, type }) => {
                 <div className="bg-emerald-50 p-3 rounded-xl text-emerald-800 text-sm flex gap-2 border border-emerald-100">
                   <AlertTriangle size={16} className="shrink-0 mt-0.5" />
                   <p>
-                    Trạng thái sẽ chuyển thành <strong>ĐÃ HOÀN TIỀN</strong>.
-                    Hãy đảm bảo bạn đã chuyển khoản thành công tới STK khách hàng cung cấp.
+                    {t("admin:AdminRefundModal.theStatusWillChangeTo")} <strong>{t("admin:AdminRefundModal.refunded")}</strong>{t("admin:AdminRefundModal.makeSureYouHaveSuccessfully")}
                   </p>
                 </div>
               ) : (
                 <div className="bg-rose-50 p-3 rounded-xl text-rose-800 text-sm flex gap-2 border border-rose-100">
                   <AlertTriangle size={16} className="shrink-0 mt-0.5" />
                   <p>
-                    Yêu cầu sẽ bị hủy bỏ và trạng thái đơn hàng quay về{" "}
-                    <strong>ĐÃ THANH TOÁN</strong>.
+                    {t("admin:AdminRefundModal.theRequestWillBeCancelled")}{" "}
+                    <strong>{t("admin:AdminRefundModal.paid")}</strong>.
                   </p>
                 </div>
               )}
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Ghi chú giao dịch <span className="text-red-500">*</span>
+                  {t("admin:AdminRefundModal.transactionNote")} <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm"
                   rows={3}
                   placeholder={
                     isApprove
-                      ? "Nhập mã giao dịch ngân hàng (Ref No)..."
-                      : "Nhập lý do từ chối..."
+                      ? t("admin:AdminRefundModal.enterTheBankTransactionCode")
+                      : t("admin:AdminRefundModal.enterTheRejectionReason")
                   }
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
@@ -127,7 +128,7 @@ const AdminRefundModal = ({ isOpen, onClose, onConfirm, type }) => {
                 disabled={!note.trim()}
               >
                 {isApprove ? <Send size={18} /> : <XCircle size={18} />}
-                {isApprove ? "Đã chuyển tiền" : "Từ chối hoàn"}
+                {isApprove ? t("admin:AdminRefundModal.moneyTransferred") : t("admin:AdminRefundModal.rejectRefund")}
               </Button>
             </div>
           </div>

@@ -1,6 +1,13 @@
-import api from "./axios.config.js"; // API instance
+import api from "./axios.config.js";
+import i18n from "@/i18n"; // API instance
 
 export const userService = {
+
+  /** Saves the account language ("vi" | "en") used for emails and notifications. */
+  updateLanguage: async (language) => {
+    const res = await api.put("/user-details/language", { language });
+    return res.data;
+  },
 
   /**
    * Lấy thông tin chi tiết (User + UserDetail)
@@ -81,7 +88,7 @@ export const userService = {
       if (data?.fileDownloadUri) return data.fileDownloadUri;
       if (data?.url) return data.url;
 
-      throw new Error("API upload không trả về URL hợp lệ");
+      throw new Error(i18n.t("common:userservice.theUploadApiDidNot"));
     } catch (error) {
       console.error("Error uploading file:", error);
       throw error;

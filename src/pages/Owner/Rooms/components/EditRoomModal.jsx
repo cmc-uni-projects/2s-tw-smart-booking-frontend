@@ -17,6 +17,8 @@ import {
     BedDouble, Users, DollarSign, Image as ImageIcon, Package, Trash2,
     Wine, Ban, Star, RefreshCw, Loader2, CheckCircle, AlertCircle
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 // --- CONFIG ---
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
@@ -42,32 +44,33 @@ const parseCurrency = (value) => {
 
 const ROOM_AMENITIES = [
     { id: "tv", label: "TV", icon: <Tv size={20} /> },
-    { id: "ac", label: "Điều hòa", icon: <Snowflake size={20} /> },
+    { id: "ac", get label() { return i18n.t("owner:EditRoomModal.airConditioning"); }, icon: <Snowflake size={20} /> },
     { id: "minibar", label: "Minibar", icon: <Wine size={20} /> },
-    { id: "tea_coffee", label: "Trà/Cà phê", icon: <Coffee size={20} /> },
+    { id: "tea_coffee", get label() { return i18n.t("owner:EditRoomModal.teaCoffee"); }, icon: <Coffee size={20} /> },
     { id: "wifi", label: "Wifi", icon: <Wifi size={20} /> },
-    { id: "bathtub", label: "Bồn tắm", icon: <Bath size={20} /> },
-    { id: "balcony", label: "Ban công", icon: <Wind size={20} /> },
-    { id: "non_smoking", label: "Không hút thuốc", icon: <Ban size={20} /> },
+    { id: "bathtub", get label() { return i18n.t("owner:EditRoomModal.bathtub"); }, icon: <Bath size={20} /> },
+    { id: "balcony", get label() { return i18n.t("owner:EditRoomModal.balcony"); }, icon: <Wind size={20} /> },
+    { id: "non_smoking", get label() { return i18n.t("owner:EditRoomModal.nonSmoking"); }, icon: <Ban size={20} /> },
 ];
 
 const ROOM_CATEGORIES = [
-    { value: "STANDARD", label: "Tiêu chuẩn (Standard)" },
-    { value: "DELUXE", label: "Sang trọng (Deluxe)" },
-    { value: "SUITE", label: "Cao cấp (Suite)" },
+    { value: "STANDARD", get label() { return i18n.t("owner:EditRoomModal.standard"); } },
+    { value: "DELUXE", get label() { return i18n.t("owner:EditRoomModal.deluxe"); } },
+    { value: "SUITE", get label() { return i18n.t("owner:EditRoomModal.suite"); } },
 ];
 
 const schema = yup.object({
-    roomName: yup.string().required("Vui lòng nhập tên phòng"),
-    roomCategory: yup.string().required("Chọn loại phòng"),
-    pricePerNight: yup.string().required("Nhập giá phòng").test("min", "Giá > 0", v => Number(parseCurrency(v)) > 0),
-    weekendPrice: yup.string().nullable().test("min-weekend", "Giá > 0", v => !v || Number(parseCurrency(v)) > 0),
-    capacity: yup.number().min(1, "Tối thiểu 1 người").required("Nhập sức chứa"),
+    roomName: yup.string().required(() => i18n.t("owner:EditRoomModal.pleaseEnterTheRoomName")),
+    roomCategory: yup.string().required(() => i18n.t("owner:EditRoomModal.chooseARoomType")),
+    pricePerNight: yup.string().required(() => i18n.t("owner:EditRoomModal.enterTheRoomPrice")).test("min", () => i18n.t("owner:EditRoomModal.priceMustBe0"), v => Number(parseCurrency(v)) > 0),
+    weekendPrice: yup.string().nullable().test("min-weekend", () => i18n.t("owner:EditRoomModal.priceMustBe0"), v => !v || Number(parseCurrency(v)) > 0),
+    capacity: yup.number().min(1, () => i18n.t("owner:EditRoomModal.atLeast1Guest")).required(() => i18n.t("owner:EditRoomModal.enterTheCapacity")),
     description: yup.string().nullable(),
     amenities: yup.object().nullable(),
 });
 
 export default function EditRoomModal({ open, onClose, room, propertyId, onSuccess, showToast }) {
+  const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
     const [currentImages, setCurrentImages] = useState([]);
     const [newImages, setNewImages] = useState([]);
@@ -121,7 +124,7 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
                 setIsNameValid(true);
             } catch (error) {
                 setIsNameValid(false);
-                const serverMessage = error.response?.data?.message || "Tên phòng này đã tồn tại.";
+                const serverMessage = error.response?.data?.message || t("owner:EditRoomModal.thisRoomNameAlreadyExists");
                 setError("roomName", { type: "manual", message: serverMessage });
             } finally {
                 setIsCheckingName(false);
@@ -191,22 +194,22 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
             await roomService.setRoomCoverImage(room.roomId, imageId);
             const updated = currentImages.map(img => ({...img, isCover: img.roomImageId === imageId}));
             setCurrentImages(updated);
-            if(showToast) showToast("Đã đặt ảnh bìa", "success");
+            if(showToast) showToast(t("owner:EditRoomModal.coverPhotoSet"), "success");
         } catch (e) {
-            if(showToast) showToast("Lỗi đặt ảnh bìa", "error");
+            if(showToast) showToast(t("owner:EditRoomModal.failedToSetTheCover"), "error");
         } finally { setIsLoading(false); }
     };
 
     const handleDeleteImage = async (imageId) => {
         if (!room?.roomId) return;
-        if(!window.confirm("Bạn có chắc muốn xóa ảnh này?")) return;
+        if(!window.confirm(t("owner:EditRoomModal.areYouSureYouWant"))) return;
         try {
             setIsLoading(true);
             await roomService.deleteRoomImage(room.roomId, imageId);
             setCurrentImages(prev => prev.filter(img => img.roomImageId !== imageId));
-            if(showToast) showToast("Đã xóa ảnh", "success");
+            if(showToast) showToast(t("owner:EditRoomModal.photoDeleted"), "success");
         } catch (e) {
-            if(showToast) showToast("Lỗi xóa ảnh", "error");
+            if(showToast) showToast(t("owner:EditRoomModal.failedToDeleteThePhoto"), "error");
         } finally { setIsLoading(false); }
     };
 
@@ -245,7 +248,7 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
 
         } catch (error) {
             console.error(error);
-            if(showToast) showToast(error.message || "Có lỗi xảy ra", "error");
+            if(showToast) showToast(error.message || t("owner:EditRoomModal.somethingWentWrong"), "error");
         } finally {
             setIsLoading(false);
         }
@@ -253,17 +256,17 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
 
     return (
         <>
-            {isLoading && <LoadingOverlay message="Đang xử lý..." />}
+            {isLoading && <LoadingOverlay message={t("owner:EditRoomModal.processing")} />}
             <Modal
                 open={open}
                 onClose={onClose}
-                title={isEditMode ? `Cập nhật: ${room.roomName}` : "Thêm phòng mới"}
+                title={isEditMode ? t("owner:EditRoomModal.update", { roomName: room.roomName }) : t("owner:EditRoomModal.addNewRoom")}
                 maxWidth="max-w-4xl"
             >
                 <form onSubmit={handleSubmit(onSubmit)} className="p-1 max-h-[75vh] overflow-y-auto pr-2">
 
                     <section className="mb-6">
-                        <h4 className="text-blue-600 font-semibold mb-3 flex items-center gap-2"><BedDouble size={20}/> Thông tin phòng</h4>
+                        <h4 className="text-blue-600 font-semibold mb-3 flex items-center gap-2"><BedDouble size={20}/> {t("owner:EditRoomModal.roomInformation")}</h4>
 
                         {/* ✅ LAYOUT MỚI: Grid 2 cột thẳng hàng */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
@@ -271,7 +274,7 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
                             {/* Tên phòng: Chiếm 2 cột để rộng rãi */}
                             <div className="relative md:col-span-2">
                                 <FloatingTextField
-                                    label="Tên phòng (Số phòng)"
+                                    label={t("owner:EditRoomModal.roomNameRoomNumber")}
                                     placeholder=" "
                                     {...register("roomName")}
                                     error={errors.roomName?.message}
@@ -288,12 +291,12 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
                                 <select {...register("roomCategory")} className="w-full px-4 py-3.5 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-blue-100 outline-none appearance-none pt-5 pb-2">
                                     {ROOM_CATEGORIES.map(cat => (<option key={cat.value} value={cat.value}>{cat.label}</option>))}
                                 </select>
-                                <label className="absolute left-4 top-1 text-xs text-gray-500 font-medium pointer-events-none">Loại phòng</label>
+                                <label className="absolute left-4 top-1 text-xs text-gray-500 font-medium pointer-events-none">{t("owner:EditRoomModal.roomType")}</label>
                             </div>
 
                             {/* Sức chứa */}
                             <div className="relative">
-                                <FloatingTextField label="Sức chứa (Người)" type="number" placeholder=" " {...register("capacity")} error={errors.capacity?.message} />
+                                <FloatingTextField label={t("owner:EditRoomModal.capacityGuests")} type="number" placeholder=" " {...register("capacity")} error={errors.capacity?.message} />
                                 <Users className="absolute right-3 top-3.5 text-gray-400 pointer-events-none" size={18}/>
                             </div>
 
@@ -305,7 +308,7 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
                                     render={({ field: { onChange, value, ref } }) => (
                                         <FloatingTextField
                                             ref={ref}
-                                            label="Giá một đêm (VNĐ)"
+                                            label={t("owner:EditRoomModal.pricePerNightVnd")}
                                             placeholder="VD: 500.000"
                                             value={value}
                                             onChange={(e) => onChange(formatCurrency(e.target.value))}
@@ -324,7 +327,7 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
                                     render={({ field: { onChange, value, ref } }) => (
                                         <FloatingTextField
                                             ref={ref}
-                                            label="Giá cuối tuần (T7, CN)"
+                                            label={t("owner:EditRoomModal.weekendPriceSatSun")}
                                             placeholder="VD: 700.000"
                                             value={value}
                                             onChange={(e) => onChange(formatCurrency(e.target.value))}
@@ -339,12 +342,12 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
 
                         {/* Mô tả */}
                         <div className="mt-4">
-                            <TextArea label="Mô tả phòng" rows={3} placeholder=" " {...register("description")} />
+                            <TextArea label={t("owner:EditRoomModal.roomDescription")} rows={3} placeholder=" " {...register("description")} />
                         </div>
                     </section>
 
                     <section className="mb-6">
-                        <h4 className="text-blue-600 font-semibold mb-3 flex items-center gap-2"><Package size={20}/> Tiện nghi phòng</h4>
+                        <h4 className="text-blue-600 font-semibold mb-3 flex items-center gap-2"><Package size={20}/> {t("owner:EditRoomModal.roomAmenities")}</h4>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             {ROOM_AMENITIES.map(item => (
                                 <AmenityOption
@@ -362,7 +365,7 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
                     <section>
                         <div className="flex justify-between items-center mb-4">
                             <h4 className="text-blue-600 font-semibold flex items-center gap-2">
-                                <ImageIcon size={20}/> Quản lý hình ảnh
+                                <ImageIcon size={20}/> {t("owner:EditRoomModal.photoManagement")}
                             </h4>
                             <Button
                                 type="button"
@@ -394,21 +397,21 @@ export default function EditRoomModal({ open, onClose, room, propertyId, onSucce
                                 </div>
                             ) : (
                                 <div className="p-8 text-center border-2 border-dashed rounded-xl bg-gray-50 text-gray-400">
-                                    {isEditMode ? "Chưa có ảnh nào trong album." : "Lưu phòng trước để quản lý ảnh chi tiết."}
+                                    {isEditMode ? t("owner:EditRoomModal.theAlbumHasNoPhotos") : t("owner:EditRoomModal.saveTheRoomFirstTo")}
                                 </div>
                             )}
                         </div>
 
                         <div>
-                            <h4 className="text-sm font-medium text-gray-600 mb-2">Tải lên ảnh mới:</h4>
-                            <ImageUploadGrid multiple={true} value={newImages} onChange={setNewImages} placeholder="Tải lên ảnh (Tối đa 5 ảnh)" />
+                            <h4 className="text-sm font-medium text-gray-600 mb-2">{t("owner:EditRoomModal.uploadNewPhotos")}</h4>
+                            <ImageUploadGrid multiple={true} value={newImages} onChange={setNewImages} placeholder={t("owner:EditRoomModal.uploadPhotosMax5")} />
                         </div>
                     </section>
 
                     <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-100">
-                        <Button type="button" variant="ghost" onClick={onClose}>Hủy bỏ</Button>
+                        <Button type="button" variant="ghost" onClick={onClose}>{t("owner:EditRoomModal.cancel")}</Button>
                         <Button type="submit" disabled={isCheckingName || isNameValid === false}>
-                            {isEditMode ? "Lưu thay đổi" : "Tạo phòng ngay"}
+                            {isEditMode ? t("owner:EditRoomModal.saveChanges") : t("owner:EditRoomModal.createRoom")}
                         </Button>
                     </div>
                 </form>

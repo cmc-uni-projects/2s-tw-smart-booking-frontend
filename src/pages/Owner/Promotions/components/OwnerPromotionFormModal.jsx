@@ -11,7 +11,8 @@ import propertyService from "@/services/property.service";
 import toast from "react-hot-toast";
 import Toast from "@/components/common/Notification/Toast";
 import CustomSelect from "@/components/common/Select/CustomSelect";
-import DatePickerInput from "@/components/common/Input/DatePickerInput"; // [NEW] Import DatePickerInput
+import DatePickerInput from "@/components/common/Input/DatePickerInput";
+import { useTranslation } from "react-i18next"; // [NEW] Import DatePickerInput
 
 const BE_BASE_URL = "http://localhost:8386";
 const UPLOAD_DIR = "/uploads/";
@@ -102,6 +103,7 @@ const TimePicker = ({ value, onChange, error }) => {
 
 
 const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
+  const { t } = useTranslation();
     const [promotionTypeOption, setPromotionTypeOption] = useState("FIXED_AMOUNT");
 
     // BRONZE
@@ -140,14 +142,14 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
             try {
                 const res = await propertyService.getOwnerActiveProperties();
                 const activeProps = res.data || [];
-                let options = [{ value: "ALL", label: "Tất cả khách sạn của tôi" }];
+                let options = [{ value: "ALL", label: t("owner:OwnerPromotionFormModal.allMyHotels") }];
                 options = [
                     ...options,
                     ...activeProps.map(p => ({ value: p.propertyId, label: p.propertyName }))
                 ];
                 setProperties(options);
             } catch (error) {
-                console.error("Lỗi tải danh sách khách sạn", error);
+                console.error("Failed to load hotels", error);
             }
         };
         if (open) loadProperties();
@@ -206,7 +208,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.size > 5 * 1024 * 1024) { showToast("error", "Ảnh quá lớn (Max 5MB)"); return; }
+            if (file.size > 5 * 1024 * 1024) { showToast("error", t("owner:OwnerPromotionFormModal.imageTooLargeMax5mb")); return; }
             setBannerFile(file);
             setPreviewUrl(URL.createObjectURL(file));
         }
@@ -265,45 +267,45 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
 
     const validateForm = () => {
         const newErrors = {};
-        if (!formData.code.trim()) newErrors.code = "Mã không được để trống";
-        if (!formData.name.trim()) newErrors.name = "Tên chương trình là bắt buộc";
+        if (!formData.code.trim()) newErrors.code = t("owner:OwnerPromotionFormModal.codeIsRequired");
+        if (!formData.name.trim()) newErrors.name = t("owner:OwnerPromotionFormModal.campaignNameIsRequired");
 
-        if (!formData.value) newErrors.value = "Nhập mức giảm";
+        if (!formData.value) newErrors.value = t("owner:OwnerPromotionFormModal.enterTheDiscount");
         else {
             const val = Number(formData.value);
             if (promotionTypeOption === "FIXED_AMOUNT") {
-                if (val < MIN_VND) newErrors.value = `Giảm tối thiểu ${formatCurrency(MIN_VND)}đ`;
+                if (val < MIN_VND) newErrors.value = t("owner:OwnerPromotionFormModal.minimumDiscountIs", { value: formatCurrency(MIN_VND) });
             } else {
-                if (val <= 0) newErrors.value = "Phần trăm phải > 0";
-                if (val > 100) newErrors.value = "Không được quá 100%";
+                if (val <= 0) newErrors.value = t("owner:OwnerPromotionFormModal.percentageMustBe0");
+                if (val > 100) newErrors.value = t("owner:OwnerPromotionFormModal.cannotExceed100");
             }
         }
 
-        if (formData.minOrder === "" || formData.minOrder === null) newErrors.minOrder = "Nhập giá trị đơn tối thiểu";
+        if (formData.minOrder === "" || formData.minOrder === null) newErrors.minOrder = t("owner:OwnerPromotionFormModal.enterTheMinimumOrderValue");
         else {
             const minOrd = Number(formData.minOrder);
-            if (minOrd < 0) newErrors.minOrder = "Không được âm";
-            else if (minOrd > 0 && minOrd < MIN_VND) newErrors.minOrder = `Phải từ ${formatCurrency(MIN_VND)}đ trở lên`;
+            if (minOrd < 0) newErrors.minOrder = t("owner:OwnerPromotionFormModal.cannotBeNegative");
+            else if (minOrd > 0 && minOrd < MIN_VND) newErrors.minOrder = t("owner:OwnerPromotionFormModal.mustBeAtLeast", { value: formatCurrency(MIN_VND) });
         }
 
         if (promotionTypeOption === 'PERCENTAGE_CAPPED') {
             if (!formData.maxDiscount || Number(formData.maxDiscount) <= 0) {
-                newErrors.maxDiscount = "Bắt buộc nhập mức giảm tối đa";
+                newErrors.maxDiscount = t("owner:OwnerPromotionFormModal.maximumDiscountIsRequired");
             } else {
                 const maxDisc = Number(formData.maxDiscount);
-                if (maxDisc < MIN_VND) newErrors.maxDiscount = `Phải từ ${formatCurrency(MIN_VND)}đ trở lên`;
+                if (maxDisc < MIN_VND) newErrors.maxDiscount = t("owner:OwnerPromotionFormModal.mustBeAtLeast", { value: formatCurrency(MIN_VND) });
             }
         }
 
-        if (formData.quantity && Number(formData.quantity) <= 0) newErrors.quantity = "Số lượng phải lớn hơn 0";
+        if (formData.quantity && Number(formData.quantity) <= 0) newErrors.quantity = t("owner:OwnerPromotionFormModal.quantityMustBeGreaterThan");
 
-        if (!formData.startDate) { newErrors.startDate = "Chọn ngày giờ bắt đầu"; }
-        else if (!formData.startDate.includes('T')) { newErrors.startDate = "Thiếu thông tin giờ"; }
-        else if (!validateYear(formData.startDate)) { newErrors.startDate = "Năm không hợp lệ"; }
+        if (!formData.startDate) { newErrors.startDate = t("owner:OwnerPromotionFormModal.chooseTheStartDateAnd"); }
+        else if (!formData.startDate.includes('T')) { newErrors.startDate = t("owner:OwnerPromotionFormModal.timeIsMissing"); }
+        else if (!validateYear(formData.startDate)) { newErrors.startDate = t("owner:OwnerPromotionFormModal.invalidYear"); }
 
-        if (!formData.endDate) { newErrors.endDate = "Chọn ngày giờ kết thúc"; }
-        else if (!formData.endDate.includes('T')) { newErrors.endDate = "Thiếu thông tin giờ"; }
-        else if (!validateYear(formData.endDate)) { newErrors.endDate = "Năm không hợp lệ"; }
+        if (!formData.endDate) { newErrors.endDate = t("owner:OwnerPromotionFormModal.chooseTheEndDateAnd"); }
+        else if (!formData.endDate.includes('T')) { newErrors.endDate = t("owner:OwnerPromotionFormModal.timeIsMissing"); }
+        else if (!validateYear(formData.endDate)) { newErrors.endDate = t("owner:OwnerPromotionFormModal.invalidYear"); }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -315,8 +317,8 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
             const end = new Date(formData.endDate);
             const today = new Date(); today.setHours(0, 0, 0, 0);
 
-            if (!initialData && start < today) { showToast("error", "Ngày bắt đầu không được chọn trong quá khứ."); return; }
-            if (end <= start) { showToast("error", "Thời gian kết thúc phải lớn hơn thời gian bắt đầu."); return; }
+            if (!initialData && start < today) { showToast("error", t("owner:OwnerPromotionFormModal.theStartDateCannotBe")); return; }
+            if (end <= start) { showToast("error", t("owner:OwnerPromotionFormModal.theEndTimeMustBe")); return; }
 
             setIsLoading(true);
             try {
@@ -335,7 +337,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         const blob = await response.blob();
                         fileToUpload = new File([blob], "existing_banner.jpg", { type: blob.type });
                     } catch (e) {
-                        console.warn("Không thể tải ảnh banner cũ để nhân bản:", e);
+                        console.warn("Could not load the old banner image to duplicate:", e);
                     }
                 }
 
@@ -344,7 +346,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
 
                 if (selectedProperty === "ALL") {
                     if (realProperties.length === 0) {
-                        showToast("error", "Bạn chưa có khách sạn nào.");
+                        showToast("error", t("owner:OwnerPromotionFormModal.youHaveNoHotelsYet"));
                         setIsLoading(false); return;
                     }
 
@@ -377,18 +379,20 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
 
                             successCount++;
                         } catch (err) {
-                            const hotelLabel = properties.find(p => p.value === propId)?.label || "Khách sạn";
+                            const hotelLabel = properties.find(p => p.value === propId)?.label || t("owner:OwnerPromotionFormModal.hotel");
                             const msg = err.response?.data?.message || "";
-                            if (msg.includes("đã tồn tại") || msg.includes("đã được sử dụng")) {
+                            const code = err.response?.data?.code || "";
+                            if (code === "error.promotion.codeConflict" || code === "error.promotion.codeInUse") {
                                 skippedHotels.push(hotelLabel);
                             } else {
                                 // [EDIT] Sửa logic hiển thị lỗi tại đây
-                                if (msg.includes("Ngày bắt đầu không được chọn trong quá khứ") || msg.includes("Thời gian")) {
+                                // Date errors are the same for every hotel: show them once
+                                if (code === "error.promotion.startInPast" || code === "error.promotion.endBeforeStart") {
                                     if (!otherErrors.includes(msg)) {
                                         otherErrors.push(msg);
                                     }
                                 } else {
-                                    otherErrors.push(`${hotelLabel}: ${msg || "Lỗi"}`);
+                                    otherErrors.push(`${hotelLabel}: ${msg || t("owner:OwnerPromotionFormModal.error")}`);
                                 }
                             }
                             throw err;
@@ -412,27 +416,27 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
 
                     if (skippedHotels.length > 0 || otherErrors.length > 0) {
                         if (successCount === 0) {
-                            let msg = "Không thể áp dụng mã khuyến mãi.";
+                            let msg = t("owner:OwnerPromotionFormModal.couldNotApplyThePromotion");
                             if (skippedHotels.length > 0) {
-                                msg = ` Tất cả ${skippedHotels.length} khách sạn đã có mã này: ${skippedHotels.join(", ")}.`;
+                                msg = t("owner:OwnerPromotionFormModal.allHotelsAlreadyHaveThis", { length: skippedHotels.length, value: skippedHotels.join(", ") });
                             } else if (otherErrors.length > 0) {
-                                msg = ` Lỗi: ${otherErrors[0]}`;
+                                msg = t("owner:OwnerPromotionFormModal.error2", { value: otherErrors[0] });
                             }
                             showToast("error", msg);
                         } else {
-                            let msg = `Đã áp dụng thành công cho ${successCount} khách sạn.`;
+                            let msg = t("owner:OwnerPromotionFormModal.appliedSuccessfullyToHotels", { successCount });
                             if (skippedHotels.length > 0) {
                                 const displayNames = skippedHotels.slice(0, 3).join(", ");
-                                const moreText = skippedHotels.length > 3 ? `... và ${skippedHotels.length - 3} KS khác` : "";
-                                msg += `\n Bỏ qua ${skippedHotels.length} khách sạn trùng mã: ${displayNames}${moreText}`;
+                                const moreText = skippedHotels.length > 3 ? t("owner:OwnerPromotionFormModal.andMoreHotels", { value: skippedHotels.length - 3 }) : "";
+                                msg += t("owner:OwnerPromotionFormModal.skippedHotelsWithADuplicate", { length: skippedHotels.length, displayNames, moreText });
                             }
                             if (otherErrors.length > 0) {
-                                msg += `\n Lỗi khác: ${otherErrors[0]}`;
+                                msg += t("owner:OwnerPromotionFormModal.otherErrors", { value: otherErrors[0] });
                             }
                             showToast("success", msg);
                         }
                     } else {
-                        showToast("success", "Đã áp dụng thành công cho tất cả khách sạn!");
+                        showToast("success", t("owner:OwnerPromotionFormModal.appliedSuccessfullyToAllHotels"));
                     }
 
 
@@ -444,7 +448,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                             propertyId: selectedProperty
                         });
                         if (bannerFile) await promotionService.uploadBanner(initialData.promotionId, bannerFile);
-                        showToast("success", "Cập nhật thành công!");
+                        showToast("success", t("owner:OwnerPromotionFormModal.updatedSuccessfully"));
                     } else {
                         const res = await promotionService.createPromotion({
                             ...submitData,
@@ -453,7 +457,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         });
                         const newId = res.data?.data?.promotionId || res.data?.promotionId;
                         if (bannerFile && newId) await promotionService.uploadBanner(newId, bannerFile);
-                        showToast("success", "Tạo thành công!");
+                        showToast("success", t("owner:OwnerPromotionFormModal.createdSuccessfully"));
                     }
                 }
 
@@ -462,7 +466,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
             } catch (error) {
                 console.error(error);
                 if (selectedProperty !== "ALL") {
-                    showToast("error", error.response?.data?.message || "Lỗi xử lý");
+                    showToast("error", error.response?.data?.message || t("owner:OwnerPromotionFormModal.processingError"));
                 }
             } finally {
                 setIsLoading(false);
@@ -480,7 +484,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                 <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-[rgb(40,169,224)] to-[rgb(26,140,189)] text-white rounded-t-2xl">
                     <h3 className="text-xl font-bold flex items-center gap-2">
                         {initialData ? <CheckCircle2 size={22}/> : <Tag size={22}/>}
-                        {initialData ? "Sửa khuyến mãi" : "Tạo khuyến mãi mới"}
+                        {initialData ? t("owner:OwnerPromotionFormModal.editPromotion") : t("owner:OwnerPromotionFormModal.createNewPromotion")}
                     </h3>
                     <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full"><X size={20}/></button>
                 </div>
@@ -489,18 +493,18 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
 
 
                     <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-700 ml-1">Banner Khuyến Mãi</label>
+                        <label className="text-sm font-semibold text-gray-700 ml-1">{t("owner:OwnerPromotionFormModal.promotionBanner")}</label>
                         <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50/50 transition-colors relative overflow-hidden group">
-                            {previewUrl ? <img src={previewUrl} alt="Banner" className="w-full h-full object-contain z-10" onError={handleImageError} /> : <div className="flex flex-col items-center text-gray-400"><ImageIcon size={40} className="mb-2 opacity-50" /><span className="text-sm font-medium">Nhấn để tải ảnh lên</span><span className="text-xs opacity-70">(JPG, PNG - Max 5MB)</span></div>}
+                            {previewUrl ? <img src={previewUrl} alt="Banner" className="w-full h-full object-contain z-10" onError={handleImageError} /> : <div className="flex flex-col items-center text-gray-400"><ImageIcon size={40} className="mb-2 opacity-50" /><span className="text-sm font-medium">{t("owner:OwnerPromotionFormModal.clickToUploadAnImage")}</span><span className="text-xs opacity-70">(JPG, PNG - Max 5MB)</span></div>}
                             <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
-                            {previewUrl && <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none"><p className="text-white font-semibold flex items-center gap-2"><Upload size={18}/> Thay đổi ảnh</p></div>}
+                            {previewUrl && <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none"><p className="text-white font-semibold flex items-center gap-2"><Upload size={18}/> {t("owner:OwnerPromotionFormModal.changeImage")}</p></div>}
                         </div>
                     </div>
 
 
                     <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
                         <CustomSelect
-                            label="Áp dụng cho khách sạn"
+                            label={t("owner:OwnerPromotionFormModal.applyToHotel")}
                             value={selectedProperty}
                             onChange={(val) => setSelectedProperty(val)}
                             icon={<Home />}
@@ -508,41 +512,41 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                         />
                         {selectedProperty === "ALL" && (
                             <div className="mt-2 text-xs text-blue-600 italic space-y-1">
-                                <p>* Mã khuyến mãi này sẽ được tạo cho <strong>tất cả khách sạn</strong> của bạn.</p>
-                                <p className="text-orange-600 font-semibold">* Nếu khách sạn nào đã có mã trùng tên, hệ thống sẽ tự động bỏ qua khách sạn đó.</p>
+                                <p>{t("owner:OwnerPromotionFormModal.thisPromotionCodeWillBe")} <strong>{t("owner:OwnerPromotionFormModal.allHotels")}</strong> {t("owner:OwnerPromotionFormModal.ofYours")}</p>
+                                <p className="text-orange-600 font-semibold">{t("owner:OwnerPromotionFormModal.ifAHotelAlreadyHas")}</p>
                             </div>
                         )}
                     </div>
 
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                        <div className="sm:col-span-1"><CustomInput label="Mã Code" name="code" value={formData.code} onChange={handleChange} placeholder="VD: SALE50" icon={Tag} error={errors.code} /></div>
-                        <div className="sm:col-span-2"><CustomInput label="Tên chương trình" name="name" value={formData.name} onChange={handleChange} placeholder="VD: Siêu sale hè" icon={CheckCircle2} error={errors.name} /></div>
+                        <div className="sm:col-span-1"><CustomInput label={t("owner:OwnerPromotionFormModal.code")} name="code" value={formData.code} onChange={handleChange} placeholder="VD: SALE50" icon={Tag} error={errors.code} /></div>
+                        <div className="sm:col-span-2"><CustomInput label={t("owner:OwnerPromotionFormModal.campaignName")} name="name" value={formData.name} onChange={handleChange} placeholder={t("owner:OwnerPromotionFormModal.eGSummerSuperSale")} icon={CheckCircle2} error={errors.name} /></div>
                     </div>
 
 
                     <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
-                        <CustomSelect label="Loại giảm giá" name="type" value={promotionTypeOption} onChange={(val) => handleTypeChange(val)} icon={<Layers />}
+                        <CustomSelect label={t("owner:OwnerPromotionFormModal.discountType")} name="type" value={promotionTypeOption} onChange={(val) => handleTypeChange(val)} icon={<Layers />}
                                       options={[
-                                          { value: "FIXED_AMOUNT", label: "Giảm tiền trực tiếp" },
-                                          { value: "PERCENTAGE_UNLIMITED", label: "Giảm giá theo % (Không giới hạn)" },
-                                          { value: "PERCENTAGE_CAPPED", label: "Giảm giá theo % (Có giới hạn)" }
+                                          { value: "FIXED_AMOUNT", label: t("owner:OwnerPromotionFormModal.fixedAmountOff") },
+                                          { value: "PERCENTAGE_UNLIMITED", label: t("owner:OwnerPromotionFormModal.percentageOffNoCap") },
+                                          { value: "PERCENTAGE_CAPPED", label: t("owner:OwnerPromotionFormModal.percentageOffCapped") }
                                       ]}
                         />
-                        <CustomInput label={isPercentage ? "Mức giảm (%)" : "Số tiền giảm (VNĐ)"} name="value" type={isPercentage ? "number" : "text"} value={isPercentage ? formData.value : formatCurrency(formData.value)} onChange={isPercentage ? handleChange : handleCurrencyChange} placeholder={isPercentage ? "VD: 20" : "VD: 50.000"} icon={isPercentage ? Percent : Banknote} error={errors.value} min="0" onFocus={(e) => e.target.select()} />
+                        <CustomInput label={isPercentage ? t("owner:OwnerPromotionFormModal.discount") : t("owner:OwnerPromotionFormModal.discountAmountVnd")} name="value" type={isPercentage ? "number" : "text"} value={isPercentage ? formData.value : formatCurrency(formData.value)} onChange={isPercentage ? handleChange : handleCurrencyChange} placeholder={isPercentage ? "VD: 20" : "VD: 50.000"} icon={isPercentage ? Percent : Banknote} error={errors.value} min="0" onFocus={(e) => e.target.select()} />
                     </div>
 
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-start">
-                        <CustomInput label="Đơn tối thiểu (VNĐ)" name="minOrder" type="text" value={formatCurrency(formData.minOrder)} onChange={handleCurrencyChange} icon={Banknote} error={errors.minOrder} placeholder="0 (Không giới hạn)" />
-                        <CustomInput label="Giảm tối đa (VNĐ)" name="maxDiscount" type="text" value={formatCurrency(formData.maxDiscount)} onChange={handleCurrencyChange} icon={Banknote} placeholder={isMaxDiscountDisabled ? "Không áp dụng" : "VD: 200.000"} onFocus={(e) => e.target.select()} error={errors.maxDiscount} disabled={isMaxDiscountDisabled} />
-                        <CustomInput label="Tổng số lượng" name="quantity" type="number" value={formData.quantity} onChange={handleChange} icon={Hash} placeholder="1000" min="1" onFocus={(e) => e.target.select()} error={errors.quantity} />
+                        <CustomInput label={t("owner:OwnerPromotionFormModal.minimumOrderVnd")} name="minOrder" type="text" value={formatCurrency(formData.minOrder)} onChange={handleCurrencyChange} icon={Banknote} error={errors.minOrder} placeholder={t("owner:OwnerPromotionFormModal.n0NoMinimum")} />
+                        <CustomInput label={t("owner:OwnerPromotionFormModal.maximumDiscountVnd")} name="maxDiscount" type="text" value={formatCurrency(formData.maxDiscount)} onChange={handleCurrencyChange} icon={Banknote} placeholder={isMaxDiscountDisabled ? t("owner:OwnerPromotionFormModal.notApplicable") : "VD: 200.000"} onFocus={(e) => e.target.select()} error={errors.maxDiscount} disabled={isMaxDiscountDisabled} />
+                        <CustomInput label={t("owner:OwnerPromotionFormModal.totalQuantity")} name="quantity" type="number" value={formData.quantity} onChange={handleChange} icon={Hash} placeholder="1000" min="1" onFocus={(e) => e.target.select()} error={errors.quantity} />
                     </div>
 
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian bắt đầu {errors.startDate && <span className="text-red-500">*</span>}</label>
+                            <label className="text-sm font-semibold text-gray-700 ml-1">{t("owner:OwnerPromotionFormModal.startTime")} {errors.startDate && <span className="text-red-500">*</span>}</label>
                             <div className="flex gap-2 items-start">
                                 {/* [FIX] Dùng DatePickerInput cho trải nghiệm tốt hơn & chặn quá khứ */}
                                 <div className="w-3/5">
@@ -557,7 +561,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                             {errors.startDate && <p className="text-xs text-red-500 mt-1 ml-1">{errors.startDate}</p>}
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 ml-1">Thời gian kết thúc {errors.endDate && <span className="text-red-500">*</span>}</label>
+                            <label className="text-sm font-semibold text-gray-700 ml-1">{t("owner:OwnerPromotionFormModal.endTime")} {errors.endDate && <span className="text-red-500">*</span>}</label>
                             <div className="flex gap-2 items-start">
                                 {/* [FIX] Dùng DatePickerInput & logic chặn ngày kết thúc < ngày bắt đầu */}
                                 <div className="w-3/5">
@@ -577,7 +581,7 @@ const OwnerPromotionFormModal = ({ open, onClose, onSuccess, initialData }) => {
                 <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
                     <button onClick={handleSubmit} disabled={isLoading} className="px-6 py-2.5 bg-[rgb(40,169,224)] text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:shadow-none hover:translate-y-0.5 transition-all flex items-center gap-2">
                         {isLoading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
-                        {initialData ? "Lưu thay đổi" : "Tạo khuyến mãi"}
+                        {initialData ? t("owner:OwnerPromotionFormModal.saveChanges") : t("owner:OwnerPromotionFormModal.createPromotion")}
                     </button>
                 </div>
             </div>

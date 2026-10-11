@@ -1,3 +1,4 @@
+import i18n from "@/i18n";
 // src/utils/auditValueMapper.js
 
 // Map enum / value backend → tiếng Việt cho Audit Log
@@ -10,28 +11,28 @@ export function formatAuditValue(value) {
     // Enum mapping
     const enumMap = {
         // PropertyStatus
-        PENDING: "Chờ duyệt",
-        APPROVE: "Đã duyệt",
-        APPROVED: "Đã duyệt",
-        REJECTED: "Từ chối",
-        SUSPENDED: "Tạm dừng",
-        ACTIVE: "Hoạt động",
-        INACTIVE: "Ngưng hoạt động",
+        PENDING: i18n.t("admin:auditValueMapper.pending"),
+        APPROVE: i18n.t("admin:auditValueMapper.approved"),
+        APPROVED: i18n.t("admin:auditValueMapper.approved"),
+        REJECTED: i18n.t("admin:auditValueMapper.rejected"),
+        SUSPENDED: i18n.t("admin:auditValueMapper.pause"),
+        ACTIVE: i18n.t("admin:auditValueMapper.active"),
+        INACTIVE: i18n.t("admin:auditValueMapper.inactive"),
 
         // LogAction
-        CREATE: "Tạo mới",
-        UPDATE: "Cập nhật",
-        DELETE: "Xóa",
-        APPROVE_ACTION: "Phê duyệt",
-        REJECT_ACTION: "Từ chối",
+        CREATE: i18n.t("admin:auditValueMapper.created"),
+        UPDATE: i18n.t("admin:auditValueMapper.updated"),
+        DELETE: i18n.t("admin:auditValueMapper.delete"),
+        APPROVE_ACTION: i18n.t("admin:auditValueMapper.approve"),
+        REJECT_ACTION: i18n.t("admin:auditValueMapper.rejected"),
 
         // EntityType
-        PROPERTY: "Cơ sở lưu trú",
-        ROOM: "Phòng",
-        USER: "Người dùng",
-        BOOKING: "Đơn đặt phòng",
-        PROMOTION: "Khuyến mãi",
-        SYSTEM: "Hệ thống",
+        PROPERTY: i18n.t("admin:auditValueMapper.properties"),
+        ROOM: i18n.t("admin:auditValueMapper.room"),
+        USER: i18n.t("admin:auditValueMapper.user"),
+        BOOKING: i18n.t("admin:auditValueMapper.booking"),
+        PROMOTION: i18n.t("admin:auditValueMapper.promotions"),
+        SYSTEM: i18n.t("admin:auditValueMapper.system"),
     };
 
     // Nếu value là enum

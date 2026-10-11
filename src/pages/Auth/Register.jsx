@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import LoginSlider from "@/components/auth/LoginSlider";
 import LegalModal from "@/components/auth/LegalModal";
+import LanguageSwitcher from "@/layouts/CustomerLayout/LanguageSwitcher";
+import { useTranslation, Trans } from "react-i18next";
 
 // URL Backend & Background
 const API_BASE_URL = "http://localhost:8386";
@@ -25,41 +27,27 @@ const BG_URL =
     "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=2074&auto=format&fit=crop";
 
 // --- NỘI DUNG ĐIỀU KHOẢN ---
-const TERMS_CONTENT = (
-    <div className="space-y-4 text-slate-600 text-sm leading-relaxed text-justify">
-        <p>
-            <strong>1. Giới thiệu</strong>
-            <br />
-            Chào mừng bạn đến với TravelMate. Bằng việc đăng ký tài khoản, bạn xác nhận
-            đã đọc, hiểu và đồng ý tuân thủ các Điều khoản dịch vụ này.
-        </p>
-        <p>
-            <strong>2. Tài khoản người dùng</strong>
-            <br />
-            Bạn chịu trách nhiệm bảo mật thông tin tài khoản và mật khẩu của mình.
-        </p>
-    </div>
-);
-
-const PRIVACY_CONTENT = (
-    <div className="space-y-4 text-slate-600 text-sm leading-relaxed text-justify">
-        <p>
-            <strong>1. Thu thập thông tin</strong>
-            <br />
-            Chúng tôi thu thập tên, email để xác thực danh tính.
-        </p>
-        <p>
-            <strong>2. Bảo mật dữ liệu</strong>
-            <br />
-            Dữ liệu của bạn được mã hóa SSL và lưu trữ an toàn.
-        </p>
-    </div>
-);
+// type: "terms" | "privacy" — two short sections each, text in auth.json under legal.*
+const LegalContent = ({ type }) => {
+    const { t } = useTranslation("auth");
+    return (
+        <div className="space-y-4 text-slate-600 text-sm leading-relaxed text-justify">
+            {["s1", "s2"].map((s) => (
+                <p key={s}>
+                    <strong>{t(`legal.${type}.${s}Title`)}</strong>
+                    <br />
+                    {t(`legal.${type}.${s}Body`)}
+                </p>
+            ))}
+        </div>
+    );
+};
 
 // ==========================================
 // 🏆 MODAL THÀNH CÔNG
 // ==========================================
 const RegistrationSuccessModal = ({ isOpen, email, countdown, onLoginNow }) => {
+    const { t } = useTranslation("auth");
     if (!isOpen) return null;
 
     return (
@@ -76,30 +64,30 @@ const RegistrationSuccessModal = ({ isOpen, email, countdown, onLoginNow }) => {
                     </div>
 
                     <h2 className="text-2xl font-black text-slate-800 mb-2">
-                        Đăng ký thành công! 🎉
+                        {t("register.success.title")}
                     </h2>
 
                     <p className="text-slate-600 text-sm mb-6 leading-relaxed">
-                        Chúc mừng bạn đã tạo tài khoản thành công tại{" "}
+                        {t("register.success.congrats")}{" "}
                         <strong>TravelMate</strong>.
                         <br />
-                        Vui lòng kiểm tra hộp thư đến của email:
+                        {t("register.success.checkInbox")}
                         <br />
                         <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded mt-1 inline-block">
                             {email}
                         </span>
                         <br />
-                        và nhấp vào liên kết xác thực để kích hoạt tài khoản.
+                        {t("register.success.clickLink")}
                     </p>
 
                     <div className="mb-6">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                            Tự động chuyển hướng sau
+                            {t("register.success.redirecting")}
                         </p>
                         <div className="text-4xl font-black text-slate-800 tabular-nums">
                             {countdown}
                             <span className="text-sm font-medium text-slate-400 ml-1">
-                                giây
+                                {t("register.success.seconds")}
                             </span>
                         </div>
                         <div className="h-1.5 w-32 mx-auto bg-slate-100 rounded-full mt-3 overflow-hidden">
@@ -114,7 +102,7 @@ const RegistrationSuccessModal = ({ isOpen, email, countdown, onLoginNow }) => {
                         onClick={onLoginNow}
                         className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-all active:scale-95 flex items-center justify-center gap-2"
                     >
-                        Đăng nhập ngay <ArrowRight size={18} />
+                        {t("register.success.loginNow")} <ArrowRight size={18} />
                     </button>
                 </div>
             </div>
@@ -127,6 +115,7 @@ const RegistrationSuccessModal = ({ isOpen, email, countdown, onLoginNow }) => {
 // ==========================================
 const Register = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation("auth");
     const scrollContainerRef = useRef(null);
 
     const [formData, setFormData] = useState({
@@ -213,19 +202,19 @@ const Register = () => {
         e.preventDefault();
 
         if (!agreed) {
-            setError("Bạn cần đồng ý với Điều khoản dịch vụ để tiếp tục.");
+            setError(t("register.errors.mustAgree"));
             return;
         }
 
         const { fullName, email, password, confirmPassword } = formData;
 
         if (!fullName || !email || !password || !confirmPassword) {
-            setError("Vui lòng điền đầy đủ thông tin.");
+            setError(t("register.errors.required"));
             return;
         }
 
         if (password !== confirmPassword) {
-            setError("Mật khẩu xác nhận không khớp.");
+            setError(t("register.errors.mismatch"));
             return;
         }
 
@@ -236,7 +225,7 @@ const Register = () => {
         if (!strongEnough) {
             setTouched((prev) => ({ ...prev, password: true }));
             setError(
-                "Mật khẩu chưa đủ mạnh. Mật khẩu phải có ít nhất 6 ký tự, gồm chữ in hoa, số và ký tự đặc biệt."
+                t("register.errors.weak")
             );
             return;
         }
@@ -280,22 +269,24 @@ const Register = () => {
 
             if (status === 400) {
                 // đừng show "Validation failed" trần trụi nữa
-                if (s.includes("password") || s.includes("mật khẩu")) {
+                // Bean Validation errors: data = { field: message } (already in the UI language)
+                const fieldMap = data?.code === "error.validation" && data?.data && typeof data.data === "object" ? data.data : {};
+                if (fieldMap.password || s.includes("password")) {
                     setError(
-                        firstFieldMsg ||
-                        "Mật khẩu không đạt yêu cầu. Vui lòng thêm chữ in hoa, số và ký tự đặc biệt."
+                        fieldMap.password || firstFieldMsg ||
+                        t("register.errors.passwordRules")
                     );
-                } else if (s.includes("email")) {
-                    setError(firstFieldMsg || "Email không hợp lệ. Vui lòng kiểm tra lại.");
+                } else if (fieldMap.email || s.includes("email")) {
+                    setError(fieldMap.email || firstFieldMsg || t("register.errors.invalidEmail"));
                 } else if (s.includes("validation failed")) {
-                    setError("Thông tin đăng ký chưa hợp lệ. Vui lòng kiểm tra lại.");
+                    setError(t("register.errors.invalid"));
                 } else {
-                    setError(msg || "Thông tin đăng ký chưa hợp lệ. Vui lòng kiểm tra lại.");
+                    setError(msg || t("register.errors.invalid"));
                 }
             } else if (status === 409) {
-                setError("Email đã được đăng ký. Vui lòng dùng email khác.");
+                setError(t("register.errors.emailTaken"));
             } else {
-                setError("Đăng ký thất bại. Vui lòng thử lại.");
+                setError(t("register.errors.failed"));
             }
         } finally {
             setLoading(false);
@@ -311,10 +302,10 @@ const Register = () => {
 
     const getStrengthText = () => {
         if (passwordScore === 0) return "";
-        if (passwordScore <= 1) return "Quá yếu";
-        if (passwordScore === 2) return "Trung bình";
-        if (passwordScore === 3) return "Tốt";
-        return "Tuyệt vời";
+        if (passwordScore <= 1) return t("register.strength.tooWeak");
+        if (passwordScore === 2) return t("register.strength.fair");
+        if (passwordScore === 3) return t("register.strength.good");
+        return t("register.strength.excellent");
     };
 
     const isFormValid =
@@ -338,8 +329,12 @@ const Register = () => {
                     size={18}
                     className="group-hover:-translate-x-1 transition-transform"
                 />
-                <span className="text-sm font-bold">Trang chủ</span>
+                <span className="text-sm font-bold">{t("backHome")}</span>
             </button>
+
+            <div className="absolute top-6 right-6 z-30 px-4 py-2 rounded-full bg-white/10 border border-white/20 shadow-lg backdrop-blur-md">
+                <LanguageSwitcher className="text-white/90 hover:text-white" />
+            </div>
 
             {/* MAIN CARD */}
             <div className="relative z-10 w-full h-full md:h-[90vh] md:max-w-6xl bg-white md:rounded-[2.5rem] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-2 animate-zoom-in">
@@ -348,13 +343,13 @@ const Register = () => {
                 <div className="flex flex-col relative bg-white min-h-0">
                     <div className="absolute top-0 right-0 p-6 z-20 hidden md:flex gap-4 bg-white/90 backdrop-blur-sm rounded-bl-2xl border-b border-l border-slate-100 shadow-sm">
                         <span className="text-sm font-semibold text-slate-400">
-                            Đã có tài khoản?
+                            {t("register.haveAccount")}
                         </span>
                         <Link
                             to="/login"
                             className="text-sm font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
                         >
-                            Đăng nhập
+                            {t("register.login")}
                         </Link>
                     </div>
 
@@ -365,13 +360,13 @@ const Register = () => {
                         <div className="max-w-md mx-auto w-full mt-4 md:mt-8 pb-40">
                             <div className="mb-8">
                                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-bold uppercase tracking-wider mb-4 border border-emerald-100">
-                                    <UserPlus size={14} /> Thành viên mới
+                                    <UserPlus size={14} /> {t("register.badge")}
                                 </div>
                                 <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
-                                    Bắt đầu hành trình.
+                                    {t("register.title")}
                                 </h1>
                                 <p className="text-slate-500 font-medium">
-                                    Tạo tài khoản miễn phí trong 30 giây.
+                                    {t("register.subtitle")}
                                 </p>
                             </div>
 
@@ -403,7 +398,7 @@ const Register = () => {
                                                 ? "border-emerald-500 bg-white shadow-lg shadow-emerald-500/10"
                                                 : "border-slate-100 hover:border-slate-300"
                                             }`}
-                                        placeholder="Họ và tên đầy đủ"
+                                        placeholder={t("register.fields.fullName")}
                                     />
                                 </div>
 
@@ -457,7 +452,7 @@ const Register = () => {
                                                 ? "border-emerald-500 bg-white shadow-lg shadow-emerald-500/10"
                                                 : "border-slate-100 hover:border-slate-300"
                                             }`}
-                                        placeholder="Mật khẩu"
+                                        placeholder={t("fields.password")}
                                     />
 
                                     <button
@@ -477,7 +472,7 @@ const Register = () => {
                                     <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mt-1">
                                         <div className="flex justify-between items-center mb-2">
                                             <span className="text-xs font-bold text-slate-500 uppercase">
-                                                Độ mạnh mật khẩu
+                                                {t("register.strength.label")}
                                             </span>
                                             <span
                                                 className={`text-xs font-bold transition-colors ${passwordScore <= 1
@@ -501,12 +496,12 @@ const Register = () => {
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-2">
-                                            <Badge active={passwordCriteria.length} text="Ít nhất 6 ký tự" />
-                                            <Badge active={passwordCriteria.hasNumber} text="Có chứa số" />
-                                            <Badge active={passwordCriteria.hasUpper} text="Chữ in hoa" />
+                                            <Badge active={passwordCriteria.length} text={t("register.criteria.length")} />
+                                            <Badge active={passwordCriteria.hasNumber} text={t("register.criteria.number")} />
+                                            <Badge active={passwordCriteria.hasUpper} text={t("register.criteria.upper")} />
                                             <Badge
                                                 active={passwordCriteria.hasSpecial}
-                                                text="Ký tự đặc biệt"
+                                                text={t("register.criteria.special")}
                                             />
                                         </div>
 
@@ -515,10 +510,7 @@ const Register = () => {
                                             <div className="mt-3 flex items-start gap-2 text-rose-600">
                                                 <X size={16} className="mt-0.5 shrink-0" />
                                                 <p className="text-sm font-semibold leading-relaxed whitespace-normal break-words">
-                                                    Mật khẩu chưa đủ mạnh. Hãy thêm{" "}
-                                                    <span className="font-black">số</span>,{" "}
-                                                    <span className="font-black">chữ in hoa</span> và{" "}
-                                                    <span className="font-black">ký tự đặc biệt</span>.
+                                                    <Trans t={t} i18nKey="register.weakHint" components={{ b: <span className="font-black" /> }} />
                                                 </p>
                                             </div>
                                         )}
@@ -538,7 +530,7 @@ const Register = () => {
                                                 ? "border-emerald-500 bg-white shadow-lg shadow-emerald-500/10"
                                                 : "border-slate-100 hover:border-slate-300"
                                             }`}
-                                        placeholder="Nhập lại mật khẩu"
+                                        placeholder={t("register.fields.confirmPassword")}
                                     />
 
                                     {formData.confirmPassword &&
@@ -585,23 +577,26 @@ const Register = () => {
                                         htmlFor="terms"
                                         className="text-sm text-slate-500 leading-snug cursor-pointer select-none"
                                     >
-                                        Tôi đồng ý với{" "}
-                                        <button
-                                            type="button"
-                                            onClick={() => setModalType("terms")}
-                                            className="text-emerald-600 font-bold hover:underline"
-                                        >
-                                            Điều khoản
-                                        </button>{" "}
-                                        và{" "}
-                                        <button
-                                            type="button"
-                                            onClick={() => setModalType("privacy")}
-                                            className="text-emerald-600 font-bold hover:underline"
-                                        >
-                                            Chính sách bảo mật
-                                        </button>
-                                        .
+                                        <Trans
+                                            t={t}
+                                            i18nKey="register.agree"
+                                            components={{
+                                                terms: (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setModalType("terms")}
+                                                        className="text-emerald-600 font-bold hover:underline"
+                                                    />
+                                                ),
+                                                privacy: (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setModalType("privacy")}
+                                                        className="text-emerald-600 font-bold hover:underline"
+                                                    />
+                                                ),
+                                            }}
+                                        />
                                     </label>
                                 </div>
 
@@ -617,7 +612,7 @@ const Register = () => {
                                         <Loader2 className="animate-spin" />
                                     ) : (
                                         <>
-                                            Tạo tài khoản <ShieldCheck size={20} />
+                                            {t("register.submit")} <ShieldCheck size={20} />
                                         </>
                                     )}
                                 </button>
@@ -627,7 +622,7 @@ const Register = () => {
                             <div className="my-8 flex items-center gap-4">
                                 <div className="h-[1px] bg-slate-200 flex-1"></div>
                                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                    Hoặc đăng ký với
+                                    {t("register.orSignUpWith")}
                                 </span>
                                 <div className="h-[1px] bg-slate-200 flex-1"></div>
                             </div>
@@ -661,12 +656,12 @@ const Register = () => {
                             </div>
 
                             <p className="text-center text-slate-500 font-medium md:hidden pb-8">
-                                Đã có tài khoản?{" "}
+                                {t("register.haveAccount")}{" "}
                                 <Link
                                     to="/login"
                                     className="text-emerald-600 font-black hover:underline"
                                 >
-                                    Đăng nhập
+                                    {t("register.login")}
                                 </Link>
                             </p>
                         </div>
@@ -686,19 +681,19 @@ const Register = () => {
             <LegalModal
                 isOpen={modalType === "terms"}
                 onClose={() => setModalType(null)}
-                title="Điều khoản dịch vụ"
+                title={t("legal.terms.title")}
                 type="terms"
             >
-                {TERMS_CONTENT}
+                <LegalContent type="terms" />
             </LegalModal>
 
             <LegalModal
                 isOpen={modalType === "privacy"}
                 onClose={() => setModalType(null)}
-                title="Chính sách bảo mật"
+                title={t("legal.privacy.title")}
                 type="privacy"
             >
-                {PRIVACY_CONTENT}
+                <LegalContent type="privacy" />
             </LegalModal>
 
             {/* Animation Styles */}

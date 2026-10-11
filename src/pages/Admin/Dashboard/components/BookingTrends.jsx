@@ -1,15 +1,17 @@
 import React from "react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { TrendingUp } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const BookingTrends = ({ data }) => {
+  const { t } = useTranslation();
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
       <div className="flex items-center gap-2 mb-6">
         <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
             <TrendingUp size={20} />
         </div>
-        <h3 className="text-lg font-bold text-gray-800">Xu Hướng Đặt Phòng</h3>
+        <h3 className="text-lg font-bold text-gray-800">{t("admin:BookingTrends.bookingTrends")}</h3>
       </div>
       
       {/* ✅ FIX LỖI WIDTH(-1): Đặt height cố định */}
@@ -27,7 +29,7 @@ const BookingTrends = ({ data }) => {
             <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#6b7280'}} />
             <Tooltip 
                 contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'}} 
-                formatter={(value) => [value, "Lượt đặt"]}
+                formatter={(value) => [value, t("admin:BookingTrends.bookings")]}
             />
             <Area 
                 type="monotone" 

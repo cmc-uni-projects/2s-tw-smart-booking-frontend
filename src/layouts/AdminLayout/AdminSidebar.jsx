@@ -20,8 +20,10 @@ import {
   Bell // [THÊM ICON BELL]
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useTranslation } from "react-i18next";
 
 const AdminSidebar = () => {
+  const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
   const [openSubMenu, setOpenSubMenu] = useState(""); 
   const location = useLocation();
@@ -29,21 +31,21 @@ const AdminSidebar = () => {
 
   const menuItems = [
     { name: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/admin" },
-    { name: "Quản lý Users", icon: <Users size={20} />, path: "/admin/users" },
+    { name: t("admin:AdminSidebar.userManagement"), icon: <Users size={20} />, path: "/admin/users" },
     
     // 🏢 MENU CON: QUẢN LÝ NƠI CƯ TRÚ
     { 
-      name: "Quản lý nơi cư trú", 
+      name: t("admin:AdminSidebar.propertyManagement"), 
       icon: <Building2 size={20} />, 
       key: "residences",
       children: [
         { 
-          name: "Duyệt nơi cư trú", 
+          name: t("admin:AdminSidebar.propertyApprovals"), 
           path: "/admin/hotels/submissions", 
           icon: <CheckSquare size={16} /> 
         },
         { 
-          name: "Danh sách nơi cư trú",
+          name: t("admin:AdminSidebar.propertyList"),
           path: "/admin/hotels/list",
           icon: <List size={16} /> 
         },
@@ -52,17 +54,17 @@ const AdminSidebar = () => {
     
     // 💰 MENU CON: QUẢN LÝ DÒNG TIỀN
     { 
-      name: "Quản lý dòng tiền", 
+      name: t("admin:AdminSidebar.cashFlowManagement"), 
       icon: <DollarSign size={20} />, 
       key: "finance", 
       children: [
         { 
-          name: "Quản lý thanh toán", 
+          name: t("admin:AdminSidebar.paymentManagement"), 
           path: "/admin/transactions", 
           icon: <CreditCard size={16} /> 
         },
         { 
-          name: "Quản lý hoàn tiền",
+          name: t("admin:AdminSidebar.refundManagement"),
           path: "/admin/refunds",
           icon: <RotateCcw size={16} /> 
         },
@@ -71,26 +73,26 @@ const AdminSidebar = () => {
 
     // 🎫 QUẢN LÝ KHUYẾN MÃI
     { 
-      name: "Quản lý Khuyến mãi", 
+      name: t("admin:AdminSidebar.promotionManagement"), 
       icon: <Ticket size={20} />, 
       path: "/admin/promotions" 
     },
 
     { 
-      name: "Duyệt Chủ sở hữu", 
+      name: t("admin:AdminSidebar.ownerApprovals"), 
       icon: <CheckSquare size={20} />, 
       path: "/admin/approvals" 
     },
 
     // [BỔ SUNG MỤC THÔNG BÁO]
     {
-      name: "Thông báo",
+      name: t("admin:AdminSidebar.notifications"),
       icon: <Bell size={20} />, // Icon cái chuông
       path: "/admin/notifications" // Link đến trang thông báo bạn vừa tạo
     },
 
     {
-      name: "Lịch sử hệ thống",
+      name: t("admin:AdminSidebar.systemHistory"),
       icon: <FileSearch size={20} />,
       path: "/admin/audit-logs"
     },
@@ -202,16 +204,16 @@ const AdminSidebar = () => {
       <div className="p-3 border-t border-gray-200">
         <button
           onClick={() => {
-            if (confirm("Bạn có chắc muốn đăng xuất?")) {
+            if (confirm(t("admin:AdminSidebar.areYouSureYouWant"))) {
               logout();
             }
           }}
-          title="Đăng xuất"
+          title={t("admin:AdminSidebar.logOut")}
           className={`flex items-center gap-3 py-2.5 px-4 rounded-lg transition-all w-full text-red-500 hover:bg-red-50
             ${collapsed ? "justify-center" : ""}`}
         >
           <LogOut size={20} />
-          {!collapsed && <span className="font-medium text-sm">Đăng xuất</span>}
+          {!collapsed && <span className="font-medium text-sm">{t("admin:AdminSidebar.logOut")}</span>}
         </button>
       </div>
     </aside>

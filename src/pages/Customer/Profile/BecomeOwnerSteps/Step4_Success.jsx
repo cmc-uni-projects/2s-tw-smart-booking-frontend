@@ -2,9 +2,11 @@ import React from "react";
 import { CheckCircle2, XCircle, RotateCcw } from "lucide-react"; 
 import Button from "@/components/common/Button/Button";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 // Nhận props error và onRetry
 export default function Step4_Success({ error, onRetry }) {
+    const { t } = useTranslation("profile");
   return (
     <div className="flex flex-col items-center text-center py-8 animate-fadeIn">
       {error ? (
@@ -12,20 +14,20 @@ export default function Step4_Success({ error, onRetry }) {
         <>
           <XCircle size={72} className="text-red-500 mb-6" />
           <h2 className="text-2xl font-bold text-red-600 mb-3">
-            Gửi đơn thất bại
+            {t("owner.step4.failTitle")}
           </h2>
           <p className="text-gray-600 max-w-md mb-6">
-            Đã có lỗi xảy ra trong quá trình gửi đơn của bạn. Vui lòng thử lại.
+            {t("owner.step4.failText")}
           </p>
           <p className="text-sm text-gray-500 bg-gray-100 p-2 rounded-md">
-            Lỗi: {error}
+            {t("owner.step4.error", { error })}
           </p>
           <Button
             onClick={onRetry}
             leftIcon={<RotateCcw size={18} />}
             className="mt-8"
           >
-            Thử lại
+            {t("retry")}
           </Button>
         </>
       ) : (
@@ -33,14 +35,13 @@ export default function Step4_Success({ error, onRetry }) {
         <>
           <CheckCircle2 size={72} className="text-green-500 mb-6" />
           <h2 className="text-2xl font-bold text-gray-800 mb-3">
-            Đã gửi đơn thành công!
+            {t("owner.step4.successTitle")}
           </h2>
           <p className="text-gray-600 max-w-md mb-8">
-            Cảm ơn bạn đã đăng ký. Đội ngũ TravelMate sẽ xem xét
-            đơn của bạn và phản hồi qua email trong vòng 24-48 giờ tới.
+            {t("owner.step4.successText")}
           </p>
           <Link to="/">
-            <Button>Quay về trang chủ</Button>
+            <Button>{t("owner.backHome")}</Button>
           </Link>
         </>
       )}

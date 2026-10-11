@@ -11,8 +11,10 @@ import SuspendModal from "@/components/common/Modal/SuspendModal";
 import ActionConfirmModal from "./components/ActionConfirmModal";
 import HotelRoomsModal from "./components/HotelRoomsModal";
 import PropertyDetailModal from "./components/PropertyDetailModal";
+import { useTranslation } from "react-i18next";
 
 const ActiveHotelsPage = () => {
+  const { t } = useTranslation();
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
@@ -40,7 +42,7 @@ const ActiveHotelsPage = () => {
       }
     } catch (error) {
       console.error(error);
-      setToast({ message: "Lỗi tải danh sách khách sạn", type: "error" });
+      setToast({ message: t("admin:ActiveHotelsPage.failedToLoadHotels"), type: "error" });
       setHotels([]);
     } finally {
       setLoading(false);
@@ -72,10 +74,10 @@ const ActiveHotelsPage = () => {
     if (!selectedHotel) return;
     try {
       await adminService.suspendProperty(selectedHotel.propertyId, reason);
-      setToast({ message: "Đã dừng hoạt động khách sạn thành công", type: "success" });
+      setToast({ message: t("admin:ActiveHotelsPage.hotelSuspendedSuccessfully"), type: "success" });
       fetchHotels();
     } catch (error) {
-      setToast({ message: error.response?.data?.message || "Lỗi khi dừng hoạt động", type: "error" });
+      setToast({ message: error.response?.data?.message || t("admin:ActiveHotelsPage.failedToSuspend"), type: "error" });
       throw error;
     }
   };
@@ -90,11 +92,11 @@ const ActiveHotelsPage = () => {
     if (!selectedHotel) return;
     try {
       await adminService.activateProperty(selectedHotel.propertyId);
-      setToast({ message: "Đã mở lại hoạt động khách sạn!", type: "success" });
+      setToast({ message: t("admin:ActiveHotelsPage.hotelReactivated"), type: "success" });
       setActivateModalOpen(false);
       fetchHotels();
     } catch (error) {
-      setToast({ message: error.response?.data?.message || "Lỗi khi mở lại", type: "error" });
+      setToast({ message: error.response?.data?.message || t("admin:ActiveHotelsPage.failedToReactivate"), type: "error" });
     }
   };
 
@@ -106,13 +108,13 @@ const ActiveHotelsPage = () => {
         <div className="flex flex-col gap-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <CardHeader 
-              title="Quản lý Trạng thái Khách sạn" 
-              subtitle="Theo dõi, dừng hoạt động hoặc kích hoạt lại các cơ sở lưu trú"
+              title={t("admin:ActiveHotelsPage.hotelStatusManagement")} 
+              subtitle={t("admin:ActiveHotelsPage.monitorSuspendOrReactivateProperties")}
               icon={<Hotel className="text-blue-600" />}
               className="p-0"
             />
             <Button onClick={fetchHotels} variant="outline" size="sm">
-              Làm mới
+              {t("admin:ActiveHotelsPage.refresh")}
             </Button>
           </div>
 
@@ -126,7 +128,7 @@ const ActiveHotelsPage = () => {
                   : "text-gray-500 hover:bg-gray-50"
               }`}
             >
-              <CheckCircle size={16} /> Đang hoạt động
+              <CheckCircle size={16} /> {t("admin:ActiveHotelsPage.active")}
             </button>
             <button
               onClick={() => setFilterStatus("SUSPENDED")}
@@ -136,7 +138,7 @@ const ActiveHotelsPage = () => {
                   : "text-gray-500 hover:bg-gray-50"
               }`}
             >
-              <Ban size={16} /> Đã dừng hoạt động
+              <Ban size={16} /> {t("admin:ActiveHotelsPage.suspended")}
             </button>
           </div>
         </div>
@@ -144,7 +146,7 @@ const ActiveHotelsPage = () => {
         {/* --- GRID VIEW --- */}
         {loading ? (
            <div className="h-64 flex items-center justify-center">
-             <LoadingOverlay message="Đang tải dữ liệu..." />
+             <LoadingOverlay message={t("admin:ActiveHotelsPage.loadingData")} />
            </div>
         ) : hotels.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -167,7 +169,7 @@ const ActiveHotelsPage = () => {
                   <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm backdrop-blur-md ${
                       filterStatus === "SUSPENDED" ? "bg-red-500/90" : "bg-green-500/90"
                   }`}>
-                    {filterStatus === "SUSPENDED" ? "Đang bị khóa" : "Đang hoạt động"}
+                    {filterStatus === "SUSPENDED" ? t("admin:ActiveHotelsPage.locked") : t("admin:ActiveHotelsPage.active")}
                   </div>
                 </div>
 
@@ -186,7 +188,7 @@ const ActiveHotelsPage = () => {
                     </div>
                     <div className="flex items-center gap-2.5 text-sm text-gray-600">
                       <User size={16} className="text-purple-500 shrink-0" />
-                      <span className="font-medium text-gray-700">{hotel.ownerName || "Chủ sở hữu"}</span>
+                      <span className="font-medium text-gray-700">{hotel.ownerName || t("admin:ActiveHotelsPage.owner")}</span>
                     </div>
                   </div>
 
@@ -197,7 +199,7 @@ const ActiveHotelsPage = () => {
                       variant="ghost"
                       className="justify-center bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200"
                       onClick={() => handleViewDetail(hotel)}
-                      title="Xem chi tiết"
+                      title={t("admin:ActiveHotelsPage.viewDetails")}
                     >
                       <Eye size={18} />
                     </Button>
@@ -209,7 +211,7 @@ const ActiveHotelsPage = () => {
                       onClick={() => handleViewRoomsClick(hotel)}
                     >
                       <Building size={16} className="mr-1.5" />
-                      Phòng
+                      {t("admin:ActiveHotelsPage.room")}
                     </Button>
 
                     {/* 3. Nút Dừng / Mở lại (Thay đổi theo tab) */}
@@ -219,7 +221,7 @@ const ActiveHotelsPage = () => {
                         onClick={() => handleSuspendClick(hotel)}
                       >
                         <Ban size={16} className="mr-1.5" />
-                        Dừng
+                        {t("admin:ActiveHotelsPage.suspend")}
                       </Button>
                     ) : (
                       <Button 
@@ -227,7 +229,7 @@ const ActiveHotelsPage = () => {
                         onClick={() => handleActivateClick(hotel)}
                       >
                         <RotateCcw size={16} className="mr-1.5" />
-                        Mở lại
+                        {t("admin:ActiveHotelsPage.reactivate")}
                       </Button>
                     )}
                   </div>
@@ -238,8 +240,8 @@ const ActiveHotelsPage = () => {
         ) : (
           <div className="bg-white rounded-2xl p-12 border border-dashed border-gray-300">
             <EmptyState 
-                title={filterStatus === "APPROVE" ? "Không có khách sạn nào đang hoạt động" : "Danh sách dừng hoạt động trống"} 
-                description="Hiện tại không có dữ liệu nào khớp với bộ lọc." 
+                title={filterStatus === "APPROVE" ? t("admin:ActiveHotelsPage.noActiveHotels") : t("admin:ActiveHotelsPage.noSuspendedHotels")} 
+                description={t("admin:ActiveHotelsPage.noDataMatchesTheCurrent")} 
             />
           </div>
         )}
@@ -250,7 +252,7 @@ const ActiveHotelsPage = () => {
         isOpen={suspendModalOpen}
         onClose={() => setSuspendModalOpen(false)}
         onConfirm={handleConfirmSuspend}
-        title="Dừng hoạt động Khách sạn"
+        title={t("admin:ActiveHotelsPage.suspendHotel")}
         itemName={selectedHotel?.propertyName}
       />
 
@@ -259,9 +261,9 @@ const ActiveHotelsPage = () => {
         open={activateModalOpen}
         onClose={() => setActivateModalOpen(false)}
         onConfirm={handleConfirmActivate}
-        title="Mở lại hoạt động"
-        message={`Bạn có chắc chắn muốn mở khóa cho cơ sở lưu trú "${selectedHotel?.propertyName}"? Chủ sở hữu sẽ nhận được email thông báo.`}
-        confirmText="Mở lại ngay"
+        title={t("admin:ActiveHotelsPage.reactivate2")}
+        message={t("admin:ActiveHotelsPage.areYouSureYouWant", { propertyName: selectedHotel?.propertyName })}
+        confirmText={t("admin:ActiveHotelsPage.reactivateNow")}
       />
 
       {/* Modal Chi Tiết */}

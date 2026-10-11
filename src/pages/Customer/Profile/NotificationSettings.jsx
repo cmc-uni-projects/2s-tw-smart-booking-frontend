@@ -4,17 +4,19 @@ import React from 'react';
 // ✅ SỬ DỤNG ALIAS CHO CÁC COMPONENTS CHUNG
 import Card from "@/components/common/Card/Card";
 import { Bell } from 'lucide-react';
+import { useTranslation } from "react-i18next";
 
 export default function NotificationSettings({ value, onChange }) {
+    const { t } = useTranslation("profile");
     return (
         <Card>
             <div className="p-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <Bell size={20} className="text-[rgb(40,169,224)]" />
                     <div>
-                        <h3 className="font-semibold text-lg">Thông báo qua Email</h3>
+                        <h3 className="font-semibold text-lg">{t("notifications.emailTitle")}</h3>
                         <p className="text-gray-600 text-sm">
-                            Bật hoặc tắt việc nhận thông báo giao dịch và ưu đãi qua email.
+                            {t("notifications.emailText")}
                         </p>
                     </div>
                 </div>

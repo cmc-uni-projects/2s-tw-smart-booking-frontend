@@ -1,34 +1,36 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Building2, Home, Palmtree, Castle, Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 const PROPERTY_TYPES = [
   {
     value: "HOTEL",
-    label: "Khách sạn",
+    get label() { return i18n.t("owner:Step0_PropertyType.hotel"); },
     subLabel: "(Hotel)",
-    description: "Cơ sở lưu trú chuyên nghiệp, dịch vụ dọn phòng hàng ngày.",
+    get description() { return i18n.t("owner:Step0_PropertyType.professionalAccommodationWithDailyHousekeeping"); },
     icon: <Building2 size={32} />,
   },
   {
     value: "HOMESTAY",
     label: "Homestay",
-    subLabel: "(Nhà dân)",
-    description: "Trải nghiệm văn hóa địa phương tại nhà dân ấm cúng.",
+    get subLabel() { return i18n.t("owner:Step0_PropertyType.localHome"); },
+    get description() { return i18n.t("owner:Step0_PropertyType.experienceLocalCultureInA"); },
     icon: <Home size={32} />,
   },
   {
     value: "VILLA",
-    label: "Biệt thự",
+    get label() { return i18n.t("owner:Step0_PropertyType.villa"); },
     subLabel: "(Villa)",
-    description: "Không gian sang trọng, riêng tư với khuôn viên độc lập.",
+    get description() { return i18n.t("owner:Step0_PropertyType.aLuxuriousPrivateSpaceWith"); },
     icon: <Castle size={32} />,
   },
   {
     value: "RESORT",
-    label: "Khu nghỉ dưỡng",
+    get label() { return i18n.t("owner:Step0_PropertyType.resort"); },
     subLabel: "(Resort)",
-    description: "Quần thể nghỉ dưỡng cao cấp với đầy đủ tiện ích giải trí.",
+    get description() { return i18n.t("owner:Step0_PropertyType.aHighEndResortComplex"); },
     icon: <Palmtree size={32} />,
   },
 ];
@@ -47,6 +49,7 @@ const itemVariants = {
 };
 
 const Step0_PropertyType = ({ watch, setValue }) => {
+  const { t } = useTranslation();
   // 1. Lấy giá trị từ form
   const currentValue = watch("propertyType");
 
@@ -64,8 +67,8 @@ const Step0_PropertyType = ({ watch, setValue }) => {
   return (
     <div className="w-full max-w-4xl mx-auto">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-800">Bạn muốn đăng ký loại hình nào?</h2>
-        <p className="text-gray-500 mt-1">Chọn mô hình phù hợp nhất với cơ sở lưu trú của bạn</p>
+        <h2 className="text-2xl font-bold text-gray-800">{t("owner:Step0_PropertyType.whichTypeOfPropertyDo")}</h2>
+        <p className="text-gray-500 mt-1">{t("owner:Step0_PropertyType.chooseTheModelThatBest")}</p>
       </div>
 
       <motion.div 

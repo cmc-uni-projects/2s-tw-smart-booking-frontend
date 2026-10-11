@@ -1,8 +1,10 @@
 import React from "react";
 import { Bot } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 
 const AIPayloadCard = ({ payload }) => {
+    const { t } = useTranslation("layout");
     if (!payload) return null;
 
     // Tìm tất cả key có value là array
@@ -20,7 +22,7 @@ const AIPayloadCard = ({ payload }) => {
             <div className="flex items-center gap-2 mb-3">
                 <Bot size={16} className="text-blue-600" />
                 <h3 className="font-semibold text-gray-900">
-                    Gợi ý cho {payload.city || "địa điểm"}
+                    {t("chat.suggestionsFor", { place: payload.city || t("chat.place") })}
                 </h3>
             </div>
 

@@ -1,9 +1,11 @@
 import React from "react";
 import { MapPin, Heart, Share2, Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import Button from "@/components/common/Button/Button";
 import HotelGallery from "./HotelGallery"; // Import lại component cũ của bạn
 
 const HotelHeader = ({ hotel, onOpenGallery }) => {
+    const { t } = useTranslation("hotel");
   if (!hotel) return null;
 
   return (
@@ -17,7 +19,7 @@ const HotelHeader = ({ hotel, onOpenGallery }) => {
           <div className="flex-1 space-y-3">
             <div className="flex items-center gap-3">
               <span className="px-2.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider border border-slate-200">
-                Khách sạn
+                {t("header.typeHotel")}
               </span>
               <div className="flex">
                   {[...Array(5)].map((_, i) => (
@@ -44,10 +46,10 @@ const HotelHeader = ({ hotel, onOpenGallery }) => {
 
           {/* Right: Buttons */}
           <div className="flex items-center gap-3 self-start lg:self-auto mt-2 lg:mt-0">
-             <button className="p-2.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-rose-500 transition-colors shadow-sm" title="Lưu yêu thích">
+             <button className="p-2.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-rose-500 transition-colors shadow-sm" title={t("header.save")}>
                 <Heart size={20} />
              </button>
-             <button className="p-2.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-blue-600 transition-colors shadow-sm" title="Chia sẻ">
+             <button className="p-2.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-blue-600 transition-colors shadow-sm" title={t("header.share")}>
                 <Share2 size={20} />
              </button>
              
@@ -56,7 +58,7 @@ const HotelHeader = ({ hotel, onOpenGallery }) => {
                 className="bg-[rgb(40,169,224)] hover:bg-[rgb(30,145,198)] text-white px-6 py-2.5 rounded-lg font-bold shadow-md shadow-blue-200 transition-transform active:scale-95 hidden md:block"
                 onClick={() => document.getElementById('rooms')?.scrollIntoView({ behavior: 'smooth' })}
              >
-                Đặt phòng ngay
+                {t("header.bookNow")}
              </Button>
           </div>
         </div>

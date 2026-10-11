@@ -9,8 +9,10 @@ import SuspendModal from "@/components/common/Modal/SuspendModal";
 import ActionConfirmModal from "./ActionConfirmModal";
 import RoomDetailModal from "./RoomDetailModal";
 import LoadingOverlay from "@/components/common/Loading/LoadingOverlay";
+import { useTranslation } from "react-i18next";
 
 const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
+  const { t } = useTranslation();
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false); // State Loading toàn màn hình
@@ -64,11 +66,11 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
     setIsProcessing(true); // Bật loading
     try {
       await adminService.suspendRoom(selectedRoom.roomId, reason);
-      setToast({ message: "Đã dừng phòng thành công", type: "success" });
+      setToast({ message: t("admin:HotelRoomsModal.roomSuspendedSuccessfully"), type: "success" });
       setSuspendRoomModalOpen(false); // Đóng modal suspend
       await fetchRooms();
     } catch (error) {
-      setToast({ message: "Lỗi dừng phòng", type: "error" });
+      setToast({ message: t("admin:HotelRoomsModal.failedToSuspendTheRoom"), type: "error" });
     } finally {
       setIsProcessing(false); // Tắt loading
     }
@@ -80,11 +82,11 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
     setIsProcessing(true); // Bật loading
     try {
       await adminService.activateRoom(selectedRoom.roomId);
-      setToast({ message: "Đã mở lại phòng thành công", type: "success" });
+      setToast({ message: t("admin:HotelRoomsModal.roomReactivatedSuccessfully"), type: "success" });
       setActivateRoomModalOpen(false); // Đóng modal activate
       await fetchRooms(); 
     } catch (error) {
-      setToast({ message: "Lỗi mở lại phòng", type: "error" });
+      setToast({ message: t("admin:HotelRoomsModal.failedToReactivateTheRoom"), type: "error" });
     } finally {
       setIsProcessing(false); // Tắt loading
     }
@@ -99,7 +101,7 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
       {isProcessing && (
         <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex items-center justify-center">
             {/* Component LoadingOverlay của bạn sẽ nằm giữa màn hình */}
-            <LoadingOverlay message="Đang xử lý yêu cầu..." />
+            <LoadingOverlay message={t("admin:HotelRoomsModal.processingRequest")} />
         </div>
       )}
 
@@ -107,7 +109,7 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
       <Modal 
         open={isOpen} 
         onClose={onClose} 
-        title={`Danh sách phòng - ${hotel?.propertyName}`}
+        title={t("admin:HotelRoomsModal.rooms", { propertyName: hotel?.propertyName })}
         maxWidth="max-w-3xl"
       >
         {/* Bỏ class relative ở đây vì overlay đã ra ngoài */}
@@ -117,7 +119,7 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
 
           {loading ? (
             <div className="text-center py-8 text-gray-500">
-               <LoadingOverlay message="Đang tải danh sách phòng..." />
+               <LoadingOverlay message={t("admin:HotelRoomsModal.loadingRooms")} />
             </div>
           ) : rooms.length > 0 ? (
             <div className="grid grid-cols-1 gap-4">
@@ -145,7 +147,7 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
                           {formatPrice(room.pricePerNight)}
                         </span>
                         <span>•</span>
-                        <span>Sức chứa: {room.capacity} người</span>
+                        <span>{t("admin:HotelRoomsModal.capacityGuests", { capacity: room.capacity })}</span>
                       </div>
                     </div>
                   </div>
@@ -156,14 +158,14 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
                       <>
                         <span className="px-3 py-1.5 rounded-full bg-red-100 text-red-700 text-xs font-bold flex items-center gap-1 border border-red-200">
                           <AlertCircle size={14} />
-                          Đã dừng
+                          {t("admin:HotelRoomsModal.suspended")}
                         </span>
                         <Button 
                           size="sm" 
                           className="bg-green-600 text-white hover:bg-green-700 border-none shadow-sm h-9 px-3"
                           onClick={() => handleActivateClick(room)}
                           disabled={isProcessing}
-                          title="Mở lại phòng"
+                          title={t("admin:HotelRoomsModal.reactivateRoom")}
                         >
                           <RotateCcw size={16} />
                         </Button>
@@ -172,7 +174,7 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
                       <>
                         <span className="px-3 py-1.5 rounded-full bg-green-100 text-green-700 text-xs font-bold flex items-center gap-1 border border-green-200">
                           <CheckCircle size={14} />
-                          Hoạt động
+                          {t("admin:HotelRoomsModal.active")}
                         </span>
                         
                         <Button 
@@ -181,7 +183,7 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
                           className="bg-gray-100 text-gray-600 hover:bg-gray-200 border-none h-9 px-3"
                           onClick={() => handleViewDetail(room)}
                           disabled={isProcessing}
-                          title="Xem chi tiết"
+                          title={t("admin:HotelRoomsModal.viewDetails")}
                         >
                           <Eye size={18} />
                         </Button>
@@ -193,7 +195,7 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
                           disabled={isProcessing}
                         >
                           <Ban size={16} className="mr-1.5" />
-                          Dừng
+                          {t("admin:HotelRoomsModal.suspend")}
                         </Button>
                       </>
                     )}
@@ -203,7 +205,7 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
             </div>
           ) : (
             <div className="py-8">
-              <EmptyState title="Không có phòng nào" description="Khách sạn này chưa thêm phòng nào." />
+              <EmptyState title={t("admin:HotelRoomsModal.noRooms")} description={t("admin:HotelRoomsModal.thisHotelHasNotAdded")} />
             </div>
           )}
         </div>
@@ -214,7 +216,7 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
         isOpen={suspendRoomModalOpen}
         onClose={() => setSuspendRoomModalOpen(false)}
         onConfirm={handleConfirmSuspendRoom}
-        title="Dừng hoạt động Phòng"
+        title={t("admin:HotelRoomsModal.suspendRoom")}
         itemName={selectedRoom?.roomName}
         // Không cần truyền loading vào đây nữa vì overlay tổng đã chặn rồi
       />
@@ -224,9 +226,9 @@ const HotelRoomsModal = ({ isOpen, onClose, hotel }) => {
         onClose={() => setActivateRoomModalOpen(false)}
         onConfirm={handleConfirmActivateRoom}
         // Không cần truyền isLoading vì overlay tổng đã chặn rồi
-        title="Mở lại phòng"
-        message={`Bạn có muốn kích hoạt lại phòng "${selectedRoom?.roomName}"?`}
-        confirmText="Mở lại"
+        title={t("admin:HotelRoomsModal.reactivateRoom")}
+        message={t("admin:HotelRoomsModal.doYouWantToReactivate", { roomName: selectedRoom?.roomName })}
+        confirmText={t("admin:HotelRoomsModal.reactivate")}
         confirmColor="green"
         iconType="success"
       />

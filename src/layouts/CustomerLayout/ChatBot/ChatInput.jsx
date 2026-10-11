@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { Send } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "react-i18next";
 
 const ChatInput = ({ onSend, disabled }) => {
+  const { t } = useTranslation("layout");
   const { currentUser } = useAuth();
   const isGuest = !currentUser;
 
@@ -29,8 +31,8 @@ const ChatInput = ({ onSend, disabled }) => {
             type="text"
             placeholder={
               isGuest
-                  ? "Không thể nhập tin nhắn"
-                  : "Nhập tin nhắn..."
+                  ? t("chat.inputDisabled")
+                  : t("chat.inputPlaceholder")
             }
             value={text}
             onChange={(e) => setText(e.target.value)}

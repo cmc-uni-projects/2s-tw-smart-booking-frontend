@@ -1,7 +1,9 @@
 import React from "react";
-import PropTypes from "prop-types"; // ✅ 1. Import PropTypes
+import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next"; // ✅ 1. Import PropTypes
 
 export default function UserInfoCell({ avatar, fullName, email, phoneNumber }) {
+  const { t } = useTranslation();
     // URL ảnh mặc định
     const defaultAvatar = "https://i.pravatar.cc/150?u=default";
 
@@ -25,7 +27,7 @@ export default function UserInfoCell({ avatar, fullName, email, phoneNumber }) {
                     className="font-semibold text-gray-900 text-sm truncate max-w-[180px]"
                     title={fullName} // Hover để xem tên đầy đủ
                 >
-                    {fullName || "Chưa cập nhật tên"}
+                    {fullName || t("admin:UserInfoCell.nameNotSet")}
                 </span>
 
                 {/* Thông tin liên hệ */}

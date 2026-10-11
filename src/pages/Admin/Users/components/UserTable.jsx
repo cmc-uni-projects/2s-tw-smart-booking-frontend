@@ -4,8 +4,10 @@ import UserStatusBadge from "./UserStatusBadge";
 import UserRoleBadge from "./UserRoleBadge";
 import UserRankBadge from "./UserRankBadge";
 import ActionMenu from "./ActionMenu";
+import { useTranslation } from "react-i18next";
 
 export default function UserTable({ users, onStatusChange }) {
+  const { t } = useTranslation();
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
@@ -14,22 +16,22 @@ export default function UserTable({ users, onStatusChange }) {
                         {/* ✅ ĐÃ SỬA: Chuyển nền sang xanh dương nhạt (bg-blue-50) và viền xanh (border-blue-100) */}
                         <tr className="bg-blue-50 border-b border-blue-100">
                             <th className="px-6 py-4 text-xs font-bold text-blue-700 uppercase tracking-wider">
-                                Người dùng
+                                {t("admin:UserTable.user")}
                             </th>
                             <th className="px-6 py-4 text-xs font-bold text-blue-700 uppercase tracking-wider">
-                                Vai trò
+                                {t("admin:UserTable.role")}
                             </th>
                             <th className="px-6 py-4 text-xs font-bold text-blue-700 uppercase tracking-wider">
-                                Hạng TV
+                                {t("admin:UserTable.tier")}
                             </th>
                             <th className="px-6 py-4 text-xs font-bold text-blue-700 uppercase tracking-wider">
-                                Liên hệ
+                                {t("admin:UserTable.contact")}
                             </th>
                             <th className="px-6 py-4 text-xs font-bold text-blue-700 uppercase tracking-wider">
-                                Trạng thái
+                                {t("admin:UserTable.status")}
                             </th>
                             <th className="px-6 py-4 text-xs font-bold text-blue-700 uppercase tracking-wider text-center">
-                                Hành động
+                                {t("admin:UserTable.actions")}
                             </th>
                         </tr>
                     </thead>
@@ -37,7 +39,7 @@ export default function UserTable({ users, onStatusChange }) {
                         {(!users || !Array.isArray(users) || users.length === 0) ? (
                             <tr>
                                 <td colSpan="6" className="px-6 py-8 text-center text-gray-500 text-sm">
-                                    Không có dữ liệu người dùng
+                                    {t("admin:UserTable.noUserData")}
                                 </td>
                             </tr>
                         ) : (

@@ -1,6 +1,8 @@
 import React, { forwardRef } from "react";
 import { MapPin, User, Eye, Clock, CheckCircle, XCircle, Hotel, Home, Building, Calendar } from "lucide-react";
 import Button from "@/components/common/Button/Button";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 // URL Base cho ảnh (Cập nhật theo port backend của bạn)
 const API_IMAGE_BASE = "http://localhost:8386/uploads/";
@@ -10,26 +12,26 @@ const getStatusConfig = (status) => {
   switch (status) {
     case "PENDING":
       return {
-        label: "Đang chờ duyệt",
+        label: i18n.t("admin:HotelSubmissionCard.pendingApproval"),
         className: "bg-yellow-100 text-yellow-700 border-yellow-300 ring-2 ring-yellow-400/50 shadow-sm animate-pulse",
         icon: <Clock size={14} className="animate-spin-slow" />
       };
     case "APPROVED":
     case "APPROVE": 
       return {
-        label: "Đã phê duyệt",
+        label: i18n.t("admin:HotelSubmissionCard.approved"),
         className: "bg-green-100 text-green-700 border-green-200",
         icon: <CheckCircle size={14} />
       };
     case "REJECTED":
       return {
-        label: "Đã từ chối",
+        label: i18n.t("admin:HotelSubmissionCard.rejected"),
         className: "bg-red-100 text-red-700 border-red-200",
         icon: <XCircle size={14} />
       };
     default:
       return {
-        label: status || "Không xác định",
+        label: status || i18n.t("admin:HotelSubmissionCard.unknown"),
         className: "bg-gray-100 text-gray-600 border-gray-200",
         icon: null
       };
@@ -54,6 +56,7 @@ const getImageUrl = (path) => {
 
 // [QUAN TRỌNG] Sử dụng forwardRef để fix lỗi animation
 const HotelSubmissionCard = forwardRef(({ hotel, onViewDetails }, ref) => {
+  const { t } = useTranslation();
   if (!hotel) return null;
 
   const statusConfig = getStatusConfig(hotel.propertyStatus);
@@ -98,11 +101,11 @@ const HotelSubmissionCard = forwardRef(({ hotel, onViewDetails }, ref) => {
         {/* Tên & Địa chỉ */}
         <div>
           <h3 className="text-base font-bold text-gray-800 line-clamp-1 group-hover:text-[rgb(40,169,224)] transition-colors" title={hotel.hotelName}>
-            {hotel.hotelName || "Tên chưa cập nhật"}
+            {hotel.hotelName || t("admin:HotelSubmissionCard.nameNotSet")}
           </h3>
           <div className="flex items-start gap-1.5 text-gray-500 text-xs mt-1">
             <MapPin size={14} className="shrink-0 mt-0.5 text-red-400" />
-            <span className="line-clamp-2">{hotel.address || "Địa chỉ chưa cập nhật"}</span>
+            <span className="line-clamp-2">{hotel.address || t("admin:HotelSubmissionCard.addressNotSet")}</span>
           </div>
         </div>
 
@@ -127,9 +130,9 @@ const HotelSubmissionCard = forwardRef(({ hotel, onViewDetails }, ref) => {
                 
                 <div className="min-w-0">
                     <p className="text-xs font-semibold text-gray-700 truncate max-w-[100px]" title={hotel.ownerName}>
-                        {hotel.ownerName || "Không tên"}
+                        {hotel.ownerName || t("admin:HotelSubmissionCard.unnamed")}
                     </p>
-                    <p className="text-[10px] text-gray-400 font-medium">Chủ sở hữu</p> {/* Đã đổi tên */}
+                    <p className="text-[10px] text-gray-400 font-medium">{t("admin:HotelSubmissionCard.owner")}</p> {/* Đã đổi tên */}
                 </div>
              </div>
 
@@ -153,7 +156,7 @@ const HotelSubmissionCard = forwardRef(({ hotel, onViewDetails }, ref) => {
                 onViewDetails();
             }}
         >
-            <Eye size={14} className="mr-2"/> Xem chi tiết
+            <Eye size={14} className="mr-2"/> {t("admin:HotelSubmissionCard.viewDetails")}
         </Button>
       </div>
     </div>

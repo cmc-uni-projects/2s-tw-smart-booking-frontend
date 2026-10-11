@@ -1,11 +1,13 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Users, UserCheck, UserX } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function UserStats({ stats }) {
+  const { t } = useTranslation();
     const statItems = [
         {
-            label: "Tổng tài khoản",
+            label: t("admin:UserStats.totalAccounts"),
             value: stats.total || 0,
             icon: Users,
             color: "text-blue-600",
@@ -13,7 +15,7 @@ export default function UserStats({ stats }) {
             border: "border-blue-100"
         },
         {
-            label: "Đang hoạt động",
+            label: t("admin:UserStats.active"),
             value: stats.active || 0,
             icon: UserCheck,
             color: "text-emerald-600",
@@ -21,7 +23,7 @@ export default function UserStats({ stats }) {
             border: "border-emerald-100"
         },
         {
-            label: "Đã khóa",
+            label: t("admin:UserStats.locked"),
             value: stats.banned || 0,
             icon: UserX,
             color: "text-red-600",

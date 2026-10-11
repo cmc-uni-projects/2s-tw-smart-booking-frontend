@@ -2,6 +2,7 @@
 import React, { Fragment } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { Check, ChevronDown } from 'lucide-react';
+import { useTranslation } from "react-i18next";
 
 /**
  * Custom Select Component
@@ -12,11 +13,13 @@ const CustomSelect = ({
   value,
   onChange, // <-- Đây là hàm sẽ nhận option.value (code)
   options,
-  placeholder = "Chọn...",
+  placeholder,
   icon,
   errors,
   disabled
 }) => {
+  const { t } = useTranslation();
+  if (placeholder === undefined) placeholder = t("choose");
 
   const selectedOption = options.find(option => option.value === value);
 

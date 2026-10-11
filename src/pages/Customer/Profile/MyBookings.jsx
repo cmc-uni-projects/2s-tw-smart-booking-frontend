@@ -24,16 +24,18 @@ import { useAuth } from "@/context/AuthContext";
 
 // Component BookingCard
 import BookingCard from "./components/BookingCard";
+import { useTranslation } from "react-i18next";
 
 const TABS = [
-  { id: "upcoming", name: "Sắp tới" },
-  { id: "cancelled", name: "Đã hủy" },
-  { id: "all", name: "Tất cả" },
+  { id: "upcoming" },
+  { id: "cancelled" },
+  { id: "all" },
 ];
 
 export default function MyBookings() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const { t } = useTranslation("profile");
 
   // Data States
   const [bookings, setBookings] = useState([]);
@@ -121,7 +123,7 @@ export default function MyBookings() {
 
     try {
       await bookingService.cancelBooking(targetBooking.bookingId, reason);
-      showToast("Hủy đặt phòng thành công!", "success");
+      showToast(t("bookings.cancelSuccess"), "success");
 
       // lấy list mới nhất
       const freshList = await fetchBookings();
@@ -142,7 +144,7 @@ export default function MyBookings() {
       }
     } catch (err) {
       console.error("Cancel Error:", err);
-      showToast(err?.message || "Lỗi khi hủy đơn.", "error");
+      showToast(err?.message || t("bookings.cancelError"), "error");
     }
   };
 
@@ -158,7 +160,7 @@ export default function MyBookings() {
 
     try {
       const res = await paymentService.requestRefund(bookingId, refundData);
-      showToast(res?.message || "Đã gửi yêu cầu hoàn tiền thành công!", "success");
+      showToast(res?.message || t("bookings.refundSent"), "success");
 
       await fetchBookings();
 
@@ -170,7 +172,7 @@ export default function MyBookings() {
         err?.error ||
         err?.data?.message ||
         (typeof err === "string" ? err : null) ||
-        "Lỗi khi gửi yêu cầu.";
+        t("bookings.requestError");
 
       showToast(msg, "error");
     }
@@ -196,8 +198,8 @@ export default function MyBookings() {
           setExistingReview(reviewData);
         }
       } catch (err) {
-        console.error("Lỗi tải đánh giá:", err);
-        showToast("Không thể tải đánh giá cũ.", "error");
+        console.error("Failed to load review:", err);
+        showToast(t("bookings.loadReviewError"), "error");
         return;
       }
     } else {
@@ -210,19 +212,19 @@ export default function MyBookings() {
 
   const handleSubmitReview = async ({ rating, comment, files }) => {
     try {
-      if (!selectedBooking || !currentUser) throw new Error("Thiếu thông tin.");
+      if (!selectedBooking || !currentUser) throw new Error(t("bookings.missingInfo"));
       await createRating({
         bookingId: selectedBooking.bookingId,
         stars: rating,
         comment,
         files,
       });
-      showToast("Cảm ơn bạn! Đánh giá đã được gửi thành công.", "success");
+      showToast(t("bookings.reviewSent"), "success");
       setIsReviewModalOpen(false);
       setSelectedBooking(null);
       fetchBookings();
     } catch (err) {
-      const uiMessage = err.response?.data?.message || err.message || "Gửi đánh giá thất bại.";
+      const uiMessage = err.response?.data?.message || err.message || t("bookings.reviewFailed");
       throw new Error(uiMessage);
     }
   };
@@ -234,13 +236,13 @@ export default function MyBookings() {
         comment,
         files,
       });
-      showToast("Đánh giá đã được cập nhật!", "success");
+      showToast(t("bookings.reviewUpdated"), "success");
       setIsReviewModalOpen(false);
       setSelectedBooking(null);
       fetchBookings();
     } catch (err) {
       console.error("Update error:", err);
-      const uiMessage = err.response?.data?.message || err.message || "Cập nhật thất bại.";
+      const uiMessage = err.response?.data?.message || err.message || t("bookings.updateFailed");
       throw new Error(uiMessage);
     }
   };
@@ -257,13 +259,13 @@ export default function MyBookings() {
         <div className="space-y-6 lg:col-span-9">
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-              <h2 className="text-2xl font-bold text-slate-800">Đặt chỗ của tôi</h2>
-              <p className="text-sm text-slate-500">Quản lý các chuyến đi sắp tới và lịch sử đặt phòng.</p>
+              <h2 className="text-2xl font-bold text-slate-800">{t("bookings.title")}</h2>
+              <p className="text-sm text-slate-500">{t("bookings.subtitle")}</p>
             </div>
           </div>
 
           <div className="border-b border-slate-200">
-            <TabsComponent tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
+            <TabsComponent tabs={TABS.map((tab) => ({ ...tab, name: t(`bookings.tabs.${tab.id}`) }))} activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
 
           {loading ? (
@@ -272,10 +274,10 @@ export default function MyBookings() {
             </div>
           ) : filteredBookings.length === 0 ? (
             <div className="py-10">
-              <EmptyState title="Chưa có đơn đặt phòng nào" description="Bạn chưa có chuyến đi nào trong mục này." />
+              <EmptyState title={t("bookings.emptyTitle")} description={t("bookings.emptyText")} />
               <div className="mt-6 text-center">
                 <Button size="lg" onClick={() => navigate("/hotels")}>
-                  Tìm khách sạn ngay
+                  {t("bookings.findHotel")}
                 </Button>
               </div>
             </div>

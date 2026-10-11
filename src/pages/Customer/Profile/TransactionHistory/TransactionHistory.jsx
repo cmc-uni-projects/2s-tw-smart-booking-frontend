@@ -15,10 +15,12 @@ import Spinner from "@/components/common/Loading/Spinner";
 import EmptyState from "@/components/common/EmptyState/EmptyState";
 import Button from "@/components/common/Button/Button";
 import { Receipt, Search } from "lucide-react"; 
+import { useTranslation } from "react-i18next";
 
 export default function TransactionHistory() {
     const navigate = useNavigate();
     const { currentUser } = useAuth();
+    const { t, i18n } = useTranslation("profile");
 
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -38,7 +40,7 @@ export default function TransactionHistory() {
                     id: `TRX-${item.paymentId}`,
                     bookingId: item.bookingId,
                     date: item.paymentDate,
-                    description: `Thanh toán đặt phòng: ${item.propertyName}`,
+                    description: t("tx.description", { name: item.propertyName }),
                     amount: -item.amount,
                     refunded: item.refundedAmount,
                     method: item.paymentMethod || "Online Payment",
@@ -55,7 +57,7 @@ export default function TransactionHistory() {
         };
 
         fetchHistory();
-    }, [currentUser]);
+    }, [currentUser, i18n.language]);
 
     const mapStatus = (backendStatus) => {
         switch (backendStatus) {
@@ -85,8 +87,8 @@ export default function TransactionHistory() {
                 <div className="lg:col-span-9 space-y-6">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-800">Lịch sử giao dịch</h2>
-                            <p className="text-gray-500 text-sm">Theo dõi dòng tiền và trạng thái thanh toán của bạn.</p>
+                            <h2 className="text-2xl font-bold text-gray-800">{t("tx.title")}</h2>
+                            <p className="text-gray-500 text-sm">{t("tx.subtitle")}</p>
                         </div>
                     </div>
 
@@ -111,10 +113,10 @@ export default function TransactionHistory() {
                             ) : (
                                 // ✅ 2. TÍCH HỢP EMPTY STATE TẠI ĐÂY
                                 <EmptyState
-                                    title={activeTab === 'ALL' ? "Chưa có giao dịch nào" : "Không tìm thấy giao dịch"}
+                                    title={activeTab === 'ALL' ? t("tx.emptyTitle") : t("tx.notFound")}
                                     description={activeTab === 'ALL' 
-                                        ? "Bạn chưa thực hiện thanh toán nào trên hệ thống. Hãy đặt phòng ngay để trải nghiệm!"
-                                        : "Không có giao dịch nào khớp với bộ lọc hiện tại."
+                                        ? t("tx.emptyText")
+                                        : t("tx.noMatch")
                                     }
                                     // Icon thay đổi tùy ngữ cảnh
                                     icon={activeTab === 'ALL' 
@@ -127,7 +129,7 @@ export default function TransactionHistory() {
                                             onClick={() => navigate('/hotels')}
                                             className="px-6"
                                         >
-                                            Khám phá khách sạn ngay
+                                            {t("tx.explore")}
                                         </Button>
                                     )}
                                 />

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   X, Calendar, MapPin, User, CreditCard,
   CheckCircle, AlertCircle, BedDouble, Receipt,
@@ -26,6 +27,7 @@ const BookingDetailModal = ({
   onRefundClick,
   onReviewClick,          // ⭐ thêm prop này
 }) => {
+  const { t } = useTranslation(["profile", "common"]);
   if (!isOpen || !booking) return null;
 
   // --- LOGIC TÍNH TOÁN MỚI ---
@@ -58,27 +60,27 @@ const BookingDetailModal = ({
   const renderStatusBadge = () => {
     const config = {
       PENDING_PAYMENT: {
-        text: "Chờ thanh toán",
+        text: t("common:bookingStatus.PENDING_PAYMENT"),
         bg: "bg-amber-500",
         icon: AlertCircle,
       },
       CONFIRMED: {
-        text: "Đã xác nhận",
+        text: t("common:bookingStatus.CONFIRMED"),
         bg: "bg-blue-500",
         icon: CheckCircle,
       },
       CHECKED_IN: {
-        text: "Đang lưu trú",
+        text: t("common:bookingStatus.CHECKED_IN"),
         bg: "bg-emerald-500",
         icon: BedDouble,
       },
       COMPLETED: {
-        text: "Hoàn thành",
+        text: t("common:bookingStatus.COMPLETED"),
         bg: "bg-emerald-500",
         icon: CheckCircle,
       },
       CANCELLED: {
-        text: "Đã hủy",
+        text: t("common:bookingStatus.CANCELLED"),
         bg: "bg-rose-500",
         icon: X,
       },
@@ -99,20 +101,20 @@ const BookingDetailModal = ({
   const renderPaymentBadge = () => {
     const status = booking.paymentStatus;
     let style = "bg-gray-100 text-gray-700";
-    let label = "Chưa thanh toán";
+    let label = t("common:paymentStatus.UNPAID");
     let Icon = AlertCircle;
 
     if (status === "APPROVED" || status === "PAID") {
       style = "bg-emerald-100 text-emerald-700";
-      label = "Đã thanh toán";
+      label = t("common:paymentStatus.PAID");
       Icon = CheckCircle;
     } else if (status === "REFUNDED") {
       style = "bg-purple-100 text-purple-700";
-      label = "Đã hoàn tiền";
+      label = t("common:paymentStatus.REFUNDED");
       Icon = CheckCircle;
     } else if (status === "REFUND_REQUESTED") {
       style = "bg-orange-100 text-orange-700";
-      label = "Chờ hoàn tiền";
+      label = t("common:paymentStatus.REFUND_REQUESTED");
       Icon = Clock;
     }
 
@@ -126,7 +128,7 @@ const BookingDetailModal = ({
   };
 
   const handlePayment = () => {
-    alert("Vui lòng thanh toán qua ứng dụng hoặc tại quầy!");
+    alert(t("detail.payAtCounter"));
   };
 
   return (
@@ -155,13 +157,13 @@ const BookingDetailModal = ({
           <div className="absolute bottom-0 left-0 flex w-full items-end justify-between p-6">
             <div>
               <div className="mb-1 flex items-center gap-2 text-sm text-slate-300">
-                <Receipt size={14} /> Mã đơn:{" "}
+                <Receipt size={14} /> {t("detail.bookingCode")}{" "}
                 <span className="font-mono font-bold text-white">
                   BK-{booking.bookingId}
                 </span>
               </div>
               <h2 className="max-w-md truncate text-2xl font-bold text-white shadow-sm md:text-3xl">
-                {booking.propertyName || "Tên khách sạn"}
+                {booking.propertyName || t("detail.hotelName")}
               </h2>
             </div>
             <div className="hidden md:block">{renderStatusBadge()}</div>
@@ -178,26 +180,26 @@ const BookingDetailModal = ({
           <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
             <h3 className="mb-4 flex items-center gap-2 border-b pb-2 font-bold text-slate-800">
               <BedDouble size={18} className="text-[rgb(40,169,224)]" />{" "}
-              Thông tin lưu trú
+              {t("detail.stayInfo")}
             </h3>
             <div className="grid gap-6 md:grid-cols-2">
               <div>
-                <p className="mb-1 text-sm text-slate-500">Loại phòng</p>
+                <p className="mb-1 text-sm text-slate-500">{t("card.roomType")}</p>
                 <p className="font-medium text-slate-800">
                   {booking.roomName}
                 </p>
               </div>
               <div>
-                <p className="mb-1 text-sm text-slate-500">Số lượng khách</p>
+                <p className="mb-1 text-sm text-slate-500">{t("detail.guestCount")}</p>
                 <div className="flex items-center gap-2">
                   <User size={16} className="text-slate-400" />
                   <span className="font-medium text-slate-800">
-                    {booking.guestCount} người
+                    {t("detail.people", { count: booking.guestCount })}
                   </span>
                 </div>
               </div>
               <div>
-                <p className="mb-1 text-sm text-slate-500">Nhận phòng</p>
+                <p className="mb-1 text-sm text-slate-500">{t("common:checkIn")}</p>
                 <div className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-blue-700">
                   <Calendar size={16} />
                   <span className="font-bold">
@@ -206,7 +208,7 @@ const BookingDetailModal = ({
                 </div>
               </div>
               <div>
-                <p className="mb-1 text-sm text-slate-500">Trả phòng</p>
+                <p className="mb-1 text-sm text-slate-500">{t("common:checkOut")}</p>
                 <div className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 text-slate-700">
                   <Calendar size={16} />
                   <span className="font-bold">
@@ -220,7 +222,7 @@ const BookingDetailModal = ({
                 size={16}
                 className="mt-0.5 shrink-0 text-slate-400"
               />
-              {booking.propertyAddress || "Địa chỉ đang cập nhật"}
+              {booking.propertyAddress || t("detail.addressPending")}
             </div>
           </div>
 
@@ -229,7 +231,7 @@ const BookingDetailModal = ({
             <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
               <h3 className="mb-4 flex items-center gap-2 border-b pb-2 font-bold text-slate-800">
                 <UserCircle size={18} className="text-[rgb(40,169,224)]" />{" "}
-                Thông tin liên hệ
+                {t("detail.contact")}
               </h3>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="flex items-center gap-3">
@@ -237,7 +239,7 @@ const BookingDetailModal = ({
                     <User size={20} />
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500">Người đặt</p>
+                    <p className="text-xs text-slate-500">{t("detail.booker")}</p>
                     <p className="text-sm font-bold text-slate-800">
                       {booking.user.fullName}
                     </p>
@@ -261,9 +263,9 @@ const BookingDetailModal = ({
                     <Phone size={20} />
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500">Số điện thoại</p>
+                    <p className="text-xs text-slate-500">{t("info.phone")}</p>
                     <p className="text-sm font-medium text-slate-800">
-                      {booking.user.phoneNumber || "Chưa cập nhật"}
+                      {booking.user.phoneNumber || t("common:notUpdated")}
                     </p>
                   </div>
                 </div>
@@ -275,8 +277,7 @@ const BookingDetailModal = ({
           <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between border-b pb-2">
               <h3 className="flex items-center gap-2 font-bold text-slate-800">
-                <CreditCard size={18} className="text-[rgb(40,169,224)]" /> Chi
-                tiết thanh toán
+                <CreditCard size={18} className="text-[rgb(40,169,224)]" /> {t("detail.paymentDetails")}
               </h3>
               {renderPaymentBadge()}
             </div>
@@ -284,7 +285,7 @@ const BookingDetailModal = ({
             <div className="space-y-2">
               {/* Dòng 1: Giá gốc */}
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Giá trị đơn hàng</span>
+                <span className="text-slate-500">{t("detail.orderValue")}</span>
                 <span className="font-medium text-slate-700">
                   {formatCurrency(booking.totalPrice)}
                 </span>
@@ -293,7 +294,7 @@ const BookingDetailModal = ({
               {/* Dòng 2: Phí phạt (Chỉ hiện khi đã hủy) */}
               {isCancelled && penaltyAmount > 0 && (
                 <div className="flex justify-between rounded bg-rose-50 p-2 text-sm text-rose-600">
-                  <span>Phí phạt hủy</span>
+                  <span>{t("detail.penalty")}</span>
                   <span>- {formatCurrency(penaltyAmount)}</span>
                 </div>
               )}
@@ -301,7 +302,7 @@ const BookingDetailModal = ({
               {/* Dòng 3: Tổng kết */}
               <div className="mt-2 flex items-center justify-between border-t border-slate-100 pt-2">
                 <span className="font-bold text-slate-800">
-                  {isCancelled ? "Tổng nhận được" : "Tổng thanh toán"}
+                  {isCancelled ? t("detail.totalReceived") : t("detail.totalPaid")}
                 </span>
                 <span
                   className={`text-xl font-bold ${
@@ -323,9 +324,7 @@ const BookingDetailModal = ({
               className="shrink-0 text-[rgb(40,169,224)]"
             />
             <p>
-              Miễn phí hủy phòng trong vòng 15 phút sau khi đặt. Sau đó áp dụng
-              chính sách hoàn tiền của khách sạn. Vui lòng liên hệ bộ phận hỗ
-              trợ nếu cần giúp đỡ.
+              {t("detail.policyNote")}
             </p>
           </div>
         </div>
@@ -340,14 +339,14 @@ const BookingDetailModal = ({
                 className="border-none bg-rose-600 text-white shadow-rose-100 hover:bg-rose-700"
                 onClick={onCancelClick}
               >
-                Hủy phòng
+                {t("detail.cancel")}
               </Button>
             )}
 
           {/* Nút Thanh toán (Chỉ hiện khi chờ thanh toán) */}
           {booking.status === "PENDING_PAYMENT" && (
             <Button variant="primary" onClick={handlePayment}>
-              Thanh toán ngay
+              {t("detail.payNow")}
             </Button>
           )}
 
@@ -361,7 +360,7 @@ const BookingDetailModal = ({
                 className="flex items-center gap-2 border-none bg-orange-500 text-white hover:bg-orange-600"
               >
                 <RefreshCcw size={18} />
-                Yêu cầu hoàn tiền
+                {t("detail.requestRefund")}
               </Button>
             )}
 
@@ -372,12 +371,12 @@ const BookingDetailModal = ({
               onClick={onReviewClick}
               className="rounded-full border border-[rgb(28,132,184)] bg-[rgb(40,169,224)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[rgb(30,145,198)]"
             >
-              Đánh giá
+              {t("detail.review")}
             </Button>
           )}
 
           <Button variant="outline" onClick={onClose}>
-            Đóng
+            {t("common:actions.close")}
           </Button>
         </div>
       </div>

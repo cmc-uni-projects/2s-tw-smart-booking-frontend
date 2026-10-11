@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { User, Phone, Mail, MessageSquare, CheckCircle2, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import MissingProfileModal from "./MissingProfileModal";
 import { userService } from "@/services/user.service";
 
 const ContactInfoForm = ({ user, onChange, initialData }) => {
+  const { t } = useTranslation("booking");
   // --- INIT DATA ---
   const [formData, setFormData] = useState({
     fullName: initialData?.contactName || "",
@@ -21,26 +23,26 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
   // --- VALIDATION HELPERS ---
   const validateFullName = (v) => {
     const value = String(v ?? "").trim();
-    if (!value) return "Họ và tên không được để trống.";
+    if (!value) return t("validation.nameRequired");
     // Cho phép chữ + khoảng trắng (có dấu)
-    const regex = /^[A-Za-zÀ-ỹ\s]+$/;
-    if (!regex.test(value)) return "Họ và tên chỉ được chứa chữ cái và khoảng trắng.";
+    const regex = /^[A-Za-zÀ-ỹ\s]+$/; // i18n-ignore (character range)
+    if (!regex.test(value)) return t("validation.nameLetters");
     return "";
   };
 
   const validatePhone = (v) => {
     const value = String(v ?? "").trim();
-    if (!value) return "Số điện thoại không được để trống.";
+    if (!value) return t("validation.phoneRequired");
     const regex = /^0\d{9}$/; // 10 số và bắt đầu bằng 0
-    if (!regex.test(value)) return "Số điện thoại phải đúng 10 số và bắt đầu bằng 0.";
+    if (!regex.test(value)) return t("validation.phoneFormat");
     return "";
   };
 
   const validateEmail = (v) => {
     const value = String(v ?? "").trim();
-    if (!value) return "Email không được để trống.";
+    if (!value) return t("validation.emailRequired");
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!regex.test(value)) return "Email không hợp lệ.";
+    if (!regex.test(value)) return t("validation.emailInvalid");
     return "";
   };
 
@@ -110,7 +112,7 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
             const res = await userService.getUserProfile(user.userId);
             currentUserData = res?.data || res || user;
           } catch (err) {
-            console.warn("Không thể lấy thông tin mới nhất, dùng thông tin hiện tại:", err);
+            console.warn("Could not refresh profile, using current data:", err);
           }
         }
 
@@ -118,13 +120,13 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
 
         // Name
         if (!currentUserData?.fullName || String(currentUserData.fullName).trim() === "") {
-          missing.push("Họ và tên");
+          missing.push(t("form.fullName"));
         }
 
         // Phone (ưu tiên phoneNumber)
         const userPhone = currentUserData?.phoneNumber || currentUserData?.phone;
         if (!userPhone || String(userPhone).trim() === "") {
-          missing.push("Số điện thoại");
+          missing.push(t("form.phone"));
         }
 
         // Email
@@ -170,7 +172,7 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
         <h3 className="font-bold text-slate-800 flex items-center gap-2">
-          <User size={20} className="text-blue-600" /> Thông tin liên hệ
+          <User size={20} className="text-blue-600" /> {t("contact.title")}
         </h3>
 
         {user && (
@@ -202,7 +204,7 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
             />
 
             <span className={`text-sm font-medium ${isSelfBooking ? "text-blue-700" : "text-slate-600"}`}>
-              {isChecking ? "Đang kiểm tra..." : "Tôi đặt cho chính mình"}
+              {isChecking ? t("contact.checking") : t("form.forSelf")}
             </span>
           </label>
         )}
@@ -213,7 +215,7 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
           {/* FULL NAME */}
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">
-              Họ và tên <span className="text-rose-500">*</span>
+              {t("form.fullName")} <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
               <User className="absolute left-3 top-3 text-slate-400" size={18} />
@@ -238,7 +240,7 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
           {/* PHONE */}
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">
-              Số điện thoại <span className="text-rose-500">*</span>
+              {t("form.phone")} <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
               <Phone className="absolute left-3 top-3 text-slate-400" size={18} />
@@ -263,7 +265,7 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
           {/* EMAIL */}
           <div className="md:col-span-2">
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">
-              Email nhận vé <span className="text-rose-500">*</span>
+              {t("contact.ticketEmail")} <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-3 text-slate-400" size={18} />
@@ -285,7 +287,7 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
 
             {isSelfBooking && (
               <p className="text-xs text-blue-600 mt-1.5 flex items-center gap-1">
-                <CheckCircle2 size={12} /> Thông tin được lấy tự động từ hồ sơ của bạn.
+                <CheckCircle2 size={12} /> {t("contact.autoFilled")}
               </p>
             )}
 
@@ -294,7 +296,7 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
 
           {/* SPECIAL REQUEST */}
           <div className="md:col-span-2">
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Yêu cầu đặc biệt</label>
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">{t("form.specialTitle")}</label>
             <div className="relative">
               <MessageSquare className="absolute left-3 top-3 text-slate-400" size={18} />
               <textarea
@@ -303,7 +305,7 @@ const ContactInfoForm = ({ user, onChange, initialData }) => {
                 value={formData.specialRequest}
                 onChange={handleChange}
                 className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 resize-none"
-                placeholder="VD: Nhận phòng sớm, phòng không hút thuốc..."
+                placeholder={t("contact.specialPlaceholder")}
               />
             </div>
 

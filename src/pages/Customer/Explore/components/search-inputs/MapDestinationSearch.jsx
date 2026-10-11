@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, MapPin, X, Loader2, Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 
 // API lấy danh sách tỉnh thành Việt Nam
 const PROVINCES_API_URL = "https://provinces.open-api.vn/api/?depth=1";
 
 const MapDestinationSearch = ({ value, onChange }) => {
+    const { t } = useTranslation("search");
   const [provinces, setProvinces] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -20,7 +22,7 @@ const MapDestinationSearch = ({ value, onChange }) => {
         const res = await axios.get(PROVINCES_API_URL);
         if (res.data) {
             // Map dữ liệu về dạng đơn giản { name, code }
-            const data = res.data.map(p => ({ name: p.name.replace("Tỉnh ", "").replace("Thành phố ", ""), code: p.code, fullName: p.name }));
+            const data = res.data.map(p => ({ name: p.name.replace("Tỉnh ", "").replace("Thành phố ", ""), code: p.code, fullName: p.name })); // i18n-ignore (strips province prefixes)
             setProvinces(data);
             setFilteredProvinces(data);
         }
@@ -73,7 +75,7 @@ const MapDestinationSearch = ({ value, onChange }) => {
         
         <div className="flex flex-col w-full relative">
           <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider hidden md:block">
-            Địa điểm
+            {t("map.place")}
           </label>
           
           <input 
@@ -81,7 +83,7 @@ const MapDestinationSearch = ({ value, onChange }) => {
             value={value}
             onChange={(e) => handleInputChange(e.target.value)}
             onFocus={() => setShowDropdown(true)}
-            placeholder="Tìm Tỉnh/Thành phố..." 
+            placeholder={t("map.placePlaceholder")} 
             className="w-full text-sm font-semibold text-gray-700 placeholder-gray-400 bg-transparent outline-none truncate"
           />
         </div>
@@ -102,7 +104,7 @@ const MapDestinationSearch = ({ value, onChange }) => {
           <div className="absolute top-full left-0 w-full md:w-[300px] bg-white rounded-xl shadow-2xl border border-gray-100 mt-2 max-h-80 overflow-y-auto z-50 animate-in fade-in slide-in-from-top-2 custom-scrollbar">
               {loading ? (
                   <div className="p-4 flex items-center justify-center text-gray-400 gap-2 text-xs">
-                      <Loader2 size={14} className="animate-spin"/> Đang tải danh sách...
+                      <Loader2 size={14} className="animate-spin"/> {t("map.loadingList")}
                   </div>
               ) : filteredProvinces.length > 0 ? (
                   <ul>
@@ -126,7 +128,7 @@ const MapDestinationSearch = ({ value, onChange }) => {
                   </ul>
               ) : (
                   <div className="p-4 text-center text-gray-400 text-xs">
-                      Không tìm thấy địa điểm nào.
+                      {t("map.noPlace")}
                   </div>
               )}
           </div>

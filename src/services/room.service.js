@@ -104,7 +104,7 @@ const roomService = {
             });
             return response.data;
         } catch (error) {
-            console.error("Lỗi lấy dự báo giá:", error);
+            console.error("Failed to get the price forecast:", error);
             throw error;
         }
     }

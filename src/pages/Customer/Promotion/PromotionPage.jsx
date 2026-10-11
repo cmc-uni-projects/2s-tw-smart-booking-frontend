@@ -8,6 +8,7 @@ import AutoScrollBanner from "./components/AutoScrollBanner";
 import TabsComponent from "@/components/common/Tabs/TabsComponent";
 // Import các icon hiển thị
 import { Tag, ChevronLeft, ChevronRight, Crown, Sparkles, Gift } from "lucide-react";
+import { useTranslation, Trans } from "react-i18next";
 
 // Config URL ảnh
 // ✅ R2 public base URL
@@ -30,6 +31,7 @@ const getFullImageUrl = (path) => {
 
 
 const PromotionPage = () => {
+    const { t, i18n } = useTranslation("promotion");
     const location = useLocation();
     const [promotions, setPromotions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -41,9 +43,9 @@ const PromotionPage = () => {
     const [savedIds, setSavedIds] = useState([]);
 
     const tabs = [
-        { id: 'all', name: 'Tất cả ưu đãi' },
-        { id: 'exclusive', name: 'Khuyến mãi độc quyền' }, // Tab này sẽ hiện khuyến mãi của Owner
-        { id: 'saved', name: 'Kho ưu đãi của tôi' }
+        { id: 'all', name: t('page.tabs.all') },
+        { id: 'exclusive', name: t('page.tabs.exclusive') }, // Tab này sẽ hiện khuyến mãi của Owner
+        { id: 'saved', name: t('page.tabs.saved') }
     ];
 
     const [searchTerm, setSearchTerm] = useState("");
@@ -96,7 +98,7 @@ const PromotionPage = () => {
                         hotelName: isOwnerPromotion ? propertyInfo.propertyName : null,
 
                         title: p.description,
-                        description: `Giảm ${p.discountType === 'PERCENTAGE' ? cleanDiscountValue + '%' : cleanDiscountValue.toLocaleString('vi-VN') + 'đ'} cho đơn từ ${cleanMinOrder.toLocaleString('vi-VN')}đ`,
+                        description: t('page.cardDescription', { amount: p.discountType === 'PERCENTAGE' ? cleanDiscountValue + '%' : cleanDiscountValue.toLocaleString('vi-VN') + '₫', min: cleanMinOrder.toLocaleString('vi-VN') }),
                         image: getFullImageUrl(p.bannerUrl),
                         code: p.code,
                         endDate: p.endDate,
@@ -138,7 +140,7 @@ const PromotionPage = () => {
         };
 
         fetchPromotions();
-    }, [location.state]);
+    }, [location.state, i18n.language]);
 
     // --- LOGIC HIỂN THỊ THEO TAB (Giữ nguyên) ---
     const sourcePromotions = useMemo(() => {
@@ -223,10 +225,10 @@ const PromotionPage = () => {
                 <div className="bg-gradient-to-r from-[rgb(40,169,224)] to-[rgb(26,140,189)] rounded-3xl p-8 text-white shadow-lg relative overflow-hidden">
                     <div className="relative z-10">
                         <h1 className="text-3xl font-bold flex items-center gap-3">
-                            <Gift className="w-8 h-8" /> Kho Ưu Đãi & Khuyến Mãi
+                            <Gift className="w-8 h-8" /> {t("page.title")}
                         </h1>
                         <p className="mt-2 text-blue-100 max-w-2xl">
-                            Săn ngay hàng ngàn mã giảm giá độc quyền dành cho khách hàng thân thiết.
+                            {t("page.subtitle")}
                         </p>
                     </div>
                     <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
@@ -259,10 +261,10 @@ const PromotionPage = () => {
                                 </div>
                                 <div>
                                     <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                                        Bộ Sưu Tập Độc Quyền <Sparkles size={16} className="text-yellow-500 animate-pulse"/>
+                                        {t("page.exclusiveTitle")} <Sparkles size={16} className="text-yellow-500 animate-pulse"/>
                                     </h2>
                                     <p className="text-sm text-gray-600">
-                                        Những ưu đãi đặc biệt từ các khách sạn đối tác của TravelMate.
+                                        {t("page.exclusiveText")}
                                     </p>
                                 </div>
                             </div>
@@ -284,8 +286,8 @@ const PromotionPage = () => {
                                 </div>
                                 <p className="text-gray-500 font-medium">
                                     {activeTab === 'exclusive'
-                                        ? "Chưa có chương trình khuyến mãi độc quyền nào."
-                                        : "Không tìm thấy khuyến mãi nào."}
+                                        ? t("page.noExclusive")
+                                        : t("page.noResults")}
                                 </p>
                             </div>
                         )}
@@ -296,7 +298,7 @@ const PromotionPage = () => {
                         <div className="mt-8 border-t border-gray-100 pt-6">
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <span className="text-sm text-gray-500">
-                                    Hiển thị <span className="font-semibold text-gray-700">{paginatedData.length}</span> / <span className="font-semibold text-gray-700">{filteredPromotions.length}</span> kết quả
+                                    <Trans t={t} i18nKey="page.showing" values={{ shown: paginatedData.length, total: filteredPromotions.length }} components={{ b: <span className="font-semibold text-gray-700" /> }} />
                                 </span>
                                 <div className="flex items-center gap-2">
                                     <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2 rounded-lg border bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"><ChevronLeft size={18} /></button>

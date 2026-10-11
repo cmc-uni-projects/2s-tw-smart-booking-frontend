@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function ImageViewerModal({
   open,
@@ -7,6 +8,7 @@ export default function ImageViewerModal({
   images = [],
   startIndex = 0,
 }) {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [transform, setTransform] = useState({ scale: 1, x: 0, y: 0 });
   const isDragging = useRef(false);
@@ -85,7 +87,7 @@ export default function ImageViewerModal({
       {/* HEADER CONTROLS */}
       <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-50 text-white bg-gradient-to-b from-black/60 to-transparent">
         <div className="text-sm font-medium opacity-80">
-          {currentIndex + 1} / {images.length} • {currentImage.caption || 'Hình ảnh'}
+          {currentIndex + 1} / {images.length} • {currentImage.caption || t("admin:ImageViewerModal.photos")}
         </div>
         <div className="flex items-center gap-4">
             <button onClick={() => setTransform(p => ({...p, scale: p.scale + 0.5}))} className="p-2 hover:bg-white/20 rounded-full transition"><ZoomIn size={20}/></button>

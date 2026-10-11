@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import Button from "@/components/common/Button/Button";
 import ImageViewerModal from "./ImageViewerModal";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 const API_BASE_URL = (import.meta.env.VITE_REACT_APP_API_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
 
@@ -28,9 +30,9 @@ const formatDateVN = (dateString) => {
 // ✅ Helper Việt hóa trạng thái
 const getStatusLabel = (status) => {
     switch (status) {
-        case "PENDING": return "Chờ duyệt";
-        case "APPROVED": return "Đã duyệt";
-        case "REJECTED": return "Từ chối";
+        case "PENDING": return i18n.t("admin:ViewApplicationModal.pending");
+        case "APPROVED": return i18n.t("admin:ViewApplicationModal.approved");
+        case "REJECTED": return i18n.t("admin:ViewApplicationModal.rejected");
         default: return status;
     }
 };
@@ -46,15 +48,16 @@ const InfoRow = ({ icon, label, value, isHighlight = false }) => (
 );
 
 export default function ViewApplicationModal({ isOpen, onClose, application, onApprove, onReject }) {
+  const { t } = useTranslation();
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
 
   if (!isOpen || !application) return null;
 
   const proofImages = [
-    { url: getImgUrl(application.cardFrontImage), caption: "CCCD Mặt trước" },
-    { url: getImgUrl(application.cardBackImage), caption: "CCCD Mặt sau" },
-    { url: getImgUrl(application.businessLicenseImage), caption: "Giấy phép KD" }
+    { url: getImgUrl(application.cardFrontImage), caption: t("admin:ViewApplicationModal.idCardFront") },
+    { url: getImgUrl(application.cardBackImage), caption: t("admin:ViewApplicationModal.idCardBack") },
+    { url: getImgUrl(application.businessLicenseImage), caption: t("admin:ViewApplicationModal.businessLicence") }
   ].filter(img => img.url && !img.url.includes("placeholder"));
 
   const isReviewed = application.status !== "PENDING";
@@ -72,11 +75,11 @@ export default function ViewApplicationModal({ isOpen, onClose, application, onA
             <div>
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-3">
                 <span className="text-blue-600 bg-blue-50 p-2 rounded-lg"><Briefcase size={24}/></span>
-                Hồ sơ đối tác #{application.id}
+                {t("admin:ViewApplicationModal.partnerApplication")}{application.id}
               </h2>
               <div className="flex items-center gap-4 mt-1 ml-12">
                   <p className="text-sm text-gray-500 flex items-center gap-1">
-                    <Calendar size={14}/> Nộp ngày: {formatDateVN(application.createdAt || application.submittedDate)}
+                    <Calendar size={14}/> {t("admin:ViewApplicationModal.submittedOn")} {formatDateVN(application.createdAt || application.submittedDate)}
                   </p>
                   
                   {/* ✅ Badge trạng thái (Header) - Tiếng Việt */}
@@ -102,16 +105,16 @@ export default function ViewApplicationModal({ isOpen, onClose, application, onA
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                     <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 text-white relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-4 opacity-10"><User size={100}/></div>
-                        <h4 className="font-bold text-base mb-2 opacity-90 relative z-10">Thông tin người nộp</h4>
+                        <h4 className="font-bold text-base mb-2 opacity-90 relative z-10">{t("admin:ViewApplicationModal.applicantInformation")}</h4>
                         <h3 className="text-2xl font-bold relative z-10">{application.applicantFullName}</h3>
                     </div>
                     <div className="p-5">
                         <InfoRow icon={<Mail size={16}/>} label="Email" value={application.applicantEmail} />
-                        <InfoRow icon={<Phone size={16}/>} label="SĐT" value={application.applicantPhoneNumber} />
-                        <InfoRow icon={<Cake size={16}/>} label="Ngày sinh" value={formatDateVN(application.applicantDob)} />
-                        <InfoRow icon={<CreditCard size={16}/>} label="Số CCCD" value={application.personalIdCard} />
-                        <InfoRow icon={<MapPin size={16}/>} label="Quê quán" value={application.hometownAddress} />
-                        <InfoRow icon={<MapPin size={16}/>} label="Thường trú" value={application.permanentAddress} />
+                        <InfoRow icon={<Phone size={16}/>} label={t("admin:ViewApplicationModal.phone")} value={application.applicantPhoneNumber} />
+                        <InfoRow icon={<Cake size={16}/>} label={t("admin:ViewApplicationModal.dateOfBirth")} value={formatDateVN(application.applicantDob)} />
+                        <InfoRow icon={<CreditCard size={16}/>} label={t("admin:ViewApplicationModal.idCardNumber")} value={application.personalIdCard} />
+                        <InfoRow icon={<MapPin size={16}/>} label={t("admin:ViewApplicationModal.hometown")} value={application.hometownAddress} />
+                        <InfoRow icon={<MapPin size={16}/>} label={t("admin:ViewApplicationModal.permanentAddress")} value={application.permanentAddress} />
                     </div>
                 </div>
 
@@ -119,23 +122,23 @@ export default function ViewApplicationModal({ isOpen, onClose, application, onA
                     <div className={`rounded-2xl border shadow-sm overflow-hidden ${isRejected ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
                         <div className={`px-6 py-4 border-b flex items-center gap-2 ${isRejected ? 'border-red-200 text-red-800' : 'border-green-200 text-green-800'}`}>
                             {isRejected ? <AlertOctagon size={20}/> : <ShieldCheck size={20}/>}
-                            <h4 className="font-bold text-base">Kết quả xét duyệt</h4>
+                            <h4 className="font-bold text-base">{t("admin:ViewApplicationModal.reviewResult")}</h4>
                         </div>
                         <div className="p-5 space-y-3">
                             <div className="flex justify-between items-center border-b border-black/5 pb-2">
-                                <span className="text-sm font-medium opacity-70">Người duyệt:</span>
+                                <span className="text-sm font-medium opacity-70">{t("admin:ViewApplicationModal.reviewedBy")}</span>
                                 <span className="font-bold">{application.reviewedByAdminName || "Admin"}</span>
                             </div>
                             <div className="flex justify-between items-center border-b border-black/5 pb-2">
-                                <span className="text-sm font-medium opacity-70">Ngày duyệt:</span>
+                                <span className="text-sm font-medium opacity-70">{t("admin:ViewApplicationModal.reviewedOn")}</span>
                                 <span className="font-bold">{formatDateVN(application.reviewedAt)}</span>
                             </div>
                             
                             {isRejected && (
                                 <div className="pt-2">
-                                    <span className="text-xs font-bold uppercase opacity-70 block mb-1">Lý do từ chối:</span>
+                                    <span className="text-xs font-bold uppercase opacity-70 block mb-1">{t("admin:ViewApplicationModal.rejectionReason")}</span>
                                     <p className="bg-white/60 p-3 rounded-lg text-red-700 text-sm italic border border-red-100">
-                                        "{application.adminReason || "Không có lý do cụ thể"}"
+                                        "{application.adminReason || t("admin:ViewApplicationModal.noSpecificReason")}"
                                     </p>
                                 </div>
                             )}
@@ -148,7 +151,7 @@ export default function ViewApplicationModal({ isOpen, onClose, application, onA
               <div className="lg:col-span-7 space-y-6">
                 <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
                     <h3 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <ImageIcon size={18} className="text-blue-500"/> Ảnh minh chứng ({proofImages.length})
+                        <ImageIcon size={18} className="text-blue-500"/> {t("admin:ViewApplicationModal.supportingPhotos")}{proofImages.length})
                     </h3>
                     
                     <div className="grid grid-cols-2 gap-4">
@@ -170,7 +173,7 @@ export default function ViewApplicationModal({ isOpen, onClose, application, onA
                     <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100 flex items-center gap-3">
                         <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><Briefcase size={20}/></div>
                         <div>
-                            <p className="text-xs text-blue-600 font-semibold uppercase">Số Giấy phép kinh doanh</p>
+                            <p className="text-xs text-blue-600 font-semibold uppercase">{t("admin:ViewApplicationModal.businessLicenceNumber")}</p>
                             <p className="text-lg font-bold text-blue-900 tracking-wide">{application.businessLicenseNumber}</p>
                         </div>
                     </div>
@@ -185,10 +188,10 @@ export default function ViewApplicationModal({ isOpen, onClose, application, onA
             {application.status === "PENDING" ? (
                 <>
                     <Button variant="danger" leftIcon={<XCircle size={18} />} onClick={() => onReject(application)} className="bg-white text-red-600 border-red-200 hover:bg-red-50 px-6">
-                        Từ chối hồ sơ
+                        {t("admin:ViewApplicationModal.rejectApplication")}
                     </Button>
                     <Button variant="primary" leftIcon={<CheckCircle size={18} />} className="bg-green-600 hover:bg-green-700 border-green-600 text-white px-8 shadow-lg shadow-green-200" onClick={() => onApprove(application)}>
-                        Phê duyệt ngay
+                        {t("admin:ViewApplicationModal.approveNow")}
                     </Button>
                 </>
             ) : (

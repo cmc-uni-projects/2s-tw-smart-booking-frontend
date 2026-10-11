@@ -1,7 +1,9 @@
 import React from "react";
 import { MapPin, ArrowUpRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const DestinationCard = ({ data, onClick, className }) => {
+  const { t } = useTranslation();
   return (
     <div 
       onClick={onClick}
@@ -23,7 +25,7 @@ const DestinationCard = ({ data, onClick, className }) => {
         {/* Location Tag - Hiệu ứng trượt lên nhẹ nhàng */}
         <div className="flex items-center gap-2 mb-2 opacity-0 transform translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out">
           <span className="bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full text-white text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 border border-white/10">
-            <MapPin size={10} /> {data.region || "Việt Nam"}
+            <MapPin size={10} /> {data.region || t("vietnam")}
           </span>
         </div>
 

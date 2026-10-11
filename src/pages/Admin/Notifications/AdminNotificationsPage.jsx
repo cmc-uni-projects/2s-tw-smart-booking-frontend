@@ -10,14 +10,16 @@ import notificationService from "../../../services/notification.service";
 import Toast from "../../../components/common/Notification/Toast";
 import ToastPortal from "../../../components/common/Notification/ToastPortal";
 import ModalPortal from "../../../components/common/Modal/ModalPortal";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 // --- 1. CẤU HÌNH CHO ADMIN ---
 const typeToVietnamese = {
-  'ADMIN_NEW_OWNER_REGISTRATION': 'Đăng ký Đối tác mới',
-  'ADMIN_NEW_PROPERTY_SUBMISSION': 'Khách sạn chờ duyệt',
-  'ADMIN_NEW_REFUND_REQUEST': 'Yêu cầu hoàn tiền',
-  'ADMIN_SYSTEM_ALERT': 'Cảnh báo hệ thống',
-  'GENERAL': 'Thông báo chung'
+  get 'ADMIN_NEW_OWNER_REGISTRATION'() { return i18n.t("admin:AdminNotificationsPage.newPartnerRegistration"); },
+  get 'ADMIN_NEW_PROPERTY_SUBMISSION'() { return i18n.t("admin:AdminNotificationsPage.hotelPendingApproval"); },
+  get 'ADMIN_NEW_REFUND_REQUEST'() { return i18n.t("admin:AdminNotificationsPage.refundRequest"); },
+  get 'ADMIN_SYSTEM_ALERT'() { return i18n.t("admin:AdminNotificationsPage.systemAlert"); },
+  get 'GENERAL'() { return i18n.t("admin:AdminNotificationsPage.generalNotification"); }
 };
 
 // Format ngày tháng
@@ -33,14 +35,14 @@ const formatTime = (dateString) => {
 };
 
 const formatDateGroup = (dateString) => {
-  if (!dateString) return "Khác";
+  if (!dateString) return i18n.t("admin:AdminNotificationsPage.other");
   const date = new Date(dateString);
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
 
-  if (date.toDateString() === today.toDateString()) return "Hôm nay";
-  if (date.toDateString() === yesterday.toDateString()) return "Hôm qua";
+  if (date.toDateString() === today.toDateString()) return i18n.t("admin:AdminNotificationsPage.today");
+  if (date.toDateString() === yesterday.toDateString()) return i18n.t("admin:AdminNotificationsPage.yesterday");
   return date.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
@@ -61,6 +63,7 @@ const getNotificationStyle = (type) => {
 };
 
 const AdminNotificationsPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   // State
@@ -117,8 +120,8 @@ const AdminNotificationsPage = () => {
     try {
       await notificationService.markAllAsRead('ADMIN');
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true, read: true })));
-      showToast("Đã đánh dấu tất cả là đã đọc", "success");
-    } catch (e) { showToast("Lỗi hệ thống", "error"); }
+      showToast(t("admin:AdminNotificationsPage.markedAllAsRead"), "success");
+    } catch (e) { showToast(t("admin:AdminNotificationsPage.systemError"), "error"); }
   };
 
   const handleMarkRead = async (noti) => {
@@ -139,7 +142,7 @@ const AdminNotificationsPage = () => {
     // Vì chưa có API xóa thật, tạm thời ẩn khỏi UI
     setNotifications(prev => prev.filter(n => n.id !== notificationToDelete));
     setNotificationToDelete(null);
-    showToast("Đã ẩn thông báo", "success");
+    showToast(t("admin:AdminNotificationsPage.notificationHidden"), "success");
   };
 
   // --- FILTER LOGIC (ADMIN) ---
@@ -204,8 +207,8 @@ const AdminNotificationsPage = () => {
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">Thông báo Quản trị</h1>
-              <p className="text-gray-500 text-sm">Cập nhật các yêu cầu phê duyệt và tài chính</p>
+              <h1 className="text-2xl font-bold text-gray-800">{t("admin:AdminNotificationsPage.adminNotifications")}</h1>
+              <p className="text-gray-500 text-sm">{t("admin:AdminNotificationsPage.updatesOnApprovalRequestsAnd")}</p>
             </div>
             
             <div className="flex gap-2">
@@ -213,13 +216,13 @@ const AdminNotificationsPage = () => {
                     onClick={() => setShowUnreadOnly(!showUnreadOnly)}
                     className={`px-3 py-2 rounded-lg text-sm border flex items-center gap-2 transition ${showUnreadOnly ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white hover:bg-gray-50'}`}
                 >
-                    <Filter size={16} /> {showUnreadOnly ? 'Đang lọc: Chưa đọc' : 'Lọc: Chưa đọc'}
+                    <Filter size={16} /> {showUnreadOnly ? t("admin:AdminNotificationsPage.filteringUnread") : t("admin:AdminNotificationsPage.filterUnread")}
                 </button>
                 <button 
                     onClick={handleMarkAllRead}
                     className="px-3 py-2 bg-white border rounded-lg text-sm hover:bg-gray-50 flex items-center gap-2"
                 >
-                    <Check size={16} /> Đọc tất cả
+                    <Check size={16} /> {t("admin:AdminNotificationsPage.readAll")}
                 </button>
             </div>
           </div>
@@ -228,10 +231,10 @@ const AdminNotificationsPage = () => {
           <div className="bg-white rounded-xl shadow-sm border p-1 mb-6 flex flex-col md:flex-row gap-2">
             <div className="flex p-1 gap-1 overflow-x-auto flex-1">
                 {[
-                    {id:'ALL',l:'Tất cả'}, 
-                    {id:'APPROVAL',l:'Cần duyệt'}, // Owner, Hotel
-                    {id:'FINANCE',l:'Tài chính'}, // Refund
-                    {id:'SYSTEM',l:'Hệ thống'}
+                    {id:'ALL',l:t("admin:AdminNotificationsPage.all")}, 
+                    {id:'APPROVAL',l:t("admin:AdminNotificationsPage.needsReview")}, // Owner, Hotel
+                    {id:'FINANCE',l:t("admin:AdminNotificationsPage.finance")}, // Refund
+                    {id:'SYSTEM',l:t("admin:AdminNotificationsPage.system")}
                 ].map(t => (
                     <button
                         key={t.id}
@@ -248,7 +251,7 @@ const AdminNotificationsPage = () => {
             <div className="relative p-1 md:w-64">
                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input 
-                    type="text" placeholder="Tìm kiếm..." 
+                    type="text" placeholder={t("admin:AdminNotificationsPage.search")} 
                     className="w-full pl-9 pr-3 py-2 bg-gray-50 border-transparent focus:bg-white focus:border-gray-300 rounded-lg text-sm outline-none border transition"
                     value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
                 />
@@ -257,11 +260,11 @@ const AdminNotificationsPage = () => {
 
           {/* List */}
           {loading ? (
-            <div className="text-center py-20 text-gray-500">Đang tải dữ liệu...</div>
+            <div className="text-center py-20 text-gray-500">{t("admin:AdminNotificationsPage.loadingData")}</div>
           ) : !hasData ? (
             <div className="text-center py-16 bg-white rounded-xl border border-dashed">
                 <Bell size={32} className="text-gray-300 mx-auto mb-2" />
-                <p className="text-gray-500">Không có thông báo nào phù hợp</p>
+                <p className="text-gray-500">{t("admin:AdminNotificationsPage.noMatchingNotifications")}</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -300,7 +303,7 @@ const AdminNotificationsPage = () => {
                             {openMenuId === noti.id && (
                                 <div className="absolute right-10 top-8 w-32 bg-white border shadow-lg rounded-lg z-20 py-1">
                                     <button onClick={(e) => promptDelete(e, noti.id)} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
-                                        <Trash2 size={14} /> Ẩn tin
+                                        <Trash2 size={14} /> {t("admin:AdminNotificationsPage.hide")}
                                     </button>
                                 </div>
                             )}
@@ -340,7 +343,7 @@ const AdminNotificationsPage = () => {
                             </div>
                             <div>
                                 <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">
-                                    {typeToVietnamese[selectedNoti.type] || 'Thông báo hệ thống'}
+                                    {typeToVietnamese[selectedNoti.type] || t("admin:AdminNotificationsPage.systemNotification")}
                                 </p>
                                 <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
                                     <Clock size={12} /> {formatFullDateTime(selectedNoti.createdAt)}
@@ -356,7 +359,7 @@ const AdminNotificationsPage = () => {
 
                         {selectedNoti.relatedEntityId && (
                             <div className="flex items-center justify-between text-xs text-gray-500 border-t pt-4 mb-4">
-                                <span>Mã tham chiếu (ID):</span>
+                                <span>{t("admin:AdminNotificationsPage.referenceId")}</span>
                                 <span className="font-mono font-medium bg-gray-100 px-2 py-0.5 rounded">#{selectedNoti.relatedEntityId}</span>
                             </div>
                         )}
@@ -366,7 +369,7 @@ const AdminNotificationsPage = () => {
                                 onClick={() => setSelectedNoti(null)} 
                                 className="flex-1 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition"
                             >
-                                Đóng
+                                {t("admin:AdminNotificationsPage.close")}
                             </button>
 
                             {/* Nút hành động dựa trên loại thông báo */}
@@ -377,7 +380,7 @@ const AdminNotificationsPage = () => {
                                     onClick={() => handleNavigateFromModal(selectedNoti.type, selectedNoti.relatedEntityId)}
                                     className={`flex-1 py-2.5 rounded-lg font-medium transition flex items-center justify-center gap-2 shadow-lg ${brandButtonClass}`}
                                 >
-                                    Xem chi tiết <ExternalLink size={16} />
+                                    {t("admin:AdminNotificationsPage.viewDetails")} <ExternalLink size={16} />
                                 </button>
                             )}
                         </div>
@@ -396,20 +399,20 @@ const AdminNotificationsPage = () => {
                         <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
                             <Trash2 size={24} className="text-red-600" />
                         </div>
-                        <h2 className="text-lg font-bold mb-2 text-gray-900">Ẩn thông báo này?</h2>
-                        <p className="text-gray-500 mb-6 text-sm">Thông báo sẽ không hiển thị trong danh sách này nữa.</p>
+                        <h2 className="text-lg font-bold mb-2 text-gray-900">{t("admin:AdminNotificationsPage.hideThisNotification")}</h2>
+                        <p className="text-gray-500 mb-6 text-sm">{t("admin:AdminNotificationsPage.theNotificationWillNoLonger")}</p>
                         <div className="flex justify-center gap-3 w-full">
                             <button 
                                 onClick={() => setNotificationToDelete(null)} 
                                 className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition"
                             >
-                                Huỷ
+                                {t("admin:AdminNotificationsPage.cancel")}
                             </button>
                             <button 
                                 onClick={handleDeleteConfirm} 
                                 className="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition"
                             >
-                                Ẩn ngay
+                                {t("admin:AdminNotificationsPage.hideNow")}
                             </button>
                         </div>
                     </div>

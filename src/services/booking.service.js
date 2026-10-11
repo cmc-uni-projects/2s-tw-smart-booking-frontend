@@ -162,7 +162,7 @@ const bookingService = {
       const response = await api.get("/bookings/admin/refund-requests");
       return response.data;
     } catch (error) {
-      console.error("Lỗi lấy danh sách hoàn tiền:", error);
+      console.error("Failed to get refund requests:", error);
       throw error.response?.data || error.message;
     }
   }

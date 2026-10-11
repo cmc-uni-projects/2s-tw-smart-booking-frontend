@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { BedDouble, DollarSign, Users, CheckCircle, Info, Image as ImageIcon, Expand } from "lucide-react";
 import Modal from "@/components/common/Modal/Modal";
 import Button from "@/components/common/Button/Button";
-import ImageViewerModal from "@/components/common/Modal/ImageViewerModal"; // [NEW] Import
+import ImageViewerModal from "@/components/common/Modal/ImageViewerModal";
+import { useTranslation } from "react-i18next"; // [NEW] Import
 
 const RoomDetailModal = ({ isOpen, onClose, room }) => {
+  const { t } = useTranslation();
   if (!room) return null;
 
   const [isViewerOpen, setIsViewerOpen] = useState(false); // [NEW]
@@ -13,7 +15,7 @@ const RoomDetailModal = ({ isOpen, onClose, room }) => {
   // Chuyển đổi list string sang list object { url, caption }
   const viewerImages = (room.images || []).map((url, idx) => ({
     url: url,
-    caption: `${room.roomName} - Ảnh ${idx + 1}`
+    caption: t("admin:RoomDetailModal.photo", { roomName: room.roomName, value: idx + 1 })
   }));
 
   const handleOpenViewer = (index) => {
@@ -30,7 +32,7 @@ const RoomDetailModal = ({ isOpen, onClose, room }) => {
       <Modal
         open={isOpen}
         onClose={onClose}
-        title="Chi tiết Phòng"
+        title={t("admin:RoomDetailModal.roomDetails")}
         maxWidth="max-w-2xl"
       >
         <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-2 pb-4">
@@ -73,7 +75,7 @@ const RoomDetailModal = ({ isOpen, onClose, room }) => {
             ) : (
               <div className="h-40 flex flex-col items-center justify-center text-gray-400">
                 <ImageIcon size={40} className="mb-2 opacity-50"/>
-                <span className="text-sm">Chưa có hình ảnh</span>
+                <span className="text-sm">{t("admin:RoomDetailModal.noPhotosYet")}</span>
               </div>
             )}
           </div>
@@ -87,13 +89,13 @@ const RoomDetailModal = ({ isOpen, onClose, room }) => {
                   ? 'bg-green-50 text-green-700 border-green-200' 
                   : 'bg-red-50 text-red-700 border-red-200'
               }`}>
-                {room.roomStatus === 'AVAILABLE' ? 'Đang hoạt động' : 'Đã dừng'}
+                {room.roomStatus === 'AVAILABLE' ? t("admin:RoomDetailModal.active") : t("admin:RoomDetailModal.suspended")}
               </span>
             </div>
             
             <div className="grid grid-cols-2 gap-4 mt-4">
               <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                <span className="text-xs text-blue-600 uppercase font-semibold mb-1 block">Loại phòng</span>
+                <span className="text-xs text-blue-600 uppercase font-semibold mb-1 block">{t("admin:RoomDetailModal.roomType")}</span>
                 <div className="flex items-center gap-2 text-gray-800 font-medium">
                   <BedDouble size={18} className="text-blue-500" />
                   {room.roomCategory || "Standard"}
@@ -101,10 +103,10 @@ const RoomDetailModal = ({ isOpen, onClose, room }) => {
               </div>
               
               <div className="p-3 bg-purple-50 rounded-lg border border-purple-100">
-                <span className="text-xs text-purple-600 uppercase font-semibold mb-1 block">Sức chứa</span>
+                <span className="text-xs text-purple-600 uppercase font-semibold mb-1 block">{t("admin:RoomDetailModal.capacity")}</span>
                 <div className="flex items-center gap-2 text-gray-800 font-medium">
                   <Users size={18} className="text-purple-500" />
-                  {room.capacity} người lớn
+                  {room.capacity} {t("admin:RoomDetailModal.adults")}
                 </div>
               </div>
             </div>
@@ -113,16 +115,16 @@ const RoomDetailModal = ({ isOpen, onClose, room }) => {
           {/* 3. Giá phòng */}
           <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
             <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <DollarSign size={18} /> Bảng giá niêm yết
+              <DollarSign size={18} /> {t("admin:RoomDetailModal.listedPrices")}
             </h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Giá ngày thường (T2-T5):</span>
+                <span className="text-gray-600">{t("admin:RoomDetailModal.weekdayPriceMonThu")}</span>
                 <span className="font-bold text-lg text-blue-600">{formatPrice(room.pricePerNight)}</span>
               </div>
               {room.weekendPrice && (
                 <div className="flex justify-between items-center pt-2 border-t border-gray-200 border-dashed">
-                  <span className="text-gray-600">Giá cuối tuần (T6-CN):</span>
+                  <span className="text-gray-600">{t("admin:RoomDetailModal.weekendPriceFriSun")}</span>
                   <span className="font-bold text-lg text-orange-600">{formatPrice(room.weekendPrice)}</span>
                 </div>
               )}
@@ -133,17 +135,17 @@ const RoomDetailModal = ({ isOpen, onClose, room }) => {
           <div className="space-y-4">
             <div>
               <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                <Info size={18} /> Mô tả
+                <Info size={18} /> {t("admin:RoomDetailModal.description")}
               </h3>
               <p className="text-gray-600 text-sm leading-relaxed bg-white p-3 rounded-lg border border-gray-100">
-                {room.description || "Không có mô tả chi tiết."}
+                {room.description || t("admin:RoomDetailModal.noDetailedDescription")}
               </p>
             </div>
 
             {room.amenities && room.amenities.length > 0 && (
               <div>
                 <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                  <CheckCircle size={18} /> Tiện nghi phòng
+                  <CheckCircle size={18} /> {t("admin:RoomDetailModal.roomAmenities")}
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {room.amenities.map((am, idx) => (
@@ -160,7 +162,7 @@ const RoomDetailModal = ({ isOpen, onClose, room }) => {
 
         <div className="mt-6 flex justify-end pt-4 border-t border-gray-100">
           <Button onClick={onClose} className="bg-gray-100 hover:bg-gray-200 text-gray-700">
-            Đóng
+            {t("admin:RoomDetailModal.close")}
           </Button>
         </div>
       </Modal>

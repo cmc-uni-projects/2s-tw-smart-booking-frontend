@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Search, Filter, Crown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function UserFilterBar({
                                           searchTerm,
@@ -10,6 +11,7 @@ export default function UserFilterBar({
                                           rankFilter,
                                           onRankFilterChange
                                       }) {
+  const { t } = useTranslation();
     return (
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
             {/* Thanh tìm kiếm */}
@@ -20,7 +22,7 @@ export default function UserFilterBar({
                 <input
                     type="text"
                     className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all duration-200 sm:text-sm"
-                    placeholder="Tìm kiếm user..."
+                    placeholder={t("admin:UserFilterBar.searchUsers")}
                     value={searchTerm} // Liên kết với state UI để hiển thị mượt mà
                     onChange={(e) => onSearchChange(e.target.value)}
                 />
@@ -39,7 +41,7 @@ export default function UserFilterBar({
                         onChange={(e) => onRankFilterChange(e.target.value)}
                         className="block w-full pl-9 pr-8 py-2.5 text-base border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 sm:text-sm rounded-xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
                     >
-                        <option value="ALL">Tất cả hạng</option>
+                        <option value="ALL">{t("admin:UserFilterBar.allTiers")}</option>
                         <option value="BRONZE">Bronze</option>
                         <option value="SILVER">Silver</option>
                         <option value="GOLD">Gold</option>
@@ -57,9 +59,9 @@ export default function UserFilterBar({
                         onChange={(e) => onRoleFilterChange(e.target.value)}
                         className="block w-full pl-9 pr-8 py-2.5 text-base border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 sm:text-sm rounded-xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
                     >
-                        <option value="ALL">Tất cả vai trò</option>
-                        <option value="CUSTOMER">Khách hàng</option>
-                        <option value="OWNER">Chủ khách sạn</option>
+                        <option value="ALL">{t("admin:UserFilterBar.allRoles")}</option>
+                        <option value="CUSTOMER">{t("admin:UserFilterBar.customer")}</option>
+                        <option value="OWNER">{t("admin:UserFilterBar.hotelOwner")}</option>
                         {/* Đã xóa ADMIN ở đây để không cho lọc */}
                     </select>
                 </div>

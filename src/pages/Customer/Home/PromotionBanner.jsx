@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import promotionService from "@/services/promotion.service";
 import { ArrowRight, Gift, Clock, MapPin, Sparkles, ChevronRight, Star } from 'lucide-react';
+import { useTranslation, Trans } from 'react-i18next';
 
 // --- CONFIGURATION ---
 const AUTO_SWITCH_TIME = 6000;
@@ -36,6 +37,7 @@ const getImageUrl = (path) => {
 // COMPONENT 1: Countdown Timer (Minimalist)
 // ==========================================
 const CountdownBadge = ({ endDate }) => {
+    const { t } = useTranslation("home");
     const [timeLeft, setTimeLeft] = useState(null);
 
     useEffect(() => {
@@ -51,8 +53,8 @@ const CountdownBadge = ({ endDate }) => {
             return null;
         };
         setTimeLeft(calc());
-        const t = setInterval(() => setTimeLeft(calc()), 60000);
-        return () => clearInterval(t);
+        const timer = setInterval(() => setTimeLeft(calc()), 60000);
+        return () => clearInterval(timer);
     }, [endDate]);
 
     if (!timeLeft) return null;
@@ -61,7 +63,7 @@ const CountdownBadge = ({ endDate }) => {
         <div className="flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-lg">
             <Clock size={14} className="text-yellow-400" />
             <span className="text-xs font-semibold text-white tracking-wide font-mono">
-                Kết thúc sau: <span className="text-yellow-400">{timeLeft.d}d : {timeLeft.h}h : {timeLeft.m}m</span>
+                {t("promo.endsIn")} <span className="text-yellow-400">{timeLeft.d}d : {timeLeft.h}h : {timeLeft.m}m</span>
             </span>
         </div>
     );
@@ -71,6 +73,7 @@ const CountdownBadge = ({ endDate }) => {
 // COMPONENT 2: Sidebar Ticket Item
 // ==========================================
 const PromoListItem = memo(({ promo, isActive, onClick }) => {
+    const { t } = useTranslation("home");
     return (
         <div
             onClick={onClick}
@@ -106,7 +109,7 @@ const PromoListItem = memo(({ promo, isActive, onClick }) => {
 
                 <div className="flex items-center gap-1 text-xs font-medium text-gray-500">
                     <Gift size={12} className="text-rose-500" />
-                    <span className="text-rose-600 font-bold">Giảm {formatCurrency(promo.discountValue, promo.discountType)}</span>
+                    <span className="text-rose-600 font-bold">{t("promo.discount", { amount: formatCurrency(promo.discountValue, promo.discountType) })}</span>
                 </div>
             </div>
 
@@ -127,6 +130,7 @@ const PromoListItem = memo(({ promo, isActive, onClick }) => {
 // COMPONENT 3: Main Hero Banner
 // ==========================================
 const HeroBanner = ({ promo, onAction }) => {
+    const { t } = useTranslation(["home", "common"]);
     // Key change to trigger animation reset
     const [animKey, setAnimKey] = useState(0);
     useEffect(() => setAnimKey(prev => prev + 1), [promo.id]);
@@ -150,7 +154,7 @@ const HeroBanner = ({ promo, onAction }) => {
             <div className="absolute top-6 left-6 flex flex-wrap gap-3 z-20">
                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-full shadow-lg shadow-rose-900/20">
                     <Sparkles size={12} fill="currentColor" />
-                    ƯU ĐÃI ĐỘC QUYỀN
+                    {t("promo.exclusive")}
                 </div>
                 <CountdownBadge endDate={promo.endDate} />
             </div>
@@ -163,7 +167,12 @@ const HeroBanner = ({ promo, onAction }) => {
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 w-fit">
                         <Gift size={16} className="text-yellow-400" />
                         <span className="text-sm font-bold text-white">
-                            Giảm ngay <span className="text-yellow-400 text-lg">{formatCurrency(promo.discountValue, promo.discountType)}</span> khi đặt hôm nay
+                            <Trans
+                                t={t}
+                                i18nKey="promo.discountToday"
+                                values={{ amount: formatCurrency(promo.discountValue, promo.discountType) }}
+                                components={{ hl: <span className="text-yellow-400 text-lg" /> }}
+                            />
                         </span>
                     </div>
 
@@ -174,13 +183,13 @@ const HeroBanner = ({ promo, onAction }) => {
 
                     {/* Description */}
                     <p className="text-gray-200 text-base md:text-lg font-light line-clamp-2 max-w-xl opacity-90">
-                        {promo.description}
+                        {t("promo.genericDescription", { amount: formatCurrency(promo.discountValue, promo.discountType).replace(/^-/, "") })}
                     </p>
 
                     {/* CTA Button */}
                     <div className="pt-4">
                         <button className="group/btn relative inline-flex items-center gap-3 pl-6 pr-2 py-2 bg-white rounded-full transition-all hover:bg-blue-50 hover:scale-105 active:scale-95 shadow-xl">
-                            <span className="text-sm font-bold text-gray-900 uppercase tracking-wider">Khám phá ngay</span>
+                            <span className="text-sm font-bold text-gray-900 uppercase tracking-wider">{t("common:actions.exploreNow")}</span>
                             <div className="w-9 h-9 bg-gray-900 rounded-full flex items-center justify-center text-white transition-transform group-hover/btn:rotate-45">
                                 <ArrowRight size={16} />
                             </div>
@@ -197,6 +206,7 @@ const HeroBanner = ({ promo, onAction }) => {
 // ==========================================
 const PromotionBanner = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation(["home", "common"]);
     const [promotions, setPromotions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeIndex, setActiveIndex] = useState(0);
@@ -216,7 +226,6 @@ const PromotionBanner = () => {
                     .map(p => ({
                         id: p.promotionId,
                         title: p.description, // Hoặc title
-                        description: `Trải nghiệm chuyến đi tuyệt vời với ưu đãi ${p.discountValue}${p.discountType === 'PERCENTAGE' ? '%' : 'đ'} dành riêng cho thành viên TravelMate.`, // Placeholder nếu thiếu desc
                         discountValue: p.discountValue,
                         discountType: p.discountType,
                         endDate: p.endDate,
@@ -270,12 +279,12 @@ const PromotionBanner = () => {
                 <div>
                     {/* ĐÃ BỎ TAG TRAVELMATE SPECIAL Ở ĐÂY */}
                     <h2 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
-                        Săn Deal <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Giờ Vàng</span>
+                        {t("promo.titleLead")} <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{t("promo.titleHighlight")}</span>
                     </h2>
-                    <p className="text-gray-500 mt-2 font-medium text-base">Cập nhật liên tục các ưu đãi hấp dẫn nhất</p>
+                    <p className="text-gray-500 mt-2 font-medium text-base">{t("promo.subtitle")}</p>
                 </div>
                 <button onClick={() => navigate('/promotions')} className="hidden md:flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-blue-600 transition-colors bg-gray-50 px-4 py-2 rounded-lg border border-transparent hover:border-blue-100 hover:shadow-sm">
-                    Xem tất cả <ArrowRight size={16} />
+                    {t("common:actions.seeAll")} <ArrowRight size={16} />
                 </button>
             </div>
 
@@ -290,7 +299,7 @@ const PromotionBanner = () => {
                 {/* RIGHT: List (5 columns) */}
                 <div className="lg:col-span-4 flex flex-col gap-4 order-2 pr-1">
                     <div className="flex items-center justify-between mb-2 px-1">
-                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Danh sách ưu đãi</h3>
+                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">{t("promo.list")}</h3>
                         <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
                             {activeIndex + 1}/{promotions.length}
                         </span>

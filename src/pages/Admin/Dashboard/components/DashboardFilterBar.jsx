@@ -1,6 +1,8 @@
 // File: src/pages/Admin/Dashboard/components/DashboardFilterBar.jsx
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import adminService from "@/services/admin.service";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 const PRIMARY_RGB = "rgb(40,169,224)";
 
@@ -96,14 +98,15 @@ const SearchableSelect = ({
   value,
   onChange, // (val, meta) => void
   options, // [{ value, label, subLabel?, title?, raw? }]
-  placeholder = "Chọn...",
-  allLabel = "Tất cả",
+  placeholder = i18n.t("admin:DashboardFilterBar.choose"),
+  allLabel = i18n.t("admin:DashboardFilterBar.all"),
   icon = null,
   disabled = false,
   fieldBase = "",
   className = "",
   maxListHeight = 280,
 }) => {
+  const { t } = useTranslation();
   const wrapRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -204,7 +207,7 @@ const SearchableSelect = ({
           type="button"
           onClick={() => pick({ value: "", label: allLabel, _isAll: true })}
           className="absolute right-9 top-1/2 -translate-y-1/2 rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-          title="Xoá lựa chọn"
+          title={t("admin:DashboardFilterBar.clearSelection")}
         >
           {IconClose}
         </button>
@@ -253,20 +256,20 @@ const SearchableSelect = ({
                   setActiveIdx(0);
                 }}
                 className="w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:border-[rgb(40,169,224)] focus:ring-4 focus:ring-[rgba(40,169,224,0.18)]"
-                placeholder="Gõ để tìm..."
+                placeholder={t("admin:DashboardFilterBar.typeToSearch")}
               />
             </div>
 
             <div className="mt-2 text-[11px] text-gray-500 flex items-center justify-between">
-              <span>↑↓ di chuyển • Enter chọn • Esc đóng</span>
-              <span className="font-semibold">{items.length - 1} kết quả</span>
+              <span>{t("admin:DashboardFilterBar.moveEnterSelectEscClose")}</span>
+              <span className="font-semibold">{t("admin:DashboardFilterBar.results", { value: items.length - 1 })}</span>
             </div>
           </div>
 
           {/* List */}
           <div style={{ maxHeight: maxListHeight }} className="overflow-auto">
             {items.length === 1 ? (
-              <div className="px-3 py-3 text-sm text-gray-500">Không tìm thấy kết quả</div>
+              <div className="px-3 py-3 text-sm text-gray-500">{t("admin:DashboardFilterBar.noResultsFound")}</div>
             ) : (
               items.map((opt, idx) => {
                 const isSelected = String(opt.value) === String(value);
@@ -318,6 +321,7 @@ const SearchableSelect = ({
 };
 
 const DashboardFilterBar = ({ filters, setFilters, onApply, isLoading = false }) => {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   const years = useMemo(
@@ -453,13 +457,13 @@ const DashboardFilterBar = ({ filters, setFilters, onApply, isLoading = false })
 
   const activeChips = useMemo(() => {
     const chips = [];
-    if (draft.year) chips.push({ key: "year", label: `Năm: ${draft.year}` });
-    if (draft.month) chips.push({ key: "month", label: `Tháng: ${draft.month}` });
-    if (normalize(draft.city)) chips.push({ key: "city", label: `Khu vực: ${normalize(draft.city)}` });
+    if (draft.year) chips.push({ key: "year", label: t("admin:DashboardFilterBar.year", { year: draft.year }) });
+    if (draft.month) chips.push({ key: "month", label: t("admin:DashboardFilterBar.month", { month: draft.month }) });
+    if (normalize(draft.city)) chips.push({ key: "city", label: t("admin:DashboardFilterBar.region", { value: normalize(draft.city) }) });
     if (normalize(draft.ownerId)) {
       chips.push({
         key: "ownerId",
-        label: `Owner: ${normalize(draft.ownerLabel) || "Đã chọn"}`,
+        label: `Owner: ${normalize(draft.ownerLabel) || t("admin:DashboardFilterBar.selected")}`,
         title: draft.ownerId,
       });
     }
@@ -486,24 +490,24 @@ const DashboardFilterBar = ({ filters, setFilters, onApply, isLoading = false })
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: PRIMARY_RGB }} />
-            <h3 className="text-sm font-bold text-gray-900">Bộ lọc thống kê</h3>
+            <h3 className="text-sm font-bold text-gray-900">{t("admin:DashboardFilterBar.statisticsFilters")}</h3>
             <span className="text-xs text-gray-400">•</span>
             <span className="text-xs text-gray-500">
-              Chọn bộ lọc rồi bấm <span className="font-semibold">Lọc dữ liệu</span>
+              {t("admin:DashboardFilterBar.chooseFiltersThenClick")} <span className="font-semibold">{t("admin:DashboardFilterBar.filterData")}</span>
             </span>
           </div>
 
           {/* Chips */}
           <div className="flex flex-wrap items-center justify-end gap-2">
             {activeChips.length === 0 ? (
-              <span className="text-xs text-gray-400">Chưa chọn bộ lọc</span>
+              <span className="text-xs text-gray-400">{t("admin:DashboardFilterBar.noFiltersSelected")}</span>
             ) : (
               activeChips.map((c) => (
                 <button
                   key={c.key}
                   type="button"
                   onClick={() => clearChip(c.key)}
-                  title={c.title || "Bấm để xoá bộ lọc này"}
+                  title={c.title || t("admin:DashboardFilterBar.clickToRemoveThisFilter")}
                   className="group inline-flex items-center gap-2 rounded-full bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-100"
                 >
                   <span className="truncate max-w-[260px]">{c.label}</span>
@@ -518,7 +522,7 @@ const DashboardFilterBar = ({ filters, setFilters, onApply, isLoading = false })
         <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
           {/* Year */}
           <div className="md:col-span-2">
-            <label className={labelBase}>Năm</label>
+            <label className={labelBase}>{t("admin:DashboardFilterBar.year2")}</label>
             <select
               name="year"
               value={draft.year}
@@ -536,7 +540,7 @@ const DashboardFilterBar = ({ filters, setFilters, onApply, isLoading = false })
 
           {/* Month */}
           <div className="md:col-span-2">
-            <label className={labelBase}>Tháng</label>
+            <label className={labelBase}>{t("admin:DashboardFilterBar.month2")}</label>
             <select
               name="month"
               value={draft.month}
@@ -544,10 +548,10 @@ const DashboardFilterBar = ({ filters, setFilters, onApply, isLoading = false })
               className={`${fieldBase} rounded-2xl`}
               disabled={isLoading}
             >
-              <option value="">Cả năm</option>
+              <option value="">{t("admin:DashboardFilterBar.wholeYear")}</option>
               {months.map((m) => (
                 <option key={m} value={m}>
-                  Tháng {m}
+                  {t("admin:DashboardFilterBar.month3", { m })}
                 </option>
               ))}
             </select>
@@ -555,7 +559,7 @@ const DashboardFilterBar = ({ filters, setFilters, onApply, isLoading = false })
 
           {/* City (Searchable) */}
           <div className="md:col-span-4">
-            <label className={labelBase}>Khu vực</label>
+            <label className={labelBase}>{t("admin:DashboardFilterBar.region2")}</label>
             <SearchableSelect
               value={draft.city}
               onChange={(val) => {
@@ -563,8 +567,8 @@ const DashboardFilterBar = ({ filters, setFilters, onApply, isLoading = false })
                 setFilters((prev) => ({ ...prev, city: val }));
               }}
               options={cityOptions}
-              allLabel="Tất cả khu vực"
-              placeholder="Tất cả khu vực"
+              allLabel={t("admin:DashboardFilterBar.allRegions")}
+              placeholder={t("admin:DashboardFilterBar.allRegions")}
               icon={IconPin}
               disabled={isLoading}
               fieldBase={fieldBase}
@@ -573,7 +577,7 @@ const DashboardFilterBar = ({ filters, setFilters, onApply, isLoading = false })
 
           {/* Owner (Searchable) */}
           <div className="md:col-span-4">
-            <label className={labelBase}>Chủ sở hữu</label>
+            <label className={labelBase}>{t("admin:DashboardFilterBar.owner")}</label>
             <SearchableSelect
               value={draft.ownerId}
               onChange={(val, meta) => {
@@ -590,8 +594,8 @@ const DashboardFilterBar = ({ filters, setFilters, onApply, isLoading = false })
                 }));
               }}
               options={ownerOptions}
-              allLabel="Tất cả chủ sở hữu"
-              placeholder="Tất cả chủ sở hữu"
+              allLabel={t("admin:DashboardFilterBar.allOwners")}
+              placeholder={t("admin:DashboardFilterBar.allOwners")}
               icon={IconUser}
               disabled={isLoading}
               fieldBase={fieldBase}
@@ -607,7 +611,7 @@ const DashboardFilterBar = ({ filters, setFilters, onApply, isLoading = false })
                 disabled={isLoading}
                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-200 active:scale-[0.99] disabled:opacity-60"
               >
-                Đặt lại
+                {t("admin:DashboardFilterBar.reset")}
               </button>
 
               <button
@@ -625,17 +629,17 @@ const DashboardFilterBar = ({ filters, setFilters, onApply, isLoading = false })
                 {isLoading ? (
                   <>
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/70 border-t-transparent" />
-                    Đang lọc...
+                    {t("admin:DashboardFilterBar.filtering")}
                   </>
                 ) : (
-                  "Lọc dữ liệu"
+                  t("admin:DashboardFilterBar.filterData")
                 )}
               </button>
             </div>
 
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
               <span>
-                Mẹo: để trống <span className="font-semibold">Tháng</span> để xem tổng hợp cả năm.
+                {t("admin:DashboardFilterBar.tipLeave")} <span className="font-semibold">{t("admin:DashboardFilterBar.month2")}</span> {t("admin:DashboardFilterBar.emptyToSeeTheWhole")}
               </span>
 
               <span className="inline-flex items-center gap-2">
@@ -643,7 +647,7 @@ const DashboardFilterBar = ({ filters, setFilters, onApply, isLoading = false })
                   className={`h-2 w-2 rounded-full ${dirty ? "" : "opacity-40"}`}
                   style={{ backgroundColor: PRIMARY_RGB }}
                 />
-                {dirty ? "Có thay đổi chưa áp dụng" : "Đã áp dụng"}
+                {dirty ? t("admin:DashboardFilterBar.changesNotAppliedYet") : t("admin:DashboardFilterBar.applied")}
               </span>
             </div>
           </div>

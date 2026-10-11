@@ -2,18 +2,21 @@ import React from "react";
 import { AlertTriangle, CheckCircle, X } from "lucide-react";
 import Modal from "@/components/common/Modal/Modal";
 import Button from "@/components/common/Button/Button";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 const ActionConfirmModal = ({ 
   open, 
   onClose, 
   onConfirm, 
-  title = "Xác nhận", 
+  title = i18n.t("admin:ActionConfirmModal.confirm"), 
   message, 
   isLoading, 
-  confirmText = "Đồng ý", 
+  confirmText = i18n.t("admin:ActionConfirmModal.agree"), 
   confirmColor = "green", // 'green' | 'blue' | 'red'
   iconType = "warning"    // 'warning' | 'success' | 'danger'
 }) => {
+  const { t } = useTranslation();
   
   // Render icon dựa trên type
   const renderIcon = () => {
@@ -55,7 +58,7 @@ const ActionConfirmModal = ({
             disabled={isLoading}
             className="bg-gray-100 hover:bg-gray-200 text-gray-700"
           >
-            Hủy bỏ
+            {t("admin:ActionConfirmModal.cancel")}
           </Button>
           <Button 
             onClick={onConfirm} 

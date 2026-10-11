@@ -5,12 +5,14 @@ import AdminSelectorsWithApi from "./components/AdminSelectorsWithApi";
 import TextField from "@/components/common/Input/TextField"; // Sử dụng TextField chuẩn
 
 import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css"; 
+import "mapbox-gl/dist/mapbox-gl.css";
+import { useTranslation } from "react-i18next"; 
 
 // Màu chủ đạo (Theme Color)
 const PRIMARY_COLOR = "rgb(40, 169, 224)";
 
 const Step1_Location = ({ register, setValue, watch, errors }) => {
+  const { t } = useTranslation();
   mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
   // --- GIỮ NGUYÊN LOGIC TỪ ĐÂY ---
@@ -48,14 +50,14 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
     const fullContext = [...context, { id: place.id, text: place.text }];
     const findByType = (type) => fullContext.find(c => c.id && c.id.startsWith(type))?.text;
 
-    let country = findByType("country") || "Việt Nam";
+    let country = findByType("country") || t("owner:Step1_Location.vietnam");
     let province = findByType("region");
     let district = findByType("district");
     let ward = findByType("neighborhood") || findByType("locality");
 
     if (!province) {
          const placeText = findByType("place");
-         const specialCities = ["Hà Nội", "Hồ Chí Minh", "Đà Nẵng", "Hải Phòng", "Cần Thơ"];
+         const specialCities = [t("owner:Step1_Location.hanoi"), t("owner:Step1_Location.hoChiMinhCity"), t("owner:Step1_Location.daNang"), t("owner:Step1_Location.haiPhong"), t("owner:Step1_Location.canTho")];
          if (placeText && specialCities.some(city => placeText.includes(city))) province = placeText;
     }
 
@@ -164,7 +166,7 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
   }, [latWatch, lngWatch]);
 
   const handleGetCurrentLocation = () => {
-    if (!navigator.geolocation) return alert("Trình duyệt không hỗ trợ định vị.");
+    if (!navigator.geolocation) return alert(t("owner:Step1_Location.yourBrowserDoesNotSupport"));
     navigator.geolocation.getCurrentPosition(async (pos) => {
         const { latitude, longitude } = pos.coords;
         markerRef.current?.setLngLat([longitude, latitude]);
@@ -172,7 +174,7 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
         setMarkerPosition({ lng: longitude, lat: latitude });
         setValue("latitude", latitude); setValue("longitude", longitude);
         await reverseGeocode(longitude, latitude);
-    }, () => alert("Không thể lấy vị trí."));
+    }, () => alert(t("owner:Step1_Location.couldNotGetYourLocation")));
   };
 
   const handleSearchChange = async (value) => {
@@ -217,9 +219,9 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
           <MapIcon size={32} strokeWidth={2} />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Vị trí chỗ nghỉ</h2>
+          <h2 className="text-2xl font-bold text-gray-800">{t("owner:Step1_Location.propertyLocation")}</h2>
           <p className="text-gray-500 text-sm mt-1">
-            Kéo thả ghim trên bản đồ để hệ thống tự động điền địa chỉ chính xác.
+            {t("owner:Step1_Location.dragThePinOnThe")}
           </p>
         </div>
       </div>
@@ -232,7 +234,7 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
             <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-lg shadow-gray-50 space-y-6">
                 <div className="flex items-center gap-2 pb-4 border-b border-gray-100">
                     <Navigation size={20} className="text-[rgb(40,169,224)]" />
-                    <h4 className="text-base font-bold text-gray-800">Khu vực hành chính</h4>
+                    <h4 className="text-base font-bold text-gray-800">{t("owner:Step1_Location.administrativeArea")}</h4>
                 </div>
                 
                 {/* Component Select Dropdowns */}
@@ -245,12 +247,12 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
             <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-lg shadow-gray-50 space-y-6">
                 <div className="flex items-center gap-2 pb-4 border-b border-gray-100">
                     <MapPin size={20} className="text-[rgb(40,169,224)]" />
-                    <h4 className="text-base font-bold text-gray-800">Địa chỉ chi tiết</h4>
+                    <h4 className="text-base font-bold text-gray-800">{t("owner:Step1_Location.detailedAddress")}</h4>
                 </div>
                 
                 <TextField 
-                    label="Số nhà, tên đường" 
-                    placeholder="VD: Số 123 Đường Nguyễn Huệ..."
+                    label={t("owner:Step1_Location.houseNumberStreet")} 
+                    placeholder={t("owner:Step1_Location.eG123NguyenHue")}
                     {...register("address")} 
                     error={errors.address?.message} 
                     icon={<MapPin size={18} />}
@@ -272,7 +274,7 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
                         className="block w-full pl-11 pr-4 py-3.5 rounded-2xl border-0 text-gray-900 placeholder:text-gray-400 
                         bg-white/90 backdrop-blur-xl shadow-lg ring-1 ring-gray-200 
                         focus:ring-2 focus:ring-[rgb(40,169,224)] focus:bg-white transition-all text-sm font-medium"
-                        placeholder="Tìm kiếm địa điểm, khách sạn..."
+                        placeholder={t("owner:Step1_Location.searchPlacesHotels")}
                         value={searchQuery}
                         onChange={(e) => handleSearchChange(e.target.value)}
                     />
@@ -303,7 +305,7 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
                 <div className="bg-gray-100 p-1 rounded-full group-hover/btn:bg-[rgb(40,169,224)]/10 transition-colors">
                     <Crosshair size={16} className="text-gray-600 group-hover/btn:text-[rgb(40,169,224)]" />
                 </div>
-                Vị trí hiện tại
+                {t("owner:Step1_Location.currentLocation")}
             </button>
 
             {/* 3. MAP CONTAINER */}
@@ -312,7 +314,7 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
             {isMapLoading && (
                 <div className="absolute inset-0 bg-gray-50 z-0 flex flex-col gap-3 items-center justify-center">
                      <div className="w-8 h-8 border-4 border-[rgb(40,169,224)] border-t-transparent rounded-full animate-spin"></div>
-                     <span className="text-xs font-bold text-gray-500 animate-pulse">Đang tải bản đồ...</span>
+                     <span className="text-xs font-bold text-gray-500 animate-pulse">{t("owner:Step1_Location.loadingMap")}</span>
                 </div>
             )}
 
@@ -326,7 +328,7 @@ const Step1_Location = ({ register, setValue, watch, errors }) => {
                     <div className="w-px h-4 bg-white/20"></div>
                     <div className="flex items-center gap-2 text-[rgb(40,169,224)]">
                         <MousePointerClick size={14}/> 
-                        <span>Click hoặc kéo thả ghim</span>
+                        <span>{t("owner:Step1_Location.clickOrDragThePin")}</span>
                     </div>
                  </div>
             </div>

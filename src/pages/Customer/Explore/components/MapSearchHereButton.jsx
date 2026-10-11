@@ -1,7 +1,9 @@
 import React from "react";
 import { Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const MapSearchHereButton = ({ onClick, visible }) => {
+  const { t } = useTranslation("search");
   if (!visible) return null;
 
   return (
@@ -14,7 +16,7 @@ const MapSearchHereButton = ({ onClick, visible }) => {
         <span className="bg-blue-600 text-white p-1 rounded-full group-hover:rotate-90 transition-transform duration-300">
             <Search size={12} strokeWidth={3} />
         </span>
-        Tìm khu vực này
+        {t("map.searchHere")}
       </button>
     </div>
   );

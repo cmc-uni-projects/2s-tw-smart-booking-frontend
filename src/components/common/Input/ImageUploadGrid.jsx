@@ -17,9 +17,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Plus, X, Image as ImageIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // --- 1. COMPONENT ẢNH ĐỂ SẮP XẾP (SORTABLE ITEM) ---
 const SortablePhoto = ({ file, id, index, onRemove, isOverlay = false }) => {
+  const { t } = useTranslation();
   const [previewUrl, setPreviewUrl] = useState(null);
 
   // Tạo Sortable hook
@@ -77,7 +79,7 @@ const SortablePhoto = ({ file, id, index, onRemove, isOverlay = false }) => {
       {/* Badge Ảnh bìa */}
       {isCover && (
         <div className="absolute left-2 top-2 z-10 flex items-center gap-1 rounded-md bg-blue-600 px-2 py-1 text-[10px] font-bold text-white shadow-md">
-          <ImageIcon size={10} /> ẢNH BÌA
+          <ImageIcon size={10} /> {t("upload.cover")}
         </div>
       )}
 
@@ -100,12 +102,14 @@ const SortablePhoto = ({ file, id, index, onRemove, isOverlay = false }) => {
 };
 
 // --- 2. COMPONENT NÚT THÊM ẢNH ---
-const AddImageButton = ({ onChange, multiple, accept }) => (
+const AddImageButton = ({ onChange, multiple, accept }) => {
+  const { t } = useTranslation();
+    return (
   <label className="relative flex aspect-square w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 text-gray-400 transition-all hover:border-blue-500 hover:bg-blue-50/50 hover:text-blue-500">
     <div className="rounded-full bg-white p-2 shadow-sm ring-1 ring-gray-200 group-hover:ring-blue-500">
       <Plus size={24} />
     </div>
-    <span className="text-xs font-medium">Thêm ảnh</span>
+    <span className="text-xs font-medium">{t("upload.addPhoto")}</span>
     <input
       type="file"
       multiple={multiple}
@@ -114,7 +118,8 @@ const AddImageButton = ({ onChange, multiple, accept }) => (
       onChange={onChange}
     />
   </label>
-);
+    );
+};
 
 // --- 3. COMPONENT CHÍNH ---
 export default function ImageUploadGrid({

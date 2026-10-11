@@ -67,11 +67,11 @@ const DualRangeSlider = ({ min, max, step, onChange, value }) => {
 
             <div className="mt-4 flex justify-between items-center">
                 <div className="px-2 py-1 bg-gray-100 border border-gray-200 rounded text-xs font-semibold text-gray-700 min-w-[80px] text-center">
-                    {minVal.toLocaleString()}đ
+                    {minVal.toLocaleString("vi-VN")}₫
                 </div>
                 <span className="text-gray-400 font-bold">-</span>
                 <div className="px-2 py-1 bg-gray-100 border border-gray-200 rounded text-xs font-semibold text-gray-700 min-w-[80px] text-center">
-                    {maxVal.toLocaleString()}đ
+                    {maxVal.toLocaleString("vi-VN")}₫
                 </div>
             </div>
 

@@ -1,8 +1,10 @@
 import React from "react";
 import { Star, MessageSquare, Quote } from "lucide-react";
 import Avatar from "@/components/common/Avatar/Avatar";
+import { useTranslation } from "react-i18next";
 
 const RecentReviewsWidget = ({ reviews }) => {
+  const { t } = useTranslation();
     
     const renderStars = (rating) => {
         return (
@@ -27,12 +29,12 @@ const RecentReviewsWidget = ({ reviews }) => {
                         <Star size={20} />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-gray-800">Đánh giá mới nhất</h3>
-                        <p className="text-xs text-gray-500">Phản hồi từ khách hàng</p>
+                        <h3 className="text-lg font-bold text-gray-800">{t("owner:RecentReviewsWidget.latestReviews")}</h3>
+                        <p className="text-xs text-gray-500">{t("owner:RecentReviewsWidget.guestFeedback")}</p>
                     </div>
                 </div>
                 <button className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors">
-                    Xem tất cả
+                    {t("owner:RecentReviewsWidget.viewAll")}
                 </button>
             </div>
 
@@ -73,7 +75,7 @@ const RecentReviewsWidget = ({ reviews }) => {
                 {(!reviews || reviews.length === 0) && (
                     <div className="col-span-full py-12 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
                         <MessageSquare className="mx-auto h-12 w-12 text-gray-300 mb-3" />
-                        <p className="text-gray-500 font-medium">Chưa có đánh giá nào gần đây</p>
+                        <p className="text-gray-500 font-medium">{t("owner:RecentReviewsWidget.noRecentReviews")}</p>
                     </div>
                 )}
             </div>

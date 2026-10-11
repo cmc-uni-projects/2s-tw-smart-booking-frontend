@@ -3,15 +3,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 // 1. Import ModalPortal để đảm bảo modal hiển thị đúng cấp
 import ModalPortal from "./ModalPortal"; 
+import { useTranslation } from "react-i18next";
 
 // 2. Nhận thêm props { title, children, maxWidth }
 export default function Modal({
   open,
   onClose,
-  title = "Thông báo", // Thêm title mặc định
+  title, // mặc định: common:notice
   children, // Thêm children
   maxWidth = "max-w-md", // 3. ✅ Thêm prop maxWidth, gán giá trị mặc định là 'max-w-md'
 }) {
+  const { t } = useTranslation();
+  if (title === undefined) title = t("notice");
   if (!open) return null;
 
   return (

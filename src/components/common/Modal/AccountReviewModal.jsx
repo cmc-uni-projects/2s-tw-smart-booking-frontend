@@ -4,8 +4,10 @@ import { CheckCircle, ShieldCheck, Mail, User, X } from 'lucide-react';
 import Button from '@/components/common/Button/Button';
 import ModalPortal from './ModalPortal';
 import Avatar from '@/components/common/Avatar/Avatar';
+import { useTranslation } from "react-i18next";
 
 const AccountReviewModal = ({ open, userData, onClose }) => {
+  const { t } = useTranslation();
   if (!open || !userData) return null;
 
   return (
@@ -38,10 +40,10 @@ const AccountReviewModal = ({ open, userData, onClose }) => {
 
             <div className="pt-12 pb-8 px-6 text-center">
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                Thiết lập thành công!
+                {t("accountReview.title")}
               </h2>
               <p className="text-gray-500 text-sm mb-6">
-                Tài khoản của bạn đã được bảo mật. Bây giờ bạn có thể đăng nhập bằng Email và Mật khẩu.
+                {t("accountReview.text")}
               </p>
 
               {/* Thông tin tài khoản */}
@@ -53,7 +55,7 @@ const AccountReviewModal = ({ open, userData, onClose }) => {
                     size="md" 
                   />
                   <div>
-                    <p className="text-xs text-gray-400 uppercase font-semibold">Tài khoản</p>
+                    <p className="text-xs text-gray-400 uppercase font-semibold">{t("accountReview.account")}</p>
                     <p className="font-bold text-gray-800">{userData.fullName}</p>
                   </div>
                 </div>
@@ -63,7 +65,7 @@ const AccountReviewModal = ({ open, userData, onClose }) => {
                     <Mail size={18} />
                   </div>
                   <div className="flex-1 overflow-hidden">
-                    <p className="text-xs text-gray-400 uppercase font-semibold">Email đăng nhập</p>
+                    <p className="text-xs text-gray-400 uppercase font-semibold">{t("accountReview.loginEmail")}</p>
                     <p className="font-medium text-gray-800 truncate" title={userData.email}>
                       {userData.email}
                     </p>
@@ -75,15 +77,15 @@ const AccountReviewModal = ({ open, userData, onClose }) => {
                     <ShieldCheck size={18} />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 uppercase font-semibold">Trạng thái bảo mật</p>
-                    <p className="font-medium text-green-600">Đã kích hoạt mật khẩu</p>
+                    <p className="text-xs text-gray-400 uppercase font-semibold">{t("accountReview.security")}</p>
+                    <p className="font-medium text-green-600">{t("accountReview.passwordEnabled")}</p>
                   </div>
                 </div>
               </div>
 
               <div className="mt-8">
                 <Button fullWidth onClick={onClose} size="lg">
-                  Hoàn tất
+                  {t("actions.done")}
                 </Button>
               </div>
             </div>

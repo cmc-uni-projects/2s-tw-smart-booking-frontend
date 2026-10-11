@@ -2,8 +2,10 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MoreVertical } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function Table({ columns = [], data = [] }) {
+  const { t } = useTranslation();
     return (
         <div className="overflow-x-auto border border-gray-200 rounded-2xl shadow-sm bg-white relative">
             <table className="w-full text-left border-collapse">
@@ -52,7 +54,7 @@ export default function Table({ columns = [], data = [] }) {
                                 colSpan={columns.length + 1}
                                 className="py-8 text-center text-gray-400"
                             >
-                                Không có dữ liệu để hiển thị
+                                {t("noDataTable")}
                             </td>
                         </tr>
                     )}

@@ -4,27 +4,29 @@ import { Map, ArrowRight } from "lucide-react";
 
 // Components
 import DestinationCard from "@/components/common/Card/DestinationCard";
+import { useTranslation } from "react-i18next";
 
 // Dữ liệu mẫu
+// i18n-ignore-start (place names are search keywords)
 const DESTINATIONS = [
   {
     id: 1,
     name: "Hà Nội",
-    region: "Miền Bắc",
+    regionKey: "north",
     image: "https://hoanghamobile.com/tin-tuc/wp-content/uploads/2024/04/anh-ha-noi.jpg",
     keyword: "Hà Nội"
   },
   {
     id: 2,
     name: "TP. Hồ Chí Minh",
-    region: "Miền Nam",
+    regionKey: "south",
     image: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?q=80&w=2070&auto=format&fit=crop",
     keyword: "Hồ Chí Minh"
   },
   {
     id: 3,
     name: "Đà Nẵng",
-    region: "Miền Trung",
+    regionKey: "central",
     image: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?q=80&w=2070&auto=format&fit=crop",
     keyword: "Đà Nẵng"
   },
@@ -50,8 +52,11 @@ const DESTINATIONS = [
     keyword: "Phú Quốc"
   }
 ];
+// i18n-ignore-end
 
-const SectionHeader = ({ onSeeAll }) => (
+const SectionHeader = ({ onSeeAll }) => {
+  const { t } = useTranslation("home");
+  return (
   <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8 px-2">
       <div className="max-w-2xl">
           <div className="flex items-center gap-2 mb-3">
@@ -59,11 +64,11 @@ const SectionHeader = ({ onSeeAll }) => (
           </div>
           
           <h2 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight leading-tight">
-              Điểm Đến <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">Yêu Thích</span>
+              {t("destinations.titleLead")} <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">{t("destinations.titleHighlight")}</span>
           </h2>
           
           <p className="text-gray-500 mt-3 font-medium text-base leading-relaxed">
-              Lên kế hoạch cho chuyến đi tiếp theo của bạn đến những địa danh du lịch hàng đầu được cộng đồng TravelMate bình chọn.
+              {t("destinations.subtitle")}
           </p>
       </div>
 
@@ -71,16 +76,22 @@ const SectionHeader = ({ onSeeAll }) => (
           onClick={onSeeAll}
           className="hidden md:flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-orange-600 transition-all bg-white px-5 py-2.5 rounded-full border border-gray-200 hover:border-orange-200 shadow-sm hover:shadow-md group"
       >
-          Khám phá ngay 
+          {t("common:actions.exploreNow")}
           <div className="bg-gray-100 group-hover:bg-orange-100 p-1 rounded-full transition-colors">
               <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
           </div>
       </button>
   </div>
-);
+  );
+};
 
 const HotDestinations = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation("home");
+  const destinations = DESTINATIONS.map((d) => ({
+    ...d,
+    region: d.regionKey ? t(`destinations.regions.${d.regionKey}`) : d.region,
+  }));
 
   const handleDestinationClick = (keyword) => {
     navigate(`/hotels?keyword=${encodeURIComponent(keyword)}`);
@@ -97,19 +108,19 @@ const HotDestinations = () => {
         {/* Item 1: Lớn (Chiếm 2 cột) */}
         <DestinationCard 
             className="lg:col-span-2 h-[280px] lg:h-[320px]"
-            data={DESTINATIONS[0]} 
+            data={destinations[0]} 
             onClick={() => handleDestinationClick(DESTINATIONS[0].keyword)} 
         />
         {/* Item 2: Nhỏ */}
         <DestinationCard 
             className="lg:col-span-1 h-[280px] lg:h-[320px]"
-            data={DESTINATIONS[1]} 
+            data={destinations[1]} 
             onClick={() => handleDestinationClick(DESTINATIONS[1].keyword)} 
         />
         {/* Item 3: Nhỏ */}
         <DestinationCard 
             className="lg:col-span-1 h-[280px] lg:h-[320px]"
-            data={DESTINATIONS[2]} 
+            data={destinations[2]} 
             onClick={() => handleDestinationClick(DESTINATIONS[2].keyword)} 
         />
 
@@ -117,19 +128,19 @@ const HotDestinations = () => {
         {/* Item 4: Nhỏ */}
         <DestinationCard 
             className="lg:col-span-1 h-[280px] lg:h-[320px]"
-            data={DESTINATIONS[3]} 
+            data={destinations[3]} 
             onClick={() => handleDestinationClick(DESTINATIONS[3].keyword)} 
         />
         {/* Item 5: Nhỏ */}
         <DestinationCard 
             className="lg:col-span-1 h-[280px] lg:h-[320px]"
-            data={DESTINATIONS[4]} 
+            data={destinations[4]} 
             onClick={() => handleDestinationClick(DESTINATIONS[4].keyword)} 
         />
         {/* Item 6: Lớn (Chiếm 2 cột) */}
         <DestinationCard 
             className="lg:col-span-2 h-[280px] lg:h-[320px]"
-            data={DESTINATIONS[5]} 
+            data={destinations[5]} 
             onClick={() => handleDestinationClick(DESTINATIONS[5].keyword)} 
         />
 

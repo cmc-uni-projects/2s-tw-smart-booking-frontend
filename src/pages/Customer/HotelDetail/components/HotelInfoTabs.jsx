@@ -1,17 +1,19 @@
 import React from "react";
 import Button from "@/components/common/Button/Button";
 import { Star, FileText } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export const AmenitiesSection = ({ amenities, description }) => {
+    const { t } = useTranslation("hotel");
     const featuredAmenities = amenities.slice(0, 8); // Hiển thị nhiều hơn chút
     return (
         <div className="p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-3">Mô tả</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-3">{t("info.description")}</h3>
             <p className="text-gray-600 leading-relaxed mb-6 pb-6 border-b">
                 {description}
             </p>
             <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-gray-800">Tiện ích</h3>
+                <h3 className="text-xl font-bold text-gray-800">{t("info.amenities")}</h3>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {featuredAmenities.map(item => (
@@ -25,18 +27,24 @@ export const AmenitiesSection = ({ amenities, description }) => {
     );
 };
 
-export const ReviewsSection = () => (
-    <div className="p-10 text-center">
-        <Star size={48} className="mx-auto text-gray-300 mb-3" />
-        <h4 className="text-lg font-semibold text-gray-600">Chưa có đánh giá nào</h4>
-        <p className="text-gray-500">Hãy là người đầu tiên trải nghiệm và đánh giá khách sạn này!</p>
-    </div>
-);
+export const ReviewsSection = () => {
+    const { t } = useTranslation("hotel");
+    return (
+        <div className="p-10 text-center">
+            <Star size={48} className="mx-auto text-gray-300 mb-3" />
+            <h4 className="text-lg font-semibold text-gray-600">{t("info.noReviews")}</h4>
+            <p className="text-gray-500">{t("info.beFirst")}</p>
+        </div>
+    );
+};
 
-export const PoliciesSection = () => (
-    <div className="p-10 text-center">
-        <FileText size={48} className="mx-auto text-gray-300 mb-3" />
-        <h4 className="text-lg font-semibold text-gray-600">Chính sách đang cập nhật</h4>
-        <p className="text-gray-500">Vui lòng liên hệ trực tiếp với khách sạn để biết thêm chi tiết.</p>
-    </div>
-);
+export const PoliciesSection = () => {
+    const { t } = useTranslation("hotel");
+    return (
+        <div className="p-10 text-center">
+            <FileText size={48} className="mx-auto text-gray-300 mb-3" />
+            <h4 className="text-lg font-semibold text-gray-600">{t("info.policiesPending")}</h4>
+            <p className="text-gray-500">{t("info.contactHotel")}</p>
+        </div>
+    );
+};

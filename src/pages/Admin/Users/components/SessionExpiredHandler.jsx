@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { ShieldAlert, X } from "lucide-react"; // Dùng icon ShieldAlert cho giống Login
+import { ShieldAlert, X } from "lucide-react";
+import { useTranslation } from "react-i18next"; // Dùng icon ShieldAlert cho giống Login
 
 export default function SessionExpiredHandler() {
+  const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
-    const [message, setMessage] = useState("Tài khoản của bạn đã bị khóa.");
+    const [message, setMessage] = useState(t("admin:SessionExpiredHandler.yourAccountHasBeenLocked"));
 
     useEffect(() => {
         // Lắng nghe sự kiện từ axios.config.js
         const handleAccountLocked = (event) => {
-            const msg = event.detail || "Tài khoản của bạn đã bị khóa do vi phạm chính sách.";
+            const msg = event.detail || t("admin:SessionExpiredHandler.yourAccountHasBeenLocked2");
             setMessage(msg);
             setIsOpen(true);
         };
@@ -44,7 +46,7 @@ export default function SessionExpiredHandler() {
                     <div className="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mb-4 shadow-inner animate-bounce-short">
                         <ShieldAlert size={32} />
                     </div>
-                    <h3 className="text-xl font-black text-slate-800">Tài khoản bị khóa</h3>
+                    <h3 className="text-xl font-black text-slate-800">{t("admin:SessionExpiredHandler.accountLocked")}</h3>
                 </div>
 
                 {/* Body Modal */}
@@ -60,7 +62,7 @@ export default function SessionExpiredHandler() {
                         onClick={handleLogout}
                         className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-slate-900/20"
                     >
-                        Đăng xuất ngay
+                        {t("admin:SessionExpiredHandler.logOutNow")}
                     </button>
                 </div>
 

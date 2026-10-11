@@ -1,4 +1,5 @@
 // src/pages/Customer/Profile/AvatarUploadModal.jsx
+import { useTranslation } from "react-i18next";
 import React, { useState, useRef, useEffect } from "react";
 import Modal from "@/components/common/Modal/Modal";
 import Button from "@/components/common/Button/Button";
@@ -7,6 +8,7 @@ import Cropper from "react-easy-crop";
 import getCroppedImg from "@/utils/cropImage"; // Import hàm tiện ích vừa tạo
 
 export default function AvatarUploadModal({ isOpen, onClose, onSave, isLoading }) {
+  const { t } = useTranslation(["profile", "common"]);
   const [imageSrc, setImageSrc] = useState(null);
   
   // State cho Cropper
@@ -30,7 +32,7 @@ export default function AvatarUploadModal({ isOpen, onClose, onSave, isLoading }
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       if (file.size > 5 * 1024 * 1024) {
-        alert("File quá lớn! Vui lòng chọn ảnh dưới 5MB.");
+        alert(t("avatarModal.tooLarge"));
         return;
       }
       // Đọc file dưới dạng URL để đưa vào Cropper
@@ -57,7 +59,7 @@ export default function AvatarUploadModal({ isOpen, onClose, onSave, isLoading }
       onSave(croppedFile);
     } catch (e) {
       console.error(e);
-      alert("Đã có lỗi khi cắt ảnh.");
+      alert(t("avatarModal.cropError"));
     }
   };
 
@@ -65,7 +67,7 @@ export default function AvatarUploadModal({ isOpen, onClose, onSave, isLoading }
     <Modal
       open={isOpen}
       onClose={onClose}
-      title="Cập nhật ảnh đại diện"
+      title={t("avatarModal.title")}
       maxWidth="max-w-md"
     >
       <div className="flex flex-col items-center gap-6 py-2">
@@ -89,7 +91,7 @@ export default function AvatarUploadModal({ isOpen, onClose, onSave, isLoading }
           ) : (
             <div className="flex flex-col items-center text-gray-400">
               <ImageIcon size={48} className="mb-2" />
-              <span className="text-sm">Chưa chọn ảnh</span>
+              <span className="text-sm">{t("avatarModal.none")}</span>
             </div>
           )}
         </div>
@@ -127,7 +129,7 @@ export default function AvatarUploadModal({ isOpen, onClose, onSave, isLoading }
               onClick={() => fileInputRef.current?.click()}
               leftIcon={<Upload size={18} />}
             >
-              Chọn ảnh từ thiết bị
+              {t("avatarModal.choose")}
             </Button>
           )}
           {imageSrc && (
@@ -135,7 +137,7 @@ export default function AvatarUploadModal({ isOpen, onClose, onSave, isLoading }
                 onClick={() => fileInputRef.current?.click()}
                 className="text-sm text-[rgb(40,169,224)] hover:underline font-medium"
              >
-                Chọn ảnh khác
+                {t("avatarModal.chooseAnother")}
              </button>
           )}
         </div>
@@ -148,7 +150,7 @@ export default function AvatarUploadModal({ isOpen, onClose, onSave, isLoading }
             onClick={onClose}
             disabled={isLoading}
           >
-            Hủy
+            {t("common:actions.cancel")}
           </Button>
           <Button 
             fullWidth 
@@ -156,7 +158,7 @@ export default function AvatarUploadModal({ isOpen, onClose, onSave, isLoading }
             disabled={!imageSrc || isLoading}
             isLoading={isLoading}
           >
-            {isLoading ? "Đang tải lên..." : "Lưu & Cập nhật"}
+            {isLoading ? t("avatarModal.uploading") : t("avatarModal.save")}
           </Button>
         </div>
       </div>

@@ -1,11 +1,13 @@
 import React from "react";
 import Modal from "@/components/common/Modal/Modal";
 import { UserCheck } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 /**
  * Modal DUYỆT ĐƠN ĐĂNG KÝ — giao diện mới, không dùng ConfirmModal
  */
 const ApproveOwnerModal = ({ open, onClose, onConfirm, application }) => {
+  const { t } = useTranslation();
   if (!application) return null;
 
   return (
@@ -22,17 +24,17 @@ const ApproveOwnerModal = ({ open, onClose, onConfirm, application }) => {
         </div>
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
-            Phê duyệt đơn đăng ký Chủ sở hữu
+            {t("admin:ApproveOwnerModal.approveOwnerApplication")}
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            Xác nhận thông tin trước khi tiến hành phê duyệt.
+            {t("admin:ApproveOwnerModal.confirmTheInformationBeforeApproving")}
           </p>
         </div>
       </div>
 
       {/* Applicant info box */}
       <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-        <p className="text-sm text-green-700">Bạn đang phê duyệt đơn của:</p>
+        <p className="text-sm text-green-700">{t("admin:ApproveOwnerModal.youAreApprovingTheApplication")}</p>
 
         <p className="mt-1 font-semibold text-green-900 text-lg">
           {application.applicantFullName}
@@ -41,8 +43,8 @@ const ApproveOwnerModal = ({ open, onClose, onConfirm, application }) => {
         <p className="text-sm text-green-700">{application.applicantEmail}</p>
 
         <p className="text-sm text-green-700 mt-3">
-          Tài khoản này sẽ được cấp quyền{" "}
-          <span className="font-bold text-green-800 underline">CHỦ SỞ HỮU (OWNER)</span>.
+          {t("admin:ApproveOwnerModal.thisAccountWillBeGranted")}{" "}
+          <span className="font-bold text-green-800 underline">{t("admin:ApproveOwnerModal.owner")}</span>.
         </p>
       </div>
 
@@ -53,7 +55,7 @@ const ApproveOwnerModal = ({ open, onClose, onConfirm, application }) => {
           onClick={onClose}
           className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition"
         >
-          Hủy
+          {t("admin:ApproveOwnerModal.cancel")}
         </button>
 
         {/* Approve */}
@@ -61,7 +63,7 @@ const ApproveOwnerModal = ({ open, onClose, onConfirm, application }) => {
           onClick={onConfirm}
           className="px-5 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition shadow-sm"
         >
-          Xác nhận phê duyệt
+          {t("admin:ApproveOwnerModal.confirmApproval")}
         </button>
       </div>
     </Modal>

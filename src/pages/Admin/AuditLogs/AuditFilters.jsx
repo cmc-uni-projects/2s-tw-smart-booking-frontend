@@ -3,6 +3,7 @@
 import React from "react";
 import { Search, X } from "lucide-react";
 import { LogAction, LogEntityType } from "@/constants/auditLog";
+import { useTranslation } from "react-i18next";
 // 👉 nếu bạn chưa có constants thì có thể truyền options từ parent, file này vẫn dùng được
 
 export default function AuditFilters({
@@ -14,6 +15,7 @@ export default function AuditFilters({
                                          setEntityType,
                                          onClear,
                                      }) {
+  const { t } = useTranslation();
     const selectClass =
         "px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 cursor-pointer outline-none focus:border-[rgb(40,169,224)] focus:ring-2 focus:ring-[rgb(40,169,224)]/20 transition-all";
 
@@ -27,7 +29,7 @@ export default function AuditFilters({
                 />
                 <input
                     type="text"
-                    placeholder="Tìm theo mô tả hoặc email..."
+                    placeholder={t("admin:AuditFilters.searchByDescriptionOrEmail")}
                     className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[rgb(40,169,224)]/20 focus:border-[rgb(40,169,224)] transition-all"
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
@@ -41,7 +43,7 @@ export default function AuditFilters({
                     value={action}
                     onChange={(e) => setAction(e.target.value)}
                 >
-                    <option value="ALL">Tất cả hành động</option>
+                    <option value="ALL">{t("admin:AuditFilters.allActions")}</option>
                     <option value="CREATE">CREATE</option>
                     <option value="UPDATE">UPDATE</option>
                     <option value="DELETE">DELETE</option>
@@ -52,7 +54,7 @@ export default function AuditFilters({
                     value={entityType}
                     onChange={(e) => setEntityType(e.target.value)}
                 >
-                    <option value="ALL">Tất cả đối tượng</option>
+                    <option value="ALL">{t("admin:AuditFilters.allEntities")}</option>
                     <option value="PROPERTY">PROPERTY</option>
                     <option value="ROOM">ROOM</option>
                 </select>
@@ -63,7 +65,7 @@ export default function AuditFilters({
                         className="px-4 py-2.5 text-red-500 bg-red-50 hover:bg-red-100 rounded-xl text-sm font-medium whitespace-nowrap flex items-center gap-1"
                     >
                         <X size={14} />
-                        Xóa lọc
+                        {t("admin:AuditFilters.clearFilters")}
                     </button>
                 )}
             </div>

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Modal from "./Modal";
 import Button from "../Button/Button";
+import { useTranslation, Trans } from "react-i18next";
 
 const SuspendModal = ({ isOpen, onClose, onConfirm, title, itemName }) => {
+  const { t } = useTranslation();
   const [reason, setReason] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -18,7 +20,7 @@ const SuspendModal = ({ isOpen, onClose, onConfirm, title, itemName }) => {
   const handleSubmit = async () => {
     // 1. Validate chặt chẽ: Cắt khoảng trắng thừa
     if (!reason.trim()) {
-      setError("Vui lòng nhập lý do dừng hoạt động.");
+      setError(t("suspend.reasonRequired"));
       return;
     }
     
@@ -41,20 +43,20 @@ const SuspendModal = ({ isOpen, onClose, onConfirm, title, itemName }) => {
     <Modal 
       open={isOpen} 
       onClose={onClose} 
-      title={title || "Xác nhận dừng hoạt động"}
+      title={title || t("suspend.title")}
       maxWidth="max-w-md"
     >
       <div className="space-y-4">
         {/* Thông báo cảnh báo */}
         <div className="bg-yellow-50 text-yellow-800 p-3 rounded-lg text-sm border border-yellow-200">
-          Bạn đang thực hiện dừng hoạt động: <strong>{itemName}</strong>.
+          <Trans t={t} i18nKey="suspend.text" values={{ name: itemName }} components={{ b: <strong /> }} />
           <br />
-          Hành động này sẽ gửi email thông báo cho chủ sở hữu.
+          {t("suspend.emailNotice")}
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Lý do dừng hoạt động <span className="text-red-500">*</span>
+            {t("suspend.reason")} <span className="text-red-500">*</span>
           </label>
           <textarea
             className={`w-full p-3 border rounded-lg focus:ring-2 focus:outline-none transition-colors resize-none ${
@@ -63,7 +65,7 @@ const SuspendModal = ({ isOpen, onClose, onConfirm, title, itemName }) => {
                 : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
             }`}
             rows={4}
-            placeholder="Nhập lý do chi tiết (VD: Vi phạm chính sách, nợ phí...)"
+            placeholder={t("suspend.placeholder")}
             value={reason}
             onChange={(e) => {
               setReason(e.target.value);
@@ -80,7 +82,7 @@ const SuspendModal = ({ isOpen, onClose, onConfirm, title, itemName }) => {
             disabled={isLoading}
             className="bg-gray-100 hover:bg-gray-200 text-gray-700"
           >
-            Hủy bỏ
+            {t("actions.cancelLong")}
           </Button>
           
           {/* Nút bị disable nếu chưa nhập lý do */}
@@ -94,7 +96,7 @@ const SuspendModal = ({ isOpen, onClose, onConfirm, title, itemName }) => {
             isLoading={isLoading}
             disabled={!reason.trim() || isLoading} // ✅ BẮT BUỘC NHẬP MỚI SÁNG NÚT
           >
-            Xác nhận Dừng
+            {t("suspend.confirm")}
           </Button>
         </div>
       </div>

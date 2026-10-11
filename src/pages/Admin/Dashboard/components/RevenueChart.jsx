@@ -1,8 +1,10 @@
 import React from "react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { BarChart3 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const RevenueChart = ({ data }) => {
+  const { t } = useTranslation();
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-full">
       <div className="flex items-center justify-between mb-6">
@@ -11,8 +13,8 @@ const RevenueChart = ({ data }) => {
               <BarChart3 size={20} />
            </div>
            <div>
-              <h3 className="text-lg font-bold text-gray-800">Biểu đồ Doanh Thu</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Thống kê theo từng tháng (Năm nay)</p>
+              <h3 className="text-lg font-bold text-gray-800">{t("admin:RevenueChart.revenueChart")}</h3>
+              <p className="text-xs text-gray-500 mt-0.5">{t("admin:RevenueChart.monthlyStatisticsThisYear")}</p>
            </div>
         </div>
       </div>

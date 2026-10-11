@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { User, Minus, Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const MapGuestSelector = ({ guests, onChange }) => {
+  const { t } = useTranslation("search");
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
@@ -29,10 +31,10 @@ const MapGuestSelector = ({ guests, onChange }) => {
         </div>
         <div className="flex flex-col">
           <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider hidden md:block">
-            Số khách
+            {t("map.guests")}
           </label>
           <span className="text-sm font-bold text-gray-700">
-            {guests} khách, 1 phòng
+            {t("map.guestsSummary", { count: guests })}
           </span>
         </div>
       </div>
@@ -44,8 +46,8 @@ const MapGuestSelector = ({ guests, onChange }) => {
             {/* Người lớn */}
             <div className="flex items-center justify-between mb-4">
                 <div>
-                    <p className="text-sm font-bold text-gray-800">Người lớn</p>
-                    <p className="text-[10px] text-gray-400">13 tuổi trở lên</p>
+                    <p className="text-sm font-bold text-gray-800">{t("guests.adults")}</p>
+                    <p className="text-[10px] text-gray-400">{t("map.adultsHint")}</p>
                 </div>
                 <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-1">
                     <button 
@@ -68,8 +70,8 @@ const MapGuestSelector = ({ guests, onChange }) => {
             {/* Trẻ em (Giả lập UI cho đẹp) */}
             <div className="flex items-center justify-between opacity-50 pointer-events-none">
                 <div>
-                    <p className="text-sm font-bold text-gray-800">Trẻ em</p>
-                    <p className="text-[10px] text-gray-400">Dưới 13 tuổi</p>
+                    <p className="text-sm font-bold text-gray-800">{t("guests.children")}</p>
+                    <p className="text-[10px] text-gray-400">{t("map.childrenHint")}</p>
                 </div>
                 <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-1">
                     <button className="w-8 h-8 flex items-center justify-center rounded-md bg-white shadow-sm"><Minus size={14} /></button>

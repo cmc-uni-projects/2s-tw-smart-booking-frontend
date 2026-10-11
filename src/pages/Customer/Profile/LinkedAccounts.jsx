@@ -11,6 +11,7 @@ import ConfirmModal from '@/components/common/Modal/ConfirmModal';
 import CreatePasswordModal from '@/components/common/Modal/CreatePasswordModal';
 import AccountReviewModal from '@/components/common/Modal/AccountReviewModal';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation, Trans } from "react-i18next";
 
 // ✅ 1. ĐỊNH NGHĨA COMPONENT GoogleIcon TẠI ĐÂY
 const GoogleIcon = ({ className }) => (
@@ -29,6 +30,7 @@ const GoogleIcon = ({ className }) => (
 );
 
 const LinkedAccounts = () => {
+  const { t } = useTranslation(["profile", "common"]);
   const { currentUser, updateUser } = useAuth();
   // const navigate = useNavigate(); // Không cần dùng navigate nữa vì đã có modal
   const [linkedProviders, setLinkedProviders] = useState([]);
@@ -94,7 +96,7 @@ const LinkedAccounts = () => {
       );
       updateUser({ socialAccounts: updatedSocialAccounts });
 
-      showToast(`Đã ngắt kết nối ${providerToUnlink} thành công!`, "success");
+      showToast(t("linked.unlinked", { provider: providerToUnlink }), "success");
     } catch (error) {
       showToast(error.message, "error");
     } finally {
@@ -106,7 +108,7 @@ const LinkedAccounts = () => {
 
   const confirmUnlink = (provider) => {
     if (!isSafeToUnlink && linkedProviders.length <= 1) {
-       showToast("Bạn cần tạo mật khẩu trước khi ngắt kết nối tài khoản này!", "error");
+       showToast(t("linked.needPassword"), "error");
        return;
     }
     setProviderToUnlink(provider);
@@ -134,8 +136,8 @@ const LinkedAccounts = () => {
             </h4>
             <p className="text-sm text-gray-500 max-w-[300px]">
               {isLocked 
-                ? <span className="text-red-500 font-medium">Đây là phương thức đăng nhập duy nhất.</span>
-                : (isConnected ? `Đã liên kết với tài khoản ${title}.` : description)
+                ? <span className="text-red-500 font-medium">{t("linked.onlyMethod")}</span>
+                : (isConnected ? t("linked.linkedWith", { provider: title }) : description)
               }
             </p>
           </div>
@@ -151,7 +153,7 @@ const LinkedAccounts = () => {
                 className="w-full sm:w-auto min-w-[160px] justify-center"
                 leftIcon={<Lock size={16} />}
               >
-                Tạo mật khẩu
+                {t("linked.createPassword")}
               </Button>
             ) : (
               // Nút Ngắt kết nối (khi an toàn)
@@ -162,7 +164,7 @@ const LinkedAccounts = () => {
                 className="w-full sm:w-auto min-w-[160px] justify-center text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
                 leftIcon={<Trash2 size={16} />}
               >
-                Ngắt kết nối
+                {t("linked.disconnect")}
               </Button>
             )
           ) : (
@@ -173,7 +175,7 @@ const LinkedAccounts = () => {
               className="w-full sm:w-auto min-w-[160px] justify-center hover:bg-gray-50"
               rightIcon={<ExternalLink size={14} />}
             >
-              Kết nối {title}
+              {t("linked.connect", { provider: title })}
             </Button>
           )}
         </div>
@@ -190,8 +192,8 @@ const LinkedAccounts = () => {
               <Link2 size={24} />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-gray-800">Liên kết tài khoản</h3>
-              <p className="text-sm text-gray-500">Quản lý các phương thức đăng nhập bổ sung</p>
+              <h3 className="text-xl font-bold text-gray-800">{t("linked.title")}</h3>
+              <p className="text-sm text-gray-500">{t("linked.subtitle")}</p>
             </div>
           </div>
 
@@ -199,7 +201,7 @@ const LinkedAccounts = () => {
              <div className="mb-6 bg-orange-50 border border-orange-100 text-orange-800 p-4 rounded-xl flex gap-3 items-start">
                 <AlertCircle size={22} className="mt-0.5 flex-shrink-0 text-orange-600" />
                 <div className="text-sm leading-relaxed">
-                  <strong>Chú ý:</strong> Bạn chưa thiết lập mật khẩu. Vui lòng <strong>Tạo mật khẩu</strong> để bảo vệ tài khoản tốt hơn và tránh mất quyền truy cập.
+                  <Trans t={t} i18nKey="linked.noPasswordWarning" components={{ b: <strong /> }} />
                 </div>
              </div>
           )}
@@ -208,7 +210,7 @@ const LinkedAccounts = () => {
             <SocialItem 
               provider="google" 
               title="Google" 
-              description="Sử dụng tài khoản Google để đăng nhập một chạm." 
+              description={t("linked.googleText")} 
               isConnected={linkedProviders.includes('google')} 
               icon={<GoogleIcon />} // ✅ Sử dụng Component đã định nghĩa
               colorClass="bg-white" 
@@ -217,7 +219,7 @@ const LinkedAccounts = () => {
             <SocialItem 
               provider="facebook" 
               title="Facebook" 
-              description="Kết nối với Facebook để đăng nhập dễ dàng." 
+              description={t("linked.facebookText")} 
               isConnected={linkedProviders.includes('facebook')} 
               icon={<FaFacebook className="text-[#1877F2] text-3xl" />} 
               colorClass="bg-blue-50" 
@@ -230,10 +232,10 @@ const LinkedAccounts = () => {
       <ConfirmModal 
         open={isUnlinkModalOpen}
         type="danger"
-        title="Ngắt kết nối tài khoản"
-        message={`Bạn có chắc chắn muốn ngắt kết nối tài khoản ${providerToUnlink}?`}
-        confirmText="Ngắt kết nối"
-        cancelText="Hủy bỏ"
+        title={t("linked.confirmTitle")}
+        message={t("linked.confirmText", { provider: providerToUnlink })}
+        confirmText={t("linked.disconnect")}
+        cancelText={t("common:actions.cancelLong")}
         onConfirm={handleUnlinkExecution}
         onClose={() => setIsUnlinkModalOpen(false)}
       />

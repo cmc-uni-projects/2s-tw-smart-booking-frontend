@@ -22,58 +22,61 @@ import Step5_Review from "./AddPropertySteps/Step5_Review";
 import Step6_Status from "./AddPropertySteps/Step6_Status";
 import Step_WholeUnitSetup from "./AddPropertySteps/Step_WholeUnitSetup";
 import Step_Policies from "./AddPropertySteps/Step_Policies";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 // --- 1. VALIDATION SCHEMAS ---
 const fileListValidation = (min = 3) => yup
     .mixed()
-    .test("required", `Cần ít nhất ${min} ảnh`, (val) => val && val.length >= min);
+    .test("required", i18n.t("owner:AddPropertyPage.atLeastPhotosAreRequired", { min }), (val) => val && val.length >= min);
 
 const baseSchemas = {
-  step0: yup.object({ propertyType: yup.string().required("Chọn loại hình") }),
+  step0: yup.object({ propertyType: yup.string().required(() => i18n.t("owner:AddPropertyPage.chooseAPropertyType")) }),
   step1: yup.object({
-    province: yup.string().required("Chọn tỉnh/thành"),
-    city: yup.string().required("Chọn quận/huyện"),
-    address: yup.string().required("Nhập địa chỉ"),
+    province: yup.string().required(() => i18n.t("owner:AddPropertyPage.chooseAProvinceCity")),
+    city: yup.string().required(() => i18n.t("owner:AddPropertyPage.chooseADistrict")),
+    address: yup.string().required(() => i18n.t("owner:AddPropertyPage.enterTheAddress")),
   }),
   step2: yup.object({ amenities: yup.object().nullable() }),
   step3: yup.object({ propertyImages: fileListValidation(3) }),
   step4: yup.object({
-    propertyName: yup.string().required("Vui lòng nhập tên chỗ nghỉ"),
+    propertyName: yup.string().required(() => i18n.t("owner:AddPropertyPage.pleaseEnterThePropertyName")),
     description: yup.string()
-        .min(50, "Mô tả quá ngắn, tối thiểu 50 ký tự")
-        .required("Vui lòng nhập mô tả chi tiết"),
+        .min(50, () => i18n.t("owner:AddPropertyPage.theDescriptionIsTooShort"))
+        .required(() => i18n.t("owner:AddPropertyPage.pleaseEnterADetailedDescription")),
     area: yup.number()
         .transform((value, originalValue) => (String(originalValue).trim() === "" ? null : value))
         .nullable()
-        .typeError("Diện tích phải là số hợp lệ")
-        .positive("Diện tích phải lớn hơn 0")
-        .required("Vui lòng nhập diện tích"),
+        .typeError(() => i18n.t("owner:AddPropertyPage.areaMustBeAValid"))
+        .positive(() => i18n.t("owner:AddPropertyPage.areaMustBeGreaterThan"))
+        .required(() => i18n.t("owner:AddPropertyPage.pleaseEnterTheArea")),
   }),
   stepPolicies: yup.object({
     policies: yup.object().shape({
-      checkInFrom: yup.string().required("Chọn giờ nhận phòng"),
-      checkInTo: yup.string().required("Chọn giờ nhận phòng"),
-      checkOutFrom: yup.string().required("Chọn giờ trả phòng"),
-      checkOutTo: yup.string().required("Chọn giờ trả phòng"),
+      checkInFrom: yup.string().required(() => i18n.t("owner:AddPropertyPage.chooseTheCheckInTime")),
+      checkInTo: yup.string().required(() => i18n.t("owner:AddPropertyPage.chooseTheCheckInTime")),
+      checkOutFrom: yup.string().required(() => i18n.t("owner:AddPropertyPage.chooseTheCheckOutTime")),
+      checkOutTo: yup.string().required(() => i18n.t("owner:AddPropertyPage.chooseTheCheckOutTime")),
     })
   }),
   // ✅ [UPDATE] Schema cho bước Setup Unit: Thêm weekendPrice
   stepUnit: yup.object({
     unitData: yup.object().shape({
-      price: yup.number().min(10000, "Giá tối thiểu 10,000đ").required("Nhập giá ngày thường"),
+      price: yup.number().min(10000, () => i18n.t("owner:AddPropertyPage.minimumPriceIs10000")).required(() => i18n.t("owner:AddPropertyPage.enterTheWeekdayPrice")),
       weekendPrice: yup.number()
           .transform((value, originalValue) => (String(originalValue).trim() === "" ? 0 : value))
-          .min(0, "Giá không hợp lệ"), // Cho phép 0 hoặc trống (sẽ lấy fallback giá thường)
-      capacity: yup.number().min(1, "Sức chứa tối thiểu 1").required("Nhập sức chứa"),
-      description: yup.string().required("Vui lòng nhập mô tả chi tiết về căn"),
+          .min(0, () => i18n.t("owner:AddPropertyPage.invalidPrice")), // Cho phép 0 hoặc trống (sẽ lấy fallback giá thường)
+      capacity: yup.number().min(1, () => i18n.t("owner:AddPropertyPage.minimumCapacityIs1")).required(() => i18n.t("owner:AddPropertyPage.enterTheCapacity")),
+      description: yup.string().required(() => i18n.t("owner:AddPropertyPage.pleaseEnterADetailedDescription2")),
     })
   }),
   stepReview: yup.object({
-    terms: yup.boolean().oneOf([true], "Bạn phải đồng ý điều khoản"),
+    terms: yup.boolean().oneOf([true], () => i18n.t("owner:AddPropertyPage.youMustAgreeToThe")),
   }),
 };
 
 export default function AddPropertyPage() {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setErrorState] = useState(null);
@@ -95,7 +98,7 @@ export default function AddPropertyPage() {
     mode: "onChange",
     defaultValues: {
       propertyType: "HOTEL",
-      country: "Việt Nam",
+      country: t("owner:AddPropertyPage.vietnam"),
       amenities: {},
       province: "", city: "", address: "",
       propertyImages: null,
@@ -135,18 +138,18 @@ export default function AddPropertyPage() {
   // --- 3. CẤU HÌNH STEPS ĐỘNG ---
   const stepsConfig = useMemo(() => {
     const steps = [
-      { id: 0, title: "Loại hình", component: Step0_PropertyType, schema: baseSchemas.step0 },
-      { id: 1, title: "Vị trí", component: Step1_Location, schema: baseSchemas.step1 },
-      { id: 2, title: "Tiện nghi", component: Step2_Amenities, schema: baseSchemas.step2 },
-      { id: 3, title: "Hình ảnh", component: Step3_Images, schema: baseSchemas.step3 },
-      { id: 4, title: "Chi tiết", component: Step4_Details, schema: baseSchemas.step4 },
-      { id: 5, title: "Chính sách", component: Step_Policies, schema: baseSchemas.stepPolicies },
+      { id: 0, title: t("owner:AddPropertyPage.type"), component: Step0_PropertyType, schema: baseSchemas.step0 },
+      { id: 1, title: t("owner:AddPropertyPage.location"), component: Step1_Location, schema: baseSchemas.step1 },
+      { id: 2, title: t("owner:AddPropertyPage.amenities"), component: Step2_Amenities, schema: baseSchemas.step2 },
+      { id: 3, title: t("owner:AddPropertyPage.photos"), component: Step3_Images, schema: baseSchemas.step3 },
+      { id: 4, title: t("owner:AddPropertyPage.details"), component: Step4_Details, schema: baseSchemas.step4 },
+      { id: 5, title: t("owner:AddPropertyPage.policies"), component: Step_Policies, schema: baseSchemas.stepPolicies },
     ];
 
     if (isWholeUnit) {
       steps.push({
         id: 6,
-        title: "Thiết lập căn",
+        title: t("owner:AddPropertyPage.unitSetup"),
         component: Step_WholeUnitSetup,
         schema: baseSchemas.stepUnit
       });
@@ -154,7 +157,7 @@ export default function AddPropertyPage() {
 
     steps.push({
       id: isWholeUnit ? 7 : 6,
-      title: "Kiểm tra",
+      title: t("owner:AddPropertyPage.review"),
       component: Step5_Review,
       schema: baseSchemas.stepReview
     });
@@ -229,11 +232,11 @@ export default function AddPropertyPage() {
         Array.from(data.propertyImages).forEach(file => propertyFormData.append("propertyImages", file));
       }
 
-      console.log("📦 Đang tạo Property (kèm thông tin Room nếu là Villa/Homestay)...");
+      console.log("📦 Creating property (with room info for Villa/Homestay)...");
       const res = await propertyService.submitPropertyApplication(propertyFormData);
 
       const newPropertyId = res.data?.propertyId || res.data?.id;
-      if (!newPropertyId) throw new Error("Không lấy được ID của cơ sở mới tạo.");
+      if (!newPropertyId) throw new Error(t("owner:AddPropertyPage.couldNotGetTheId"));
 
       console.log("✅ Property ID:", newPropertyId);
 
@@ -241,9 +244,9 @@ export default function AddPropertyPage() {
       // BƯỚC 2: TẠO CHÍNH SÁCH
       // =======================================================
       if (data.policies) {
-        console.log("📝 Đang thiết lập chính sách...");
+        console.log("📝 Setting up policies...");
         await propertyService.addPropertyPolicies(newPropertyId, data.policies);
-        console.log("✅ Thiết lập chính sách thành công!");
+        console.log("✅ Policies set up successfully!");
       }
 
       // =======================================================
@@ -256,9 +259,9 @@ export default function AddPropertyPage() {
       setCurrentStep(stepsConfig.length);
 
     } catch (err) {
-      console.error("Lỗi Submit:", err);
+      console.error("Submit error:", err);
       const serverMessage = err.response?.data?.message || err.message;
-      setErrorState(`Lỗi: ${serverMessage}`);
+      setErrorState(t("owner:AddPropertyPage.error", { serverMessage }));
       setCurrentStep(stepsConfig.length);
     } finally {
       setIsLoading(false);
@@ -274,11 +277,11 @@ export default function AddPropertyPage() {
 
   return (
       <>
-        {isLoading && <LoadingOverlay message="Đang xử lý dữ liệu..." />}
+        {isLoading && <LoadingOverlay message={t("owner:AddPropertyPage.processingData")} />}
 
         {currentStep < stepsConfig.length && (
             <Button variant="ghost" onClick={handleBack} leftIcon={<ArrowLeft size={18} />} className="mb-4">
-              Quay lại
+              {t("owner:AddPropertyPage.back")}
             </Button>
         )}
 
@@ -289,7 +292,7 @@ export default function AddPropertyPage() {
                 <StepComponent watch={watch} setValue={setValue} />
                 <div className="flex justify-end mt-8">
                   <Button type="button" onClick={handleNext} rightIcon={<ArrowRight size={18} />} disabled={!propertyType}>
-                    Tiếp theo
+                    {t("owner:AddPropertyPage.next")}
                   </Button>
                 </div>
               </form>
@@ -326,11 +329,11 @@ export default function AddPropertyPage() {
                               leftIcon={<Send size={18} />}
                               disabled={!watch("terms")}
                           >
-                            Gửi đơn đăng ký
+                            {t("owner:AddPropertyPage.submitApplication")}
                           </Button>
                       ) : (
                           <Button type="button" onClick={handleNext} rightIcon={<ArrowRight size={18} />}>
-                            Tiếp theo
+                            {t("owner:AddPropertyPage.next")}
                           </Button>
                       )}
                     </div>

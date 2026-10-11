@@ -1,20 +1,23 @@
 import React from "react";
 import Badge from "@/components/common/Badge/Badge";
 import { ArrowUpRight, ArrowDownLeft, Calendar, CreditCard, FileText } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 const getStatusBadge = (status) => {
     switch (status) {
-        case "SUCCESS": return <Badge color="success">Thành công</Badge>;
-        case "PENDING": return <Badge color="warning">Đang xử lý</Badge>;
-        case "FAILED": return <Badge color="danger">Thất bại</Badge>;
+        case "SUCCESS": return <Badge color="success">{i18n.t("profile:tx.status.SUCCESS")}</Badge>;
+        case "PENDING": return <Badge color="warning">{i18n.t("profile:tx.status.PENDING")}</Badge>;
+        case "FAILED": return <Badge color="danger">{i18n.t("profile:tx.status.FAILED")}</Badge>;
 
-        case "REFUNDED": return <Badge color="primary">Đã hoàn tiền</Badge>;
+        case "REFUNDED": return <Badge color="primary">{i18n.t("profile:tx.status.REFUNDED")}</Badge>;
         // Trường hợp mặc định sẽ hiển thị nguyên văn text (ví dụ "REFUNDED") nếu không khớp các case trên
         default: return <Badge color="gray">{status}</Badge>;
     }
 };
 
 const TransactionCard = ({ transaction, onClick }) => {
+    const { t } = useTranslation("profile"); // re-renders badges on language change
     // Logic xác định là tiền vào hay tiền ra
     const isIncoming = transaction.type === 'REFUND' || transaction.type === 'DEPOSIT';
 
@@ -33,7 +36,7 @@ const TransactionCard = ({ transaction, onClick }) => {
                         {isIncoming ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}
                     </div>
                     <div>
-                        <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wide">Mã Giao Dịch</p>
+                        <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wide">{t("tx.id")}</p>
                         <p className="font-bold text-gray-800 text-sm group-hover:text-[rgb(40,169,224)] transition-colors">{transaction.id}</p>
                     </div>
                 </div>
@@ -63,7 +66,7 @@ const TransactionCard = ({ transaction, onClick }) => {
             </div>
 
             <div className="flex justify-between items-center mt-auto">
-                <span className="text-sm text-gray-500 font-medium">Tổng tiền</span>
+                <span className="text-sm text-gray-500 font-medium">{t("tx.total")}</span>
                 <span className={`text-lg font-bold ${isIncoming ? 'text-green-600' : 'text-gray-900'}`}>
                     {isIncoming ? '+' : ''}{transaction.amount.toLocaleString('vi-VN')}₫
                 </span>

@@ -1,9 +1,11 @@
 import React, { useEffect } from "react";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import HotelReviews from "./HotelReviews";
 
 // ✅ Nhận prop isOwner
 const HotelReviewSidebar = ({ isOpen, onClose, propertyId, isAdmin, onOpenGallery, isOwner }) => {
+  const { t } = useTranslation("hotel");
   // Khóa cuộn body khi mở sidebar
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "unset";
@@ -28,8 +30,8 @@ const HotelReviewSidebar = ({ isOpen, onClose, propertyId, isAdmin, onOpenGaller
         {/* Header - Sticky */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-white z-10 shrink-0">
           <div>
-            <h2 className="text-xl font-bold text-slate-800">Đánh giá & Nhận xét</h2>
-            <p className="text-sm text-slate-500">Xem khách hàng nói gì về chúng tôi</p>
+            <h2 className="text-xl font-bold text-slate-800">{t("reviewSidebar.title")}</h2>
+            <p className="text-sm text-slate-500">{t("reviewSidebar.subtitle")}</p>
           </div>
           <button 
             onClick={onClose}

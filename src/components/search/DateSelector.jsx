@@ -2,12 +2,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { Calendar } from "lucide-react";
 import { DateRange } from "react-date-range";
 import { addDays, format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
+import { useDateFnsLocale } from "@/i18n/dateLocale";
 
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 
 const DateSelector = ({ value, onChange }) => {
+  const { t } = useTranslation("search");
+  const vi = useDateFnsLocale(); // name kept: used as `locale` below
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -42,7 +45,7 @@ const DateSelector = ({ value, onChange }) => {
   return (
     <div className="relative flex flex-col" ref={ref}>
       <label className="text-sm font-semibold text-gray-600 mb-1">
-        Khoảng thời gian lưu trú
+        {t("dates.label")}
       </label>
 
       <button
@@ -83,13 +86,13 @@ const DateSelector = ({ value, onChange }) => {
               onClick={() => setOpen(false)}
               className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-white"
             >
-              Hủy
+              {t("common:actions.cancel")}
             </button>
             <button
               onClick={() => setOpen(false)}
               className="px-3 py-1.5 text-sm rounded-lg bg-[rgb(40,169,224)] text-white hover:opacity-90"
             >
-              Áp dụng
+              {t("common:actions.apply")}
             </button>
           </div>
         </div>

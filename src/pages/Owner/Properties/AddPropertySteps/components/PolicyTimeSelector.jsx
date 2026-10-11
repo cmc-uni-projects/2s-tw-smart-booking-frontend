@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Clock, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 // Tạo danh sách giờ (00:00 -> 23:30)
 const TIME_OPTIONS = [];
@@ -14,6 +15,7 @@ for (let i = 0; i < 24; i++) {
  * Component chọn giờ đẹp mắt thay thế input type="time"
  */
 const PolicyTimeSelector = ({ label, value, onChange }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
 
@@ -51,7 +53,7 @@ const PolicyTimeSelector = ({ label, value, onChange }) => {
                 <Clock size={18} strokeWidth={2.5} />
             </div>
             <span className={`text-sm font-bold ${value ? "text-gray-800" : "text-gray-400"}`}>
-                {value || "Chọn giờ..."}
+                {value || t("owner:PolicyTimeSelector.chooseATime")}
             </span>
           </div>
           <ChevronDown size={18} className={`text-gray-400 transition-transform duration-300 ${isOpen ? "rotate-180 text-[rgb(40,169,224)]" : ""}`} />

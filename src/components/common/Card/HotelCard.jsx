@@ -1,4 +1,5 @@
 // src/components/common/Card/HotelCard.jsx
+import { useTranslation } from "react-i18next";
 import React from "react";
 import { Link } from "react-router-dom"; // Để click vào card
 // ✅ Thêm icon Star
@@ -7,6 +8,7 @@ import Card from "./Card"; // Component Card nền
 import Badge from "../Badge/Badge"; // Component Badge
 
 export default function HotelCard({ hotel }) {
+  const { t } = useTranslation();
   // ✅ Lấy thêm rating và reviews
   const { id, name, location, price, image, rating, reviews } = hotel;
 
@@ -53,7 +55,7 @@ export default function HotelCard({ hotel }) {
               >
                 {rating}
               </Badge>
-              <span className="text-gray-500">({reviews.toLocaleString('vi-VN')} đánh giá)</span>
+              <span className="text-gray-500">{t("reviews", { count: reviews.toLocaleString('vi-VN') })}</span>
             </div>
           )}
 

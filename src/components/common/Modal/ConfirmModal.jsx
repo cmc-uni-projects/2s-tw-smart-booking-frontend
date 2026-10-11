@@ -4,17 +4,23 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import Button from "../Button/Button";
 import ModalPortal from "./ModalPortal";
+import { useTranslation } from "react-i18next";
 
 export default function ConfirmModal({
   open,
   type = "info", // "info" | "warning" | "danger" | "success"
-  title = "Xác nhận hành động",
-  message = "Bạn có chắc chắn muốn tiếp tục?",
-  confirmText = "Xác nhận",
-  cancelText = "Hủy",
+  title,
+  message,
+  confirmText,
+  cancelText,
   onConfirm,
   onClose,
 }) {
+  const { t } = useTranslation();
+  if (title === undefined) title = t("confirm.title");
+  if (message === undefined) message = t("confirm.message");
+  if (confirmText === undefined) confirmText = t("actions.confirm");
+  if (cancelText === undefined) cancelText = t("actions.cancel");
   if (!open) return null;
 
   const colors = {

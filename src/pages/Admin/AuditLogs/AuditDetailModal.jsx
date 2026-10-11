@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import Modal from "@/components/common/Modal/Modal";
 import systemLogService from "@/services/systemLog.service";
 import { formatAuditValue } from "@/utils/auditValueMapper";
+import { useTranslation } from "react-i18next";
 
 export default function AuditDetailModal({ open, logId, onClose }) {
+  const { t } = useTranslation();
     const [logDetail, setLogDetail] = useState(null);
     const [loading, setLoading] = useState(false);
 
@@ -33,12 +35,12 @@ export default function AuditDetailModal({ open, logId, onClose }) {
         <Modal
             open={open}
             onClose={onClose}
-            title="Chi tiết Audit Log"
+            title={t("admin:AuditDetailModal.auditLogDetails")}
             maxWidth="max-w-4xl"
         >
             {loading && (
                 <div className="text-center text-gray-500 py-10">
-                    Đang tải dữ liệu...
+                    {t("admin:AuditDetailModal.loadingData")}
                 </div>
             )}
 
@@ -47,14 +49,14 @@ export default function AuditDetailModal({ open, logId, onClose }) {
                     {/* BASIC INFO */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Info label="Log ID" value={logDetail.logId} />
-                        <Info label="Hành động" value={formatAuditValue(logDetail.action)} />
-                        <Info label="Loại đối tượng" value={formatAuditValue(logDetail.entityType)} />
-                        <Info label="ID đối tượng" value={logDetail.entityId} />
+                        <Info label={t("admin:AuditDetailModal.actions")} value={formatAuditValue(logDetail.action)} />
+                        <Info label={t("admin:AuditDetailModal.entityType")} value={formatAuditValue(logDetail.entityType)} />
+                        <Info label={t("admin:AuditDetailModal.entityId")} value={logDetail.entityId} />
                         <Info label="Actor ID" value={logDetail.actorId} />
-                        <Info label="Tên người thao tác" value={logDetail.actorName} />
+                        <Info label={t("admin:AuditDetailModal.performedBy")} value={logDetail.actorName} />
                         <Info label="Email" value={logDetail.actorEmail} />
                         <Info
-                            label="Thời gian"
+                            label={t("admin:AuditDetailModal.duration")}
                             value={new Date(logDetail.createdAt).toLocaleString("vi-VN")}
                         />
                     </div>
@@ -62,21 +64,21 @@ export default function AuditDetailModal({ open, logId, onClose }) {
                     {/* DESCRIPTION */}
                     <div>
                         <p className="text-sm font-semibold text-gray-600 mb-1">
-                            Mô tả
+                            {t("admin:AuditDetailModal.description")}
                         </p>
                         <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm text-gray-700">
-                            {logDetail.description || "Không có mô tả"}
+                            {logDetail.description || t("admin:AuditDetailModal.noDescription")}
                         </div>
                     </div>
 
                     {/* OLD / NEW VALUE */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <JsonBox
-                            title="Giá trị cũ"
+                            title={t("admin:AuditDetailModal.oldValue")}
                             value={formatAuditValue(logDetail.oldValue)}
                         />
                         <JsonBox
-                            title="Giá trị mới"
+                            title={t("admin:AuditDetailModal.newValue")}
                             value={formatAuditValue(logDetail.newValue)}
                         />
                     </div>
@@ -85,7 +87,7 @@ export default function AuditDetailModal({ open, logId, onClose }) {
 
             {!loading && !logDetail && (
                 <div className="text-center text-gray-400 py-10">
-                    Không có dữ liệu
+                    {t("admin:AuditDetailModal.noData")}
                 </div>
             )}
         </Modal>
@@ -105,6 +107,7 @@ const Info = ({ label, value }) => (
 );
 
 const JsonBox = ({ title, value }) => {
+  const { t } = useTranslation();
     const isEmpty = value === null || value === undefined || value === "";
 
     return (
@@ -115,7 +118,7 @@ const JsonBox = ({ title, value }) => {
 
             {isEmpty ? (
                 <div className="px-4 py-3 rounded-xl text-sm text-gray-400 bg-gray-100 border border-dashed border-gray-300 text-center">
-                    Không có dữ liệu
+                    {t("admin:AuditDetailModal.noData")}
                 </div>
             ) : (
                 <div className="px-4 py-3 rounded-xl bg-blue-50 border border-blue-200 text-sm text-gray-800 whitespace-pre-wrap break-all">

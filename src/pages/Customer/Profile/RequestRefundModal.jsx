@@ -3,8 +3,10 @@ import {
     AlertCircle, CreditCard, User, Hash, Building2, X
 } from 'lucide-react';
 import Button from '@/components/common/Button/Button';
+import { useTranslation } from "react-i18next";
 
 export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking }) {
+    const { t } = useTranslation(["profile", "common"]);
     // State form
     const [formData, setFormData] = useState({
         reason: '',
@@ -57,25 +59,25 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
 
         // 1. Kiểm tra trống
         if (!reason.trim() || !bankName.trim() || !accountNumber.trim() || !accountHolder.trim()) {
-            return 'Vui lòng điền đầy đủ thông tin các trường bắt buộc.';
+            return t("refund.errors.required");
         }
 
         // 2. Lý do phải rõ ràng
         if (reason.trim().length < 10) {
-            return 'Lý do hoàn tiền cần chi tiết hơn (tối thiểu 10 ký tự).';
+            return t("refund.errors.reasonShort");
         }
 
         // 3. Số tài khoản chỉ chứa số
         const accNumRegex = /^[0-9]{6,25}$/;
         if (!accNumRegex.test(accountNumber.trim())) {
-            return 'Số tài khoản không hợp lệ (chỉ gồm số, từ 6-25 ký tự).';
+            return t("refund.errors.account");
         }
 
         // 4. Tên chủ tài khoản không chứa số (cho phép Tiếng Việt)
         // Regex này loại trừ số và các ký tự đặc biệt thông thường
         const nameRegex = /^[^\d!@#$%^&*()_+={}[\]|\\:;"'<>,.?/]+$/;
         if (!nameRegex.test(accountHolder.trim())) {
-            return 'Tên chủ tài khoản không được chứa số hoặc ký tự đặc biệt.';
+            return t("refund.errors.holder");
         }
 
         return null; // Không có lỗi
@@ -100,7 +102,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
             });
             // Lưu ý: Không đóng modal ở đây, để component cha xử lý (hoặc đóng khi success)
         } catch (err) {
-            setError("Có lỗi xảy ra, vui lòng thử lại.");
+            setError(t("refund.errors.generic"));
             setSubmitting(false);
         }
     };
@@ -119,8 +121,8 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                 {/* --- HEADER --- */}
                 <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                     <div>
-                        <h3 className="text-lg font-bold text-slate-800">Yêu cầu hoàn tiền</h3>
-                        <p className="text-xs text-slate-500 mt-0.5">Đơn hàng: <span className="font-mono font-bold text-slate-700">BK-{booking?.bookingId}</span></p>
+                        <h3 className="text-lg font-bold text-slate-800">{t("refund.title")}</h3>
+                        <p className="text-xs text-slate-500 mt-0.5">{t("refund.order")} <span className="font-mono font-bold text-slate-700">BK-{booking?.bookingId}</span></p>
                     </div>
                     <button
                         onClick={onClose}
@@ -140,10 +142,10 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                             <AlertCircle size={20} />
                         </div>
                         <div>
-                            <p className="text-sm text-orange-800 font-medium">Số tiền dự kiến hoàn lại</p>
+                            <p className="text-sm text-orange-800 font-medium">{t("refund.expected")}</p>
                             <p className="text-2xl font-bold text-orange-600 mt-1">{refundAmount}</p>
                             <p className="text-xs text-orange-700/80 mt-1 leading-relaxed">
-                                Vui lòng cung cấp chính xác thông tin tài khoản chính chủ.
+                                {t("refund.accurate")}
                             </p>
                         </div>
                     </div>
@@ -154,13 +156,13 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                         {/* Lý do */}
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                                Lý do hoàn tiền <span className="text-rose-500">*</span>
+                                {t("refund.reason")} <span className="text-rose-500">*</span>
                             </label>
                             <textarea
                                 name="reason"
                                 rows="3"
                                 className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none text-sm transition-all placeholder:text-slate-400"
-                                placeholder="VD: Tôi bận việc đột xuất, chuyến bay bị hủy... (Ít nhất 10 ký tự)"
+                                placeholder={t("refund.reasonPlaceholder")}
                                 value={formData.reason}
                                 onChange={handleChange}
                             />
@@ -169,13 +171,13 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                         <div className="h-px bg-slate-100 my-2" />
 
                         <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                            <CreditCard size={18} className="text-blue-500" /> Thông tin nhận tiền
+                            <CreditCard size={18} className="text-blue-500" /> {t("refund.payoutInfo")}
                         </h4>
 
                         {/* Grid Ngân hàng & STK */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1.5">Ngân hàng</label>
+                                <label className="block text-xs font-medium text-slate-500 mb-1.5">{t("refund.bank")}</label>
                                 <div className="relative">
                                     <Building2 size={16} className="absolute left-3.5 top-3 text-slate-400" />
                                     <input
@@ -189,14 +191,14 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1.5">Số tài khoản</label>
+                                <label className="block text-xs font-medium text-slate-500 mb-1.5">{t("refund.accountNumber")}</label>
                                 <div className="relative">
                                     <Hash size={16} className="absolute left-3.5 top-3 text-slate-400" />
                                     <input
                                         type="text"
                                         name="accountNumber"
                                         className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none text-sm font-mono"
-                                        placeholder="Chỉ nhập số"
+                                        placeholder={t("refund.digitsOnly")}
                                         value={formData.accountNumber}
                                         onChange={(e) => {
                                             // Chỉ cho phép nhập số
@@ -212,7 +214,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
 
                         {/* Chủ tài khoản */}
                         <div>
-                            <label className="block text-xs font-medium text-slate-500 mb-1.5">Chủ tài khoản (Không dấu)</label>
+                            <label className="block text-xs font-medium text-slate-500 mb-1.5">{t("refund.holder")}</label>
                             <div className="relative">
                                 <User size={16} className="absolute left-3.5 top-3 text-slate-400" />
                                 <input
@@ -242,7 +244,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                 {/* --- FOOTER --- */}
                 <div className="p-5 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
                     <Button variant="outline" onClick={onClose} disabled={submitting}>
-                        Hủy bỏ
+                        {t("common:actions.cancelLong")}
                     </Button>
                     <Button
                         className="bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-200 px-6 border-none"
@@ -250,7 +252,7 @@ export default function RequestRefundModal({ isOpen, onClose, onConfirm, booking
                         disabled={submitting}
                         isLoading={submitting}
                     >
-                        {submitting ? 'Đang gửi...' : 'Gửi yêu cầu'}
+                        {submitting ? t("refund.sending") : t("refund.send")}
                     </Button>
                 </div>
             </div>

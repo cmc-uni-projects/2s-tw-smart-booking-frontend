@@ -1,8 +1,10 @@
 // src/components/common/Select/Select.jsx
 import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function Select({ label, options = [], value, onChange }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
@@ -17,7 +19,7 @@ export default function Select({ label, options = [], value, onChange }) {
         onClick={() => setOpen(!open)}
       >
         <span className={value ? "text-gray-800" : "text-gray-400"}>
-          {value || "Chọn một mục..."}
+          {value || t("chooseItem")}
         </span>
         <ChevronDown
           size={18}
@@ -43,7 +45,7 @@ export default function Select({ label, options = [], value, onChange }) {
               </div>
             ))
           ) : (
-            <div className="px-4 py-2 text-gray-400">Không có lựa chọn</div>
+            <div className="px-4 py-2 text-gray-400">{t("noOptions")}</div>
           )}
         </div>
       )}

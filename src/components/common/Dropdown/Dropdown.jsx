@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function Dropdown({
   label = "Menu",
@@ -9,6 +10,7 @@ export default function Dropdown({
   placement = "bottom-start", // 'bottom-start' | 'bottom-end'
   buttonClassName = "",
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const btnRef = useRef(null);
   const menuRef = useRef(null);
@@ -80,7 +82,7 @@ export default function Dropdown({
             className={`absolute ${align} z-50 mt-2 min-w-[180px] rounded-xl border border-gray-200 bg-white p-1 shadow-lg`}
           >
             {items.length === 0 && (
-              <div className="px-3 py-2 text-sm text-gray-400">Không có mục</div>
+              <div className="px-3 py-2 text-sm text-gray-400">{t("noItems")}</div>
             )}
             {items.map((item, idx) => {
               const disabled = !!item.disabled;

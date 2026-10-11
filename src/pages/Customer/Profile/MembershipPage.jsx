@@ -9,53 +9,50 @@ import Avatar from "@/components/common/Avatar/Avatar";
 import AccountMenu from "@/pages/Customer/Profile/AccountMenu";
 import Toast from "@/components/common/Notification/Toast";
 import ToastPortal from "@/components/common/Notification/ToastPortal";
+import { useTranslation, Trans } from "react-i18next";
 
 // --- CẤU HÌNH HỆ THỐNG RANK ---
-const RANK_SYSTEM = {
+// Labels & benefits come from i18n (common:rank.*, profile:membership.benefits.*)
+const RANK_BASE = {
     BRONZE: {
-        label: "Hạng Đồng",
         minPoints: 0, // 1. Đồng là mặc định, 0 điểm
         color: "text-orange-600",
         bg: "bg-orange-100",
         gradient: "from-orange-600 to-orange-400",
-        icon: <Shield size={32} className="text-white" />,
-        benefits: [
-            "Tích điểm 1.000đ = 1 điểm",
-            "Nhận thông báo ưu đãi sớm",
-            "Nhận các ưu đãi, mã giảm giá đặc biệt dựa trên hạng" // 2. Đổi text quyền lợi
-        ]
+        icon: <Shield size={32} className="text-white" />
     },
     SILVER: {
-        label: "Hạng Bạc",
         minPoints: 1000,
         color: "text-slate-500",
         bg: "bg-slate-100",
         gradient: "from-slate-500 to-slate-400",
-        icon: <Star size={32} className="text-white" />,
-        benefits: ["Quyền lợi hạng Đồng", "Ưu tiên check-in sớm", "Quà sinh nhật", "Voucher 5%"]
+        icon: <Star size={32} className="text-white" />
     },
     GOLD: {
-        label: "Hạng Vàng",
         minPoints: 5000,
         color: "text-yellow-600",
         bg: "bg-yellow-100",
         gradient: "from-yellow-600 to-yellow-400",
-        icon: <Award size={32} className="text-white" />,
-        benefits: ["Quyền lợi hạng Bạc", "Nâng hạng phòng miễn phí", "Miễn phí ăn sáng", "Hủy phòng miễn phí"]
+        icon: <Award size={32} className="text-white" />
     },
     DIAMOND: {
-        label: "Hạng Kim Cương",
         minPoints: 10000,
         color: "text-cyan-600",
         bg: "bg-cyan-100",
         gradient: "from-blue-600 to-cyan-400",
-        icon: <Gem size={32} className="text-white" />,
-        benefits: ["Quyền lợi hạng Vàng", "Quản gia riêng 24/7", "Xe đưa đón sân bay", "Giảm 10% tổng bill"]
+        icon: <Gem size={32} className="text-white" />
     }
 };
 
 const MembershipPage = () => {
     const { currentUser, updateUser } = useAuth();
+    const { t } = useTranslation(["profile", "common"]);
+    const RANK_SYSTEM = Object.fromEntries(
+        Object.entries(RANK_BASE).map(([key, cfg]) => [
+            key,
+            { ...cfg, label: t(`common:rank.${key}`), benefits: t(`membership.benefits.${key}`, { returnObjects: true }) },
+        ])
+    );
     const [userInfo, setUserInfo] = useState(currentUser);
     const [loading, setLoading] = useState(true);
     
@@ -80,7 +77,7 @@ const MembershipPage = () => {
                     setViewRank(data.membershipRank || "BRONZE");
                 }
             } catch (error) {
-                console.error("Lỗi lấy thông tin:", error);
+                console.error("Failed to load membership info:", error);
             } finally {
                 setLoading(false);
             }
@@ -96,11 +93,11 @@ const MembershipPage = () => {
                 const newUrl = res.data.profilePhotoUrl;
                 setUserInfo(prev => ({ ...prev, profilePhotoUrl: newUrl }));
                 updateUser({ profilePhotoUrl: newUrl });
-                showToastAndDismiss("Cập nhật ảnh đại diện thành công!", "success");
+                showToastAndDismiss(t("avatar.success"), "success");
             }
         } catch (err) {
             console.error("Upload failed:", err);
-            const msg = err.response?.data?.message || "Lỗi khi tải ảnh lên.";
+            const msg = err.response?.data?.message || t("avatar.error");
             showToastAndDismiss(msg, "error");
         } finally {
             setIsUploadingAvatar(false);
@@ -175,7 +172,7 @@ const MembershipPage = () => {
                                             </div>
                                         </div>
                                         <div className="text-center md:text-left flex-1">
-                                            <h1 className="text-3xl font-bold mb-1">Xin chào, {userInfo?.fullName}</h1>
+                                            <h1 className="text-3xl font-bold mb-1">{t("membership.hello", { name: userInfo?.fullName })}</h1>
                                             
                                             {/* 6. Thay text "... Member" thành "Hạng ..." */}
                                             <div className="flex items-center justify-center md:justify-start gap-2 mb-4 opacity-90">
@@ -187,15 +184,15 @@ const MembershipPage = () => {
 
                                             <div className="mb-4">
                                                 <span className="text-5xl font-extrabold tracking-tight">{currentPoints.toLocaleString()}</span>
-                                                <span className="text-lg ml-2 opacity-90 font-medium">điểm tích lũy</span>
+                                                <span className="text-lg ml-2 opacity-90 font-medium">{t("membership.points")}</span>
                                             </div>
 
                                             {/* Thanh tiến độ lên hạng */}
                                             {nextRankKey ? (
                                                 <div className="max-w-md">
                                                     <div className="flex justify-between text-xs font-semibold mb-1.5 opacity-90">
-                                                        <span>Tiến độ thăng hạng</span>
-                                                        <span>Mục tiêu: {nextRankConfig.minPoints.toLocaleString()}</span>
+                                                        <span>{t("membership.progress")}</span>
+                                                        <span>{t("membership.target", { points: nextRankConfig.minPoints.toLocaleString() })}</span>
                                                     </div>
                                                     <div className="h-3.5 w-full bg-black/20 rounded-full overflow-hidden backdrop-blur-sm border border-white/10">
                                                         <div 
@@ -207,12 +204,12 @@ const MembershipPage = () => {
                                                         </div>
                                                     </div>
                                                     <p className="text-xs mt-2 opacity-90 font-medium">
-                                                        Cần tích thêm <strong>{(nextRankConfig.minPoints - currentPoints).toLocaleString()}</strong> điểm để lên <strong>{nextRankConfig.label}</strong>
+                                                        <Trans t={t} i18nKey="membership.needMore" values={{ points: (nextRankConfig.minPoints - currentPoints).toLocaleString(), rank: nextRankConfig.label }} components={{ b: <strong /> }} />
                                                     </p>
                                                 </div>
                                             ) : (
                                                 <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-lg backdrop-blur-md font-bold text-sm border border-white/20">
-                                                    <Gem size={16} /> Bạn đang ở đỉnh cao danh vọng!
+                                                    <Gem size={16} /> {t("membership.top")}
                                                 </div>
                                             )}
                                         </div>
@@ -224,7 +221,7 @@ const MembershipPage = () => {
                                     
                                     {/* CỘT TRÁI: DANH SÁCH CÁC HẠNG (Có thể click) */}
                                     <div className="xl:col-span-1 space-y-3">
-                                        <h3 className="text-lg font-bold text-gray-800 mb-2 px-1">Các hạng thành viên</h3>
+                                        <h3 className="text-lg font-bold text-gray-800 mb-2 px-1">{t("membership.ranks")}</h3>
                                         {Object.entries(RANK_SYSTEM).map(([key, config]) => {
                                             const isMyRank = key === currentRankKey;
                                             const isViewing = key === viewRank; // Đang xem hạng này
@@ -251,7 +248,7 @@ const MembershipPage = () => {
                                                                 {config.label}
                                                             </h4>
                                                             <p className="text-[11px] text-gray-500 font-medium">
-                                                                {config.minPoints > 0 ? `>= ${config.minPoints} điểm` : "Mặc định"}
+                                                                {config.minPoints > 0 ? t("membership.minPoints", { points: config.minPoints }) : t("membership.default")}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -259,7 +256,7 @@ const MembershipPage = () => {
                                                     {/* Badge: Hạng của tôi */}
                                                     {isMyRank && (
                                                         <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-1 rounded-full border border-green-200 flex items-center gap-1">
-                                                            <CheckCircle size={10} /> Của bạn
+                                                            <CheckCircle size={10} /> {t("membership.yours")}
                                                         </span>
                                                     )}
                                                 </div>
@@ -272,7 +269,7 @@ const MembershipPage = () => {
                                         <div className="flex items-center justify-between mb-4">
                                             <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                                                 <Gift size={20} className="text-pink-500"/> 
-                                                Quyền lợi: <span className={viewRankConfig.color}>{viewRankConfig.label}</span>
+                                                {t("membership.benefitsOf")} <span className={viewRankConfig.color}>{viewRankConfig.label}</span>
                                             </h3>
                                             {/* Nút nhỏ nếu đang xem hạng không phải của mình */}
                                             {viewRank !== currentRankKey && (
@@ -280,7 +277,7 @@ const MembershipPage = () => {
                                                     onClick={() => setViewRank(currentRankKey)}
                                                     className="text-xs text-blue-600 hover:underline font-medium"
                                                 >
-                                                    Xem hạng của tôi
+                                                    {t("membership.viewMine")}
                                                 </button>
                                             )}
                                         </div>
@@ -310,11 +307,11 @@ const MembershipPage = () => {
                                                 <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                                     <div>
                                                         <h4 className="font-extrabold text-blue-900 mb-1 text-base flex items-center gap-2">
-                                                            <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded shadow-sm">Mục tiêu</span>
-                                                            Tiếp theo: {nextRankConfig.label} 
+                                                            <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded shadow-sm">{t("membership.goal")}</span>
+                                                            {t("membership.next", { rank: nextRankConfig.label })} 
                                                         </h4>
                                                         <p className="text-sm text-blue-700 font-medium">
-                                                            Mở khóa thêm {nextRankConfig.benefits.length - currentRankConfig.benefits.length} quyền lợi đặc quyền!
+                                                            {t("membership.unlock", { count: nextRankConfig.benefits.length - currentRankConfig.benefits.length })}
                                                         </p>
                                                     </div>
                                                     
@@ -323,7 +320,7 @@ const MembershipPage = () => {
                                                         onClick={() => setViewRank(nextRankKey)}
                                                         className="group flex items-center gap-2 text-sm font-bold text-blue-600 bg-white px-4 py-2 rounded-xl shadow-sm border border-blue-100 hover:bg-blue-50 transition-all whitespace-nowrap"
                                                     >
-                                                        Xem quyền lợi <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform"/>
+                                                        {t("membership.viewBenefits")} <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform"/>
                                                     </button>
                                                 </div>
                                             </div>
@@ -335,7 +332,7 @@ const MembershipPage = () => {
                                 <div className="mt-8 p-4 bg-blue-50 rounded-xl flex items-start gap-3 text-xs text-blue-800 border border-blue-100">
                                     <Info size={16} className="shrink-0 mt-0.5" />
                                     <p>
-                                        Điểm tích lũy được cập nhật tự động sau khi đơn đặt phòng hoàn tất.
+                                        {t("membership.autoUpdate")}
                                     </p>
                                 </div>
                             </>

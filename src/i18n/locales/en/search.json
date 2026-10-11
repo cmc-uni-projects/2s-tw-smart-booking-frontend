@@ -1,0 +1,57 @@
+{
+  "dates": {
+    "label": "Dates of stay"
+  },
+  "destination": {
+    "label": "Destination",
+    "placeholder": "Enter a city or hotel",
+    "noResults": "No results found."
+  },
+  "guests": {
+    "label": "Guests",
+    "adults": "Adults",
+    "children": "Children",
+    "rooms": "Rooms",
+    "pets": "Traveling with pets",
+    "summary": "{{guests}} guests • {{rooms}} rooms",
+    "summaryPets": " • with pets"
+  },
+  "filters": {
+    "title": "Filters",
+    "popularPlaces": "Popular destinations",
+    "stars": "Star rating",
+    "priceRange": "Price range (per night)"
+  },
+  "results": {
+    "searching": "Searching...",
+    "found": "{{count}} stays found",
+    "sort": {
+      "newest": "Newest",
+      "priceAsc": "Price: low to high",
+      "priceDesc": "Price: high to low"
+    },
+    "emptyTitle": "No stays found",
+    "emptyText": "We couldn't find any stays matching \"{{keyword}}\". Try different dates or another destination.",
+    "reload": "Reload page"
+  },
+  "map": {
+    "entry": "Explore on the map",
+    "clearFilters": "Clear filters",
+    "fourStars": "4 stars & up",
+    "cheap": "Budget (<1M₫)",
+    "mid": "Mid-range (1-3M₫)",
+    "breakfast": "Breakfast",
+    "loading": "Finding great stays...",
+    "searchHere": "Search this area",
+    "myLocation": "My location",
+    "checkInDate": "Check-in date",
+    "place": "Location",
+    "placePlaceholder": "Search province/city...",
+    "loadingList": "Loading list...",
+    "noPlace": "No locations found.",
+    "guests": "Guests",
+    "guestsSummary": "{{count}} guests, 1 room",
+    "adultsHint": "Ages 13+",
+    "childrenHint": "Under 13"
+  }
+}

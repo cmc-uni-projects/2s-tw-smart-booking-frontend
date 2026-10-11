@@ -7,29 +7,30 @@ import {
     Shield, Star, Award, Gem, ChevronRight, Crown
 } from "lucide-react";
 import Avatar from "../../components/common/Avatar/Avatar";
+import { useTranslation } from "react-i18next";
 
 // --- CẤU HÌNH GIAO DIỆN THEO HẠNG ---
 const RANK_STYLES = {
     BRONZE: {
-        label: "Hạng Đồng",
+        labelKey: "rank.BRONZE",
         gradient: "from-orange-700 to-orange-500",
         icon: <Shield size={16} className="text-orange-100" />,
         shadow: "shadow-orange-200"
     },
     SILVER: {
-        label: "Hạng Bạc",
+        labelKey: "rank.SILVER",
         gradient: "from-slate-600 to-slate-400",
         icon: <Star size={16} className="text-slate-100" />,
         shadow: "shadow-slate-200"
     },
     GOLD: {
-        label: "Hạng Vàng",
+        labelKey: "rank.GOLD",
         gradient: "from-yellow-600 to-yellow-400",
         icon: <Award size={16} className="text-yellow-100" />,
         shadow: "shadow-yellow-200"
     },
     DIAMOND: {
-        label: "Hạng Kim Cương",
+        labelKey: "rank.DIAMOND",
         gradient: "from-blue-600 to-cyan-400",
         icon: <Gem size={16} className="text-cyan-100" />,
         shadow: "shadow-cyan-200"
@@ -38,6 +39,7 @@ const RANK_STYLES = {
 
 const CustomerProfileDropdown = ({ onClose }) => {
     const { currentUser, logout } = useAuth();
+    const { t } = useTranslation("layout");
     const navigate = useNavigate();
 
     const [userInfo, setUserInfo] = useState(currentUser);
@@ -87,7 +89,7 @@ const CustomerProfileDropdown = ({ onClose }) => {
                     </div>
                     <div className="flex-1 min-w-0">
                         <h4 className="font-bold text-lg truncate leading-tight">
-                            {userInfo?.fullName || "Khách hàng"}
+                            {userInfo?.fullName || t("common:customer")}
                         </h4>
                         <p className="text-white/80 text-xs truncate mb-2 font-medium">
                             {userInfo?.email}
@@ -95,9 +97,9 @@ const CustomerProfileDropdown = ({ onClose }) => {
 
                         <div className="inline-flex items-center gap-1.5 bg-black/20 backdrop-blur-sm px-2.5 py-1 rounded-md text-[11px] font-bold border border-white/10 shadow-sm">
                             {currentRank.icon}
-                            <span>{currentRank.label}</span>
+                            <span>{t(`common:${currentRank.labelKey}`)}</span>
                             <span className="w-[1px] h-3 bg-white/30 mx-1"></span>
-                            <span className="text-white">{userInfo?.points || 0} điểm</span>
+                            <span className="text-white">{t("common:points", { count: userInfo?.points || 0 })}</span>
                         </div>
                     </div>
                 </div>
@@ -114,7 +116,7 @@ const CustomerProfileDropdown = ({ onClose }) => {
                         <User size={18} />
                     </div>
                     <div className="flex-1">
-                        <span className="font-medium text-sm">Hồ sơ cá nhân</span>
+                        <span className="font-medium text-sm">{t("profileMenu.profile")}</span>
                     </div>
                     <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
                 </Link>
@@ -128,7 +130,7 @@ const CustomerProfileDropdown = ({ onClose }) => {
                         <Crown size={18} />
                     </div>
                     <div className="flex-1">
-                        <span className="font-medium text-sm">Hạng thành viên & Điểm</span>
+                        <span className="font-medium text-sm">{t("profileMenu.membership")}</span>
                     </div>
                     <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
                 </Link>
@@ -142,7 +144,7 @@ const CustomerProfileDropdown = ({ onClose }) => {
                         <Calendar size={18} />
                     </div>
                     <div className="flex-1">
-                        <span className="font-medium text-sm">Lịch sử đặt chỗ</span>
+                        <span className="font-medium text-sm">{t("profileMenu.bookings")}</span>
                     </div>
                     <ChevronRight size={16} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
                 </Link>
@@ -156,7 +158,7 @@ const CustomerProfileDropdown = ({ onClose }) => {
                     <div className="p-2 bg-red-50 text-red-500 rounded-full group-hover:bg-red-100 transition-colors">
                         <LogOut size={18} />
                     </div>
-                    <span className="font-medium text-sm">Đăng xuất</span>
+                    <span className="font-medium text-sm">{t("auth.logout")}</span>
                 </button>
             </div>
         </div>

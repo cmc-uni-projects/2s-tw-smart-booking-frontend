@@ -1,6 +1,8 @@
 import React, { forwardRef } from "react";
 import { User, Eye, Clock, CheckCircle, XCircle, Briefcase, Calendar, MapPin } from "lucide-react";
 import Button from "@/components/common/Button/Button";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 // URL Base cho ảnh
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
@@ -14,17 +16,18 @@ const getImageUrl = (path) => {
 const getStatusConfig = (status) => {
   switch (status) {
     case "PENDING":
-      return { label: "Chờ duyệt", className: "bg-yellow-100 text-yellow-700 border-yellow-300 ring-2 ring-yellow-400/50 shadow-sm animate-pulse", icon: <Clock size={14} className="animate-spin-slow" /> };
+      return { label: i18n.t("admin:ApprovalCard.pending"), className: "bg-yellow-100 text-yellow-700 border-yellow-300 ring-2 ring-yellow-400/50 shadow-sm animate-pulse", icon: <Clock size={14} className="animate-spin-slow" /> };
     case "APPROVED":
-      return { label: "Đã duyệt", className: "bg-green-100 text-green-700 border-green-200", icon: <CheckCircle size={14} /> };
+      return { label: i18n.t("admin:ApprovalCard.approved"), className: "bg-green-100 text-green-700 border-green-200", icon: <CheckCircle size={14} /> };
     case "REJECTED":
-      return { label: "Từ chối", className: "bg-red-100 text-red-700 border-red-200", icon: <XCircle size={14} /> };
+      return { label: i18n.t("admin:ApprovalCard.rejected"), className: "bg-red-100 text-red-700 border-red-200", icon: <XCircle size={14} /> };
     default:
       return { label: status, className: "bg-gray-100 text-gray-600", icon: null };
   }
 };
 
 const ApprovalCard = forwardRef(({ application, onViewDetails }, ref) => {
+  const { t } = useTranslation();
   if (!application) return null;
 
   const statusConfig = getStatusConfig(application.status);
@@ -68,7 +71,7 @@ const ApprovalCard = forwardRef(({ application, onViewDetails }, ref) => {
         <div className="text-sm text-gray-600 space-y-2">
             <div className="flex items-center gap-2">
                 <MapPin size={14} className="text-gray-400 shrink-0"/>
-                <span className="truncate">{application.permanentAddress || "Chưa cập nhật địa chỉ"}</span>
+                <span className="truncate">{application.permanentAddress || t("admin:ApprovalCard.addressNotSet")}</span>
             </div>
             <div className="flex items-center gap-2">
                 <User size={14} className="text-gray-400 shrink-0"/>
@@ -77,7 +80,7 @@ const ApprovalCard = forwardRef(({ application, onViewDetails }, ref) => {
         </div>
 
         <div className="pt-3 mt-auto border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
-            <span className="flex items-center gap-1"><Calendar size={12}/> Nộp ngày:</span>
+            <span className="flex items-center gap-1"><Calendar size={12}/> {t("admin:ApprovalCard.submittedOn")}</span>
             <span className="font-medium text-gray-800">{application.submittedDate}</span>
         </div>
       </div>
@@ -93,7 +96,7 @@ const ApprovalCard = forwardRef(({ application, onViewDetails }, ref) => {
                 onViewDetails();
             }}
         >
-            <Eye size={14} className="mr-2"/> Xem hồ sơ
+            <Eye size={14} className="mr-2"/> {t("admin:ApprovalCard.viewProfile")}
         </Button>
       </div>
     </div>

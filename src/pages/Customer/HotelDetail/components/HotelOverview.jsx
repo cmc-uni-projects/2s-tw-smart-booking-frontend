@@ -3,22 +3,27 @@ import {
   Wifi, ParkingCircle, Droplet, Waves, Sparkles, Ban, Plane, PawPrint, 
   Dumbbell, Wind, ConciergeBell, Cigarette, CheckCircle2, Star 
 } from "lucide-react";
+import i18n from "@/i18n";
+import { useTranslation } from "react-i18next";
 
 // Cấu hình danh sách tiện nghi (Đồng bộ với trang Đăng ký của Owner)
 const AMENITIES_CONFIG = [
-  { id: "pool", label: "Hồ bơi", icon: <Waves size={24} /> },
-  { id: "parking", label: "Bãi đỗ xe", icon: <ParkingCircle size={24} /> },
-  { id: "sauna", label: "Phòng xông hơi", icon: <Droplet size={24} /> },
+  { id: "pool", icon: <Waves size={24} /> },
+  { id: "parking", icon: <ParkingCircle size={24} /> },
+  { id: "sauna", icon: <Droplet size={24} /> },
   { id: "spa", label: "Spa", icon: <Sparkles size={24} /> },
-  { id: "non_smoking", label: "Không hút thuốc", icon: <Ban size={24} /> },
-  { id: "wifi", label: "Wi-Fi (miễn phí)", icon: <Wifi size={24} /> },
-  { id: "airport_transfer", label: "Đưa đón sân bay", icon: <Plane size={24} /> },
-  { id: "pets", label: "Cho phép thú cưng", icon: <PawPrint size={24} /> },
-  { id: "gym", label: "Trung tâm thể dục", icon: <Dumbbell size={24} /> },
-  { id: "smoking_area", label: "Khu vực hút thuốc", icon: <Cigarette size={24} /> },
-  { id: "reception_24h", label: "Lễ tân 24h", icon: <ConciergeBell size={24} /> },
-  { id: "ac", label: "Điều hòa không khí", icon: <Wind size={24} /> },
+  { id: "non_smoking", icon: <Ban size={24} /> },
+  { id: "wifi", icon: <Wifi size={24} /> },
+  { id: "airport_transfer", icon: <Plane size={24} /> },
+  { id: "pets", icon: <PawPrint size={24} /> },
+  { id: "gym", icon: <Dumbbell size={24} /> },
+  { id: "smoking_area", icon: <Cigarette size={24} /> },
+  { id: "reception_24h", icon: <ConciergeBell size={24} /> },
+  { id: "ac", icon: <Wind size={24} /> },
 ];
+
+// Label of a known amenity in a given language ("Spa" is the same everywhere)
+const amenityLabel = (cfg, lng) => cfg.label ?? i18n.t(`hotel:amenity.${cfg.id}`, { lng });
 
 // Hàm helper để tìm icon và label chuẩn dựa trên dữ liệu backend trả về
 const getAmenityConfig = (item) => {
@@ -29,18 +34,20 @@ const getAmenityConfig = (item) => {
     // Logic mapping đơn giản (nếu backend trả về ID chuẩn thì khớp ngay, nếu trả về tên thì tìm gần đúng)
     const found = AMENITIES_CONFIG.find(cfg => 
         cfg.id === key || 
-        cfg.label.toLowerCase() === key || 
+        ["vi", "en"].some((lng) => amenityLabel(cfg, lng).toLowerCase() === key) || 
         key.includes(cfg.id) // VD: backend trả "wifi_free" khớp với "wifi"
     );
 
-    return found || { 
-        id: 'other', 
-        label: typeof item === 'string' ? item : item?.name || "Tiện nghi khác", 
-        icon: <CheckCircle2 size={24} /> 
+    if (found) return { ...found, label: amenityLabel(found, i18n.resolvedLanguage) };
+    return {
+        id: 'other',
+        label: typeof item === 'string' ? item : item?.name || i18n.t("hotel:overview.otherAmenity"),
+        icon: <CheckCircle2 size={24} />
     };
 };
 
 const HotelOverview = ({ description, amenities }) => {
+  const { t } = useTranslation("hotel"); // also re-renders labels on language change
   
   // 1. Xử lý dữ liệu Amenities (Parse JSON nếu cần)
   let amenityList = [];
@@ -51,7 +58,7 @@ const HotelOverview = ({ description, amenities }) => {
         amenityList = amenities;
     }
   } catch (e) {
-    console.error("Lỗi parse amenities:", e);
+    console.error("Failed to parse amenities:", e);
     amenityList = [];
   }
 
@@ -61,7 +68,7 @@ const HotelOverview = ({ description, amenities }) => {
         {/* --- CARD 1: MÔ TẢ (Giới thiệu) --- */}
         <section id="overview" className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 scroll-mt-32">
             <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                Giới thiệu
+                {t("overview.intro")}
             </h3>
             <div className="prose prose-blue max-w-none">
                 <p className="text-gray-600 leading-relaxed whitespace-pre-line text-justify text-base">
@@ -74,7 +81,7 @@ const HotelOverview = ({ description, amenities }) => {
         {amenityList && amenityList.length > 0 && (
             <section id="amenities-box" className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
                 <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    Tiện nghi & Dịch vụ nổi bật
+                    {t("overview.amenities")}
                 </h3>
                 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-6 gap-x-4">

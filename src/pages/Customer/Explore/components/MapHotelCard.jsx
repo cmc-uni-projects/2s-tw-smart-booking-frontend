@@ -1,9 +1,11 @@
 import React from "react";
 import { Star, MapPin, ArrowRight, Heart, Wifi, Utensils, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
 
 const MapHotelCard = ({ property, onClose, navigate }) => {
+  const { t } = useTranslation("search");
   
   let imageUrl = "/assets/images/placeholder.png";
   if (property.coverImage) {
@@ -58,7 +60,7 @@ const MapHotelCard = ({ property, onClose, navigate }) => {
         
         <div className="absolute bottom-3 left-3 text-white">
             <div className="flex items-center gap-1 text-xs font-medium opacity-90 mb-0.5">
-                 <MapPin size={12} /> {property.city || "Việt Nam"}
+                 <MapPin size={12} /> {property.city || t("common:vietnam")}
             </div>
         </div>
       </div>
@@ -77,7 +79,7 @@ const MapHotelCard = ({ property, onClose, navigate }) => {
 
         <div className="flex items-center gap-3 mb-4 text-gray-400 text-xs">
             <span className="flex items-center gap-1"><Wifi size={12}/> Wifi free</span>
-            <span className="flex items-center gap-1"><Utensils size={12}/> Ăn sáng</span>
+            <span className="flex items-center gap-1"><Utensils size={12}/> {t("map.breakfast")}</span>
         </div>
 
         <div className="flex items-end justify-between pt-3 border-t border-gray-100 border-dashed">
@@ -87,7 +89,7 @@ const MapHotelCard = ({ property, onClose, navigate }) => {
                 </span>
                 <div className="flex items-baseline gap-1">
                     <span className="text-lg font-extrabold text-gray-900">{priceFormatted}</span>
-                    <span className="text-xs text-gray-500 font-medium">/đêm</span>
+                    <span className="text-xs text-gray-500 font-medium">{t("common:perNight")}</span>
                 </div>
             </div>
             

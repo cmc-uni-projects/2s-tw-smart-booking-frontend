@@ -4,9 +4,11 @@ import { useAuth } from "../context/AuthContext";
 import { userService } from "../services/user.service";
 import LoadingOverlay from "../components/common/Loading/LoadingOverlay";
 import ConfirmModal from "../components/common/Modal/ConfirmModal";
-import "./PartnerRoute.css"; // <--- NHỚ IMPORT CSS VỪA TẠO
+import "./PartnerRoute.css";
+import { useTranslation } from "react-i18next"; // <--- NHỚ IMPORT CSS VỪA TẠO
 
 const PartnerRoute = ({ children }) => {
+  const { t } = useTranslation();
   // console.log("LOG 1: PartnerRoute ĐÃ CHẠY");
 
   const { currentUser, hasRole } = useAuth();
@@ -43,11 +45,11 @@ const PartnerRoute = ({ children }) => {
         if (res.profileComplete) {
           setIsAuthorized(true);
         } else {
-          setMissingFields(res.missingFields || ["Thông tin chưa đầy đủ"]);
+          setMissingFields(res.missingFields || [t("partner:PartnerRoute.incompleteInformation")]);
           setShowProfileModal(true);
         }
       } catch (error) {
-        console.error("Lỗi hồ sơ:", error);
+        console.error("Profile error:", error);
         // Nếu lỗi server thì tạm thời đẩy về trang chủ
         navigate("/", { replace: true });
       } finally {
@@ -96,10 +98,10 @@ const PartnerRoute = ({ children }) => {
             open={true}
             onClose={handleLoginModalClose}
             onConfirm={handleLoginModalConfirm}
-            title="Yêu cầu đăng nhập"
-            message="Bạn cần đăng nhập tài khoản để đăng ký làm đối tác."
-            confirmText="Đăng nhập ngay"
-            cancelText="Để sau"
+            title={t("partner:PartnerRoute.loginRequired")}
+            message={t("partner:PartnerRoute.youNeedToSignIn")}
+            confirmText={t("partner:PartnerRoute.signInNow")}
+            cancelText={t("partner:PartnerRoute.later")}
         />
     );
   }
@@ -129,11 +131,11 @@ const PartnerRoute = ({ children }) => {
             </div>
 
             {/* Tiêu đề */}
-            <h2 className="modal-title">Hồ sơ chưa hoàn tất</h2>
+            <h2 className="modal-title">{t("partner:PartnerRoute.profileIncomplete")}</h2>
 
             {/* Mô tả */}
             <p className="modal-desc">
-              Để trở thành đối tác, vui lòng cập nhật các thông tin sau:
+              {t("partner:PartnerRoute.toBecomeAPartnerPlease")}
             </p>
 
             {/* Box danh sách thiếu */}
@@ -151,13 +153,13 @@ const PartnerRoute = ({ children }) => {
                   className="btn-cancel"
                   onClick={handleProfileModalClose}
               >
-                Hủy
+                {t("partner:PartnerRoute.cancel")}
               </button>
               <button
                   className="btn-continue"
                   onClick={handleProfileModalConfirm}
               >
-                Tiếp tục
+                {t("partner:PartnerRoute.continue")}
               </button>
             </div>
 

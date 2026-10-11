@@ -2,14 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Star, TrendingUp, Search } from "lucide-react";
 import SearchBox from "@/components/search/SearchBox"; 
+import { useTranslation } from "react-i18next";
 
 // Ảnh nền chất lượng cao (Landscape)
 const HERO_BG = "https://images.unsplash.com/photo-1506929562872-bb421503ef21?q=80&w=2668&auto=format&fit=crop";
 
-// Danh sách từ khóa thay đổi
-const ROTATING_WORDS = ["trong mơ", "đẳng cấp", "hoàn hảo", "bất tận"];
-
 // Danh sách địa điểm gợi ý
+// i18n-ignore-start (place names are search keywords)
 const POPULAR_KEYWORDS = [
     { name: "Đà Lạt" },
     { name: "Vũng Tàu"},
@@ -17,16 +16,19 @@ const POPULAR_KEYWORDS = [
     { name: "Hạ Long" },
     { name: "Đà Nẵng" }
 ];
+// i18n-ignore-end
 
 const HeroSection = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation("home");
+  const ROTATING_WORDS = t("hero.rotatingWords", { returnObjects: true });
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [displayText, setDisplayText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
   // --- 1. LOGIC TYPING EFFECT ---
   useEffect(() => {
-    const word = ROTATING_WORDS[currentWordIndex];
+    const word = ROTATING_WORDS[currentWordIndex % ROTATING_WORDS.length];
     const typeSpeed = isDeleting ? 100 : 150;
     
     const timer = setTimeout(() => {
@@ -43,7 +45,7 @@ const HeroSection = () => {
     }, typeSpeed);
 
     return () => clearTimeout(timer);
-  }, [displayText, isDeleting, currentWordIndex]);
+  }, [displayText, isDeleting, currentWordIndex, ROTATING_WORDS]);
 
   // --- 2. XỬ LÝ TÌM KIẾM TỪ KHÓA ---
   const handleKeywordClick = (keyword) => {
@@ -115,14 +117,14 @@ const HeroSection = () => {
                 </div>
                 <div className="flex items-center gap-1.5 pr-2">
                     <Star size={12} className="text-yellow-400 fill-yellow-400" />
-                    <span className="text-white text-xs font-medium">Được tin dùng bởi 10k+ du khách</span>
+                    <span className="text-white text-xs font-medium">{t("hero.trustedBy")}</span>
                 </div>
             </div>
         </div>
 
         {/* Headline */}
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white tracking-tight leading-tight mb-6 drop-shadow-2xl max-w-6xl mx-auto">
-          Đánh thức hành trình <br className="hidden md:block" />
+          {t("hero.headline")} <br className="hidden md:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400">
             {displayText}
           </span>
@@ -130,7 +132,7 @@ const HeroSection = () => {
         </h1>
 
         <p className="text-lg md:text-xl text-gray-200 mb-10 max-w-2xl mx-auto font-light leading-relaxed opacity-90">
-          Khám phá bộ sưu tập khách sạn, resort và homestay độc đáo nhất Việt Nam. Trải nghiệm đẳng cấp chỉ với một cú chạm.
+          {t("hero.subtitle")}
         </p>
 
         {/* --- SEARCH BOX CONTAINER --- */}
@@ -149,7 +151,7 @@ const HeroSection = () => {
         {/* z-10: Thấp hơn SearchBox (50) nhưng cao hơn nền (0) */}
         <div className="mt-10 animate-fade-in-up relative z-10" style={{animationDelay: '0.5s'}}>
             <p className="text-white/60 text-sm font-medium mb-4 uppercase tracking-widest flex items-center justify-center gap-2">
-                <TrendingUp size={14} /> Xu hướng tìm kiếm
+                <TrendingUp size={14} /> {t("hero.trending")}
             </p>
             <div className="flex flex-wrap justify-center gap-3">
                 {POPULAR_KEYWORDS.map((place) => (

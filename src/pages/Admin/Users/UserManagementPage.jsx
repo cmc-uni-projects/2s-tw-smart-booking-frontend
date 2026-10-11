@@ -16,8 +16,10 @@ import UserTable from "./components/UserTable";
 
 // Import Service
 import adminService from "@/services/admin.service";
+import { useTranslation } from "react-i18next";
 
 export default function UserManagementPage() {
+  const { t } = useTranslation();
     const toastRef = useRef();
 
     // State dữ liệu
@@ -48,7 +50,7 @@ export default function UserManagementPage() {
 
     // State cho Modal Mở khóa
     const [confirmModal, setConfirmModal] = useState({
-        open: false, title: "", message: "", type: "info", confirmText: "Xác nhận", onConfirm: null,
+        open: false, title: "", message: "", type: "info", confirmText: t("admin:UserManagementPage.confirm"), onConfirm: null,
     });
 
     const addToast = (message, mode = "info") => {
@@ -90,7 +92,7 @@ export default function UserManagementPage() {
             }
         } catch (error) {
             console.error("Failed:", error);
-            addToast("Không thể tải danh sách người dùng", "error");
+            addToast(t("admin:UserManagementPage.couldNotLoadUsers"), "error");
         } finally {
             setIsLoading(false); // ✅ Tắt loading
         }
@@ -119,10 +121,10 @@ export default function UserManagementPage() {
             // Mở Modal Mở khóa
             setConfirmModal({
                 open: true,
-                title: "Mở khóa tài khoản",
-                message: `Bạn có chắc chắn muốn mở khóa cho tài khoản ${user?.fullName}?`,
+                title: t("admin:UserManagementPage.unlockAccount"),
+                message: t("admin:UserManagementPage.areYouSureYouWant", { fullName: user?.fullName }),
                 type: "success",
-                confirmText: "Mở khóa",
+                confirmText: t("admin:UserManagementPage.unlock"),
                 onConfirm: () => executeStatusChange(userId, "ACTIVE", "")
             });
         }
@@ -131,7 +133,7 @@ export default function UserManagementPage() {
     // Handler xác nhận khóa từ Modal
     const handleConfirmLock = () => {
         if (!lockReason.trim()) {
-            addToast("Vui lòng nhập lý do khóa tài khoản", "warning");
+            addToast(t("admin:UserManagementPage.pleaseEnterTheReasonFor"), "warning");
             return;
         }
         if (selectedUserForLock) {
@@ -147,15 +149,15 @@ export default function UserManagementPage() {
         try {
             await adminService.updateUserStatus(userId, newStatus, reason);
 
-            const actionText = newStatus === "BANNED" ? "Đã khóa" : "Đã mở khóa";
-            addToast(`${actionText} tài khoản thành công`, "success");
+            const actionText = newStatus === "BANNED" ? t("admin:UserManagementPage.locked") : t("admin:UserManagementPage.unlocked");
+            addToast(t("admin:UserManagementPage.accountSuccessfully", { actionText }), "success");
 
             // Đóng modal & reload
             setIsLockModalOpen(false);
             setConfirmModal(prev => ({ ...prev, open: false }));
             fetchUsers(); // fetchUsers cũng sẽ set isLoading=true/false lại nhưng không sao, nó sẽ nối tiếp nhau
         } catch (error) {
-            const errorMessage = error.response?.data?.message || "Lỗi cập nhật trạng thái";
+            const errorMessage = error.response?.data?.message || t("admin:UserManagementPage.failedToUpdateStatus");
             addToast(errorMessage, "error");
             // Tắt Loading nếu lỗi để người dùng còn thao tác tiếp
             setIsLoading(false);
@@ -181,24 +183,24 @@ export default function UserManagementPage() {
             <Modal
                 open={isLockModalOpen}
                 onClose={() => !isLoading && setIsLockModalOpen(false)} // Chặn đóng khi đang load
-                title="Khóa tài khoản"
+                title={t("admin:UserManagementPage.lockAccount")}
             >
                 <div className="p-1 space-y-4">
                     <p className="text-gray-600 text-sm">
-                        Bạn đang khóa tài khoản <strong>{selectedUserForLock?.fullName}</strong>.
+                        {t("admin:UserManagementPage.youAreLockingTheAccount")} <strong>{selectedUserForLock?.fullName}</strong>.
                         <br/>
-                        Vui lòng nhập lý do để thông báo cho người dùng.
+                        {t("admin:UserManagementPage.pleaseEnterAReasonTo")}
                     </p>
 
                     {/* Ô nhập lý do */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Lý do khóa <span className="text-red-500">*</span>
+                            {t("admin:UserManagementPage.lockReason")} <span className="text-red-500">*</span>
                         </label>
                         <textarea
                             value={lockReason}
                             onChange={(e) => setLockReason(e.target.value)}
-                            placeholder="Ví dụ: Vi phạm chính sách cộng đồng..."
+                            placeholder={t("admin:UserManagementPage.exampleViolationOfCommunityPolicies")}
                             disabled={isLoading} // Disable khi đang loading
                             className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm min-h-[100px] disabled:bg-gray-100 disabled:text-gray-500"
                         />
@@ -210,14 +212,14 @@ export default function UserManagementPage() {
                             onClick={() => setIsLockModalOpen(false)}
                             disabled={isLoading}
                         >
-                            Hủy bỏ
+                            {t("admin:UserManagementPage.cancel")}
                         </Button>
                         <Button
                             variant="danger"
                             onClick={handleConfirmLock}
                             disabled={isLoading} // Disable nút khi đang chạy
                         >
-                            Xác nhận khóa
+                            {t("admin:UserManagementPage.confirmLock")}
                         </Button>
                     </div>
                 </div>
@@ -236,7 +238,7 @@ export default function UserManagementPage() {
             />
 
             <div className="flex flex-col gap-1">
-                <h1 className="text-2xl font-bold text-gray-800">Quản lý người dùng</h1>
+                <h1 className="text-2xl font-bold text-gray-800">{t("admin:UserManagementPage.userManagement")}</h1>
             </div>
 
             <UserStats stats={stats} />

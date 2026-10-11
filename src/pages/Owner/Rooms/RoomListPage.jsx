@@ -3,6 +3,7 @@ import { Building2, Search, Loader2, ArrowRight, ChevronLeft, ChevronRight } fro
 import { useNavigate } from "react-router-dom";
 import propertyService from "@/services/property.service";
 import Button from "@/components/common/Button/Button";
+import { useTranslation } from "react-i18next";
 
 // Helper xử lý ảnh
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8386/api/v1").replace("/api/v1", "");
@@ -15,6 +16,7 @@ const getFullImageUrl = (url) => {
 };
 
 const RoomListPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +34,7 @@ const RoomListPage = () => {
         const res = await propertyService.getOwnerActiveProperties();
         setProperties(res.data || []);
       } catch (error) {
-        console.error("❌ [RoomListPage] Lỗi khi gọi API:", error);
+        console.error("❌ [RoomListPage] API call failed:", error);
       } finally {
         setLoading(false);
       }
@@ -108,9 +110,9 @@ const RoomListPage = () => {
   return (
     <div className="p-6 min-h-screen bg-gray-50/30">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Quản lý Phòng nghỉ</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t("owner:RoomListPage.roomManagement")}</h1>
         <p className="text-gray-500 mt-1">
-          Chọn một cơ sở lưu trú để thiết lập và quản lý danh sách phòng
+          {t("owner:RoomListPage.chooseAPropertyToSet")}
         </p>
       </div>
 
@@ -120,7 +122,7 @@ const RoomListPage = () => {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Tìm kiếm cơ sở lưu trú..."
+            placeholder={t("owner:RoomListPage.searchProperties")}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border-none bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-100 text-sm transition-all outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -160,7 +162,7 @@ const RoomListPage = () => {
                 <div className="p-5 flex justify-between items-center bg-white flex-grow">
                   <div className="text-sm text-gray-600">
                     <span className="block text-gray-400 text-xs uppercase font-semibold">
-                      Địa chỉ
+                      {t("owner:RoomListPage.address")}
                     </span>
                     {property.city}
                   </div>
@@ -169,7 +171,7 @@ const RoomListPage = () => {
                     variant="outline"
                     className="group-hover:bg-blue-50 group-hover:text-blue-600 group-hover:border-blue-200"
                   >
-                    Quản lý phòng <ArrowRight size={16} className="ml-1" />
+                    {t("owner:RoomListPage.manageRooms")} <ArrowRight size={16} className="ml-1" />
                   </Button>
                 </div>
               </div>
@@ -181,12 +183,12 @@ const RoomListPage = () => {
             <div className="mt-8 pt-6 border-t border-gray-200 bg-white rounded-xl p-4 shadow-sm border relative z-10">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p className="text-sm text-gray-500">
-                  Hiển thị{" "}
+                  {t("owner:RoomListPage.showing")}{" "}
                   <span className="font-semibold text-gray-900">
                     {startItem}-{endItem}
                   </span>{" "}
-                  trong tổng số{" "}
-                  <span className="font-semibold text-gray-900">{totalItems}</span> cơ sở
+                  {t("owner:RoomListPage.of")}{" "}
+                  <span className="font-semibold text-gray-900">{totalItems}</span> {t("owner:RoomListPage.properties")}
                 </p>
 
                 <div className="flex items-center gap-2">
@@ -212,7 +214,7 @@ const RoomListPage = () => {
 
                   {/* Jump */}
                   <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200">
-                    <span className="text-sm text-gray-500 whitespace-nowrap">Đi đến:</span>
+                    <span className="text-sm text-gray-500 whitespace-nowrap">{t("owner:RoomListPage.goTo")}</span>
                     <input
                       type="text"
                       className="w-12 h-8 pl-2 pr-1 rounded-lg border border-gray-200 text-sm text-center focus:outline-none focus:border-[rgb(40,169,224)] focus:ring-1 focus:ring-[rgb(40,169,224)] transition-all"
@@ -233,13 +235,13 @@ const RoomListPage = () => {
       ) : (
         <div className="flex flex-col items-center justify-center h-80 bg-white rounded-3xl border border-dashed border-gray-200">
           <Building2 size={48} className="text-gray-300 mb-3" />
-          <p className="text-gray-500">Không tìm thấy cơ sở nào đang hoạt động.</p>
+          <p className="text-gray-500">{t("owner:RoomListPage.noActivePropertiesFound")}</p>
           <Button
             variant="link"
             onClick={() => navigate("/owner/properties")}
             className="mt-2 text-blue-600"
           >
-            Kiểm tra lại danh sách tài sản
+            {t("owner:RoomListPage.checkYourPropertyList")}
           </Button>
         </div>
       )}

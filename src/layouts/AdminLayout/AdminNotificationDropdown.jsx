@@ -15,9 +15,11 @@ import {
 } from "lucide-react";
 import notificationService from "../../services/notification.service";
 import moment from "moment";
-import "moment/locale/vi"; // Import tiếng Việt cho moment
+import "moment/locale/vi";
+import { useTranslation } from "react-i18next"; // Import tiếng Việt cho moment
 
 const AdminNotificationDropdown = () => {
+  const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -174,14 +176,14 @@ const AdminNotificationDropdown = () => {
                     
                     {/* Header */}
                     <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between bg-white sticky top-0 z-10">
-                        <h3 className="font-bold text-gray-800">Thông báo quản trị</h3>
+                        <h3 className="font-bold text-gray-800">{t("admin:AdminNotificationDropdown.adminNotifications")}</h3>
                         {unreadCount > 0 && (
                             <button 
                                 onClick={handleMarkAllRead}
                                 className="text-xs font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
                             >
                                 <CheckCheck size={14} />
-                                Đánh dấu đã đọc
+                                {t("admin:AdminNotificationDropdown.markAsRead")}
                             </button>
                         )}
                     </div>
@@ -191,7 +193,7 @@ const AdminNotificationDropdown = () => {
                         {loading && notifications.length === 0 ? (
                             <div className="p-8 text-center text-gray-400">
                                 <div className="animate-spin inline-block w-5 h-5 border-[2px] border-current border-t-transparent text-blue-500 rounded-full mb-2"></div>
-                                <p className="text-xs">Đang tải...</p>
+                                <p className="text-xs">{t("admin:AdminNotificationDropdown.loading")}</p>
                             </div>
                         ) : notifications.length > 0 ? (
                             <div className="divide-y divide-gray-100">
@@ -242,8 +244,8 @@ const AdminNotificationDropdown = () => {
                                 <div className="bg-gray-100 p-4 rounded-full mb-3 text-gray-400">
                                     <Bell size={24} />
                                 </div>
-                                <p className="text-gray-800 font-medium text-sm">Không có thông báo mới</p>
-                                <p className="text-gray-500 text-xs mt-1 max-w-[200px]">Các thông báo cần duyệt sẽ xuất hiện ở đây.</p>
+                                <p className="text-gray-800 font-medium text-sm">{t("admin:AdminNotificationDropdown.noNewNotifications")}</p>
+                                <p className="text-gray-500 text-xs mt-1 max-w-[200px]">{t("admin:AdminNotificationDropdown.notificationsThatNeedReviewWill")}</p>
                             </div>
                         )}
                     </div>
@@ -255,7 +257,7 @@ const AdminNotificationDropdown = () => {
                             onClick={() => setOpen(false)}
                             className="block w-full py-2 text-center text-xs font-semibold text-gray-600 hover:text-blue-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-200 shadow-sm hover:shadow"
                         >
-                            Xem tất cả thông báo
+                            {t("admin:AdminNotificationDropdown.viewAllNotifications")}
                         </Link>
                     </div>
                 </div>

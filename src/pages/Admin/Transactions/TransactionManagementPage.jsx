@@ -3,10 +3,12 @@ import {
   Search, Filter, Download, ArrowUpRight, ArrowDownLeft, Wallet, RefreshCw, CheckCircle, XCircle
 } from "lucide-react";
 import Button from "../../../components/common/Button/Button";
-import paymentService from "../../../services/payment.service"; // Cần hàm getAllTransactions
+import paymentService from "../../../services/payment.service";
+import { useTranslation } from "react-i18next"; // Cần hàm getAllTransactions
 
 // Badge Status Component
 const TransactionStatusBadge = ({ status }) => {
+  const { t } = useTranslation();
   const styles = {
     APPROVED: "bg-emerald-100 text-emerald-700 border-emerald-200", // Đã thu tiền
     PAID: "bg-emerald-100 text-emerald-700 border-emerald-200",     // Đã thu tiền
@@ -17,12 +19,12 @@ const TransactionStatusBadge = ({ status }) => {
   };
 
   const labels = {
-    APPROVED: "Thu thành công",
-    PAID: "Thu thành công",
-    PENDING: "Đang xử lý",
-    REFUNDED: "Đã hoàn tiền",
-    REFUND_REQUESTED: "Yêu cầu hoàn",
-    REJECTED: "Thất bại"
+    APPROVED: t("admin:TransactionManagementPage.collected"),
+    PAID: t("admin:TransactionManagementPage.collected"),
+    PENDING: t("admin:TransactionManagementPage.inProgress"),
+    REFUNDED: t("admin:TransactionManagementPage.refunded"),
+    REFUND_REQUESTED: t("admin:TransactionManagementPage.refundRequested"),
+    REJECTED: t("admin:TransactionManagementPage.failed")
   };
 
   return (
@@ -34,6 +36,7 @@ const TransactionStatusBadge = ({ status }) => {
 };
 
 const TransactionManagementPage = () => {
+  const { t } = useTranslation();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,7 +55,7 @@ const TransactionManagementPage = () => {
       const data = res.data || res; 
       setTransactions(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Lỗi tải giao dịch:", error);
+      console.error("Failed to load transactions:", error);
     } finally {
       setLoading(false);
     }
@@ -86,13 +89,13 @@ const TransactionManagementPage = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            <Wallet className="text-blue-600" /> Quản lý dòng tiền
+            <Wallet className="text-blue-600" /> {t("admin:TransactionManagementPage.cashFlowManagement")}
           </h1>
-          <p className="text-slate-500 text-sm">Theo dõi tất cả các khoản thu và chi của hệ thống.</p>
+          <p className="text-slate-500 text-sm">{t("admin:TransactionManagementPage.trackAllOfThePlatform")}</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" icon={Download}>Xuất báo cáo</Button>
-          <Button variant="primary" icon={RefreshCw} onClick={fetchData}>Làm mới</Button>
+          <Button variant="outline" icon={Download}>{t("admin:TransactionManagementPage.exportReport")}</Button>
+          <Button variant="primary" icon={RefreshCw} onClick={fetchData}>{t("admin:TransactionManagementPage.refresh")}</Button>
         </div>
       </div>
 
@@ -100,7 +103,7 @@ const TransactionManagementPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-slate-500 text-sm font-medium">Tổng thu thực tế</p>
+            <p className="text-slate-500 text-sm font-medium">{t("admin:TransactionManagementPage.totalActualIncome")}</p>
             <p className="text-2xl font-bold text-emerald-600">{formatMoney(totalRevenue)}</p>
           </div>
           <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
@@ -109,9 +112,9 @@ const TransactionManagementPage = () => {
         </div>
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-slate-500 text-sm font-medium">Tổng đơn hoàn tiền</p>
+            <p className="text-slate-500 text-sm font-medium">{t("admin:TransactionManagementPage.totalRefunds")}</p>
             <p className="text-2xl font-bold text-purple-600">
-              {transactions.filter(t => t.status === 'REFUNDED').length} đơn
+              {t("admin:TransactionManagementPage.orders", { length: transactions.filter(t => t.status === 'REFUNDED').length })}
             </p>
           </div>
           <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600">
@@ -120,7 +123,7 @@ const TransactionManagementPage = () => {
         </div>
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-slate-500 text-sm font-medium">Giao dịch thất bại</p>
+            <p className="text-slate-500 text-sm font-medium">{t("admin:TransactionManagementPage.failedTransactions")}</p>
             <p className="text-2xl font-bold text-rose-600">
               {transactions.filter(t => t.status === 'REJECTED').length}
             </p>
@@ -137,7 +140,7 @@ const TransactionManagementPage = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
           <input 
             type="text" 
-            placeholder="Tìm theo mã giao dịch, mã booking..." 
+            placeholder={t("admin:TransactionManagementPage.searchByTransactionCodeBooking")} 
             className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -152,7 +155,7 @@ const TransactionManagementPage = () => {
                 filter === f ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              {f === 'ALL' ? 'Tất cả' : f === 'IN' ? 'Khoản thu' : f === 'OUT' ? 'Khoản chi' : 'Đang xử lý'}
+              {f === 'ALL' ? t("admin:TransactionManagementPage.all") : f === 'IN' ? t("admin:TransactionManagementPage.income") : f === 'OUT' ? t("admin:TransactionManagementPage.expenses") : t("admin:TransactionManagementPage.inProgress")}
             </button>
           ))}
         </div>
@@ -164,19 +167,19 @@ const TransactionManagementPage = () => {
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-xs font-semibold">
               <tr>
-                <th className="px-6 py-4">Mã giao dịch</th>
+                <th className="px-6 py-4">{t("admin:TransactionManagementPage.transactionCode")}</th>
                 <th className="px-6 py-4">Booking ID</th>
-                <th className="px-6 py-4">Thời gian</th>
-                <th className="px-6 py-4">Phương thức</th>
-                <th className="px-6 py-4">Số tiền</th>
-                <th className="px-6 py-4 text-center">Trạng thái</th>
+                <th className="px-6 py-4">{t("admin:TransactionManagementPage.duration")}</th>
+                <th className="px-6 py-4">{t("admin:TransactionManagementPage.method")}</th>
+                <th className="px-6 py-4">{t("admin:TransactionManagementPage.amount")}</th>
+                <th className="px-6 py-4 text-center">{t("admin:TransactionManagementPage.status")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
-                <tr><td colSpan="6" className="p-8 text-center text-slate-500">Đang tải dữ liệu...</td></tr>
+                <tr><td colSpan="6" className="p-8 text-center text-slate-500">{t("admin:TransactionManagementPage.loadingData")}</td></tr>
               ) : filteredData.length === 0 ? (
-                <tr><td colSpan="6" className="p-8 text-center text-slate-500">Không tìm thấy giao dịch nào.</td></tr>
+                <tr><td colSpan="6" className="p-8 text-center text-slate-500">{t("admin:TransactionManagementPage.noTransactionsFound")}</td></tr>
               ) : (
                 filteredData.map((t) => (
                   <tr key={t.paymentId} className="hover:bg-slate-50 transition-colors">

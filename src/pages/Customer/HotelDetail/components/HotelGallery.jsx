@@ -1,8 +1,10 @@
 import React from "react";
 import Button from "@/components/common/Button/Button";
 import { Images } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const HotelGallery = ({ images, onOpenViewer }) => {
+    const { t } = useTranslation("hotel");
     // Tạo mảng ảnh chuẩn hóa để hiển thị
     const displayImages = images.slice(0, 5);
 
@@ -42,7 +44,7 @@ const HotelGallery = ({ images, onOpenViewer }) => {
                 leftIcon={<Images size={16} />}
                 onClick={() => onOpenViewer(0)}
             >
-                Xem tất cả {images.length} ảnh
+                {t("gallery.viewAll", { count: images.length })}
             </Button>
         </div>
     );

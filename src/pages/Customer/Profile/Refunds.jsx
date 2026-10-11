@@ -14,8 +14,10 @@ import AccountMenu from "./AccountMenu";
 // Services & Context
 import { useAuth } from "@/context/AuthContext";
 import paymentService from "@/services/payment.service";
+import { useTranslation } from "react-i18next";
 
 export default function Refunds() {
+    const { t } = useTranslation(["profile", "common"]);
     const navigate = useNavigate();
     const { currentUser } = useAuth();
 
@@ -54,7 +56,7 @@ export default function Refunds() {
 
                 setRefunds(refundList);
             } catch (error) {
-                console.error("❌ Lỗi khi tải refunds:", error);
+                console.error("Failed to load refunds:", error);
             } finally {
                 setLoading(false);
             }
@@ -75,7 +77,7 @@ export default function Refunds() {
                     bg: 'bg-emerald-50',
                     text: 'text-emerald-700',
                     icon: <CheckCircle size={18} className="text-emerald-600" />,
-                    label: 'Đã hoàn tiền'
+                    label: t("refunds.status.APPROVED")
                 };
             case 'REJECTED':
                 return {
@@ -84,7 +86,7 @@ export default function Refunds() {
                     bg: 'bg-rose-50',
                     text: 'text-rose-700',
                     icon: <XCircle size={18} className="text-rose-600" />,
-                    label: 'Đã từ chối'
+                    label: t("refunds.status.REJECTED")
                 };
             default: // PENDING
                 return {
@@ -93,7 +95,7 @@ export default function Refunds() {
                     bg: 'bg-amber-50',
                     text: 'text-amber-700',
                     icon: <Loader2 size={18} className="animate-spin text-amber-600" />,
-                    label: 'Đang xử lý'
+                    label: t("refunds.status.PENDING")
                 };
         }
     };
@@ -119,9 +121,9 @@ export default function Refunds() {
                         <div>
                             <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
                                 <span className="bg-blue-100 p-2 rounded-lg text-blue-600"><RefreshCw size={24} /></span>
-                                Yêu cầu hoàn tiền
+                                {t("refunds.title")}
                             </h2>
-                            <p className="text-slate-500 text-sm mt-1 ml-1">Quản lý các yêu cầu hoàn tiền của bạn.</p>
+                            <p className="text-slate-500 text-sm mt-1 ml-1">{t("refunds.subtitle")}</p>
                         </div>
                     </div>
 
@@ -130,14 +132,14 @@ export default function Refunds() {
                         <div className="flex justify-center py-20 bg-white rounded-2xl shadow-sm border border-slate-100">
                             <div className="flex flex-col items-center gap-3">
                                 <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-                                <span className="text-slate-400 text-sm">Đang tải dữ liệu...</span>
+                                <span className="text-slate-400 text-sm">{t("common:loadingData")}</span>
                             </div>
                         </div>
                     ) : refunds.length === 0 ? (
                         <div className="py-12 bg-white rounded-2xl shadow-sm border border-slate-100">
                             <EmptyState
-                                title="Chưa có yêu cầu nào"
-                                description="Bạn chưa gửi yêu cầu hoàn tiền nào gần đây."
+                                title={t("refunds.emptyTitle")}
+                                description={t("refunds.emptyText")}
                                 icon={<RefreshCw size={48} className="text-slate-300 mb-4" />}
                             />
                         </div>
@@ -158,7 +160,7 @@ export default function Refunds() {
                                                     #{item.bookingId}
                                                 </div>
                                                 <div>
-                                                    <p className="text-xs text-slate-500 font-bold uppercase tracking-wide">Thời gian gửi yêu cầu</p>
+                                                    <p className="text-xs text-slate-500 font-bold uppercase tracking-wide">{t("refunds.sentAt")}</p>
                                                     <p className="text-sm font-semibold text-slate-800">{formatDate(item.requestDate)}</p>
                                                 </div>
                                             </div>
@@ -176,13 +178,13 @@ export default function Refunds() {
                                             {/* Cột Trái: Chi tiết (Được highlight số tiền) */}
                                             <div className="space-y-5">
                                                 <h4 className="text-sm font-bold text-slate-700 flex items-center gap-2 border-b border-slate-100 pb-2">
-                                                    <FileText size={16} className="text-blue-500"/> Chi tiết hoàn tiền
+                                                    <FileText size={16} className="text-blue-500"/> {t("refunds.details")}
                                                 </h4>
                                                 
                                                 {/* Khối số tiền nổi bật */}
                                                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-2xl border border-blue-100 flex justify-between items-center relative overflow-hidden">
                                                     <div className="relative z-10">
-                                                        <p className="text-xs text-blue-600/80 font-semibold uppercase mb-1">Số tiền yêu cầu</p>
+                                                        <p className="text-xs text-blue-600/80 font-semibold uppercase mb-1">{t("refunds.amount")}</p>
                                                         <p className="text-2xl font-extrabold text-blue-700 tracking-tight">
                                                             {formatCurrency(item.amount)}
                                                         </p>
@@ -195,7 +197,7 @@ export default function Refunds() {
                                                 </div>
 
                                                 <div>
-                                                    <p className="text-xs text-slate-500 font-medium mb-1.5 ml-1">Lý do của bạn:</p>
+                                                    <p className="text-xs text-slate-500 font-medium mb-1.5 ml-1">{t("refunds.yourReason")}</p>
                                                     <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-slate-700 text-sm italic leading-relaxed">
                                                         "{item.reason}"
                                                     </div>
@@ -205,24 +207,24 @@ export default function Refunds() {
                                             {/* Cột Phải: Thông tin ngân hàng */}
                                             <div className="space-y-5">
                                                 <h4 className="text-sm font-bold text-slate-700 flex items-center gap-2 border-b border-slate-100 pb-2">
-                                                    <CreditCard size={16} className="text-orange-500"/> Tài khoản nhận tiền
+                                                    <CreditCard size={16} className="text-orange-500"/> {t("refunds.payoutAccount")}
                                                 </h4>
                                                 
                                                 <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] space-y-4 relative">
                                                     <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-slate-500 flex gap-2 items-center"><Building2 size={14}/> Ngân hàng</span>
+                                                        <span className="text-slate-500 flex gap-2 items-center"><Building2 size={14}/> {t("refund.bank")}</span>
                                                         <span className="font-bold text-slate-800">{item.bankName}</span>
                                                     </div>
                                                     <div className="h-px bg-slate-100 w-full"></div>
                                                     <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-slate-500">Số tài khoản</span>
+                                                        <span className="text-slate-500">{t("refund.accountNumber")}</span>
                                                         <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded text-md tracking-wider">
                                                             {item.accountNumber}
                                                         </span>
                                                     </div>
                                                     <div className="h-px bg-slate-100 w-full"></div>
                                                     <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-slate-500">Chủ tài khoản</span>
+                                                        <span className="text-slate-500">{t("refunds.holder")}</span>
                                                         <span className="font-bold text-slate-800 uppercase">{item.accountHolder}</span>
                                                     </div>                                                 
                                                 </div>
@@ -234,7 +236,7 @@ export default function Refunds() {
                                             <div className="mx-6 mb-6 px-5 py-4 bg-amber-50 rounded-xl border border-amber-200/60 flex items-start gap-3 shadow-sm">
                                                 <AlertCircle size={20} className="text-amber-600 mt-0.5 shrink-0" />
                                                 <div className="text-sm">
-                                                    <span className="font-bold text-amber-800 block mb-1">Phản hồi từ Admin:</span>
+                                                    <span className="font-bold text-amber-800 block mb-1">{t("refunds.adminReply")}</span>
                                                     <p className="text-slate-700 leading-relaxed">{item.adminNote}</p>
                                                 </div>
                                             </div>

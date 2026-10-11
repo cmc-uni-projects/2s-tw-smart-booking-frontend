@@ -1,6 +1,7 @@
 // src/services/payment.service.js
 
 import api from "./axios.config";
+import i18n from "@/i18n";
 
 const paymentService = {
   // ============================================================
@@ -38,7 +39,7 @@ const paymentService = {
       const response = await api.get("/payments/my-history");
       return response.data;
     } catch (error) {
-      console.error("Lỗi lấy lịch sử giao dịch:", error);
+      console.error("Failed to get transaction history:", error);
       return [];
     }
   },
@@ -67,8 +68,8 @@ const paymentService = {
       const result = response.data;
       return Array.isArray(result) ? result : (result.data || []);
     } catch (error) {
-      console.error("Lỗi lấy danh sách giao dịch:", error);
-      throw new Error(error.response?.data?.message || "Không thể tải dữ liệu giao dịch");
+      console.error("Failed to get transactions:", error);
+      throw new Error(error.response?.data?.message || i18n.t("common:paymentservice.couldNotLoadTransactionData"));
     }
   },
 

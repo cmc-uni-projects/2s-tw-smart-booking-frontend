@@ -7,11 +7,13 @@ import {
 
 import Toast from "../../components/common/Notification/Toast";
 import ToastPortal from "../../components/common/Notification/ToastPortal";
+import { useTranslation } from "react-i18next";
 
 // Ảnh nền (Tone xanh mát mẻ, du lịch)
 const BG_URL = "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070&auto=format&fit=crop";
 
 const VerifyEmail = () => {
+  const { t } = useTranslation("auth");
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get("token");
@@ -37,7 +39,7 @@ const VerifyEmail = () => {
       // 1. Kiểm tra Token tồn tại
       if (!token) {
         setStatus("error");
-        setMessage("Đường dẫn xác minh không hợp lệ. Vui lòng kiểm tra lại email của bạn.");
+        setMessage(t("verify.invalidLink"));
         setLoading(false);
         return;
       }
@@ -46,11 +48,11 @@ const VerifyEmail = () => {
       try {
         await authService.verifyEmail(token);
         setStatus("success");
-        setMessage("Email của bạn đã được xác minh thành công. Bây giờ bạn có thể đăng nhập và trải nghiệm dịch vụ.");
-        showToastOnce("Xác minh thành công!", "success");
+        setMessage(t("verify.successMsg"));
+        showToastOnce(t("verify.successToast"), "success");
       } catch (err) {
         setStatus("error");
-        const msg = err.response?.data?.message || "Liên kết xác minh đã hết hạn hoặc không hợp lệ.";
+        const msg = err.response?.data?.message || t("verify.expiredLink");
         setMessage(msg);
       } finally {
         // Thêm chút delay giả để người dùng kịp nhìn thấy hiệu ứng loading đẹp mắt
@@ -91,8 +93,8 @@ const VerifyEmail = () => {
                          <div className="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                          <Mail size={32} className="text-blue-500 relative z-10" />
                     </div>
-                    <h2 className="text-2xl font-black text-slate-800 mb-2">Đang xác minh...</h2>
-                    <p className="text-slate-500 font-medium">Vui lòng đợi trong giây lát.</p>
+                    <h2 className="text-2xl font-black text-slate-800 mb-2">{t("verify.verifying")}</h2>
+                    <p className="text-slate-500 font-medium">{t("verify.wait")}</p>
                 </div>
             )}
 
@@ -102,7 +104,7 @@ const VerifyEmail = () => {
                     <div className="mx-auto w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mb-6 animate-bounce-slow shadow-lg shadow-emerald-500/20">
                         <CheckCircle size={48} className="text-emerald-500" strokeWidth={2.5} />
                     </div>
-                    <h2 className="text-3xl font-black text-slate-800 mb-3 tracking-tight">Thành công! 🎉</h2>
+                    <h2 className="text-3xl font-black text-slate-800 mb-3 tracking-tight">{t("verify.successTitle")}</h2>
                     <p className="text-slate-600 mb-8 leading-relaxed">
                         {message}
                     </p>
@@ -111,7 +113,7 @@ const VerifyEmail = () => {
                         onClick={() => navigate("/login")}
                         className="group w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-bold text-lg shadow-xl shadow-emerald-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                     >
-                        Đăng nhập ngay <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                        {t("loginNow")} <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                     </button>
                 </div>
             )}
@@ -122,7 +124,7 @@ const VerifyEmail = () => {
                     <div className="mx-auto w-24 h-24 bg-rose-100 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-rose-500/20">
                         <AlertCircle size={48} className="text-rose-500" strokeWidth={2.5} />
                     </div>
-                    <h2 className="text-2xl font-black text-slate-800 mb-3">Xác minh thất bại</h2>
+                    <h2 className="text-2xl font-black text-slate-800 mb-3">{t("verify.failedTitle")}</h2>
                     <p className="text-slate-500 mb-8 leading-relaxed px-2">
                         {message}
                     </p>
@@ -132,13 +134,13 @@ const VerifyEmail = () => {
                             onClick={() => navigate("/register")}
                             className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-all shadow-lg active:scale-[0.98]"
                         >
-                            Đăng ký lại
+                            {t("verify.registerAgain")}
                         </button>
                         <button 
                             onClick={() => navigate("/")}
                             className="w-full py-3.5 bg-white border-2 border-slate-100 hover:bg-slate-50 text-slate-600 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
                         >
-                            <ArrowLeft size={18} /> Về trang chủ
+                            <ArrowLeft size={18} /> {t("verify.backHome")}
                         </button>
                     </div>
                 </div>

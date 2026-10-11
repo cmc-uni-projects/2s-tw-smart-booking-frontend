@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import { ChevronLeft, ChevronRight, Clock, ArrowRight, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // --- CONFIGURATION ---
 const AUTO_PLAY_TIME = 5000;
@@ -9,13 +10,14 @@ const TRANSITION_DURATION = 1000;
 // SUB-COMPONENT 1: Discount Badge (Huy hiệu giảm giá)
 // ==========================================
 const DiscountBadge = memo(({ value, type }) => {
+    const { t } = useTranslation("promotion");
     if (!value) return null;
     return (
         <div className="absolute top-6 left-6 z-20 animate-bounce-slow">
             <div className="bg-gradient-to-r from-red-500 to-pink-600 text-white px-5 py-2 rounded-full shadow-lg shadow-red-500/30 flex items-center gap-2 border-2 border-white/20 backdrop-blur-md">
                 <Sparkles size={18} className="text-yellow-300 fill-yellow-300" />
                 <span className="font-bold text-lg">
-                    Giảm {type === 'PERCENTAGE' ? `${value}%` : `${value.toLocaleString()}đ`}
+                    {t("discount", { amount: type === 'PERCENTAGE' ? `${value}%` : `${value.toLocaleString('vi-VN')}₫` })}
                 </span>
             </div>
         </div>
@@ -26,6 +28,7 @@ const DiscountBadge = memo(({ value, type }) => {
 // SUB-COMPONENT 2: Countdown Timer (Đồng hồ đếm ngược)
 // ==========================================
 const CountdownTimer = ({ endDate }) => {
+    const { t } = useTranslation("promotion");
     const [timeLeft, setTimeLeft] = useState(null);
 
     useEffect(() => {
@@ -63,13 +66,13 @@ const CountdownTimer = ({ endDate }) => {
         <div className="flex items-center gap-3 mt-6 animate-fade-in-up [animation-delay:400ms]">
             <div className="flex items-center gap-2 text-yellow-400 bg-yellow-400/10 px-3 py-1.5 rounded-full border border-yellow-400/20">
                 <Clock size={16} />
-                <span className="text-sm font-semibold">Kết thúc sau:</span>
+                <span className="text-sm font-semibold">{t("endsIn")}</span>
             </div>
             <div className="flex gap-2">
-                <TimeBox val={timeLeft.days} label="Ngày" />
-                <TimeBox val={timeLeft.hours} label="Giờ" />
-                <TimeBox val={timeLeft.minutes} label="Phút" />
-                <TimeBox val={timeLeft.seconds} label="Giây" />
+                <TimeBox val={timeLeft.days} label={t("common:time.days")} />
+                <TimeBox val={timeLeft.hours} label={t("common:time.hours")} />
+                <TimeBox val={timeLeft.minutes} label={t("common:time.minutes")} />
+                <TimeBox val={timeLeft.seconds} label={t("common:time.seconds")} />
             </div>
         </div>
     );
@@ -78,13 +81,15 @@ const CountdownTimer = ({ endDate }) => {
 // ==========================================
 // SUB-COMPONENT 3: Glass Overlay (Nội dung chính)
 // ==========================================
-const GlassContent = ({ promo, onClick }) => (
+const GlassContent = ({ promo, onClick }) => {
+    const { t } = useTranslation("promotion");
+    return (
     <div className="absolute inset-0 z-10 flex items-center justify-start container mx-auto px-4 md:px-12">
         <div className="max-w-2xl bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-10 rounded-3xl shadow-2xl animate-fade-in-up transition-all hover:bg-white/15 group pointer-events-auto">
 
             {/* Tag */}
             <span className="inline-block px-4 py-1 mb-5 text-xs font-bold tracking-wider text-blue-100 uppercase bg-blue-600/80 rounded-full shadow-lg shadow-blue-600/20">
-                Khuyến Mãi Hot
+                {t("hotTag")}
             </span>
 
             {/* Title - Đã xóa line-clamp-2 để hiện đầy đủ */}
@@ -108,12 +113,13 @@ const GlassContent = ({ promo, onClick }) => (
                 }}
                 className="mt-8 group/btn relative inline-flex items-center gap-3 px-8 py-3.5 bg-white text-blue-600 rounded-xl font-bold text-lg shadow-[0_0_20px_rgba(255,255,255,0.3)] overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] active:scale-95 cursor-pointer"
             >
-                <span className="relative z-10">Xem chi tiết</span>
+                <span className="relative z-10">{t("common:actions.viewDetails")}</span>
                 <ArrowRight className="w-5 h-5 transition-transform group-hover/btn:translate-x-1 relative z-10" />
             </button>
         </div>
     </div>
-);
+    );
+};
 
 // ==========================================
 // SUB-COMPONENT 4: Background Slide (Ảnh nền)

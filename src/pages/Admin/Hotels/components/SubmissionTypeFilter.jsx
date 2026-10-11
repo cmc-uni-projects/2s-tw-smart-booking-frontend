@@ -2,10 +2,11 @@
 import React from "react";
 import { Filter } from "lucide-react";
 import { motion } from "framer-motion";
+import i18n from "@/i18n";
 
 const PROPERTY_TYPES = [
-  { value: "ALL", label: "Tất cả loại hình" },
-  { value: "HOTEL", label: "Khách sạn" },
+  { value: "ALL", get label() { return i18n.t("admin:SubmissionTypeFilter.allPropertyTypes"); } },
+  { value: "HOTEL", get label() { return i18n.t("admin:SubmissionTypeFilter.hotel"); } },
   { value: "RESORT", label: "Resort" },
   { value: "VILLA", label: "Villa" },
   { value: "HOMESTAY", label: "Homestay" },

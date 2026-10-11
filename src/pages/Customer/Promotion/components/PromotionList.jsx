@@ -1,9 +1,11 @@
 import React from "react";
 import PromotionCard from "./PromotionCard";
 import { Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // ✅ Cập nhật props: Nhận thêm savedIds và onToggleSave từ PromotionPage
 const PromotionList = ({ promotions, loading, onViewDetail, savedIds = [], onToggleSave }) => {
+    const { t } = useTranslation("promotion");
 
     // 1. Loading State
     if (loading) {
@@ -23,9 +25,9 @@ const PromotionList = ({ promotions, loading, onViewDetail, savedIds = [], onTog
                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                     <Search className="text-gray-400" size={32} />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800">Không tìm thấy khuyến mãi nào</h3>
+                <h3 className="text-lg font-semibold text-gray-800">{t("list.emptyTitle")}</h3>
                 <p className="text-gray-500 text-sm mt-2">
-                    Vui lòng thử lại hoặc thay đổi bộ lọc tìm kiếm.
+                    {t("list.emptyText")}
                 </p>
             </div>
         );

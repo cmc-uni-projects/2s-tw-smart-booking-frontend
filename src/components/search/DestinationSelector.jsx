@@ -1,8 +1,10 @@
 // src/components/search/DestinationSelector.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { Search, MapPin, Hotel } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // Dữ liệu giả cho dropdown (Req #4)
+// i18n-ignore-start (place names)
 const mockSuggestions = [
   { type: "city", name: "Hà Nội" },
   { type: "city", name: "Đà Nẵng" },
@@ -11,6 +13,7 @@ const mockSuggestions = [
   { type: "hotel", name: "The Ocean Resort" },
   { type: "hotel", name: "Mountain Retreat" },
 ];
+// i18n-ignore-end
 
 const SuggestionItem = ({ item, onClick }) => {
   const isCity = item.type === "city";
@@ -27,6 +30,7 @@ const SuggestionItem = ({ item, onClick }) => {
 };
 
 export default function DestinationSelector({ value, onChange }) {
+  const { t } = useTranslation("search");
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   
@@ -57,7 +61,7 @@ export default function DestinationSelector({ value, onChange }) {
   return (
     <div className="relative flex flex-col" ref={ref}>
       <label className="text-sm font-semibold text-gray-600 mb-1">
-        Điểm đến
+        {t("destination.label")}
       </label>
 
       {/* Wrapper chứa icon và input */}
@@ -70,7 +74,7 @@ export default function DestinationSelector({ value, onChange }) {
         <Search size={18} className="text-gray-500 flex-shrink-0" />
         <input
           type="text"
-          placeholder="Nhập thành phố hoặc khách sạn"
+          placeholder={t("destination.placeholder")}
           className="w-full h-full outline-none border-none p-0 ml-2 text-sm text-gray-700"
           
           // ✅ 3. SỬ DỤNG 'value' TỪ PROP
@@ -102,7 +106,7 @@ export default function DestinationSelector({ value, onChange }) {
               ))
             ) : (
               <div className="px-4 py-2 text-sm text-gray-500">
-                Không tìm thấy kết quả.
+                {t("destination.noResults")}
               </div>
             )}
           </div>

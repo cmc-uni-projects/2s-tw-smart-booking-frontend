@@ -7,6 +7,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import AvatarUpload from "@/components/common/Input/AvatarUpload"; 
 import AvatarUploadModal from "./AvatarUploadModal"; 
+import { useTranslation } from "react-i18next";
 
 const AccountMenu = ({ 
     activeSection, 
@@ -15,46 +16,49 @@ const AccountMenu = ({
     onAvatarUpload, 
     isUploadingAvatar 
 }) => {
+    const { t } = useTranslation(["profile", "common"]);
     const location = useLocation();
     const navigate = useNavigate();
     const { logout } = useAuth();
     
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const profileName = userData?.fullName || "Khách hàng";
+    const profileName = userData?.fullName || t("common:customer");
     const profileImage = userData?.profilePhotoUrl || null;
     const profileEmail = userData?.email || "";
-    const membershipRank = userData?.membershipRank || "Thành viên";
+    const membershipRank = userData?.membershipRank
+        ? t(`common:rank.${userData.membershipRank}`, { defaultValue: userData.membershipRank })
+        : t("menu.member");
 
     const menuItems = [
         { 
-            label: "Hồ sơ cá nhân", 
+            label: t("menu.profile"), 
             path: "/customer/profile",
             internalId: "account-settings",
             icon: <User size={20} /> 
         },
         { 
-            label: "Hạng thành viên & Điểm", 
+            label: t("menu.membership"), 
             path: "/customer/membership", 
             icon: <Crown size={20} /> 
         },
         { 
-            label: "Lịch sử đặt chỗ", 
+            label: t("menu.bookings"), 
             path: "/customer/bookings", 
             icon: <CalendarDays size={20} /> 
         },
         { 
-            label: "Giao dịch", 
+            label: t("menu.transactions"), 
             path: "/customer/transactions", 
             icon: <FileText size={20} /> 
         },
         { 
-            label: "Yêu cầu hoàn tiền", 
+            label: t("menu.refunds"), 
             path: "/customer/refunds", 
             icon: <RefreshCw size={20} /> 
         },
         { 
-            label: "Cài đặt tài khoản", 
+            label: t("menu.settings"), 
             path: "/customer/settings", 
             icon: <Settings size={20} /> 
         },
@@ -108,7 +112,7 @@ const AccountMenu = ({
                     {/* ✅ SỬA Ở ĐÂY: Đổi vị trí badge từ bottom-1 -> top-0 để tránh đè icon máy ảnh */}
                     <div 
                         className="absolute top-0 right-0 bg-yellow-400 p-1.5 rounded-full border-2 border-white shadow-sm transform translate-x-1 -translate-y-1" 
-                        title={`Hạng: ${membershipRank}`}
+                        title={t("menu.rankTitle", { rank: membershipRank })}
                     >
                         <Crown size={12} className="text-white fill-white" />
                     </div>
@@ -118,7 +122,7 @@ const AccountMenu = ({
                     <h3 className="font-bold text-gray-900 text-lg">{profileName}</h3>
                     <p className="text-gray-500 text-sm mb-2">{profileEmail}</p>
                     <span className="inline-block text-xs font-semibold px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100">
-                        {membershipRank || "Thành viên"}
+                        {membershipRank}
                     </span>
                 </div>
             </div>
@@ -161,7 +165,7 @@ const AccountMenu = ({
                         className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-red-600 hover:bg-red-50 transition-all duration-200 font-medium text-sm group"
                     >
                         <LogOut size={20} className="text-red-400 group-hover:text-red-600 transition-colors" />
-                        Đăng xuất
+                        {t("layout:auth.logout")}
                     </button>
                 </div>
             </div>

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import Modal from "@/components/common/Modal/Modal";
 import { Copy, CheckCircle, Info, Clock, AlertCircle, Sparkles, Calendar, Crown } from "lucide-react";
+import { useTranslation, Trans } from "react-i18next";
 
 // Icon cho Super Deal
 const SUPER_DEAL_IMAGE = "https://cdn-icons-png.flaticon.com/512/5267/5267825.png";
 
 const PromotionDetailModal = ({ isOpen, onClose, promo, savedIds, onToggleSave }) => {
+    const { t } = useTranslation("promotion");
     const [copied, setCopied] = useState(false);
     const [animate, setAnimate] = useState(false);
 
@@ -75,7 +77,7 @@ const PromotionDetailModal = ({ isOpen, onClose, promo, savedIds, onToggleSave }
         switch (r) {
             case 'BRONZE':
                 return {
-                    prefix: 'Thành viên', name: 'Đồng',
+                    prefix: t('member'), name: t('common:rankShort.BRONZE'),
                     bgClass: 'bg-gradient-to-br from-[#ffedd5] via-[#fdba74] to-[#c2410c]',
                     borderClass: 'border-[#ffedd5]/50',
                     textClass: 'text-[#7c2d12]',
@@ -85,7 +87,7 @@ const PromotionDetailModal = ({ isOpen, onClose, promo, savedIds, onToggleSave }
                 };
             case 'SILVER':
                 return {
-                    prefix: 'Thành viên', name: 'Bạc',
+                    prefix: t('member'), name: t('common:rankShort.SILVER'),
                     bgClass: 'bg-gradient-to-br from-[#f8fafc] via-[#cbd5e1] to-[#64748b]',
                     borderClass: 'border-white/60',
                     textClass: 'text-[#334155]',
@@ -95,7 +97,7 @@ const PromotionDetailModal = ({ isOpen, onClose, promo, savedIds, onToggleSave }
                 };
             case 'GOLD':
                 return {
-                    prefix: 'Thành viên', name: 'Vàng',
+                    prefix: t('member'), name: t('common:rankShort.GOLD'),
                     bgClass: 'bg-gradient-to-br from-[#fef08a] via-[#eab308] to-[#854d0e]',
                     borderClass: 'border-[#fef08a]/50',
                     textClass: 'text-[#422006]',
@@ -106,7 +108,7 @@ const PromotionDetailModal = ({ isOpen, onClose, promo, savedIds, onToggleSave }
                 };
             case 'DIAMOND':
                 return {
-                    prefix: 'Thành viên', name: 'Kim Cương',
+                    prefix: t('member'), name: t('common:rankShort.DIAMOND'),
                     bgClass: 'bg-gradient-to-br from-[#cffafe] via-[#06b6d4] to-[#164e63]',
                     borderClass: 'border-[#cffafe]/50',
                     textClass: 'text-[#ecfeff]',
@@ -117,7 +119,7 @@ const PromotionDetailModal = ({ isOpen, onClose, promo, savedIds, onToggleSave }
                 };
             default:
                 return {
-                    prefix: 'Tất cả', name: 'Hội viên',
+                    prefix: t('all'), name: t('allMembers'),
                     bgClass: 'bg-white',
                     borderClass: 'border-gray-200',
                     textClass: 'text-gray-600',
@@ -215,12 +217,12 @@ const PromotionDetailModal = ({ isOpen, onClose, promo, savedIds, onToggleSave }
                             {isBigSale ? (
                                 <div className="relative overflow-hidden inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-red-500 to-pink-600 text-white text-xs font-bold shadow-md shadow-red-200">
                                     <div className="absolute inset-0 bg-white/30 skew-x-12 animate-[shimmer_2s_infinite] -translate-x-full"></div>
-                                    <Sparkles size={14} className="animate-pulse" /> SUPER DEAL - GIẢM SÂU
+                                    <Sparkles size={14} className="animate-pulse" /> {t("superDeal")}
                                 </div>
                             ) : (
                                 <div className="relative overflow-hidden inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold shadow-md shadow-orange-200">
                                     <div className="absolute inset-0 bg-white/30 skew-x-12 animate-[shimmer_2s_infinite] -translate-x-full"></div>
-                                    <Sparkles size={14} className="animate-pulse" /> KHUYẾN MÃI HOT
+                                    <Sparkles size={14} className="animate-pulse" /> {t("hotDeal")}
                                 </div>
                             )}
 
@@ -228,9 +230,9 @@ const PromotionDetailModal = ({ isOpen, onClose, promo, savedIds, onToggleSave }
                                 <Clock size={15} className="text-blue-500" />
                                 <span className="flex items-center gap-1 text-xs sm:text-sm">
                                     {daysLeft !== null && daysLeft > 0 ? (
-                                        <span className="font-bold text-red-500">Còn {daysLeft} ngày</span>
+                                        <span className="font-bold text-red-500">{t("daysLeft", { count: daysLeft })}</span>
                                     ) : (
-                                        <span>{daysLeft === null ? "Vô thời hạn" : "Đã hết hạn"}</span>
+                                        <span>{daysLeft === null ? t("common:noExpiry") : t("expired")}</span>
                                     )}
                                 </span>
                             </div>
@@ -250,14 +252,14 @@ const PromotionDetailModal = ({ isOpen, onClose, promo, savedIds, onToggleSave }
                             className={`relative overflow-hidden bg-white border-2 ${copied ? 'border-green-500 bg-green-50' : (isBigSale ? 'border-red-300 border-dashed hover:border-red-500 hover:bg-red-50' : 'border-blue-300 border-dashed hover:border-blue-500 hover:bg-blue-50')} rounded-xl p-5 flex items-center justify-between gap-4 cursor-pointer transition-all duration-300 shadow-sm`}
                         >
                             <div className="flex flex-col">
-                                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Mã Voucher</p>
+                                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">{t("voucherCode")}</p>
                                 <p className={`text-3xl font-black font-mono tracking-widest ${copied ? 'text-green-600' : (isBigSale ? 'text-red-600' : 'text-blue-600')}`}>
                                     {promo.code}
                                 </p>
                             </div>
                             <div className="flex items-center gap-3">
                                 <span className={`text-sm font-medium transition-colors ${copied ? "text-green-600" : "text-gray-400"}`}>
-                                    {copied ? "Đã chép!" : "Sao chép"}
+                                    {copied ? t("copied") : t("copy")}
                                 </span>
                                 <div className={`p-3 rounded-full shadow-sm transition-all duration-300 transform group-hover:scale-110 ${copied ? "bg-green-500 text-white" : (isBigSale ? "bg-red-500 text-white" : "bg-blue-500 text-white")}`}>
                                     {copied ? <CheckCircle size={24} /> : <Copy size={24} />}
@@ -271,14 +273,14 @@ const PromotionDetailModal = ({ isOpen, onClose, promo, savedIds, onToggleSave }
                     <div className="grid grid-cols-1 gap-3 text-sm text-gray-600 bg-gray-50/80 p-5 rounded-2xl border border-gray-100">
                         <div className="space-y-3">
                             <h4 className="font-bold text-gray-800 flex items-center gap-2 uppercase text-xs tracking-wide">
-                                <Info size={14} className="text-blue-500 fill-blue-100"/> Thông tin chi tiết
+                                <Info size={14} className="text-blue-500 fill-blue-100"/> {t("info")}
                             </h4>
                             <p className="leading-relaxed pl-6 text-gray-700">{promo.description}</p>
 
                             <div className="w-full h-[1px] bg-gray-200 my-3"></div>
 
                             <h4 className="font-bold text-gray-800 flex items-center gap-2 uppercase text-xs tracking-wide">
-                                <AlertCircle size={14} className="text-orange-500 fill-orange-100"/> Điều kiện áp dụng
+                                <AlertCircle size={14} className="text-orange-500 fill-orange-100"/> {t("conditions")}
                             </h4>
 
                             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-6">
@@ -286,7 +288,7 @@ const PromotionDetailModal = ({ isOpen, onClose, promo, savedIds, onToggleSave }
                                 <li className="sm:col-span-2 flex items-center justify-between gap-2 bg-white px-3 py-2 rounded-lg border border-gray-100 shadow-sm">
                                     <div className="flex items-center gap-2 shrink-0">
                                         <Crown size={15} color={rankConfig.iconColor} />
-                                        <span>Đối tượng áp dụng:</span>
+                                        <span>{t("eligible")}</span>
                                     </div>
                                     <span className={`font-bold text-sm px-2.5 py-0.5 rounded-full border ${rankConfig.bgClass} ${rankConfig.borderClass} ${rankConfig.textClass}`}>
                                         {rankConfig.prefix} {rankConfig.name}
@@ -297,10 +299,10 @@ const PromotionDetailModal = ({ isOpen, onClose, promo, savedIds, onToggleSave }
                                 <li className="flex items-center justify-between gap-2 bg-white px-3 py-2 rounded-lg border border-gray-100 shadow-sm">
                                     <div className="flex items-center gap-2">
                                         <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                                        <span>Đơn tối thiểu:</span>
+                                        <span>{t("minOrder")}</span>
                                     </div>
                                     <span className="font-bold text-gray-900">
-                                        {minBookingAmount.toLocaleString('vi-VN')}đ
+                                        {minBookingAmount.toLocaleString('vi-VN')}₫
                                     </span>
                                 </li>
 
@@ -308,12 +310,12 @@ const PromotionDetailModal = ({ isOpen, onClose, promo, savedIds, onToggleSave }
                                 <li className="flex items-center justify-between gap-2 bg-white px-3 py-2 rounded-lg border border-gray-100 shadow-sm">
                                     <div className="flex items-center gap-2 shrink-0">
                                         <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
-                                        <span>Giảm tối đa:</span>
+                                        <span>{t("maxDiscount")}</span>
                                     </div>
                                     <span className="font-bold text-gray-900 text-right">
                                         {maxDiscountAmount > 0
-                                            ? maxDiscountAmount.toLocaleString('vi-VN') + 'đ'
-                                            : "Không giới hạn"
+                                            ? maxDiscountAmount.toLocaleString('vi-VN') + '₫'
+                                            : t("unlimited")
                                         }
                                     </span>
                                 </li>
@@ -322,18 +324,22 @@ const PromotionDetailModal = ({ isOpen, onClose, promo, savedIds, onToggleSave }
                                 <li className="sm:col-span-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white px-3 py-2 rounded-lg border border-gray-100 shadow-sm">
                                     <div className="flex items-center gap-2 shrink-0">
                                         <Calendar size={14} className="text-purple-500" />
-                                        <span className="font-medium">Hạn sử dụng:</span>
+                                        <span className="font-medium">{t("validity")}</span>
                                     </div>
 
                                     <div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1 text-right">
                                         <span className="text-gray-600">
-                                            Từ <span className="font-semibold text-blue-600">{formatDate(promo.startDate) || "Nay"}</span>
-                                            {" "}đến <span className="font-semibold text-red-600">{formatDate(promo.endDate) || "Vô hạn"}</span>
+                                            <Trans
+                                                t={t}
+                                                i18nKey="validRange"
+                                                values={{ start: formatDate(promo.startDate) || t("now"), end: formatDate(promo.endDate) || t("forever") }}
+                                                components={{ start: <span className="font-semibold text-blue-600" />, end: <span className="font-semibold text-red-600" /> }}
+                                            />
                                         </span>
 
                                         {daysLeft !== null && daysLeft > 0 && (
                                             <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-red-50 text-red-600 border border-red-100">
-                                                Còn {daysLeft} ngày
+                                                {t("daysLeft", { count: daysLeft })}
                                             </span>
                                         )}
                                     </div>

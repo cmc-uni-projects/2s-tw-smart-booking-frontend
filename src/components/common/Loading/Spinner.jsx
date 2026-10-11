@@ -1,8 +1,10 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Plane } from "lucide-react"; // npm install lucide-react
 
 export default function Spinner() {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center gap-4 select-none">
       {/* ✈️ Máy bay bay theo đường cong ~ từ trái sang phải */}
@@ -39,7 +41,7 @@ export default function Spinner() {
 
       {/* chữ Đang tải với dấu chấm tuần tự */}
       <div className="text-[rgb(40,169,224)] font-semibold text-lg tracking-wide flex items-center">
-        Đang tải
+        {t("loadingShort")}
         <motion.span
           className="ml-1"
           animate={{ opacity: [0, 1, 0, 1, 0] }}

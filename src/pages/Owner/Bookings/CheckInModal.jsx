@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { X, LogIn, CheckCircle, User, Calendar } from "lucide-react";
 import Button from "./components/common/Button";
+import { useTranslation } from "react-i18next";
 
 const CheckInModal = ({ isOpen, onClose, onConfirm, room }) => {
+  const { t } = useTranslation();
     const [step, setStep] = useState('CONFIRM'); // CONFIRM | PROCESSING | SUCCESS
     const [error, setError] = useState("");
 
@@ -24,7 +26,7 @@ const CheckInModal = ({ isOpen, onClose, onConfirm, room }) => {
             setStep('SUCCESS');
         } catch (err) {
             console.error(err);
-            setError(err.message || "Có lỗi xảy ra khi check-in.");
+            setError(err.message || t("owner:CheckInModal.checkInFailed"));
             setStep('CONFIRM');
         }
     };
@@ -51,9 +53,9 @@ const CheckInModal = ({ isOpen, onClose, onConfirm, room }) => {
                             <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-100">
                                 <LogIn size={32} />
                             </div>
-                            <h2 className="text-xl font-bold text-slate-800">Xác nhận nhận phòng</h2>
+                            <h2 className="text-xl font-bold text-slate-800">{t("owner:CheckInModal.confirmCheckIn")}</h2>
                             <p className="text-slate-500 text-sm mt-2 px-4">
-                                Khách hàng đã đến và sẵn sàng nhận phòng? Hành động này sẽ bắt đầu tính thời gian lưu trú.
+                                {t("owner:CheckInModal.hasTheGuestArrivedAnd")}
                             </p>
                         </div>
 
@@ -61,15 +63,15 @@ const CheckInModal = ({ isOpen, onClose, onConfirm, room }) => {
                         <div className="px-6 py-4 bg-slate-50 border-y border-slate-100 mx-4 rounded-lg">
                             <div className="space-y-3 text-sm">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-slate-500 flex items-center gap-2"><User size={14}/> Khách hàng:</span>
+                                    <span className="text-slate-500 flex items-center gap-2"><User size={14}/> {t("owner:CheckInModal.guest")}</span>
                                     <span className="font-bold text-slate-800">{room.customerName}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-slate-500">Mã đặt chỗ:</span>
+                                    <span className="text-slate-500">{t("owner:CheckInModal.bookingCode")}</span>
                                     <span className="font-mono font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{room.bookingCode}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-slate-500 flex items-center gap-2"><Calendar size={14}/> Check-in dự kiến:</span>
+                                    <span className="text-slate-500 flex items-center gap-2"><Calendar size={14}/> {t("owner:CheckInModal.expectedCheckIn")}</span>
                                     <span className="font-medium text-slate-700">{new Date(room.checkIn).toLocaleDateString('vi-VN')}</span>
                                 </div>
                             </div>
@@ -83,14 +85,14 @@ const CheckInModal = ({ isOpen, onClose, onConfirm, room }) => {
 
                         <div className="p-6 flex gap-3">
                             <Button variant="outline" className="flex-1 justify-center" onClick={handleCloseFull} disabled={step === 'PROCESSING'}>
-                                Hủy bỏ
+                                {t("owner:CheckInModal.cancel")}
                             </Button>
                             <Button 
                                 className="flex-1 justify-center bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200" 
                                 onClick={handleConfirm}
                                 disabled={step === 'PROCESSING'}
                             >
-                                {step === 'PROCESSING' ? 'Đang xử lý...' : 'Xác nhận Check-in'}
+                                {step === 'PROCESSING' ? t("owner:CheckInModal.processing") : t("owner:CheckInModal.confirmCheckIn2")}
                             </Button>
                         </div>
                     </>
@@ -100,12 +102,12 @@ const CheckInModal = ({ isOpen, onClose, onConfirm, room }) => {
                         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce-short">
                             <CheckCircle size={40} className="text-green-600" />
                         </div>
-                        <h2 className="text-2xl font-bold text-slate-800 mb-2">Check-in Thành công!</h2>
+                        <h2 className="text-2xl font-bold text-slate-800 mb-2">{t("owner:CheckInModal.checkedInSuccessfully")}</h2>
                         <p className="text-slate-500 text-sm mb-8">
-                            Trạng thái đơn hàng đã được cập nhật sang <strong>"Đang lưu trú"</strong>.
+                            {t("owner:CheckInModal.theBookingStatusHasBeen")} <strong>{t("owner:CheckInModal.inHouse")}</strong>.
                         </p>
                         <Button className="w-full justify-center bg-slate-800 text-white" onClick={handleCloseFull}>
-                            Hoàn tất
+                            {t("owner:CheckInModal.done")}
                         </Button>
                     </div>
                 )}

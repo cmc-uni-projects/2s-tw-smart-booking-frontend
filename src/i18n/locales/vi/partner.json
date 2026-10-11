@@ -1,0 +1,29 @@
+{
+  "PartnerRoute": {
+    "incompleteInformation": "Thông tin chưa đầy đủ",
+    "loginRequired": "Yêu cầu đăng nhập",
+    "youNeedToSignIn": "Bạn cần đăng nhập tài khoản để đăng ký làm đối tác.",
+    "signInNow": "Đăng nhập ngay",
+    "later": "Để sau",
+    "profileIncomplete": "Hồ sơ chưa hoàn tất",
+    "toBecomeAPartnerPlease": "Để trở thành đối tác, vui lòng cập nhật các thông tin sau:",
+    "cancel": "Hủy",
+    "continue": "Tiếp tục"
+  },
+  "PartnerHeroSection": {
+    "becomeATravelmatePartner": "Trở thành đối tác của TravelMate",
+    "growYourBusinessWithUs": "Phát triển kinh doanh cùng chúng tôi. Tiếp cận hàng triệu khách hàng và quản lý cơ sở lưu trú của bạn một cách dễ dàng, hiệu quả.",
+    "registerNow": "Đăng ký ngay",
+    "hotelPartnership": "Hợp tác khách sạn"
+  },
+  "PartnerCTASection": {
+    "partnerBenefits": "Quyền lợi đối tác",
+    "reachMillionsOfPotentialCustomers": "Tiếp cận hàng triệu khách hàng tiềm năng trên TravelMate.",
+    "intuitiveEasyToUseBooking": "Công cụ quản lý đặt phòng và giá cả trực quan, dễ sử dụng.",
+    "detailedRevenueReportsAndAnalytics": "Hệ thống báo cáo, phân tích doanh thu chi tiết.",
+    "professional247PartnerSupport": "Đội ngũ hỗ trợ đối tác chuyên nghiệp 24/7.",
+    "readyToGetStarted": "Sẵn sàng để bắt đầu?",
+    "itOnlyTakesAFew": "Chỉ mất vài phút để điền thông tin. Tham gia cộng đồng đối tác của chúng tôi và phát triển doanh thu ngay!",
+    "fillInTheRegistrationForm": "Điền form đăng ký ngay"
+  }
+}

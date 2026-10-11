@@ -3,9 +3,11 @@ import React from "react";
 import { CheckCircle2, XCircle, RotateCcw } from "lucide-react"; 
 import Button from "@/components/common/Button/Button";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 // Nhận props error (lỗi) và onRetry (hàm thử lại)
 export default function Step7_Status({ error, onRetry }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   return (
@@ -15,20 +17,20 @@ export default function Step7_Status({ error, onRetry }) {
         <>
           <XCircle size={72} className="text-red-500 mb-6" />
           <h2 className="text-2xl font-bold text-red-600 mb-3">
-            Gửi đơn thất bại
+            {t("owner:Step6_Status.submissionFailed")}
           </h2>
           <p className="text-gray-600 max-w-md mb-6">
-            Đã có lỗi xảy ra trong quá trình gửi đơn của bạn. Vui lòng thử lại.
+            {t("owner:Step6_Status.somethingWentWrongWhileSubmitting")}
           </p>
           <p className="text-sm text-gray-500 bg-gray-100 p-2 rounded-md">
-            Lỗi: {error}
+            {t("owner:Step6_Status.error", { error })}
           </p>
           <Button
             onClick={onRetry} // Quay lại bước 6 (Review)
             leftIcon={<RotateCcw size={18} />}
             className="mt-8"
           >
-            Thử lại
+            {t("owner:Step6_Status.tryAgain")}
           </Button>
         </>
       ) : (
@@ -36,14 +38,13 @@ export default function Step7_Status({ error, onRetry }) {
         <>
           <CheckCircle2 size={72} className="text-green-500 mb-6" />
           <h2 className="text-2xl font-bold text-gray-800 mb-3">
-            Đã gửi đơn thành công!
+            {t("owner:Step6_Status.applicationSubmittedSuccessfully")}
           </h2>
           <p className="text-gray-600 max-w-md mb-8">
-            Cảm ơn bạn đã đăng ký cơ sở lưu trú. Đội ngũ TravelMate sẽ xem xét
-            đơn của bạn và phản hồi qua email trong vòng 24-48 giờ tới.
+            {t("owner:Step6_Status.thankYouForRegisteringYour")}
           </p>
           <Button onClick={() => navigate("/owner/properties")}>
-            Về trang Quản lý
+            {t("owner:Step6_Status.backToManagement")}
           </Button>
         </>
       )}

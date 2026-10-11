@@ -2,12 +2,14 @@ import React from "react";
 import Card from "@/components/common/Card/Card";
 import Button from "@/components/common/Button/Button";
 import { MapPin, BedDouble } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 /**
  * Card nằm ngang, hiển thị tóm tắt 1 cơ sở
  * và 1 nút để xem danh sách phòng của cơ sở đó.
  */
 export default function PropertyRowCard({ property, onViewRoomsClick }) {
+  const { t } = useTranslation();
   const { id, name, location, imageUrl, roomCount } = property;
 
   return (
@@ -41,7 +43,7 @@ export default function PropertyRowCard({ property, onViewRoomsClick }) {
              <div className="flex items-center gap-1.5 text-sm text-gray-500 mt-1">
               <BedDouble size={16} />
               {/* Giả sử bạn có thông tin này, nếu không có thể ẩn đi */}
-              <span className="truncate">Hiện có {roomCount || 0} phòng</span>
+              <span className="truncate">{t("owner:PropertyRowCard.currently")} {roomCount || 0} {t("owner:PropertyRowCard.rooms")}</span>
             </div>
           </div>
           
@@ -53,7 +55,7 @@ export default function PropertyRowCard({ property, onViewRoomsClick }) {
               onClick={() => onViewRoomsClick(id)}
               className="w-full sm:w-auto" // full-width trên mobile
             >
-              Xem các phòng hiện tại
+              {t("owner:PropertyRowCard.viewCurrentRooms")}
             </Button>
           </div>
         </div>

@@ -6,8 +6,10 @@ import PasswordField from '@/components/common/Input/PasswordField';
 import ModalPortal from './ModalPortal';
 import { useAuth } from '@/context/AuthContext';
 import { authService } from '@/services/auth.service';
+import { useTranslation } from "react-i18next";
 
 const CreatePasswordModal = ({ open, onClose, onSuccess }) => {
+  const { t } = useTranslation();
   const { currentUser, updateUser } = useAuth();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -47,11 +49,11 @@ const CreatePasswordModal = ({ open, onClose, onSuccess }) => {
 
     // ✅ KIỂM TRA TRƯỚC KHI GỬI
     if (!isPasswordValid) {
-      setError("Mật khẩu chưa đủ mạnh.");
+      setError(t("createPassword.weak"));
       return;
     }
     if (password !== confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp.");
+      setError(t("passwordMismatch"));
       return;
     }
 
@@ -62,7 +64,7 @@ const CreatePasswordModal = ({ open, onClose, onSuccess }) => {
       onSuccess();
       onClose();
     } catch (err) {
-      setError(err.message || "Có lỗi xảy ra.");
+      setError(err.message || t("createPassword.error"));
     } finally {
       setLoading(false);
     }
@@ -92,7 +94,7 @@ const CreatePasswordModal = ({ open, onClose, onSuccess }) => {
             className="bg-white rounded-2xl w-[90%] max-w-md shadow-xl overflow-hidden"
           >
             <div className="flex justify-between items-center p-5 border-b">
-              <h3 className="text-xl font-bold text-gray-800">Tạo mật khẩu</h3>
+              <h3 className="text-xl font-bold text-gray-800">{t("createPassword.title")}</h3>
               <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
                 <X size={24} />
               </button>
@@ -102,7 +104,7 @@ const CreatePasswordModal = ({ open, onClose, onSuccess }) => {
               <div className="bg-blue-50 p-4 rounded-lg flex items-start gap-3">
                 <Mail className="text-blue-500 mt-0.5 flex-shrink-0" size={20} />
                 <div className="overflow-hidden">
-                  <p className="text-sm text-blue-800 font-medium">Email đăng nhập</p>
+                  <p className="text-sm text-blue-800 font-medium">{t("createPassword.loginEmail")}</p>
                   <p className="text-sm text-gray-600 truncate" title={currentUser?.email}>
                     {currentUser?.email}
                   </p>
@@ -112,27 +114,27 @@ const CreatePasswordModal = ({ open, onClose, onSuccess }) => {
               <div className="space-y-4">
                 <div>
                     <PasswordField 
-                    label="Mật khẩu mới"
+                    label={t("createPassword.newPassword")}
                     value={password}
                     onChange={handlePasswordChange} // ✅ Gọi hàm check mới
-                    placeholder="Nhập mật khẩu..."
+                    placeholder={t("createPassword.placeholder")}
                     />
                     
                     {/* ✅ HIỂN THỊ CHECKLIST */}
                     <div className="mt-3 grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                        <ValidationItem fulfilled={validations.length} text="Tối thiểu 8 ký tự" />
-                        <ValidationItem fulfilled={validations.upper} text="Chữ in hoa (A-Z)" />
-                        <ValidationItem fulfilled={validations.lower} text="Chữ thường (a-z)" />
-                        <ValidationItem fulfilled={validations.number} text="Số (0-9)" />
-                        <ValidationItem fulfilled={validations.special} text="Ký tự đặc biệt (!@#...)" />
+                        <ValidationItem fulfilled={validations.length} text={t("createPassword.rules.length")} />
+                        <ValidationItem fulfilled={validations.upper} text={t("createPassword.rules.upper")} />
+                        <ValidationItem fulfilled={validations.lower} text={t("createPassword.rules.lower")} />
+                        <ValidationItem fulfilled={validations.number} text={t("createPassword.rules.number")} />
+                        <ValidationItem fulfilled={validations.special} text={t("createPassword.rules.special")} />
                     </div>
                 </div>
                 
                 <PasswordField 
-                  label="Xác nhận mật khẩu"
+                  label={t("confirmPassword")}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Nhập lại mật khẩu..."
+                  placeholder={t("createPassword.confirmPlaceholder")}
                 />
               </div>
 
@@ -144,7 +146,7 @@ const CreatePasswordModal = ({ open, onClose, onSuccess }) => {
 
               <div className="flex justify-end gap-3 mt-4">
                 <Button type="button" variant="outline" onClick={onClose}>
-                  Hủy bỏ
+                  {t("actions.cancelLong")}
                 </Button>
                 <Button 
                     type="submit" 
@@ -152,7 +154,7 @@ const CreatePasswordModal = ({ open, onClose, onSuccess }) => {
                     leftIcon={<Lock size={16}/>}
                     disabled={!isPasswordValid || !confirmPassword} // ✅ Disable nếu chưa đủ mạnh
                 >
-                  Tạo mật khẩu
+                  {t("createPassword.title")}
                 </Button>
               </div>
             </form>

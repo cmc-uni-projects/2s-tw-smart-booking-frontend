@@ -1,4 +1,5 @@
 import axios from "axios";
+import i18n from "@/i18n";
 
 // Lấy URL từ biến môi trường hoặc fallback về localhost
 const API_URL =
@@ -23,6 +24,9 @@ api.interceptors.request.use(
         if (token) {
             config.headers["Authorization"] = `Bearer ${token}`;
         }
+
+        // Let the backend know the UI language (not used by the API yet)
+        config.headers["Accept-Language"] = i18n.language || "vi";
 
         return config;
     },
@@ -83,22 +87,16 @@ api.interceptors.response.use(
             const errorMessage =
                 response.data?.message || response.data?.error || "";
 
-            const isAccountLocked = [
-                "khóa",
-                "lock",
-                "ban",
-                "disabled",
-                "inactive",
-            ].some((keyword) =>
-                errorMessage.toLowerCase().includes(keyword)
-            );
+            // Backend sends a stable code next to the translated message
+            const code = response.data?.code;
+            const isAccountLocked = code === "auth.lockedOrSuspended" || code === "auth.locked";
 
             if (isAccountLocked) {
                 window.dispatchEvent(
                     new CustomEvent("auth:account-locked", {
                         detail:
                             errorMessage ||
-                            "Tài khoản của bạn đã bị khóa.",
+                            i18n.t("auth:login.errors.lockedMsg"),
                     })
                 );
             }

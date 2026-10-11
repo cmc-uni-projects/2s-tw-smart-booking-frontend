@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ChevronDown, HelpCircle, Phone, Menu } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useAuth } from "../../context/AuthContext";
 import { userService } from "../../services/user.service";
@@ -10,10 +11,12 @@ import ConfirmModal from "../../components/common/Modal/ConfirmModal";
 import Avatar from "../../components/common/Avatar/Avatar";
 import CustomerProfileDropdown from "./CustomerProfileDropdown";
 import CustomerNotificationDropdown from "./CustomerNotificationDropdown";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation("layout");
   const { currentUser, logout, hasRole, updateUser } = useAuth();
 
   const [supportOpen, setSupportOpen] = useState(false);
@@ -90,10 +93,10 @@ const Header = () => {
   };
 
   const getPartnerNavigation = () => {
-    if (!currentUser) return { label: "Hợp tác với chúng tôi", path: "/partner-with-us" };
-    if (hasRole("ADMIN")) return { label: "Trang quản trị", path: "/admin" };
-    if (hasRole("OWNER")) return { label: "Trang quản lý", path: "/owner" };
-    return { label: "Hợp tác với chúng tôi", path: "/partner-with-us" };
+    if (!currentUser) return { label: t("nav.partnerWithUs"), path: "/partner-with-us" };
+    if (hasRole("ADMIN")) return { label: t("nav.adminPortal"), path: "/admin" };
+    if (hasRole("OWNER")) return { label: t("nav.ownerPortal"), path: "/owner" };
+    return { label: t("nav.partnerWithUs"), path: "/partner-with-us" };
   };
 
   const handleAccessOwnerChannel = () => {
@@ -159,13 +162,13 @@ const Header = () => {
               to="/"
               className={`text-[15px] font-bold tracking-wide transition-colors ${headerStyles.text} ${location.pathname === '/' ? 'opacity-100' : 'opacity-90'}`}
             >
-              Trang chủ
+              {t("nav.home")}
             </Link>
             <Link
               to="/promotions"
               className={`text-[15px] font-bold tracking-wide transition-colors ${headerStyles.text} ${location.pathname === '/promotions' ? 'opacity-100' : 'opacity-90'}`}
             >
-              Khuyến mãi
+              {t("nav.promotions")}
             </Link>
 
             <div className="relative" ref={supportRef}>
@@ -173,7 +176,7 @@ const Header = () => {
                 onClick={() => setSupportOpen(!supportOpen)}
                 className={`flex items-center gap-1.5 text-[15px] font-bold tracking-wide transition-colors ${headerStyles.text} opacity-90 hover:opacity-100`}
               >
-                Hỗ trợ <ChevronDown size={14} strokeWidth={3} className={`transition-transform duration-300 ${supportOpen ? "rotate-180" : ""}`} />
+                {t("nav.support")} <ChevronDown size={14} strokeWidth={3} className={`transition-transform duration-300 ${supportOpen ? "rotate-180" : ""}`} />
               </button>
 
               {/* Support Dropdown */}
@@ -184,14 +187,14 @@ const Header = () => {
                     className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50/50 rounded-lg transition-all"
                     onClick={() => setSupportOpen(false)}
                   >
-                    <HelpCircle size={18} /> Trung tâm trợ giúp
+                    <HelpCircle size={18} /> {t("nav.helpCenter")}
                   </Link>
                   <Link
                     to="/about#contact"
                     className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50/50 rounded-lg transition-all"
                     onClick={() => setSupportOpen(false)}
                   >
-                    <Phone size={18} /> Liên hệ hỗ trợ
+                    <Phone size={18} /> {t("nav.contactSupport")}
                   </Link>
                 </div>
               )}
@@ -200,6 +203,10 @@ const Header = () => {
 
           {/* 3. RIGHT SIDE ACTIONS */}
           <div className="flex items-center gap-3 md:gap-5">
+
+            <div className="hidden lg:block">
+              <LanguageSwitcher className={`${headerStyles.text} opacity-90 hover:opacity-100`} />
+            </div>
 
             {/* Partner Button */}
             <div className="hidden lg:block">
@@ -217,18 +224,17 @@ const Header = () => {
                 <div className={`h-6 w-[1px] mx-1 hidden lg:block ${isTransparent ? "bg-white/30" : "bg-slate-200"}`}></div>
 
                 <Button
-                  variant="ghost"
                   onClick={() => navigate("/register")}
-                  className={`hidden lg:flex text-sm font-bold transition-all ${isTransparent ? "text-white hover:bg-white/10" : "text-slate-600 hover:bg-slate-50"}`}
+                  className="min-w-[6.75rem] md:min-w-[7.75rem] justify-center whitespace-nowrap bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/20 px-3 md:px-6 py-2 md:py-2.5 rounded-full font-bold text-sm transition-all hover:scale-105 active:scale-95 border-none"
                 >
-                  Đăng ký
+                  {t("auth.register")}
                 </Button>
 
                 <Button
                   onClick={() => navigate("/login")}
-                  className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/20 px-6 py-2.5 rounded-full font-bold text-sm transition-all hover:scale-105 active:scale-95 border-none"
+                  className="min-w-[6.75rem] md:min-w-[7.75rem] justify-center whitespace-nowrap bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/20 px-3 md:px-6 py-2 md:py-2.5 rounded-full font-bold text-sm transition-all hover:scale-105 active:scale-95 border-none"
                 >
-                  Đăng nhập
+                  {t("auth.login")}
                 </Button>
               </div>
             ) : (
@@ -285,11 +291,11 @@ const Header = () => {
         open={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
         onConfirm={handleConfirmLogout}
-        title="Đăng xuất"
-        message="Bạn có chắc chắn muốn đăng xuất?"
+        title={t("auth.logout")}
+        message={t("auth.logoutConfirm")}
         type="danger"
-        confirmText="Đăng xuất"
-        cancelText="Hủy"
+        confirmText={t("auth.logout")}
+        cancelText={t("common:actions.cancel")}
       />
     </>
   );

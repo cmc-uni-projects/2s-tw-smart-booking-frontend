@@ -7,12 +7,14 @@ import { authService } from "../../services/auth.service";
 
 import Toast from "../../components/common/Notification/Toast";
 import ToastPortal from "../../components/common/Notification/ToastPortal";
+import { useTranslation } from "react-i18next";
 
 // Ảnh nền (Tone xanh thiên nhiên, hy vọng)
 const BG_URL = "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation("auth");
 
   // Form State
   const [email, setEmail] = useState("");
@@ -36,12 +38,12 @@ const ForgotPassword = () => {
 
     // Validate
     if (!email.trim()) {
-      setError("Vui lòng nhập địa chỉ email.");
+      setError(t("forgot.errors.required"));
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError("Địa chỉ email không đúng định dạng.");
+      setError(t("forgot.errors.invalid"));
       return;
     }
 
@@ -51,7 +53,7 @@ const ForgotPassword = () => {
       // Thành công -> Chuyển sang giao diện Success
       setIsSuccess(true);
     } catch (err) {
-      const msg = err.response?.data?.message || "Không tìm thấy tài khoản với email này.";
+      const msg = err.response?.data?.message || t("forgot.errors.notFound");
       setError(msg);
       showToastOnce(msg, "error");
     } finally {
@@ -76,7 +78,7 @@ const ForgotPassword = () => {
         className="absolute top-6 left-6 z-30 flex items-center gap-2 text-white/90 hover:text-white px-4 py-2 rounded-full bg-white/10 border border-white/20 shadow-lg hover:bg-white/20 transition-all group backdrop-blur-md"
       >
         <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-        <span className="text-sm font-bold">Quay lại</span>
+        <span className="text-sm font-bold">{t("common:actions.back")}</span>
       </button>
 
       {/* 3. MAIN CARD */}
@@ -100,12 +102,12 @@ const ForgotPassword = () => {
              </div>
              
              <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2">
-                {isSuccess ? "Đã gửi yêu cầu!" : "Quên mật khẩu?"}
+                {isSuccess ? t("forgot.sentTitle") : t("forgot.title")}
              </h2>
              
              {!isSuccess && (
                  <p className="text-slate-500 font-medium leading-relaxed">
-                    Đừng lo lắng. Hãy nhập email của bạn và chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu.
+                    {t("forgot.intro")}
                  </p>
              )}
           </div>
@@ -115,20 +117,20 @@ const ForgotPassword = () => {
              <div className="text-center animate-fade-in-up">
                 <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100 mb-8">
                     <p className="text-slate-700 text-sm leading-relaxed">
-                        Chúng tôi đã gửi một liên kết đặt lại mật khẩu đến: <br/>
+                        {t("forgot.sentTo")} <br/>
                         <span className="font-bold text-emerald-700 block mt-1 text-base">{email}</span>
                     </p>
                 </div>
                 
                 <p className="text-xs text-slate-400 mb-6">
-                    Không nhận được email? Hãy kiểm tra mục Spam hoặc thử lại sau 5 phút.
+                    {t("forgot.noEmail")}
                 </p>
 
                 <button 
                     onClick={() => navigate("/login")}
                     className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-lg shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                 >
-                    Quay lại đăng nhập <ArrowRight size={18} />
+                    {t("backToLogin")} <ArrowRight size={18} />
                 </button>
              </div>
           ) : (
@@ -156,7 +158,7 @@ const ForgotPassword = () => {
                         className={`w-full pl-14 pr-4 py-4 bg-slate-50 border-2 rounded-2xl outline-none font-semibold text-slate-800 transition-all duration-300
                             ${focusedField === 'email' ? 'border-cyan-500 bg-white shadow-lg shadow-cyan-500/10' : 'border-slate-100 hover:border-slate-300'}
                         `}
-                        placeholder="Nhập địa chỉ email của bạn"
+                        placeholder={t("forgot.placeholder")}
                         autoFocus
                     />
                 </div>
@@ -167,9 +169,9 @@ const ForgotPassword = () => {
                     className="w-full py-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white rounded-2xl font-black text-lg shadow-xl shadow-cyan-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                 >
                     {loading ? (
-                        <> <Loader2 className="animate-spin" /> Đang xử lý... </>
+                        <> <Loader2 className="animate-spin" /> {t("common:processing")} </>
                     ) : (
-                        "Gửi liên kết xác nhận"
+                        t("forgot.submit")
                     )}
                 </button>
              </form>

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import CustomSelect from "@/components/common/Select/CustomSelect";
+import { useTranslation } from "react-i18next";
 
 const VN_API_BASE = "https://provinces.open-api.vn/api/";
 const getMapboxAccessToken = () => import.meta.env.VITE_MAPBOX_TOKEN;
@@ -9,10 +10,11 @@ const getMapboxAccessToken = () => import.meta.env.VITE_MAPBOX_TOKEN;
 // Hàm chuẩn hóa tên
 const normalizeName = (str) => {
   if (!str) return "";
-  return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/(tỉnh|thành phố|quận|huyện|thị xã|phường|xã|thị trấn)/g, "").replace(/[^a-z0-9]/g, "").trim();
+  return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/(tỉnh|thành phố|quận|huyện|thị xã|phường|xã|thị trấn)/g, "").replace(/[^a-z0-9]/g, "").trim(); // i18n-ignore (normalises Vietnamese place names)
 };
 
 export default function AdminSelectorsWithApi({ watch, setValue, errors, mapRef, markerRef, mapboxData }) {
+  const { t } = useTranslation();
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
@@ -23,39 +25,39 @@ export default function AdminSelectorsWithApi({ watch, setValue, errors, mapRef,
   const wardName = watch("ward");
 
   // Debug: Báo khi component được mount
-  useEffect(() => { console.log("Component AdminSelectorsWithApi đã Mount"); }, []);
+  useEffect(() => { console.log("Component AdminSelectorsWithApi mounted"); }, []);
 
   // 1. Load Tỉnh
   useEffect(() => {
-    console.log("🚀 Bắt đầu tải danh sách Tỉnh...");
+    console.log("🚀 Loading provinces...");
     axios.get(`${VN_API_BASE}p/`)
       .then(res => {
-        console.log(`✅ Đã tải ${res.data.length} tỉnh/thành.`);
+        console.log(`✅ Loaded ${res.data.length} provinces/cities.`);
         setProvinces(res.data.map(p => ({ value: p.code, label: p.name })));
       })
-      .catch(err => console.error("🔥 Lỗi tải tỉnh:", err));
+      .catch(err => console.error("🔥 Failed to load provinces:", err));
   }, []);
 
   // 2. LOGIC ĐỒNG BỘ TỪ MAPBOX
   useEffect(() => {
     // Log kiểm tra đầu vào
     if (!mapboxData) return; 
-    console.log("📩 AdminSelectors nhận được MapboxData:", mapboxData);
+    console.log("📩 AdminSelectors received MapboxData:", mapboxData);
 
     if (provinces.length === 0) {
-        console.warn("⏳ Chờ danh sách Tỉnh tải xong...");
+        console.warn("⏳ Waiting for provinces to load...");
         return;
     }
 
     const { province: mProvince, district: mDistrict, ward: mWard } = mapboxData;
     
     if (!mProvince) {
-        console.warn("⚠️ Mapbox không trả về tên Tỉnh (Region). Dữ liệu nhận được:", mapboxData);
+        console.warn("⚠️ Mapbox did not return a province (region) name. Data received:", mapboxData);
         return;
     }
 
     const syncLogic = async () => {
-      console.log("🔄 Bắt đầu đồng bộ vị trí...");
+      console.log("🔄 Syncing location...");
       setIsSyncing(true);
       try {
         // Match Tỉnh
@@ -63,16 +65,16 @@ export default function AdminSelectorsWithApi({ watch, setValue, errors, mapRef,
         const foundProvince = provinces.find(p => normalizeName(p.label).includes(normProvince) || normProvince.includes(normalizeName(p.label)));
         
         if (!foundProvince) {
-             console.error(`❌ Không tìm thấy tỉnh nào khớp với "${mProvince}" (Norm: ${normProvince})`);
+             console.error(`❌ No province matches "${mProvince}" (Norm: ${normProvince})`);
              setIsSyncing(false);
              return;
         }
-        console.log("📍 Đã chọn Tỉnh:", foundProvince.label);
+        console.log("📍 Province selected:", foundProvince.label);
         setValue("provinceCode", foundProvince.value);
         setValue("province", foundProvince.label, { shouldValidate: true });
 
         // Load Huyện
-        console.log(`⬇️ Đang tải huyện cho tỉnh ${foundProvince.label} (Code: ${foundProvince.value})...`);
+        console.log(`⬇️ Loading districts for province ${foundProvince.label} (Code: ${foundProvince.value})...`);
         const resD = await axios.get(`${VN_API_BASE}p/${foundProvince.value}?depth=2`);
         const dOptions = resD.data.districts.map(d => ({ value: d.code, label: d.name }));
         setDistricts(dOptions);
@@ -83,12 +85,12 @@ export default function AdminSelectorsWithApi({ watch, setValue, errors, mapRef,
             const foundDistrict = dOptions.find(d => normalizeName(d.label).includes(normDistrict) || normDistrict.includes(normalizeName(d.label)));
             
             if (foundDistrict) {
-                console.log("📍 Đã chọn Huyện:", foundDistrict.label);
+                console.log("📍 District selected:", foundDistrict.label);
                 setValue("districtCode", foundDistrict.value);
                 setValue("city", foundDistrict.label, { shouldValidate: true });
 
                 // Load Xã
-                console.log(`⬇️ Đang tải xã cho huyện ${foundDistrict.label}...`);
+                console.log(`⬇️ Loading wards for district ${foundDistrict.label}...`);
                 const resW = await axios.get(`${VN_API_BASE}d/${foundDistrict.value}?depth=2`);
                 const wOptions = resW.data.wards.map(w => ({ value: w.name, label: w.name }));
                 setWards(wOptions);
@@ -98,22 +100,22 @@ export default function AdminSelectorsWithApi({ watch, setValue, errors, mapRef,
                     const normWard = normalizeName(mWard);
                     const foundWard = wOptions.find(w => normalizeName(w.label).includes(normWard) || normWard.includes(normalizeName(w.label)));
                     if (foundWard) {
-                        console.log("📍 Đã chọn Xã:", foundWard.label);
+                        console.log("📍 Ward selected:", foundWard.label);
                         setValue("ward", foundWard.label, { shouldValidate: true });
                     } else {
-                        console.warn(`⚠️ Không khớp xã "${mWard}", điền tạm.`);
+                        console.warn(`⚠️ No ward matches "${mWard}", filling in temporarily.`);
                         setValue("ward", mWard, { shouldValidate: true });
                     }
                 }
             } else {
-                console.warn(`❌ Không tìm thấy huyện nào khớp với "${mDistrict}"`);
+                console.warn(`❌ No district matches "${mDistrict}"`);
             }
         }
       } catch (err) { 
-        console.error("🔥 Lỗi trong quá trình đồng bộ:", err); 
+        console.error("🔥 Error while syncing:", err); 
       } finally { 
         setIsSyncing(false); 
-        console.log("🏁 Kết thúc đồng bộ.");
+        console.log("🏁 Sync finished.");
       }
     };
     syncLogic();
@@ -143,7 +145,7 @@ export default function AdminSelectorsWithApi({ watch, setValue, errors, mapRef,
          const res = await axios.get(`${VN_API_BASE}p/${code}?depth=2`);
          setDistricts(res.data.districts.map(d=>({value:d.code, label:d.name})));
       } catch(e){}
-      if(p) geocodeManual(`${p.label}, Việt Nam`);
+      if(p) geocodeManual(t("owner:AdminSelectorsWithApi.vietnam", { label: p.label }));
   };
 
   const handleDistrictChange = async (code) => {
@@ -154,7 +156,7 @@ export default function AdminSelectorsWithApi({ watch, setValue, errors, mapRef,
          const res = await axios.get(`${VN_API_BASE}d/${code}?depth=2`);
          setWards(res.data.wards.map(w=>({value:w.name, label:w.name})));
       } catch(e){}
-      if(d) geocodeManual(`${d.label}, ${watch("province")}, Việt Nam`);
+      if(d) geocodeManual(t("owner:AdminSelectorsWithApi.vietnam2", { label: d.label, value: watch("province") }));
   };
 
   return (
@@ -162,13 +164,13 @@ export default function AdminSelectorsWithApi({ watch, setValue, errors, mapRef,
       {isSyncing && (
         <div className="absolute inset-0 z-50 bg-white/80 flex items-center justify-center rounded-lg border border-blue-200 backdrop-blur-[2px]">
           <span className="text-sm font-medium text-blue-500 flex gap-2 items-center">
-            <span className="animate-spin text-xl">⟳</span> Đang đồng bộ vị trí...
+            <span className="animate-spin text-xl">⟳</span> {t("owner:AdminSelectorsWithApi.syncingLocation")}
           </span>
         </div>
       )}
-      <CustomSelect label="Tỉnh / Thành phố" options={provinces} value={provinceCode || ""} onChange={handleProvinceChange} error={errors.province?.message} disabled={isSyncing} placeholder="Chọn Tỉnh/Thành phố" />
-      <CustomSelect label="Quận / Huyện" options={districts} value={districtCode || ""} onChange={handleDistrictChange} error={errors.city?.message} disabled={!provinceCode || isSyncing} placeholder="Chọn Quận/Huyện" />
-      <CustomSelect label="Phường / Xã" options={wards} value={wardName || ""} onChange={(val)=>setValue("ward", val, {shouldValidate:true})} error={errors.ward?.message} disabled={!districtCode || isSyncing} placeholder="Chọn Phường/Xã" />
+      <CustomSelect label={t("owner:AdminSelectorsWithApi.provinceCity")} options={provinces} value={provinceCode || ""} onChange={handleProvinceChange} error={errors.province?.message} disabled={isSyncing} placeholder={t("owner:AdminSelectorsWithApi.chooseAProvinceCity")} />
+      <CustomSelect label={t("owner:AdminSelectorsWithApi.district")} options={districts} value={districtCode || ""} onChange={handleDistrictChange} error={errors.city?.message} disabled={!provinceCode || isSyncing} placeholder={t("owner:AdminSelectorsWithApi.chooseADistrict")} />
+      <CustomSelect label={t("owner:AdminSelectorsWithApi.wardCommune")} options={wards} value={wardName || ""} onChange={(val)=>setValue("ward", val, {shouldValidate:true})} error={errors.ward?.message} disabled={!districtCode || isSyncing} placeholder={t("owner:AdminSelectorsWithApi.chooseAWardCommune")} />
     </div>
   );
 }

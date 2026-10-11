@@ -2,12 +2,13 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2, Clock, XCircle, Layers } from "lucide-react";
+import i18n from "@/i18n";
 
 const STATUS_OPTIONS = [
-  { id: "ALL", label: "Tất cả", icon: Layers, color: "text-gray-600", bg: "bg-gray-100" },
-  { id: "PENDING", label: "Chờ duyệt", icon: Clock, color: "text-yellow-600", bg: "bg-yellow-50" },
-  { id: "APPROVED", label: "Đã duyệt", icon: CheckCircle2, color: "text-green-600", bg: "bg-green-50" },
-  { id: "REJECTED", label: "Từ chối", icon: XCircle, color: "text-red-600", bg: "bg-red-50" },
+  { id: "ALL", get label() { return i18n.t("admin:SubmissionStatusFilter.all"); }, icon: Layers, color: "text-gray-600", bg: "bg-gray-100" },
+  { id: "PENDING", get label() { return i18n.t("admin:SubmissionStatusFilter.pending"); }, icon: Clock, color: "text-yellow-600", bg: "bg-yellow-50" },
+  { id: "APPROVED", get label() { return i18n.t("admin:SubmissionStatusFilter.approved"); }, icon: CheckCircle2, color: "text-green-600", bg: "bg-green-50" },
+  { id: "REJECTED", get label() { return i18n.t("admin:SubmissionStatusFilter.rejected"); }, icon: XCircle, color: "text-red-600", bg: "bg-red-50" },
 ];
 
 const SubmissionStatusFilter = ({ currentStatus, onStatusChange }) => {

@@ -18,6 +18,7 @@ import Step4_Success from "./BecomeOwnerSteps/Step4_Success";
 import Button from "@/components/common/Button/Button";
 import { ArrowLeft, ArrowRight, Send } from "lucide-react";
 import LoadingOverlay from "@/components/common/Loading/LoadingOverlay";
+import { useTranslation } from "react-i18next";
 
 // Convert 'yyyy-mm-dd' → Date object
 const parseApiDate = (isoDate) => {
@@ -33,8 +34,8 @@ const parseApiDate = (isoDate) => {
 // File validation common
 const fileValidation = yup
     .mixed()
-    .test("required", "Vui lòng tải lên file", (value) => value && value.length > 0)
-    .test("fileType", "Chỉ chấp nhận JPG, PNG, WEBP", (value) => {
+    .test("required", "profile:owner.validation.fileRequired", (value) => value && value.length > 0)
+    .test("fileType", "profile:owner.validation.fileType", (value) => {
       if (!value || value.length === 0) return true;
       const file = value[0];
       return ["image/jpeg", "image/png", "image/webp"].includes(file.type);
@@ -43,16 +44,17 @@ const fileValidation = yup
 // =========================
 //     SCHEMAS CHUẨN
 // =========================
+// Error messages are i18n keys; the step components translate them with t()
 const schemas = [
   // STEP 1
   yup.object().shape({
-    personalFullName: yup.string().required("Họ tên là bắt buộc"),
-    personalEmail: yup.string().email("Email không hợp lệ").required("Email là bắt buộc"),
-    personalPhone: yup.string().required("Số điện thoại là bắt buộc"),
-    personalIdCard: yup.string().required("Số CCCD/Passport là bắt buộc"),
-    personalDob: yup.date().required("Ngày sinh là bắt buộc").typeError("Ngày sinh không hợp lệ"),
-    personalHometown: yup.string().required("Quê quán là bắt buộc"),
-    personalAddress: yup.string().required("Địa chỉ thường trú là bắt buộc"),
+    personalFullName: yup.string().required("profile:owner.validation.nameRequired"),
+    personalEmail: yup.string().email("profile:owner.validation.emailInvalid").required("profile:owner.validation.emailRequired"),
+    personalPhone: yup.string().required("profile:owner.validation.phoneRequired"),
+    personalIdCard: yup.string().required("profile:owner.validation.idRequired"),
+    personalDob: yup.date().required("profile:owner.validation.dobRequired").typeError("profile:owner.validation.dobInvalid"),
+    personalHometown: yup.string().required("profile:owner.validation.hometownRequired"),
+    personalAddress: yup.string().required("profile:owner.validation.addressRequired"),
 
     // 🔥 FIELD FILE MỚI KHỚP BE
     cardFrontImage: fileValidation,
@@ -63,8 +65,8 @@ const schemas = [
   yup.object().shape({
     businessLicenseNumber: yup
         .string()
-        .required("Mã số ĐKKD là bắt buộc")
-        .min(5, "Mã số ĐKKD phải có ít nhất 5 ký tự"),
+        .required("profile:owner.validation.licenseRequired")
+        .min(5, "profile:owner.validation.licenseMin"),
 
     // 🔥 FIELD FILE MỚI
     businessLicenseImage: fileValidation,
@@ -75,6 +77,7 @@ const schemas = [
 ];
 
 export default function BecomeOwnerPage() {
+  const { t } = useTranslation(["profile", "common"]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -116,7 +119,7 @@ export default function BecomeOwnerPage() {
 
         setProfileData(user);
       } catch (e) {
-        console.error("Lỗi tải profile:", e);
+        console.error("Failed to load profile:", e);
       } finally {
         setIsDataLoading(false);
       }
@@ -126,10 +129,10 @@ export default function BecomeOwnerPage() {
   }, [setValue]);
 
   const steps = [
-    { name: "Thông tin cá nhân" },
-    { name: "Thông tin kinh doanh" },
-    { name: "Kiểm tra" },
-    { name: "Hoàn tất" },
+    { name: t("owner.steps.personal") },
+    { name: t("owner.steps.business") },
+    { name: t("owner.steps.review") },
+    { name: t("owner.steps.done") },
   ];
 
   const handleNext = async () => {
@@ -179,8 +182,8 @@ export default function BecomeOwnerPage() {
       await ownerService.submitApplication(formData);
 
     } catch (err) {
-      console.error("❌ Lỗi gửi đơn:", err);
-      setError(err.message ?? "Lỗi hệ thống. Vui lòng thử lại.");
+      console.error("Owner application failed:", err);
+      setError(err.message ?? t("owner.submitError"));
     } finally {
       setIsLoading(false);
       setCurrentStep(3);
@@ -210,7 +213,7 @@ export default function BecomeOwnerPage() {
       <CustomerLayout>
         {(isLoading || isDataLoading) && (
             <LoadingOverlay
-                message={isLoading ? "Đang gửi đơn..." : "Đang tải dữ liệu..."}
+                message={isLoading ? t("owner.submitting") : t("common:loadingData")}
             />
         )}
 
@@ -230,7 +233,7 @@ export default function BecomeOwnerPage() {
                         onClick={handleBack}
                         leftIcon={<ArrowLeft size={18} />}
                     >
-                      {currentStep === 0 ? "Quay về trang chủ" : "Quay lại"}
+                      {currentStep === 0 ? t("owner.backHome") : t("common:actions.back")}
                     </Button>
 
                     {currentStep < 2 ? (
@@ -240,7 +243,7 @@ export default function BecomeOwnerPage() {
                             rightIcon={<ArrowRight size={18} />}
                             disabled={isDataLoading}
                         >
-                          Tiếp theo
+                          {t("owner.next")}
                         </Button>
                     ) : (
                         <Button
@@ -248,7 +251,7 @@ export default function BecomeOwnerPage() {
                             leftIcon={<Send size={18} />}
                             onClick={handleSubmit(onFinalSubmit)}
                         >
-                          Gửi đơn đăng ký
+                          {t("owner.submit")}
                         </Button>
                     )}
                   </div>

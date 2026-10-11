@@ -5,6 +5,7 @@ import { XCircle } from "lucide-react";
 import Button from "@/components/common/Button/Button";
 import ModalPortal from "@/components/common/Modal/ModalPortal";
 import TextArea from "@/components/common/Input/TextArea";
+import { useTranslation } from "react-i18next";
 
 export default function RejectHotelModal({
   open,
@@ -12,6 +13,7 @@ export default function RejectHotelModal({
   onConfirm,
   application,
 }) {
+  const { t } = useTranslation();
   const [reason, setReason] = useState("");
   const [error, setError] = useState(false);
 
@@ -49,11 +51,11 @@ export default function RejectHotelModal({
                 <XCircle size={32} className="text-red-500" />
 
                 <h3 className="text-lg font-semibold text-gray-800">
-                  Từ chối cơ sở
+                  {t("admin:RejectHotelModal.rejectProperty")}
                 </h3>
 
                 <p className="text-gray-500 text-sm">
-                  Bạn sắp từ chối cơ sở{" "}
+                  {t("admin:RejectHotelModal.youAreAboutToReject")}{" "}
                   <span className="font-semibold text-gray-800">
                     {application?.hotelName}
                   </span>
@@ -64,22 +66,22 @@ export default function RejectHotelModal({
               {/* Input */}
               <div className="mt-4">
                 <TextArea
-                  label="Lý do từ chối"
-                  placeholder="Vui lòng nêu rõ lý do..."
+                  label={t("admin:RejectHotelModal.rejectionReason")}
+                  placeholder={t("admin:RejectHotelModal.pleaseStateTheReasonClearly")}
                   rows={4}
                   value={reason}
                   onChange={(e) => {
                     setReason(e.target.value);
                     if (error) setError(false);
                   }}
-                  error={error ? "Lý do từ chối không được để trống." : null}
+                  error={error ? t("admin:RejectHotelModal.theRejectionReasonCannotBe") : null}
                 />
               </div>
 
               {/* Buttons */}
               <div className="flex justify-end gap-3 mt-6">
                 <Button variant="ghost" onClick={onClose}>
-                  Hủy
+                  {t("admin:RejectHotelModal.cancel")}
                 </Button>
 
                 <Button
@@ -92,7 +94,7 @@ export default function RejectHotelModal({
                   disabled={!reason.trim()}
                   onClick={handleReject}
                 >
-                  Từ chối
+                  {t("admin:RejectHotelModal.rejected")}
                 </Button>
               </div>
             </motion.div>

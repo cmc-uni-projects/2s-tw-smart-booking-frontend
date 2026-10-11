@@ -3,6 +3,7 @@ import {
     ChevronLeft,
     ChevronRight
 } from "lucide-react";
+import { useTranslation, Trans } from "react-i18next";
 
 export default function Pagination({
                                        currentPage,
@@ -15,21 +16,19 @@ export default function Pagination({
                                        setJumpPage,
                                        onJumpPage
                                    }) {
+    const { t } = useTranslation();
     if (totalPages <= 1) return null;
 
     return (
         <div className="mt-auto border-t border-gray-100">
             <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between bg-gray-50/50 gap-4">
         <span className="text-sm text-gray-500">
-          Hiển thị{" "}
-            <span className="font-semibold text-gray-700">
-            {paginatedCount}
-          </span>{" "}
-            /{" "}
-            <span className="font-semibold text-gray-700">
-            {totalCount}
-          </span>{" "}
-            kết quả
+          <Trans
+              t={t}
+              i18nKey="pagination.showing"
+              values={{ shown: paginatedCount, total: totalCount }}
+              components={{ b: <span className="font-semibold text-gray-700" /> }}
+          />
         </span>
 
                 <div className="flex items-center gap-2">
@@ -72,7 +71,7 @@ export default function Pagination({
 
                     <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200">
             <span className="text-sm text-gray-500 whitespace-nowrap">
-              Đi đến:
+              {t("pagination.goTo")}
             </span>
                         <div className="relative">
                             <input

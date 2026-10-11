@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Modal from "@/components/common/Modal/Modal";
 import Button from "@/components/common/Button/Button";
+import { useTranslation } from "react-i18next";
 import {
     Tv, Wind, Droplet, Coffee, Wifi, Bath, Bed, Ban,
     CheckCircle, Loader2, Users
@@ -34,6 +35,7 @@ const getFullImageUrl = (path) => {
 
 // ============================
 const RoomDetailModal = ({ room: initialRoom, open, onClose }) => {
+    const { t } = useTranslation(["hotel", "common"]);
     const roomId = initialRoom?.id || initialRoom?.roomId;
 
     const [roomDetail, setRoomDetail] = useState(null);
@@ -77,10 +79,10 @@ const RoomDetailModal = ({ room: initialRoom, open, onClose }) => {
     // =============================
     if (loading) {
         return (
-            <Modal open={open} onClose={onClose} title="Đang tải thông tin..." maxWidth="max-w-5xl">
+            <Modal open={open} onClose={onClose} title={t("room.loadingTitle")} maxWidth="max-w-5xl">
                 <div className="flex flex-col justify-center items-center h-80">
                     <Loader2 className="animate-spin text-sky-500 mb-3" size={38} />
-                    <p className="text-gray-400">Vui lòng đợi giây lát...</p>
+                    <p className="text-gray-400">{t("common:pleaseWait")}</p>
                 </div>
             </Modal>
         );
@@ -136,7 +138,7 @@ const RoomDetailModal = ({ room: initialRoom, open, onClose }) => {
 
     const viewerImages = roomImages.map((url, idx) => ({
         url,
-        caption: `${roomDetail.roomName} - Ảnh ${idx + 1}`
+        caption: t("room.imageCaption", { name: roomDetail.roomName, index: idx + 1 })
     }));
 
     const fmt = (p) =>
@@ -144,7 +146,7 @@ const RoomDetailModal = ({ room: initialRoom, open, onClose }) => {
 
     return (
         <>
-            <Modal open={open} onClose={onClose} title="Chi tiết phòng nghỉ" maxWidth="max-w-5xl">
+            <Modal open={open} onClose={onClose} title={t("room.title")} maxWidth="max-w-5xl">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-3">
 
                     {/* LEFT IMAGES */}
@@ -182,7 +184,7 @@ const RoomDetailModal = ({ room: initialRoom, open, onClose }) => {
                         <h2 className="text-2xl font-bold mb-2">{roomDetail.roomName}</h2>
 
                         <p className="text-sm bg-gray-50 p-3 border rounded mb-4">
-                            {roomDetail.description || "Đang cập nhật mô tả..."}
+                            {roomDetail.description || t("room.descriptionPending")}
                         </p>
 
                         <div className="mb-4 bg-orange-50 border p-4 rounded-xl flex items-center gap-4">
@@ -190,16 +192,16 @@ const RoomDetailModal = ({ room: initialRoom, open, onClose }) => {
                                 <Users size={22} className="text-orange-500" />
                             </div>
                             <div>
-                                <p className="text-xs text-orange-600 uppercase font-bold">Sức chứa chuẩn</p>
-                                <p className="text-lg font-bold">{roomDetail.capacity} người lớn</p>
+                                <p className="text-xs text-orange-600 uppercase font-bold">{t("room.standardCapacity")}</p>
+                                <p className="text-lg font-bold">{t("room.adults", { count: roomDetail.capacity })}</p>
                             </div>
                         </div>
 
                         {/* amenities */}
-                        <h4 className="font-bold mb-2">Tiện nghi phòng</h4>
+                        <h4 className="font-bold mb-2">{t("room.amenities")}</h4>
                         <ul className="max-h-40 overflow-y-auto pr-2 space-y-1">
                             {(roomDetail.amenities || []).length === 0
-                                ? <li className="text-gray-400 italic text-sm">Đang cập nhật...</li>
+                                ? <li className="text-gray-400 italic text-sm">{t("common:updating")}</li>
                                 : roomDetail.amenities.map((am, i) => (
                                     <li key={i} className="flex items-center gap-2 text-sm">
                                         <CheckCircle size={14} className="text-green-500" />
@@ -211,15 +213,15 @@ const RoomDetailModal = ({ room: initialRoom, open, onClose }) => {
                         <div className="mt-6 border-t pt-4">
                             <div className="flex justify-between items-end mb-3">
                                 <div>
-                                    <p className="text-xs text-gray-500">Giá mỗi đêm từ</p>
+                                    <p className="text-xs text-gray-500">{t("room.pricePerNightFrom")}</p>
                                     <p className="line-through text-gray-400 text-sm">{fmt(roomDetail.pricePerNight * 1.2)}</p>
                                 </div>
                                 <p className="text-3xl font-bold text-sky-500">{fmt(roomDetail.pricePerNight)}</p>
                             </div>
 
                             <div className="flex gap-3">
-                                <Button variant="ghost" onClick={onClose}>Đóng</Button>
-                                <Button className="flex-1 py-3">Chọn phòng này</Button>
+                                <Button variant="ghost" onClick={onClose}>{t("common:actions.close")}</Button>
+                                <Button className="flex-1 py-3">{t("room.choose")}</Button>
                             </div>
                         </div>
                     </div>

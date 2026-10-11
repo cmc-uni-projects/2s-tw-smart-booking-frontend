@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, Filter, Trash2, Loader2 } from "lucide-react"; // Thêm icon Loader
+import { useTranslation } from "react-i18next";
 import { addDays, format } from "date-fns";
 
 import MapDestinationSearch from "./search-inputs/MapDestinationSearch";
@@ -13,6 +14,7 @@ const MapHeader = ({
   minRating, setMinRating, 
   priceRange, setPriceRange 
 }) => {
+  const { t } = useTranslation("search");
   
   // --- State ---
   const defaultDates = { startDate: new Date(), endDate: addDays(new Date(), 1) };
@@ -94,13 +96,13 @@ const MapHeader = ({
       <div className="flex items-center justify-center gap-2 pointer-events-auto overflow-x-auto no-scrollbar pb-2 px-4">
         {isFilterActive && (
             <button onClick={handleResetFilters} className="px-3 py-2 rounded-full text-xs font-bold bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-all flex items-center gap-1.5 shadow-sm">
-                <Trash2 size={12} /> Xóa lọc
+                <Trash2 size={12} /> {t("map.clearFilters")}
             </button>
         )}
 
-        <FilterChip label="4 sao trở lên" isActive={minRating === 4} onClick={() => setMinRating(minRating === 4 ? 0 : 4)} icon={<Filter size={13} />} />
-        <FilterChip label="Giá rẻ (<1tr)" isActive={priceRange === 'low'} onClick={() => setPriceRange(priceRange === 'low' ? 'all' : 'low')} />
-        <FilterChip label="Trung bình (1-3tr)" isActive={priceRange === 'mid'} onClick={() => setPriceRange(priceRange === 'mid' ? 'all' : 'mid')} />
+        <FilterChip label={t("map.fourStars")} isActive={minRating === 4} onClick={() => setMinRating(minRating === 4 ? 0 : 4)} icon={<Filter size={13} />} />
+        <FilterChip label={t("map.cheap")} isActive={priceRange === 'low'} onClick={() => setPriceRange(priceRange === 'low' ? 'all' : 'low')} />
+        <FilterChip label={t("map.mid")} isActive={priceRange === 'mid'} onClick={() => setPriceRange(priceRange === 'mid' ? 'all' : 'mid')} />
       </div>
     </div>
   );

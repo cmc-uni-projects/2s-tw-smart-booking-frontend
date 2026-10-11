@@ -3,20 +3,22 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Home, User, History, Heart, Settings, LogOut, Receipt, DollarSign } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { t } = useTranslation("layout");
 
   // ĐỊNH NGHĨA MENU CẤP 1 MỚI THEO YÊU CẦU
 
 const menuItems = [
-    { name: "Hồ sơ cá nhân", icon: User, path: "/customer/profile" }, // ✅ icon User
-    { name: "Lịch sử đặt phòng", icon: History, path: "/customer/bookings" },
-    { name: "Lịch sử giao dịch", icon: Receipt, path: "/customer/transactions" },
-    { name: "Refunds", icon: DollarSign, path: "/customer/refunds" },
-    { name: "Yêu thích", icon: Heart, path: "/customer/wishlist" },
-    { name: "Cài đặt", icon: Settings, path: "/customer/settings" }, // ✅ icon Settings
+    { name: t("sidebar.profile"), icon: User, path: "/customer/profile" }, // ✅ icon User
+    { name: t("sidebar.bookings"), icon: History, path: "/customer/bookings" },
+    { name: t("sidebar.transactions"), icon: Receipt, path: "/customer/transactions" },
+    { name: t("sidebar.refunds"), icon: DollarSign, path: "/customer/refunds" },
+    { name: t("sidebar.wishlist"), icon: Heart, path: "/customer/wishlist" },
+    { name: t("sidebar.settings"), icon: Settings, path: "/customer/settings" }, // ✅ icon Settings
 ];
 
 
@@ -77,7 +79,7 @@ const menuItems = [
         <div className="p-4 border-t border-gray-100">
           <button className="flex items-center gap-3 text-sm text-red-500 hover:text-red-600">
             <LogOut size={20} />
-            {!collapsed && <span>Đăng xuất</span>}
+            {!collapsed && <span>{t("auth.logout")}</span>}
           </button>
         </div>
       </aside>

@@ -1,23 +1,25 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, UserCog } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import Modal from '@/components/common/Modal/Modal'; // Giả sử bạn có Modal base
 import Button from '@/components/common/Button/Button';
 
 const MissingProfileModal = ({ isOpen, onClose, missingFields }) => {
+    const { t } = useTranslation("booking");
     const navigate = useNavigate();
 
     return (
-        <Modal open={isOpen} onClose={onClose} title="Cập nhật thông tin" maxWidth="max-w-md">
+        <Modal open={isOpen} onClose={onClose} title={t("missing.title")} maxWidth="max-w-md">
             <div className="text-center space-y-4">
                 <div className="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto">
                     <AlertCircle size={32} />
                 </div>
                 
                 <div>
-                    <h3 className="text-lg font-bold text-slate-800">Thông tin chưa đầy đủ</h3>
+                    <h3 className="text-lg font-bold text-slate-800">{t("missing.heading")}</h3>
                     <p className="text-sm text-slate-500 mt-2">
-                        Để sử dụng tính năng "Đặt cho chính mình", bạn cần cập nhật các thông tin sau trong hồ sơ:
+                        {t("missing.text")}
                     </p>
                 </div>
 
@@ -31,14 +33,14 @@ const MissingProfileModal = ({ isOpen, onClose, missingFields }) => {
 
                 <div className="flex gap-3 pt-2">
                     <Button variant="outline" className="flex-1" onClick={onClose}>
-                        Tôi sẽ nhập tay
+                        {t("missing.manual")}
                     </Button>
                     <Button 
                         className="flex-1 bg-blue-600 text-white" 
                         icon={UserCog}
                         onClick={() => navigate('/customer/profile')}
                     >
-                        Cập nhật ngay
+                        {t("missing.update")}
                     </Button>
                 </div>
             </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import './BookingForm.css';
 import { Contact, Users, CheckSquare, FileText, Ban } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // Component nhập số điện thoại (Nội bộ)
 const PhoneInput = ({ value, onChange }) => (
@@ -24,6 +25,7 @@ const PhoneInput = ({ value, onChange }) => (
 
 const BookingForm = ({ onChange, initialData, initialContact }) => {
     const { user } = useAuth();
+    const { t } = useTranslation("booking");
 
     // State Contact
     const [contact, setContact] = useState(initialData?.contact || initialContact || {
@@ -76,21 +78,21 @@ const BookingForm = ({ onChange, initialData, initialContact }) => {
 
     // --- VALIDATION ---
     const validateFullName = (name) => {
-        if (!name.trim()) return "Họ tên không được để trống.";
-        const regex = /^[A-Za-zÀ-ỹ\s]+$/;
-        if (!regex.test(name)) return "Họ tên chỉ được chứa chữ cái và khoảng trắng.";
+        if (!name.trim()) return t("validation.nameRequired");
+        const regex = /^[A-Za-zÀ-ỹ\s]+$/; // i18n-ignore (character range)
+        if (!regex.test(name)) return t("validation.nameLetters");
         return '';
     };
 
     const validatePhone = (phone) => {
         const regex = /^0[0-9]{9}$/;
-        if (!regex.test(phone)) return "Số điện thoại phải đúng 10 số và bắt đầu bằng 0.";
+        if (!regex.test(phone)) return t("validation.phoneFormat");
         return '';
     };
 
     const validateEmail = (email) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) return "Email không hợp lệ.";
+        if (!emailRegex.test(email)) return t("validation.emailInvalid");
         return '';
     };
 
@@ -116,12 +118,12 @@ const BookingForm = ({ onChange, initialData, initialContact }) => {
             <div className="form-section">
                 <div className="form-header">
                     <Contact size={20} className="form-header-icon" />
-                    <h2>Liên hệ đặt chỗ</h2>
+                    <h2>{t("form.contactTitle")}</h2>
                 </div>
-                <p className="form-description">Thêm liên hệ để nhận xác nhận đặt chỗ.</p>
+                <p className="form-description">{t("form.contactText")}</p>
 
                 <div className="form-group">
-                    <label htmlFor="fullName">Họ và Tên <span>*</span></label>
+                    <label htmlFor="fullName">{t("form.fullName")} <span>*</span></label>
                     <input
                         type="text"
                         id="fullName"
@@ -132,12 +134,12 @@ const BookingForm = ({ onChange, initialData, initialContact }) => {
                         required
                     />
                     {errors.fullName && <small style={{ color: "red" }}>{errors.fullName}</small>}
-                    <small>Như trên CMND/Hộ chiếu (không dấu)</small>
+                    <small>{t("form.nameHint")}</small>
                 </div>
 
                 <div className="form-row">
                     <div className="form-group">
-                        <label htmlFor="phone">Số điện thoại <span>*</span></label>
+                        <label htmlFor="phone">{t("form.phone")} <span>*</span></label>
                         <PhoneInput
                             value={contact.phone}
                             onChange={handleContactChange}
@@ -167,7 +169,7 @@ const BookingForm = ({ onChange, initialData, initialContact }) => {
                         checked={isBookingForSelf}
                         onChange={(e) => setIsBookingForSelf(e.target.checked)}
                     />
-                    <label htmlFor="forSelf">Tôi đặt cho chính mình</label>
+                    <label htmlFor="forSelf">{t("form.forSelf")}</label>
                 </div>
             </div>
 
@@ -175,11 +177,11 @@ const BookingForm = ({ onChange, initialData, initialContact }) => {
             <div className="form-section">
                 <div className="form-header">
                     <Users size={20} className="form-header-icon" />
-                    <h2>Thông tin khách hàng</h2>
+                    <h2>{t("form.guestTitle")}</h2>
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="guestName">Họ và Tên <span>*</span></label>
+                    <label htmlFor="guestName">{t("form.fullName")} <span>*</span></label>
                     <input
                         type="text"
                         id="guestName"
@@ -197,20 +199,20 @@ const BookingForm = ({ onChange, initialData, initialContact }) => {
             <div className="form-section">
                 <div className="form-header">
                     <CheckSquare size={20} className="form-header-icon" />
-                    <h2>Yêu cầu đặc biệt</h2>
+                    <h2>{t("form.specialTitle")}</h2>
                 </div>
                 <div className="special-requests-grid">
                     <div className="checkbox-group-vertical">
                         <input type="checkbox" id="nonSmoking" name="nonSmoking" checked={specialRequests.nonSmoking} onChange={handleRequestChange} />
-                        <label htmlFor="nonSmoking">Phòng không hút thuốc</label>
+                        <label htmlFor="nonSmoking">{t("form.nonSmoking")}</label>
                     </div>
                     <div className="checkbox-group-vertical">
                         <input type="checkbox" id="connectingRoom" name="connectingRoom" checked={specialRequests.connectingRoom} onChange={handleRequestChange} />
-                        <label htmlFor="connectingRoom">Phòng liên thông</label>
+                        <label htmlFor="connectingRoom">{t("form.connecting")}</label>
                     </div>
                     <div className="checkbox-group-vertical">
                         <input type="checkbox" id="highFloor" name="highFloor" checked={specialRequests.highFloor} onChange={handleRequestChange} />
-                        <label htmlFor="highFloor">Tầng lầu</label>
+                        <label htmlFor="highFloor">{t("form.highFloor")}</label>
                     </div>
                 </div>
             </div>
@@ -219,13 +221,13 @@ const BookingForm = ({ onChange, initialData, initialContact }) => {
             <div className="form-section">
                 <div className="form-header">
                     <FileText size={20} className="form-header-icon" />
-                    <h2>Chính sách Chỗ ở</h2>
+                    <h2>{t("form.policyTitle")}</h2>
                 </div>
                 <div className="policy-item">
                     <Ban size={18} className="policy-icon no-smoking" />
                     <div className="policy-content">
-                        <strong>Hút Thuốc</strong>
-                        <p>Cơ sở lưu trú cấm hút thuốc.</p>
+                        <strong>{t("form.smoking")}</strong>
+                        <p>{t("form.noSmoking")}</p>
                     </div>
                 </div>
             </div>

@@ -20,8 +20,10 @@ import ApproveOwnerModal from "./components/ApproveOwnerModal";
 import RejectOwnerModal from "./components/RejectOwnerModal";
 
 import adminService from "@/services/admin.service";
+import { useTranslation } from "react-i18next";
 
 const PendingApprovalsPage = () => {
+  const { t } = useTranslation();
   const [applications, setApplications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false); // ✅ Action Loading
@@ -65,11 +67,11 @@ const PendingApprovalsPage = () => {
       const mappedData = data.map((app) => ({
         ...app,
         id: app.id, 
-        fullName: app.applicantFullName || "Chưa rõ",
+        fullName: app.applicantFullName || t("admin:PendingApprovalsPage.unknown"),
         email: app.applicantEmail,
-        phoneNumber: app.applicantPhoneNumber || "Chưa cập nhật",
+        phoneNumber: app.applicantPhoneNumber || t("admin:PendingApprovalsPage.notSet"),
         avatar: app.applicantAvatar, 
-        businessName: app.businessLicenseNumber ? `GPKD: ${app.businessLicenseNumber}` : "Cá nhân",
+        businessName: app.businessLicenseNumber ? `GPKD: ${app.businessLicenseNumber}` : t("admin:PendingApprovalsPage.individual"),
         status: app.status,
         submittedDate: app.createdAt ? new Date(app.createdAt).toLocaleDateString("vi-VN") : "N/A",
       }));
@@ -79,7 +81,7 @@ const PendingApprovalsPage = () => {
 
     } catch (error) {
       console.error(error);
-      showToast("Lỗi tải dữ liệu.", "error");
+      showToast(t("admin:PendingApprovalsPage.failedToLoadData"), "error");
     } finally {
       setIsLoading(false);
     }
@@ -119,11 +121,11 @@ const PendingApprovalsPage = () => {
     setIsActionLoading(true);
     try {
       await adminService.reviewOwnerApplication(selectedApp.id, { status: "APPROVED" });
-      showToast(`Đã duyệt chủ sở hữu ${selectedApp.fullName}`, "success");
+      showToast(t("admin:PendingApprovalsPage.approvedOwner", { fullName: selectedApp.fullName }), "success");
       await fetchApplications();
       closeModals();
     } catch (error) {
-      showToast(error.message || "Lỗi khi duyệt", "error");
+      showToast(error.message || t("admin:PendingApprovalsPage.failedToApprove"), "error");
     } finally {
       setIsActionLoading(false);
     }
@@ -134,11 +136,11 @@ const PendingApprovalsPage = () => {
     setIsActionLoading(true);
     try {
       await adminService.reviewOwnerApplication(selectedApp.id, { status: "REJECTED", reason });
-      showToast(`Đã từ chối đơn của ${selectedApp.fullName}`, "success");
+      showToast(t("admin:PendingApprovalsPage.rejectedTheApplicationOf", { fullName: selectedApp.fullName }), "success");
       await fetchApplications();
       closeModals();
     } catch (error) {
-      showToast(error.message || "Lỗi khi từ chối", "error");
+      showToast(error.message || t("admin:PendingApprovalsPage.failedToReject"), "error");
     } finally {
       setIsActionLoading(false);
     }
@@ -148,19 +150,19 @@ const PendingApprovalsPage = () => {
     <>
       {toastData && <div className="fixed top-24 right-6 z-[9999]"><Toast message={toastData.message} type={toastData.type} /></div>}
       
-      {isActionLoading && <LoadingOverlay message="Đang xử lý hồ sơ..." />}
+      {isActionLoading && <LoadingOverlay message={t("admin:PendingApprovalsPage.processingApplication")} />}
 
       <Card className="overflow-hidden min-h-screen bg-gray-50/50 border-none shadow-none">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <CardHeader title="Phê duyệt Đối tác" subtitle="Xác minh hồ sơ đăng ký chủ sở hữu" icon={<Users className="text-blue-600" />} className="p-0" />
-          <Button variant="outline" size="sm" onClick={fetchApplications} leftIcon={<RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />}>Làm mới</Button>
+          <CardHeader title={t("admin:PendingApprovalsPage.partnerApproval")} subtitle={t("admin:PendingApprovalsPage.verifyOwnerRegistrationApplications")} icon={<Users className="text-blue-600" />} className="p-0" />
+          <Button variant="outline" size="sm" onClick={fetchApplications} leftIcon={<RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />}>{t("admin:PendingApprovalsPage.refresh")}</Button>
         </div>
 
         <div className="flex flex-col gap-4 bg-white p-5 rounded-2xl shadow-sm border border-gray-200 mb-6">
           <SubmissionStatusFilter currentStatus={filterStatus} onStatusChange={setFilterStatus} />
           <div className="h-px bg-gray-100 w-full"></div>
           <div className="w-full md:w-1/2">
-            <SubmissionSearchBar onSearch={setSearchTerm} initialValue={searchTerm} placeholder="Tìm theo tên, email, số điện thoại..." />
+            <SubmissionSearchBar onSearch={setSearchTerm} initialValue={searchTerm} placeholder={t("admin:PendingApprovalsPage.searchByNameEmailPhone")} />
           </div>
         </div>
 
@@ -168,7 +170,7 @@ const PendingApprovalsPage = () => {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-dashed border-gray-200">
               <Loader2 className="animate-spin text-blue-500 mb-3" size={42} />
-              <p className="text-gray-500 text-sm">Đang tải dữ liệu...</p>
+              <p className="text-gray-500 text-sm">{t("admin:PendingApprovalsPage.loadingData")}</p>
             </div>
           ) : (
             <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
@@ -182,7 +184,7 @@ const PendingApprovalsPage = () => {
                 ) : (
                   <div className="col-span-full">
                     <motion.div initial={{opacity:0}} animate={{opacity:1}} className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
-                        <EmptyState title="Không tìm thấy đơn đăng ký" description="Danh sách trống hoặc không khớp bộ lọc." icon={<ShieldCheck className="text-gray-300 w-16 h-16 mb-4" />} />
+                        <EmptyState title={t("admin:PendingApprovalsPage.noApplicationsFound")} description={t("admin:PendingApprovalsPage.theListIsEmptyOr")} icon={<ShieldCheck className="text-gray-300 w-16 h-16 mb-4" />} />
                     </motion.div>
                   </div>
                 )}

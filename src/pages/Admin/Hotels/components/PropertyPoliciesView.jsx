@@ -3,6 +3,7 @@ import {
   Clock, Ban, Baby, Dog, CreditCard, AlertTriangle, 
   ShieldCheck, DollarSign, Check, X 
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // Helper format tiền
 const formatMoney = (amount) => {
@@ -40,9 +41,10 @@ const PolicyItem = ({ icon, label, status, children, isAllowed }) => (
 );
 
 const PropertyPoliciesView = ({ policies }) => {
+  const { t } = useTranslation();
   if (!policies) return (
     <div className="p-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-gray-400 italic">
-      Chưa có thông tin chính sách.
+      {t("admin:PropertyPoliciesView.noPolicyInformationYet")}
     </div>
   );
 
@@ -50,7 +52,7 @@ const PropertyPoliciesView = ({ policies }) => {
     <div className="space-y-6">
       <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
         <ShieldCheck size={20} className="text-orange-500" />
-        <h3 className="text-base font-bold text-gray-800">Chính sách & Quy định chi tiết</h3>
+        <h3 className="text-base font-bold text-gray-800">{t("admin:PropertyPoliciesView.detailedPoliciesRules")}</h3>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -58,28 +60,28 @@ const PropertyPoliciesView = ({ policies }) => {
         {/* 1. Thời gian (Check-in/out) */}
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
           <h4 className="font-bold text-gray-700 flex items-center gap-2">
-            <Clock size={18} className="text-blue-500" /> Thời gian Nhận/Trả phòng
+            <Clock size={18} className="text-blue-500" /> {t("admin:PropertyPoliciesView.checkInCheckOutTimes")}
           </h4>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
-              <span className="text-xs text-gray-500 block mb-1 font-medium">Nhận phòng từ</span>
+              <span className="text-xs text-gray-500 block mb-1 font-medium">{t("admin:PropertyPoliciesView.checkInFrom")}</span>
               <span className="text-xl font-extrabold text-gray-900">
                 {formatTime(policies.checkInTime)}
               </span>
             </div>
             <div className="bg-orange-50 p-3 rounded-lg border border-orange-100">
-              <span className="text-xs text-gray-500 block mb-1 font-medium">Trả phòng trước</span>
+              <span className="text-xs text-gray-500 block mb-1 font-medium">{t("admin:PropertyPoliciesView.checkOutBefore")}</span>
               <span className="text-xl font-extrabold text-gray-900">
                 {formatTime(policies.checkOutTime)}
               </span>
             </div>
           </div>
 
-          {policies.quietHours && policies.quietHours !== "không có" && (
+          {policies.quietHours && policies.quietHours !== "không có" /* i18n-ignore: placeholder value stored in data */ && (
             <div className="flex gap-2 items-start bg-gray-50 p-3 rounded-lg text-sm text-gray-600 border border-gray-100">
                <span className="shrink-0">🤫</span>
-               <span><strong>Giờ yên lặng:</strong> {policies.quietHours}</span>
+               <span><strong>{t("admin:PropertyPoliciesView.quietHours")}</strong> {policies.quietHours}</span>
             </div>
           )}
         </div>
@@ -87,23 +89,23 @@ const PropertyPoliciesView = ({ policies }) => {
         {/* 2. Hủy phòng (Cancellation) */}
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
           <h4 className="font-bold text-gray-700 flex items-center gap-2">
-            <AlertTriangle size={18} className="text-red-500" /> Chính sách Hủy phòng
+            <AlertTriangle size={18} className="text-red-500" /> {t("admin:PropertyPoliciesView.cancellationPolicy")}
           </h4>
           
           <div className={`p-4 rounded-xl border ${policies.allowFreeCancellation ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-gray-700">Cho phép hủy miễn phí?</span>
+                <span className="text-sm font-semibold text-gray-700">{t("admin:PropertyPoliciesView.freeCancellationAllowed")}</span>
                 <span className={`px-2 py-1 rounded text-xs font-bold ${policies.allowFreeCancellation ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}`}>
-                  {policies.allowFreeCancellation ? "CÓ" : "KHÔNG"}
+                  {policies.allowFreeCancellation ? t("admin:PropertyPoliciesView.yes") : t("admin:PropertyPoliciesView.no")}
                 </span>
              </div>
              
              {policies.allowFreeCancellation ? (
                 <p className="text-sm text-gray-800 mb-2">
-                   Hủy trước <strong className="text-green-700 text-lg">{policies.freeCancellationDays} ngày</strong> sẽ không mất phí.
+                   {t("admin:PropertyPoliciesView.cancelAtLeast")} <strong className="text-green-700 text-lg">{t("admin:PropertyPoliciesView.days", { freeCancellationDays: policies.freeCancellationDays })}</strong> {t("admin:PropertyPoliciesView.inAdvanceForFree")}
                 </p>
              ) : (
-                <p className="text-sm text-red-600 font-medium">Khách hàng sẽ không được hoàn tiền nếu hủy.</p>
+                <p className="text-sm text-red-600 font-medium">{t("admin:PropertyPoliciesView.guestsWillNotBeRefunded")}</p>
              )}
 
              {policies.cancellationPolicyDescription && (
@@ -121,8 +123,8 @@ const PropertyPoliciesView = ({ policies }) => {
         {/* Hút thuốc */}
         <PolicyItem 
           icon={<Ban size={18}/>} 
-          label="Hút thuốc" 
-          status={policies.smokingAllowed ? "Cho phép" : "Cấm hút thuốc"}
+          label={t("admin:PropertyPoliciesView.smoking")} 
+          status={policies.smokingAllowed ? t("admin:PropertyPoliciesView.allowed") : t("admin:PropertyPoliciesView.noSmoking")}
           isAllowed={policies.smokingAllowed}
         >
            {policies.smokingPolicyDescription && (
@@ -133,8 +135,8 @@ const PropertyPoliciesView = ({ policies }) => {
         {/* Thú cưng */}
         <PolicyItem 
           icon={<Dog size={18}/>} 
-          label="Thú cưng" 
-          status={policies.petsAllowed ? "Cho phép" : "Không cho phép"}
+          label={t("admin:PropertyPoliciesView.pets")} 
+          status={policies.petsAllowed ? t("admin:PropertyPoliciesView.allowed") : t("admin:PropertyPoliciesView.notAllowed")}
           isAllowed={policies.petsAllowed}
         >
            {policies.petPolicyDescription && (
@@ -145,12 +147,12 @@ const PropertyPoliciesView = ({ policies }) => {
         {/* Trẻ em */}
         <PolicyItem 
           icon={<Baby size={18}/>} 
-          label="Trẻ em" 
-          status={policies.childrenAllowed ? "Phù hợp" : "Hạn chế"}
+          label={t("admin:PropertyPoliciesView.children")} 
+          status={policies.childrenAllowed ? t("admin:PropertyPoliciesView.suitable") : t("admin:PropertyPoliciesView.restricted")}
           isAllowed={policies.childrenAllowed}
         >
            {policies.minimumAge > 0 && (
-              <p className="font-bold text-gray-800 not-italic">Tuổi tối thiểu: {policies.minimumAge}+</p>
+              <p className="font-bold text-gray-800 not-italic">{t("admin:PropertyPoliciesView.minimumAge", { minimumAge: policies.minimumAge })}</p>
            )}
            {policies.childrenPolicyDescription && (
               <p>"{policies.childrenPolicyDescription}"</p>
@@ -163,7 +165,7 @@ const PropertyPoliciesView = ({ policies }) => {
       {(policies.requiresPrepayment || policies.securityDepositRequired) && (
         <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
           <h4 className="font-bold text-blue-800 flex items-center gap-2 mb-4">
-             <CreditCard size={18} /> Thanh toán & Đặt cọc
+             <CreditCard size={18} /> {t("admin:PropertyPoliciesView.paymentDeposit")}
           </h4>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -171,9 +173,9 @@ const PropertyPoliciesView = ({ policies }) => {
              <div className="flex gap-3">
                  <div className={`w-1 h-full rounded-full ${policies.requiresPrepayment ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
                  <div>
-                    <p className="text-sm font-bold text-gray-700 mb-1">Thanh toán trước</p>
+                    <p className="text-sm font-bold text-gray-700 mb-1">{t("admin:PropertyPoliciesView.prepayment")}</p>
                     <p className="text-sm text-gray-600">
-                       {policies.requiresPrepayment ? (policies.prepaymentPolicy || "Theo quy định chung") : "Không yêu cầu"}
+                       {policies.requiresPrepayment ? (policies.prepaymentPolicy || t("admin:PropertyPoliciesView.accordingToGeneralRules")) : t("admin:PropertyPoliciesView.notRequired")}
                     </p>
                  </div>
              </div>
@@ -182,18 +184,18 @@ const PropertyPoliciesView = ({ policies }) => {
              <div className="flex gap-3">
                  <div className={`w-1 h-full rounded-full ${policies.securityDepositRequired ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
                  <div>
-                    <p className="text-sm font-bold text-gray-700 mb-1">Đặt cọc hư hại</p>
+                    <p className="text-sm font-bold text-gray-700 mb-1">{t("admin:PropertyPoliciesView.damageDeposit")}</p>
                     {policies.securityDepositRequired ? (
                        <div className="space-y-1">
                           <p className="text-lg font-bold text-green-600">
                              {formatMoney(policies.securityDepositAmount)}
                           </p>
                           <p className="text-xs text-gray-500 italic">
-                             "{policies.securityDepositDescription || "Hoàn lại khi trả phòng"}"
+                             "{policies.securityDepositDescription || t("admin:PropertyPoliciesView.refundedAtCheckOut")}"
                           </p>
                        </div>
                     ) : (
-                       <p className="text-sm text-gray-600">Không yêu cầu</p>
+                       <p className="text-sm text-gray-600">{t("admin:PropertyPoliciesView.notRequired")}</p>
                     )}
                  </div>
              </div>

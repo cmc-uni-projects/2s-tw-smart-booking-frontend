@@ -5,8 +5,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import AuditTable from "./AuditTable";
 import AuditDetailModal from "./AuditDetailModal";
 import systemLogService from "@/services/systemLog.service";
+import { useTranslation } from "react-i18next";
 
 export default function AuditLogsPage() {
+  const { t } = useTranslation();
     const [logs, setLogs] = useState([]);
     const [page, setPage] = useState(1); // UI dùng 1-based
     const [totalPages, setTotalPages] = useState(0);
@@ -82,10 +84,10 @@ export default function AuditLogsPage() {
         <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
             <div>
                 <h1 className="text-2xl font-bold text-gray-800">
-                    Lich sử hoạt động
+                    {t("admin:AuditLogsPage.activityHistory")}
                 </h1>
                 <p className="text-sm text-gray-500 mt-1">
-                    Lịch sử hoạt động hệ thống (tạo / sửa / xóa)
+                    {t("admin:AuditLogsPage.systemActivityHistoryCreateUpdate")}
                 </p>
             </div>
 
@@ -103,7 +105,7 @@ export default function AuditLogsPage() {
                 <div className="mt-auto border-t border-gray-100">
                     <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between bg-gray-50/50 gap-4">
                         <span className="text-sm text-gray-500">
-                            Hiển thị{" "}
+                            {t("admin:AuditLogsPage.showing")}{" "}
                             <span className="font-semibold text-gray-700">
                                 {logs.length}
                             </span>{" "}
@@ -111,7 +113,7 @@ export default function AuditLogsPage() {
                             <span className="font-semibold text-gray-700">
                                 {totalElements}
                             </span>{" "}
-                            kết quả
+                            {t("admin:AuditLogsPage.results")}
                         </span>
 
                         <div className="flex items-center gap-2">
@@ -160,7 +162,7 @@ export default function AuditLogsPage() {
                             {/* JUMP */}
                             <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200">
                                 <span className="text-sm text-gray-500">
-                                    Đi đến:
+                                    {t("admin:AuditLogsPage.goTo")}
                                 </span>
                                 <input
                                     type="text"

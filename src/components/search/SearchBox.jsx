@@ -6,6 +6,7 @@ import Button from "@/components/common/Button/Button";
 import DestinationSelector from "@/components/search/DestinationSelector";
 import DateSelector from "@/components/search/DateSelector";
 import GuestSelector from "@/components/search/GuestSelector";
+import { useTranslation } from "react-i18next";
 
 const SearchBox = ({ 
   initialValues = {}, 
@@ -13,6 +14,7 @@ const SearchBox = ({
   className = "", 
   vertical = false 
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   // --- 1. STATE ---
@@ -85,7 +87,7 @@ const SearchBox = ({
           onClick={handleSearchClick}
           leftIcon={<Search size={20} />}
         >
-          Tìm kiếm
+          {t("common:actions.search")}
         </Button>
       </div>
     </div>

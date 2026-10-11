@@ -1,70 +1,70 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { SUPPORTED_LANGUAGES } from "@/i18n";
+import { changeLanguage } from "@/i18n/language";
 
-// (Yêu cầu 2: Component nội bộ để hiển thị cờ đẹp hơn)
 const FlagIcon = ({ code, className = "w-5 h-auto rounded-sm" }) => (
-  <img
-    // Sử dụng CDN miễn phí để lấy cờ dạng SVG
-    src={`https://flagcdn.com/${code}.svg`}
-    alt={`${code} flag`}
-    className={className}
-  />
+  <img src={`https://flagcdn.com/${code}.svg`} alt="" className={className} />
 );
 
-// Danh sách các lựa chọn ngôn ngữ/tiền tệ
-const options = [
-  { code: "vn", label: "VI (VND)", icon: <FlagIcon code="vn" /> },
-  { code: "gb", label: "ENG (USD)", icon: <FlagIcon code="gb" /> }, // 'gb' là cờ Vương quốc Anh
-];
+const LanguageSwitcher = ({ className = "", menuAlign = "right" }) => {
+  const { i18n, t } = useTranslation("layout");
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
 
-// (Yêu cầu 1: Tách component)
-const LanguageSwitcher = ({ navLinkClass }) => {
-  const [langOpen, setLangOpen] = useState(false);
-  const [selected, setSelected] = useState(options[0]); // Mặc định là 'vn'
-  const langRef = useRef(null);
+  const current =
+    SUPPORTED_LANGUAGES.find((l) => l.code === i18n.resolvedLanguage) ?? SUPPORTED_LANGUAGES[0];
 
-  // Xử lý click outside chỉ cho dropdown này
   useEffect(() => {
     const handler = (e) => {
-      if (langRef.current && !langRef.current.contains(e.target)) {
-        setLangOpen(false);
-      }
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     };
     document.addEventListener("click", handler);
     return () => document.removeEventListener("click", handler);
   }, []);
 
-  const handleSelect = (option) => {
-    setSelected(option);
-    setLangOpen(false);
+  const handleSelect = (code) => {
+    changeLanguage(code);
+    setOpen(false);
   };
 
   return (
-    <div className="relative" ref={langRef}>
+    <div className="relative" ref={ref}>
       <button
-        onClick={() => setLangOpen(!langOpen)}
-        className={navLinkClass} // Nhận class từ Header để đồng nhất style
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-label={t("language.switch")}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className={`flex items-center gap-1.5 text-sm font-bold transition-colors ${className}`}
       >
-        {/* (Yêu cầu 2: Hiển thị icon cờ) */}
-        {selected.icon}
-        <span className="ml-1">{selected.label}</span>
-        <ChevronDown size={16} />
+        <FlagIcon code={current.flag} />
+        <span className="uppercase">{current.code}</span>
+        <ChevronDown size={14} strokeWidth={3} className={`transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
-      {/* Dropdown menu */}
-      {langOpen && (
-        <div className="absolute mt-2 bg-white border border-gray-100 shadow-xl rounded-lg w-40 py-2 z-50">
-          {options.map((opt) => (
-            <button
-              key={opt.code}
-              onClick={() => handleSelect(opt)}
-              className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
-            >
-              {opt.icon}
-              <span className="ml-1">{opt.label}</span>
-            </button>
+      {open && (
+        <ul
+          role="listbox"
+          className={`absolute top-full mt-3 ${menuAlign === "right" ? "right-0" : "left-0"} w-44 bg-white border border-gray-100 shadow-xl rounded-xl p-1.5 z-50`}
+        >
+          {SUPPORTED_LANGUAGES.map((lang) => (
+            <li key={lang.code}>
+              <button
+                type="button"
+                role="option"
+                aria-selected={lang.code === current.code}
+                onClick={() => handleSelect(lang.code)}
+                className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-lg hover:bg-blue-50/60 text-sm font-semibold text-slate-700"
+              >
+                <FlagIcon code={lang.flag} />
+                <span className="flex-1">{lang.label}</span>
+                {lang.code === current.code && <Check size={16} className="text-blue-600" />}
+              </button>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

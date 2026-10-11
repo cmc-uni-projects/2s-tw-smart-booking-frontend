@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bot, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
  
 const ChatFab = ({ open, onClick }) => {
+  const { t } = useTranslation("layout");
   // 1. Thêm state để kiểm tra trạng thái hover
   const [isHovered, setIsHovered] = useState(false);
  
@@ -25,7 +27,7 @@ const ChatFab = ({ open, onClick }) => {
             className="bg-white text-gray-800 px-4 py-2 rounded-2xl shadow-xl border border-gray-100 relative hidden md:block whitespace-nowrap"
           >
             <div className="text-sm font-semibold flex items-center gap-2">
-              <span>Chat với trợ lý AI !</span>
+              <span>{t("chat.fabTooltip")}</span>
               <span className="text-lg"></span>
             </div>
             {/* Mũi tên trỏ vào nút chat */}
@@ -42,7 +44,7 @@ const ChatFab = ({ open, onClick }) => {
             ? "bg-red-500 text-white hover:bg-red-600 rotate-0"
             : "bg-gradient-to-r from-[#28A9E0] to-[#1b98d6] text-white"
           }`}
-        aria-label={open ? "Đóng chat" : "Mở chat"}
+        aria-label={open ? t("chat.close") : t("chat.open")}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
       >

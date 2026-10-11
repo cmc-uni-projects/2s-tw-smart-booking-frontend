@@ -1,8 +1,11 @@
 // src/components/common/Input/SearchInput.jsx
 import React from "react";
 import { Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-export default function SearchInput({ placeholder = "Tìm kiếm địa điểm, khách sạn..." }) {
+export default function SearchInput({ placeholder }) {
+  const { t } = useTranslation();
+  if (placeholder === undefined) placeholder = t("searchPlaceholder");
   return (
     <div className="relative w-full group">
       <Search

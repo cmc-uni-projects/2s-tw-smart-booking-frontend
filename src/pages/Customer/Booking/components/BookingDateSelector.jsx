@@ -3,6 +3,7 @@ import { format, differenceInCalendarDays } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { DateRange } from 'react-date-range';
 import { Calendar, ChevronUp, ChevronDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import Card from '@/components/common/Card/Card';
 import Button from '@/components/common/Button/Button';
 
@@ -12,6 +13,7 @@ import 'react-date-range/dist/theme/default.css';
 
 const BookingDateSelector = ({ dateRange, onChange }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const { t } = useTranslation("booking");
     const nights = differenceInCalendarDays(dateRange.endDate, dateRange.startDate);
 
     const handleSelect = (ranges) => {
@@ -29,13 +31,13 @@ const BookingDateSelector = ({ dateRange, onChange }) => {
                         <Calendar size={24} />
                     </div>
                     <div>
-                        <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wide mb-1">Thời gian lưu trú</h3>
+                        <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wide mb-1">{t("dates.stay")}</h3>
                         <div className="flex items-center gap-2 text-sm text-slate-700">
                             <span className="font-semibold text-lg">{format(dateRange.startDate, "dd/MM/yyyy")}</span>
                             <span className="text-slate-400">→</span>
                             <span className="font-semibold text-lg">{format(dateRange.endDate, "dd/MM/yyyy")}</span>
                             <span className="ml-2 bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-bold border border-blue-200">
-                                {nights} đêm
+                                {t("common:nights", { count: nights })}
                             </span>
                         </div>
                     </div>

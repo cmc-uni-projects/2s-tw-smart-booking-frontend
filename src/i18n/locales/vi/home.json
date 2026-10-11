@@ -1,0 +1,111 @@
+{
+  "hero": {
+    "trustedBy": "Được tin dùng bởi 10k+ du khách",
+    "headline": "Đánh thức hành trình",
+    "rotatingWords": [
+      "trong mơ",
+      "đẳng cấp",
+      "hoàn hảo",
+      "bất tận"
+    ],
+    "subtitle": "Khám phá bộ sưu tập khách sạn, resort và homestay độc đáo nhất Việt Nam. Trải nghiệm đẳng cấp chỉ với một cú chạm.",
+    "trending": "Xu hướng tìm kiếm"
+  },
+  "featured": {
+    "titleLead": "Điểm Đến",
+    "titleHighlight": "Nổi Bật Nhất",
+    "subtitle": "Được bình chọn bởi cộng đồng du lịch, mang lại trải nghiệm nghỉ dưỡng đẳng cấp và tiện nghi vượt trội.",
+    "priceFrom": "Giá chỉ từ",
+    "perNight": "₫/đêm",
+    "empty": "Hệ thống đang cập nhật danh sách khách sạn..."
+  },
+  "ai": {
+    "title": "Gợi ý dành riêng cho bạn",
+    "more": "Xem thêm gợi ý"
+  },
+  "destinations": {
+    "titleLead": "Điểm Đến",
+    "titleHighlight": "Yêu Thích",
+    "subtitle": "Lên kế hoạch cho chuyến đi tiếp theo của bạn đến những địa danh du lịch hàng đầu được cộng đồng TravelMate bình chọn.",
+    "regions": {
+      "north": "Miền Bắc",
+      "south": "Miền Nam",
+      "central": "Miền Trung"
+    }
+  },
+  "newsletter": {
+    "title": "Đừng bỏ lỡ ưu đãi khủng!",
+    "text": "Đăng ký nhận bản tin để là người đầu tiên nhận mã giảm giá 50% và các gợi ý du lịch độc quyền.",
+    "placeholder": "Nhập email của bạn...",
+    "subscribe": "Đăng ký"
+  },
+  "promo": {
+    "endsIn": "Kết thúc sau:",
+    "discount": "Giảm {{amount}}",
+    "exclusive": "ƯU ĐÃI ĐỘC QUYỀN",
+    "discountToday": "Giảm ngay <hl>{{amount}}</hl> khi đặt hôm nay",
+    "genericDescription": "Trải nghiệm chuyến đi tuyệt vời với ưu đãi {{amount}} dành riêng cho thành viên TravelMate.",
+    "titleLead": "Săn Deal",
+    "titleHighlight": "Giờ Vàng",
+    "subtitle": "Cập nhật liên tục các ưu đãi hấp dẫn nhất",
+    "list": "Danh sách ưu đãi"
+  },
+  "testimonials": {
+    "badge": "Đánh giá từ cộng đồng",
+    "titleLead": "Khách hàng nói gì về",
+    "subtitle": "Hơn 10,000+ khách hàng đã tin tưởng và đồng hành cùng chúng tôi trong mọi hành trình.",
+    "items": {
+      "1": {
+        "role": "Travel Blogger",
+        "comment": "TravelMate thực sự là cứu cánh cho những chuyến đi ngẫu hứng của mình. Giao diện đặt phòng quá mượt, giá cả lại minh bạch. Chắc chắn sẽ ủng hộ dài dài!"
+      },
+      "2": {
+        "role": "Doanh nhân",
+        "comment": "Tôi thường xuyên phải đi công tác và cần hóa đơn đỏ nhanh chóng. Hệ thống này hỗ trợ xuất hóa đơn và quản lý lịch sử đặt phòng rất chuyên nghiệp."
+      },
+      "3": {
+        "role": "Nhiếp ảnh gia",
+        "comment": "Rất thích tính năng gợi ý khách sạn theo địa điểm chụp ảnh. Mình đã tìm được homestay view đồi thông Đà Lạt cực chill nhờ TravelMate."
+      }
+    }
+  },
+  "why": {
+    "items": {
+      "bestPrice": {
+        "title": "Giá tốt nhất",
+        "desc": "Đảm bảo giá tốt nhất cho mọi đặt phòng. Tích điểm đổi quà hấp dẫn."
+      },
+      "secure": {
+        "title": "Đặt phòng an toàn",
+        "desc": "Bảo mật thông tin tuyệt đối. Quy trình thanh toán được mã hóa chuẩn quốc tế."
+      },
+      "support": {
+        "title": "Hỗ trợ 24/7",
+        "desc": "Đội ngũ chăm sóc khách hàng luôn sẵn sàng hỗ trợ bạn mọi lúc, mọi nơi."
+      },
+      "flexiblePay": {
+        "title": "Thanh toán linh hoạt",
+        "desc": "Hỗ trợ nhiều phương thức: Thẻ, Momo, VNPay, ZaloPay và trả sau."
+      }
+    }
+  },
+  "blog": {
+    "badge": "Blog Du Lịch",
+    "titleLead": "Cảm hứng",
+    "titleHighlight": "Xê Dịch",
+    "subtitle": "Cập nhật tin tức, mẹo vặt và những hành trình thú vị nhất từ cộng đồng.",
+    "seeAll": "Xem tất cả bài viết",
+    "readTime": "{{count}} phút đọc",
+    "readMore": "Đọc tiếp",
+    "categories": {
+      "hotSpots": "Địa điểm hot",
+      "food": "Ẩm thực",
+      "tips": "Kinh nghiệm"
+    },
+    "articles": {
+      "1": "Top 25 Quán cafe view đẹp ở Đà Lạt được yêu thích nhất 2025",
+      "2": "Food tour Hải Phòng: Cẩm nang ăn sập đất Cảng ngon - bổ - rẻ",
+      "3": "Kinh nghiệm du lịch Phú Quốc tự túc cho gia đình có trẻ nhỏ"
+    }
+  }
+}

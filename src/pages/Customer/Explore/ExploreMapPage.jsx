@@ -3,6 +3,7 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { createRoot } from "react-dom/client";
 import { useNavigate } from "react-router-dom";
+import i18n from "@/i18n";
 import propertyService from "@/services/property.service";
 
 // Components con
@@ -15,7 +16,7 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 // ✅ 1. HÀM FORMAT GIÁ (Đầy đủ: 500.000 VND)
 const formatFullPrice = (price) => {
-  if (!price && price !== 0) return "Liên hệ";
+  if (!price && price !== 0) return i18n.t("common:contact");
   const formatted = new Intl.NumberFormat('vi-VN').format(price);
   return `${formatted} VND`;
 };

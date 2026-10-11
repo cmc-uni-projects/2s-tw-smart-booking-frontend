@@ -1,4 +1,5 @@
 import api from "./axios.config.js";
+import i18n from "@/i18n";
 
 // Định nghĩa object service
 const ownerService = {
@@ -18,9 +19,9 @@ const ownerService = {
     } catch (error) {
       console.error("Error submitting owner application:", error);
       if (error.response && error.response.data) {
-        throw new Error(error.response.data.message || "Gửi đơn thất bại");
+        throw new Error(error.response.data.message || i18n.t("common:ownerservice.applicationSubmissionFailed"));
       }
-      throw new Error("Không thể kết nối máy chủ");
+      throw new Error(i18n.t("common:ownerservice.couldNotConnectToThe"));
     }
   },
 

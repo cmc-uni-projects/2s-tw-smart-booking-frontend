@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Button from '@/components/common/Button/Button';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import qrCodeImage from '../../../assets/logo/QR.jpg';
 
 const QRCodeModal = ({ isOpen, onClose, onConfirm }) => {
+    const { t } = useTranslation("booking");
     const [timeLeft, setTimeLeft] = useState(300); // 5 phút
 
     useEffect(() => {
@@ -44,17 +46,17 @@ const QRCodeModal = ({ isOpen, onClose, onConfirm }) => {
                 </button>
 
                 <h2 className="text-2xl font-bold text-center mb-1">
-                    Quét mã QR để thanh toán
+                    {t("qr.title")}
                 </h2>
 
                 <p className="text-center text-gray-600 mb-4">
-                    Mã sẽ hết hạn sau: <span className="font-semibold">{minutes}:{seconds}</span>
+                    {t("qr.expiresIn")} <span className="font-semibold">{minutes}:{seconds}</span>
                 </p>
 
                 {/* QR IMAGE */}
                 <img
                     src={qrCodeImage}
-                    alt="QR Code thanh toán"
+                    alt={t("qr.alt")}
                     className="w-72 h-72 mx-auto mb-4 object-contain border p-3 rounded-xl"
                 />
 
@@ -63,7 +65,7 @@ const QRCodeModal = ({ isOpen, onClose, onConfirm }) => {
                     size="lg"
                     onClick={onConfirm}
                 >
-                    Tôi đã thanh toán
+                    {t("qr.paid")}
                 </Button>
             </div>
         </div>

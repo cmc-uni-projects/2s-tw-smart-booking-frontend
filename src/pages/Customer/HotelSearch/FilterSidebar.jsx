@@ -8,8 +8,10 @@ import MapEntryPoint from "@/pages/Customer/Explore/components/MapEntryPoint";
 import FilterSection from "./components/Filter/FilterSection";
 import CheckboxOption from "./components/Filter/CheckboxOption";
 import PriceRangeFilter from "./components/Filter/PriceRangeFilter";
+import { useTranslation } from "react-i18next";
 
 export default function FilterSidebar({ onFilterChange }) {
+    const { t } = useTranslation("search");
     
     // --- STATE ---
     // Lưu danh sách các thành phố và rating được chọn
@@ -63,6 +65,7 @@ export default function FilterSidebar({ onFilterChange }) {
     };
 
     // Danh sách thành phố (Lưu ý: Phải khớp tương đối với Database của bạn)
+    // i18n-ignore-start (values must match the database)
     const CITIES = [
         'Thành phố Hà Nội', 
         'Thành phố Hồ Chí Minh', 
@@ -71,6 +74,7 @@ export default function FilterSidebar({ onFilterChange }) {
         'Tỉnh Lào Cai',
         'Tỉnh Lâm Đồng' // Đà Lạt
     ];
+    // i18n-ignore-end
 
     return (
         <div className="space-y-5 animate-fade-in-up">
@@ -85,7 +89,7 @@ export default function FilterSidebar({ onFilterChange }) {
                         <div className="bg-blue-50 p-1.5 rounded-lg text-[rgb(40,169,224)]">
                             <Search size={16} />
                         </div>
-                        <h2 className="text-base font-bold text-gray-900">Bộ lọc</h2>
+                        <h2 className="text-base font-bold text-gray-900">{t("filters.title")}</h2>
                     </div>
                     <Button
                         variant="ghost"
@@ -94,7 +98,7 @@ export default function FilterSidebar({ onFilterChange }) {
                         className="text-xs font-medium text-gray-500 hover:text-red-500 hover:bg-red-50 px-2 transition-colors"
                         leftIcon={<RotateCcw size={14} />}
                     >
-                        Đặt lại
+                        {t("common:actions.reset")}
                     </Button>
                 </div>
 
@@ -108,11 +112,11 @@ export default function FilterSidebar({ onFilterChange }) {
                     />
 
                     {/* MODULE 2: ĐỊA ĐIỂM */}
-                    <FilterSection title="Địa điểm phổ biến" icon={MapPin}>
+                    <FilterSection title={t("filters.popularPlaces")} icon={MapPin}>
                         {CITIES.map(city => (
                             <CheckboxOption 
                                 key={city} 
-                                label={city.replace("Thành phố ", "").replace("Tỉnh ", "")} // Hiển thị ngắn gọn
+                                label={city.replace("Thành phố ", "").replace("Tỉnh ", "")} // i18n-ignore (display short name)
                                 checked={selectedCities.includes(city)}
                                 onChange={() => handleCityToggle(city)}
                             />
@@ -120,7 +124,7 @@ export default function FilterSidebar({ onFilterChange }) {
                     </FilterSection>
 
                     {/* MODULE 3: HẠNG SAO */}
-                    <FilterSection title="Hạng sao" icon={Star}>
+                    <FilterSection title={t("filters.stars")} icon={Star}>
                         {[5, 4, 3, 2, 1].map(star => (
                             <CheckboxOption 
                                 key={star} 
