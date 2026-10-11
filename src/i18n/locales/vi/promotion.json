@@ -1,0 +1,56 @@
+{
+  "discount": "Giảm {{amount}}",
+  "endsIn": "Kết thúc sau:",
+  "hotTag": "Khuyến Mãi Hot",
+  "fallbackAlt": "Khuyến mãi",
+  "fallbackName": "Chương trình khuyến mãi",
+  "unsave": "Bỏ lưu",
+  "save": "Lưu ưu đãi",
+  "fallbackDescription": "Ưu đãi đặc biệt dành cho bạn",
+  "used": "Đã dùng: {{count}}",
+  "use": "Sử dụng",
+  "details": "Chi tiết",
+  "member": "Thành viên",
+  "all": "Tất cả",
+  "allMembers": "Hội viên",
+  "superDeal": "SUPER DEAL - GIẢM SÂU",
+  "hotDeal": "KHUYẾN MÃI HOT",
+  "daysLeft": "Còn {{count}} ngày",
+  "expired": "Đã hết hạn",
+  "voucherCode": "Mã Voucher",
+  "copied": "Đã chép!",
+  "copy": "Sao chép",
+  "info": "Thông tin chi tiết",
+  "conditions": "Điều kiện áp dụng",
+  "eligible": "Đối tượng áp dụng:",
+  "minOrder": "Đơn tối thiểu:",
+  "maxDiscount": "Giảm tối đa:",
+  "unlimited": "Không giới hạn",
+  "validity": "Hạn sử dụng:",
+  "validRange": "Từ <start>{{start}}</start> đến <end>{{end}}</end>",
+  "now": "Nay",
+  "forever": "Vô hạn",
+  "filter": {
+    "all": "Tất cả khuyến mãi ({{count}})",
+    "placeholder": "Tìm kiếm theo tên, mã code..."
+  },
+  "list": {
+    "emptyTitle": "Không tìm thấy khuyến mãi nào",
+    "emptyText": "Vui lòng thử lại hoặc thay đổi bộ lọc tìm kiếm."
+  },
+  "page": {
+    "tabs": {
+      "all": "Tất cả ưu đãi",
+      "exclusive": "Khuyến mãi độc quyền",
+      "saved": "Kho ưu đãi của tôi"
+    },
+    "cardDescription": "Giảm {{amount}} cho đơn từ {{min}}₫",
+    "title": "Kho Ưu Đãi & Khuyến Mãi",
+    "subtitle": "Săn ngay hàng ngàn mã giảm giá độc quyền dành cho khách hàng thân thiết.",
+    "exclusiveTitle": "Bộ Sưu Tập Độc Quyền",
+    "exclusiveText": "Những ưu đãi đặc biệt từ các khách sạn đối tác của TravelMate.",
+    "noExclusive": "Chưa có chương trình khuyến mãi độc quyền nào.",
+    "noResults": "Không tìm thấy khuyến mãi nào.",
+    "showing": "Hiển thị <b>{{shown}}</b> / <b>{{total}}</b> kết quả"
+  }
+}

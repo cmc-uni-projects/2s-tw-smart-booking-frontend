@@ -1,0 +1,466 @@
+{
+  "language": {
+    "title": "Ngôn ngữ",
+    "uiLanguage": "Ngôn ngữ giao diện",
+    "default": "Ngôn ngữ mặc định",
+    "available": "Có sẵn"
+  },
+  "tabs": {
+    "info": "Thông tin tài khoản",
+    "social": "Liên kết mạng xã hội",
+    "security": "Mật khẩu & Bảo mật"
+  },
+  "errors": {
+    "noProfile": "Không nhận được dữ liệu hồ sơ",
+    "server": "Lỗi kết nối máy chủ"
+  },
+  "avatar": {
+    "success": "Cập nhật ảnh đại diện thành công!",
+    "error": "Lỗi khi tải ảnh lên."
+  },
+  "info": {
+    "nameRequired": "Họ tên không được để trống",
+    "saved": "Lưu thông tin thành công!",
+    "synced": "Đã đồng bộ và cập nhật thành công!",
+    "saveError": "Có lỗi xảy ra khi lưu.",
+    "personalData": "Dữ liệu cá nhân",
+    "ownerHint": "Nếu bạn muốn đăng ký trở thành \"Chủ sở hữu\", hãy điền các trường có dấu *.",
+    "fullName": "Họ và tên",
+    "fullNamePlaceholder": "Nhập họ và tên của bạn",
+    "phone": "Số điện thoại",
+    "phonePlaceholder": "Nhập số điện thoại",
+    "dob": "Ngày sinh",
+    "gender": "Giới tính",
+    "genderPlaceholder": "Chọn giới tính...",
+    "city": "Thành phố / Tỉnh",
+    "cityPlaceholder": "Hà Nội, Hưng Yên,...",
+    "country": "Quốc gia",
+    "countryPlaceholder": "Việt Nam",
+    "address": "Địa chỉ chi tiết",
+    "addressPlaceholder": "Số nhà, tên đường, phường/xã...",
+    "saving": "Đang lưu...",
+    "save": "Lưu thông tin"
+  },
+  "gender": {
+    "male": "Nam",
+    "female": "Nữ",
+    "other": "Khác"
+  },
+  "social": {
+    "emailTitle": "Địa chỉ Email",
+    "emailText": "Quản lý các email liên kết với tài khoản của bạn.",
+    "primary": "Email chính (Đăng nhập)",
+    "verified": "Đã xác thực",
+    "linkedAccount": "Tài khoản liên kết {{provider}}",
+    "linked": "Đã liên kết"
+  },
+  "danger": {
+    "deleteAccount": "Xóa tài khoản",
+    "irreversible": "Hành động này không thể hoàn tác. Mọi dữ liệu sẽ bị xóa vĩnh viễn.",
+    "delete": "Xóa"
+  },
+  "editTitle": "Chỉnh sửa hồ sơ cá nhân",
+  "wip": {
+    "title": "Chức năng đang phát triển",
+    "text": "Mục bạn chọn ({{section}}) sẽ sớm được cập nhật."
+  },
+  "errorOccurred": "Đã xảy ra lỗi:",
+  "retry": "Thử lại",
+  "menu": {
+    "profile": "Hồ sơ cá nhân",
+    "membership": "Hạng thành viên & Điểm",
+    "bookings": "Lịch sử đặt chỗ",
+    "transactions": "Giao dịch",
+    "refunds": "Yêu cầu hoàn tiền",
+    "settings": "Cài đặt tài khoản",
+    "member": "Thành viên",
+    "rankTitle": "Hạng: {{rank}}"
+  },
+  "notifications": {
+    "emailTitle": "Thông báo qua Email",
+    "emailText": "Bật hoặc tắt việc nhận thông báo giao dịch và ưu đãi qua email."
+  },
+  "settings": {
+    "primaryEmail": "{{email}} (Email chính)",
+    "linkedEmail": "{{email}} (Liên kết {{provider}})",
+    "saved": "Đã lưu cài đặt thành công!",
+    "saveFailed": "Lưu thất bại.",
+    "title": "Cài đặt tài khoản",
+    "subtitle": "Quản lý thông báo và tuỳ chọn ứng dụng",
+    "saveChanges": "Lưu thay đổi",
+    "notifications": "Cài đặt thông báo",
+    "notificationEmail": "Địa chỉ Email nhận thông báo",
+    "chooseEmail": "Chọn email...",
+    "emailNoti": "Thông báo qua Email",
+    "emailNotiText": "Nhận cập nhật về đơn đặt phòng và khuyến mãi",
+    "sms": "Tin nhắn SMS",
+    "smsText": "Nhận mã OTP và thông báo khẩn cấp",
+    "push": "Thông báo đẩy",
+    "pushText": "Thông báo trực tiếp trên trình duyệt",
+    "languageRegion": "Ngôn ngữ & Khu vực",
+    "security": "Bảo mật nâng cao",
+    "twoFactor": "Xác thực 2 yếu tố (2FA)",
+    "twoFactorText": "Tăng cường bảo mật khi đăng nhập",
+    "loginHistory": "Xem lịch sử đăng nhập",
+    "emailHint": "* Vé điện tử, hóa đơn và thông báo quan trọng sẽ được gửi về địa chỉ này."
+  },
+  "bookings": {
+    "tabs": {
+      "upcoming": "Sắp tới",
+      "cancelled": "Đã hủy",
+      "all": "Tất cả"
+    },
+    "cancelSuccess": "Hủy đặt phòng thành công!",
+    "cancelError": "Lỗi khi hủy đơn.",
+    "refundSent": "Đã gửi yêu cầu hoàn tiền thành công!",
+    "requestError": "Lỗi khi gửi yêu cầu.",
+    "loadReviewError": "Không thể tải đánh giá cũ.",
+    "missingInfo": "Thiếu thông tin.",
+    "reviewSent": "Cảm ơn bạn! Đánh giá đã được gửi thành công.",
+    "reviewFailed": "Gửi đánh giá thất bại.",
+    "reviewUpdated": "Đánh giá đã được cập nhật!",
+    "updateFailed": "Cập nhật thất bại.",
+    "title": "Đặt chỗ của tôi",
+    "subtitle": "Quản lý các chuyến đi sắp tới và lịch sử đặt phòng.",
+    "emptyTitle": "Chưa có đơn đặt phòng nào",
+    "emptyText": "Bạn chưa có chuyến đi nào trong mục này.",
+    "findHotel": "Tìm khách sạn ngay"
+  },
+  "card": {
+    "roomType": "Loại phòng",
+    "refundPending": "Đang chờ hoàn tiền",
+    "refunded": "Đã hoàn tiền",
+    "total": "Tổng thanh toán",
+    "writeReview": "Viết đánh giá",
+    "viewReview": "Xem đánh giá",
+    "details": "Chi tiết"
+  },
+  "detail": {
+    "payAtCounter": "Vui lòng thanh toán qua ứng dụng hoặc tại quầy!",
+    "bookingCode": "Mã đơn:",
+    "hotelName": "Tên khách sạn",
+    "stayInfo": "Thông tin lưu trú",
+    "guestCount": "Số lượng khách",
+    "people": "{{count}} người",
+    "addressPending": "Địa chỉ đang cập nhật",
+    "contact": "Thông tin liên hệ",
+    "booker": "Người đặt",
+    "paymentDetails": "Chi tiết thanh toán",
+    "orderValue": "Giá trị đơn hàng",
+    "penalty": "Phí phạt hủy",
+    "totalReceived": "Tổng nhận được",
+    "totalPaid": "Tổng thanh toán",
+    "policyNote": "Miễn phí hủy phòng trong vòng 15 phút sau khi đặt. Sau đó áp dụng chính sách hoàn tiền của khách sạn. Vui lòng liên hệ bộ phận hỗ trợ nếu cần giúp đỡ.",
+    "cancel": "Hủy phòng",
+    "payNow": "Thanh toán ngay",
+    "requestRefund": "Yêu cầu hoàn tiền",
+    "review": "Đánh giá"
+  },
+  "cancel": {
+    "title": "Hủy đặt phòng",
+    "processing": "Đang xử lý yêu cầu hủy phòng...",
+    "confirmTitle": "Xác nhận hủy đặt phòng",
+    "confirmText": "Bạn sắp hủy một đặt phòng đang có hiệu lực. Hành động này <b>không thể hoàn tác</b>.",
+    "beforeTitle": "Trước khi hủy, bạn nên biết",
+    "before1": "Ưu đãi hiện tại có thể không còn nếu bạn đặt lại",
+    "before2": "Chính sách hoàn tiền phụ thuộc vào thời điểm hủy",
+    "before3": "Một số quyền lợi đi kèm có thể bị mất",
+    "tip": "💡 <b>Gợi ý:</b> Nếu bạn chỉ muốn thay đổi kế hoạch, hãy xem chính sách hủy/đổi trước khi tiếp tục.",
+    "stillCancel": "Tôi vẫn muốn hủy",
+    "keep": "Giữ đặt phòng",
+    "freeTitle": "Hủy không mất phí",
+    "feeTitle": "Hủy có thể mất phí",
+    "freeText": "Nếu hủy phòng bây giờ bạn sẽ không bị tính tiền.",
+    "checkPolicy": "Vui lòng kiểm tra chi tiết chính sách hủy.",
+    "chooseReason": "Vui lòng chọn lý do hủy.",
+    "otherRequired": "Vui lòng cung cấp thêm chi tiết cho lý do 'Khác'.",
+    "reasonTitle": "Lý do hủy đặt phòng",
+    "reasonText": "Thông tin này giúp chúng tôi cải thiện chất lượng dịch vụ.",
+    "reasonLabel": "Lý do hủy phòng:",
+    "moreDetails": "Vui lòng cung cấp thêm chi tiết",
+    "continue": "Tiếp tục hủy",
+    "reasons": {
+      "NO_CONFIRMATION": "Đặt phòng không được xác nhận kịp thời",
+      "NO_TRUST": "Không thật sự tin tưởng vào uy tín của dịch vụ",
+      "SAFETY_CONCERNS": "Lo lắng về sự an toàn cho vị trí khách sạn",
+      "FOUND_ELSEWHERE": "Quyết định chọn khách sạn khác",
+      "POLICY_DISLIKE": "Không thích chính sách hủy phòng",
+      "PAYMENT_DISLIKE": "Không hài lòng với cách thanh toán",
+      "FORCED_CANCEL": "Buộc phải hủy phòng hay hoãn hành trình",
+      "FOUND_CHEAPER_ONLINE": "Tìm thấy giá thấp hơn trên mạng",
+      "FOUND_CHEAPER_LOCAL": "Tìm được giá thấp hơn qua dịch vụ địa phương",
+      "NATURAL_DISASTER": "Thiên Tai",
+      "BOOK_ANOTHER": "Sẽ đặt khách sạn khác trên website của chúng tôi",
+      "BOOK_DIRECT": "Sẽ đặt phòng trực tiếp với khách sạn",
+      "OTHER": "Khác"
+    }
+  },
+  "membership": {
+    "benefits": {
+      "BRONZE": [
+        "Tích điểm 1.000đ = 1 điểm",
+        "Nhận thông báo ưu đãi sớm",
+        "Nhận các ưu đãi, mã giảm giá đặc biệt dựa trên hạng"
+      ],
+      "SILVER": [
+        "Quyền lợi hạng Đồng",
+        "Ưu tiên check-in sớm",
+        "Quà sinh nhật",
+        "Voucher 5%"
+      ],
+      "GOLD": [
+        "Quyền lợi hạng Bạc",
+        "Nâng hạng phòng miễn phí",
+        "Miễn phí ăn sáng",
+        "Hủy phòng miễn phí"
+      ],
+      "DIAMOND": [
+        "Quyền lợi hạng Vàng",
+        "Quản gia riêng 24/7",
+        "Xe đưa đón sân bay",
+        "Giảm 10% tổng bill"
+      ]
+    },
+    "hello": "Xin chào, {{name}}",
+    "points": "điểm tích lũy",
+    "progress": "Tiến độ thăng hạng",
+    "target": "Mục tiêu: {{points}}",
+    "needMore": "Cần tích thêm <b>{{points}}</b> điểm để lên <b>{{rank}}</b>",
+    "top": "Bạn đang ở đỉnh cao danh vọng!",
+    "ranks": "Các hạng thành viên",
+    "minPoints": ">= {{points}} điểm",
+    "default": "Mặc định",
+    "yours": "Của bạn",
+    "benefitsOf": "Quyền lợi:",
+    "viewMine": "Xem hạng của tôi",
+    "goal": "Mục tiêu",
+    "next": "Tiếp theo: {{rank}}",
+    "unlock": "Mở khóa thêm {{count}} quyền lợi đặc quyền!",
+    "viewBenefits": "Xem quyền lợi",
+    "autoUpdate": "Điểm tích lũy được cập nhật tự động sau khi đơn đặt phòng hoàn tất."
+  },
+  "review": {
+    "errors": {
+      "stars": "Vui lòng chọn số sao đánh giá.",
+      "short": "Nội dung đánh giá quá ngắn (tối thiểu 10 ký tự).",
+      "generic": "Đã có lỗi xảy ra. Vui lòng thử lại."
+    },
+    "titleCreate": "ĐÁNH GIÁ TRẢI NGHIỆM",
+    "titleView": "ĐÁNH GIÁ CỦA BẠN",
+    "bookingCode": "Mã đơn: BK-{{id}}",
+    "alreadyReviewed": "Bạn đã đánh giá đơn này",
+    "shareHonestly": "Hãy chia sẻ cảm nhận chân thật",
+    "overall": "Mức độ hài lòng tổng thể",
+    "stars": {
+      "0": "Nhấn để chọn số sao",
+      "1": "1 sao – Rất tệ 😡",
+      "2": "2 sao – Chưa hài lòng 😞",
+      "3": "3 sao – Bình thường 😐",
+      "4": "4 sao – Hài lòng 🙂",
+      "5": "5 sao – Tuyệt vời 😍"
+    },
+    "experience": "Trải nghiệm của bạn tại chỗ nghỉ",
+    "placeholder": "Ví dụ: Phòng sạch sẽ, nhân viên thân thiện, vị trí thuận tiện...",
+    "enterContent": "Vui lòng nhập nội dung.",
+    "tooShort": "Còn quá ngắn (min 10).",
+    "valid": "Nội dung hợp lệ.",
+    "chars": "{{count}} ký tự",
+    "uploaded": "Ảnh đã tải lên",
+    "replaceNote": "Lưu ý: Nếu bạn tải lên ảnh mới, các ảnh cũ ở trên sẽ bị thay thế hoàn toàn.",
+    "changeMedia": "Thay đổi ảnh / video",
+    "addMedia": "Thêm ảnh / video",
+    "mediaCount": "{{images}}/5 ảnh • {{videos}}/1 video",
+    "chooseFiles": "Chọn file mới",
+    "newImages": "Ảnh mới chọn",
+    "newVideos": "Video mới chọn",
+    "edit": "Chỉnh sửa",
+    "saveChanges": "Lưu thay đổi",
+    "submit": "Gửi đánh giá"
+  },
+  "refund": {
+    "errors": {
+      "required": "Vui lòng điền đầy đủ thông tin các trường bắt buộc.",
+      "reasonShort": "Lý do hoàn tiền cần chi tiết hơn (tối thiểu 10 ký tự).",
+      "account": "Số tài khoản không hợp lệ (chỉ gồm số, từ 6-25 ký tự).",
+      "holder": "Tên chủ tài khoản không được chứa số hoặc ký tự đặc biệt.",
+      "generic": "Có lỗi xảy ra, vui lòng thử lại."
+    },
+    "title": "Yêu cầu hoàn tiền",
+    "order": "Đơn hàng:",
+    "expected": "Số tiền dự kiến hoàn lại",
+    "accurate": "Vui lòng cung cấp chính xác thông tin tài khoản chính chủ.",
+    "reason": "Lý do hoàn tiền",
+    "reasonPlaceholder": "VD: Tôi bận việc đột xuất, chuyến bay bị hủy... (Ít nhất 10 ký tự)",
+    "payoutInfo": "Thông tin nhận tiền",
+    "bank": "Ngân hàng",
+    "accountNumber": "Số tài khoản",
+    "digitsOnly": "Chỉ nhập số",
+    "holder": "Chủ tài khoản (Không dấu)",
+    "sending": "Đang gửi...",
+    "send": "Gửi yêu cầu"
+  },
+  "refunds": {
+    "status": {
+      "APPROVED": "Đã hoàn tiền",
+      "REJECTED": "Đã từ chối",
+      "PENDING": "Đang xử lý"
+    },
+    "title": "Yêu cầu hoàn tiền",
+    "subtitle": "Quản lý các yêu cầu hoàn tiền của bạn.",
+    "emptyTitle": "Chưa có yêu cầu nào",
+    "emptyText": "Bạn chưa gửi yêu cầu hoàn tiền nào gần đây.",
+    "sentAt": "Thời gian gửi yêu cầu",
+    "details": "Chi tiết hoàn tiền",
+    "amount": "Số tiền yêu cầu",
+    "yourReason": "Lý do của bạn:",
+    "payoutAccount": "Tài khoản nhận tiền",
+    "holder": "Chủ tài khoản",
+    "adminReply": "Phản hồi từ Admin:"
+  },
+  "owner": {
+    "validation": {
+      "fileRequired": "Vui lòng tải lên file",
+      "fileType": "Chỉ chấp nhận JPG, PNG, WEBP",
+      "nameRequired": "Họ tên là bắt buộc",
+      "emailInvalid": "Email không hợp lệ",
+      "emailRequired": "Email là bắt buộc",
+      "phoneRequired": "Số điện thoại là bắt buộc",
+      "idRequired": "Số CCCD/Passport là bắt buộc",
+      "dobRequired": "Ngày sinh là bắt buộc",
+      "dobInvalid": "Ngày sinh không hợp lệ",
+      "hometownRequired": "Quê quán là bắt buộc",
+      "addressRequired": "Địa chỉ thường trú là bắt buộc",
+      "licenseRequired": "Mã số ĐKKD là bắt buộc",
+      "licenseMin": "Mã số ĐKKD phải có ít nhất 5 ký tự"
+    },
+    "steps": {
+      "personal": "Thông tin cá nhân",
+      "business": "Thông tin kinh doanh",
+      "review": "Kiểm tra",
+      "done": "Hoàn tất"
+    },
+    "submitError": "Lỗi hệ thống. Vui lòng thử lại.",
+    "submitting": "Đang gửi đơn...",
+    "backHome": "Quay về trang chủ",
+    "next": "Tiếp theo",
+    "submit": "Gửi đơn đăng ký",
+    "step1": {
+      "title": "1. Thông tin cá nhân"
+    },
+    "fields": {
+      "fullName": "Họ và tên",
+      "email": "Email liên hệ",
+      "phone": "Số điện thoại",
+      "idCard": "Số CCCD/Passport",
+      "dob": "Ngày sinh",
+      "hometown": "Quê quán",
+      "address": "Địa chỉ thường trú",
+      "cardFront": "Ảnh mặt trước CCCD",
+      "cardBack": "Ảnh mặt sau CCCD",
+      "licenseNumber": "Mã số đăng ký kinh doanh",
+      "licenseUpload": "Tải lên Giấy phép kinh doanh"
+    },
+    "step2": {
+      "title": "Thông tin pháp lý và kinh doanh",
+      "formats": "Chấp nhận file PDF, PNG, JPG."
+    },
+    "step3": {
+      "notUploaded": "{{title}}: Chưa tải lên",
+      "notProvided": "Chưa cung cấp",
+      "title": "3. Kiểm tra và Xác nhận",
+      "business": "Thông tin kinh doanh",
+      "licenseShort": "Mã số ĐKKD",
+      "documents": "Tài liệu đính kèm",
+      "license": "Giấy phép kinh doanh",
+      "agree": "Bằng việc nhấn \"Gửi đơn đăng ký\", bạn xác nhận mọi thông tin trên là chính xác và đồng ý với các điều khoản của chúng tôi."
+    },
+    "step4": {
+      "failTitle": "Gửi đơn thất bại",
+      "failText": "Đã có lỗi xảy ra trong quá trình gửi đơn của bạn. Vui lòng thử lại.",
+      "error": "Lỗi: {{error}}",
+      "successTitle": "Đã gửi đơn thành công!",
+      "successText": "Cảm ơn bạn đã đăng ký. Đội ngũ TravelMate sẽ xem xét đơn của bạn và phản hồi qua email trong vòng 24-48 giờ tới."
+    }
+  },
+  "linked": {
+    "unlinked": "Đã ngắt kết nối {{provider}} thành công!",
+    "needPassword": "Bạn cần tạo mật khẩu trước khi ngắt kết nối tài khoản này!",
+    "onlyMethod": "Đây là phương thức đăng nhập duy nhất.",
+    "linkedWith": "Đã liên kết với tài khoản {{provider}}.",
+    "createPassword": "Tạo mật khẩu",
+    "disconnect": "Ngắt kết nối",
+    "connect": "Kết nối {{provider}}",
+    "title": "Liên kết tài khoản",
+    "subtitle": "Quản lý các phương thức đăng nhập bổ sung",
+    "noPasswordWarning": "<b>Chú ý:</b> Bạn chưa thiết lập mật khẩu. Vui lòng <b>Tạo mật khẩu</b> để bảo vệ tài khoản tốt hơn và tránh mất quyền truy cập.",
+    "googleText": "Sử dụng tài khoản Google để đăng nhập một chạm.",
+    "facebookText": "Kết nối với Facebook để đăng nhập dễ dàng.",
+    "confirmTitle": "Ngắt kết nối tài khoản",
+    "confirmText": "Bạn có chắc chắn muốn ngắt kết nối tài khoản {{provider}}?"
+  },
+  "password": {
+    "mismatch": "Mật khẩu xác nhận không khớp.",
+    "failed": "Đổi mật khẩu thất bại. Kiểm tra lại mật khẩu cũ.",
+    "title": "Đổi mật khẩu",
+    "current": "Mật khẩu hiện tại",
+    "new": "Mật khẩu mới (Tối thiểu 8 ký tự)",
+    "confirm": "Xác nhận mật khẩu mới",
+    "changed": "✅ Mật khẩu đã được thay đổi thành công!",
+    "save": "Lưu mật khẩu"
+  },
+  "avatarModal": {
+    "tooLarge": "File quá lớn! Vui lòng chọn ảnh dưới 5MB.",
+    "cropError": "Đã có lỗi khi cắt ảnh.",
+    "title": "Cập nhật ảnh đại diện",
+    "none": "Chưa chọn ảnh",
+    "choose": "Chọn ảnh từ thiết bị",
+    "chooseAnother": "Chọn ảnh khác",
+    "uploading": "Đang tải lên...",
+    "save": "Lưu & Cập nhật"
+  },
+  "emailModal": {
+    "required": "Vui lòng nhập địa chỉ email.",
+    "invalid": "Địa chỉ email không hợp lệ.",
+    "titleEdit": "CẬP NHẬT EMAIL",
+    "titleAdd": "THÊM EMAIL",
+    "textEdit": "Cập nhật email sẽ yêu cầu xác minh lại.",
+    "textAdd": "Thêm email đang sử dụng của bạn để đăng nhập và nhận thông báo",
+    "placeholder": "Ví dụ: yourname@email.com"
+  },
+  "phoneModal": {
+    "required": "Vui lòng nhập số điện thoại.",
+    "invalid": "Số điện thoại không hợp lệ (10-11 chữ số).",
+    "titleEdit": "CẬP NHẬT SỐ DI ĐỘNG",
+    "titleAdd": "THÊM SỐ DI ĐỘNG",
+    "text": "Thêm số di động của bạn để đăng nhập và nhận thông báo khẩn cấp",
+    "placeholder": "Ví dụ: 0901234567"
+  },
+  "tx": {
+    "status": {
+      "SUCCESS": "Thành công",
+      "PENDING": "Đang xử lý",
+      "FAILED": "Thất bại",
+      "REFUNDED": "Đã hoàn tiền"
+    },
+    "tabs": {
+      "ALL": "Tất cả"
+    },
+    "description": "Thanh toán đặt phòng: {{name}}",
+    "title": "Lịch sử giao dịch",
+    "subtitle": "Theo dõi dòng tiền và trạng thái thanh toán của bạn.",
+    "emptyTitle": "Chưa có giao dịch nào",
+    "notFound": "Không tìm thấy giao dịch",
+    "emptyText": "Bạn chưa thực hiện thanh toán nào trên hệ thống. Hãy đặt phòng ngay để trải nghiệm!",
+    "noMatch": "Không có giao dịch nào khớp với bộ lọc hiện tại.",
+    "explore": "Khám phá khách sạn ngay",
+    "id": "Mã Giao Dịch",
+    "total": "Tổng tiền",
+    "detailTitle": "Chi tiết giao dịch",
+    "amount": "Số tiền giao dịch",
+    "idLabel": "Mã giao dịch",
+    "content": "Nội dung",
+    "time": "Thời gian",
+    "method": "Phương thức thanh toán",
+    "searchPlaceholder": "Tìm mã GD, nội dung..."
+  }
+}

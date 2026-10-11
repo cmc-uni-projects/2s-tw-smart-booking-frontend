@@ -1,0 +1,154 @@
+{
+  "trust": {
+    "secureTitle": "Thanh toán an toàn",
+    "secureText": "Bảo mật chuẩn quốc tế",
+    "noFeesTitle": "Không phí ẩn",
+    "noFeesText": "Minh bạch giá cả",
+    "supportTitle": "Hỗ trợ 24/7",
+    "supportText": "Luôn sẵn sàng giúp đỡ"
+  },
+  "page": {
+    "loginRequired": "Vui lòng đăng nhập để tiếp tục đặt phòng!",
+    "checkContact": "Vui lòng kiểm tra lại thông tin liên hệ.",
+    "noBookingId": "Không nhận được Mã đặt phòng.",
+    "failed": "Đặt phòng thất bại. Vui lòng thử lại.",
+    "notFound": "Không tìm thấy thông tin",
+    "backToSearch": "Quay lại tìm kiếm",
+    "processing": "Đang xử lý đơn đặt phòng...",
+    "backToDetail": "Quay lại chi tiết",
+    "title": "Xác nhận & Đặt phòng"
+  },
+  "form": {
+    "contactTitle": "Liên hệ đặt chỗ",
+    "contactText": "Thêm liên hệ để nhận xác nhận đặt chỗ.",
+    "fullName": "Họ và Tên",
+    "nameHint": "Như trên CMND/Hộ chiếu (không dấu)",
+    "phone": "Số điện thoại",
+    "forSelf": "Tôi đặt cho chính mình",
+    "guestTitle": "Thông tin khách hàng",
+    "specialTitle": "Yêu cầu đặc biệt",
+    "nonSmoking": "Phòng không hút thuốc",
+    "connecting": "Phòng liên thông",
+    "highFloor": "Tầng lầu",
+    "policyTitle": "Chính sách Chỗ ở",
+    "smoking": "Hút Thuốc",
+    "noSmoking": "Cơ sở lưu trú cấm hút thuốc."
+  },
+  "validation": {
+    "nameRequired": "Họ và tên không được để trống.",
+    "nameLetters": "Họ và tên chỉ được chứa chữ cái và khoảng trắng.",
+    "phoneRequired": "Số điện thoại không được để trống.",
+    "phoneFormat": "Số điện thoại phải đúng 10 số và bắt đầu bằng 0.",
+    "emailRequired": "Email không được để trống.",
+    "emailInvalid": "Email không hợp lệ."
+  },
+  "history": {
+    "confirmCancel": "Bạn chắc chắn muốn hủy đơn này?",
+    "cancelled": "Đã hủy đơn thành công",
+    "cancelFailed": "Hủy thất bại: ",
+    "status": "Trạng thái: {{status}}",
+    "cancel": "Hủy đơn"
+  },
+  "dates": {
+    "stay": "Thời gian lưu trú"
+  },
+  "summary": {
+    "hotel": "Khách sạn",
+    "weekdayPrice": "Giá ngày thường (x{{count}})",
+    "weekendPrice": "Giá cuối tuần (x{{count}})",
+    "roomPrice": "Giá phòng (x{{count}} đêm)",
+    "taxes": "Thuế và phí",
+    "payNow": "Thanh toán ngay"
+  },
+  "contact": {
+    "title": "Thông tin liên hệ",
+    "checking": "Đang kiểm tra...",
+    "ticketEmail": "Email nhận vé",
+    "autoFilled": "Thông tin được lấy tự động từ hồ sơ của bạn.",
+    "specialPlaceholder": "VD: Nhận phòng sớm, phòng không hút thuốc..."
+  },
+  "pay": {
+    "roomType": "Loại phòng",
+    "guests": "Khách",
+    "contact": "Thông tin liên hệ",
+    "walkIn": "Khách vãng lai",
+    "subtotal": "Tạm tính",
+    "total": "Tổng thanh toán",
+    "taxIncluded": "Đã bao gồm thuế phí",
+    "payNow": "Thanh toán ngay",
+    "applied": "Đã áp dụng",
+    "loadError": "Lỗi khi tải đơn đặt phòng.",
+    "adminPromoRemoved": "Đã gỡ mã ưu đãi hệ thống.",
+    "ownerPromoRemoved": "Đã gỡ mã ưu đãi khách sạn.",
+    "promoApplied": "Áp dụng mã {{code}} thành công!",
+    "promoError": "Lỗi cập nhật mã khuyến mãi.",
+    "confirmBack": "Bạn có chắc muốn quay lại? Đơn hàng hiện tại sẽ bị hủy để bạn đặt lại.",
+    "failed": "Thanh toán thất bại: ",
+    "errorOccurred": "Có lỗi xảy ra: ",
+    "title": "Thanh toán đơn hàng",
+    "holdEnding": "Sắp hết thời gian giữ phòng!",
+    "holdRemaining": "Thời gian giữ phòng còn lại",
+    "successTitle": "Thanh toán thành công",
+    "done": "Đã hoàn tất!",
+    "confirmed": "Đơn đặt phòng của bạn đã được xác nhận.",
+    "goToBookings": "Đi đến trang Đặt chỗ của tôi"
+  },
+  "method": {
+    "title": "Phương thức thanh toán",
+    "vnpay": "Cổng thanh toán VNPay",
+    "momo": "Ví điện tử MoMo",
+    "zalopay": "Ví điện tử ZaloPay",
+    "bankQr": "Quét mã QR Ngân hàng"
+  },
+  "qr": {
+    "title": "Quét mã QR để thanh toán",
+    "expiresIn": "Mã sẽ hết hạn sau:",
+    "alt": "QR Code thanh toán",
+    "paid": "Tôi đã thanh toán"
+  },
+  "success": {
+    "title": "Thanh toán thành công!",
+    "redirect": "Bạn sẽ được chuyển về trang chủ sau <b>{{count}}</b> giây.",
+    "goHome": "Về trang chủ ngay"
+  },
+  "discount": {
+    "remove": "Gỡ bỏ",
+    "appliedDefault": "Đã áp dụng mã ưu đãi",
+    "clickToChoose": "Bấm để chọn mã giảm giá",
+    "minus": "Giảm {{amount}}₫",
+    "originalOrder": "Giá gốc đơn hàng",
+    "original": "Giá gốc:",
+    "adminCode": "Mã TravelMate ({{code}})",
+    "ownerCode": "Mã Khách Sạn ({{code}})",
+    "remaining": "Còn lại:",
+    "details": "Chi tiết thanh toán",
+    "toPay": "Cần thanh toán:",
+    "title": "Mã ưu đãi & Khuyến mãi",
+    "adminSlotEmpty": "Chọn mã ưu đãi từ hệ thống",
+    "ownerSlotTitle": "Voucher Khách Sạn",
+    "ownerSlotEmpty": "Chọn mã ưu đãi của khách sạn"
+  },
+  "missing": {
+    "title": "Cập nhật thông tin",
+    "heading": "Thông tin chưa đầy đủ",
+    "text": "Để sử dụng tính năng \"Đặt cho chính mình\", bạn cần cập nhật các thông tin sau trong hồ sơ:",
+    "manual": "Tôi sẽ nhập tay",
+    "update": "Cập nhật ngay"
+  },
+  "timeout": {
+    "title": "Hết thời gian giữ phòng",
+    "heading": "Đơn hàng đã hết hạn",
+    "text": "Rất tiếc, thời gian giữ phòng (5 phút) đã kết thúc. Hệ thống đã tự động hủy đơn đặt phòng này để nhường chỗ cho khách hàng khác.",
+    "home": "Quay lại trang chủ"
+  },
+  "promoList": {
+    "max": " (Tối đa {{amount}})",
+    "best": "LỰA CHỌN TỐT NHẤT",
+    "discount": "Giảm {{amount}}{{max}}",
+    "none": "Không dùng mã khuyến mãi",
+    "fromHotel": "Ưu đãi từ Khách sạn",
+    "fromTravelMate": "Ưu đãi từ TravelMate",
+    "searching": "Đang tìm ưu đãi tốt nhất...",
+    "empty": "Chưa có mã khuyến mãi phù hợp."
+  }
+}

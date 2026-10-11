@@ -1,0 +1,466 @@
+{
+  "language": {
+    "title": "Language",
+    "uiLanguage": "Interface language",
+    "default": "Default language",
+    "available": "Available"
+  },
+  "tabs": {
+    "info": "Account info",
+    "social": "Linked social accounts",
+    "security": "Password & security"
+  },
+  "errors": {
+    "noProfile": "No profile data received",
+    "server": "Server connection error"
+  },
+  "avatar": {
+    "success": "Profile photo updated!",
+    "error": "Failed to upload the photo."
+  },
+  "info": {
+    "nameRequired": "Full name is required",
+    "saved": "Profile saved!",
+    "synced": "Synced and updated!",
+    "saveError": "Something went wrong while saving.",
+    "personalData": "Personal data",
+    "ownerHint": "If you want to become an \"Owner\", fill in the fields marked with *.",
+    "fullName": "Full name",
+    "fullNamePlaceholder": "Enter your full name",
+    "phone": "Phone number",
+    "phonePlaceholder": "Enter your phone number",
+    "dob": "Date of birth",
+    "gender": "Gender",
+    "genderPlaceholder": "Select gender...",
+    "city": "City / Province",
+    "cityPlaceholder": "Hanoi, Hung Yen,...",
+    "country": "Country",
+    "countryPlaceholder": "Vietnam",
+    "address": "Street address",
+    "addressPlaceholder": "House number, street, ward...",
+    "saving": "Saving...",
+    "save": "Save"
+  },
+  "gender": {
+    "male": "Male",
+    "female": "Female",
+    "other": "Other"
+  },
+  "social": {
+    "emailTitle": "Email addresses",
+    "emailText": "Manage the emails linked to your account.",
+    "primary": "Primary email (login)",
+    "verified": "Verified",
+    "linkedAccount": "Linked {{provider}} account",
+    "linked": "Linked"
+  },
+  "danger": {
+    "deleteAccount": "Delete account",
+    "irreversible": "This can't be undone. All your data will be permanently deleted.",
+    "delete": "Delete"
+  },
+  "editTitle": "Edit profile",
+  "wip": {
+    "title": "Feature in development",
+    "text": "The section you chose ({{section}}) is coming soon."
+  },
+  "errorOccurred": "An error occurred:",
+  "retry": "Try again",
+  "menu": {
+    "profile": "My profile",
+    "membership": "Membership & points",
+    "bookings": "My bookings",
+    "transactions": "Transactions",
+    "refunds": "Refund requests",
+    "settings": "Account settings",
+    "member": "Member",
+    "rankTitle": "Rank: {{rank}}"
+  },
+  "notifications": {
+    "emailTitle": "Email notifications",
+    "emailText": "Turn transaction and promotion emails on or off."
+  },
+  "settings": {
+    "primaryEmail": "{{email}} (primary)",
+    "linkedEmail": "{{email}} (linked {{provider}})",
+    "saved": "Settings saved!",
+    "saveFailed": "Save failed.",
+    "title": "Account settings",
+    "subtitle": "Manage notifications and app preferences",
+    "saveChanges": "Save changes",
+    "notifications": "Notification settings",
+    "notificationEmail": "Email for notifications",
+    "chooseEmail": "Select email...",
+    "emailNoti": "Email notifications",
+    "emailNotiText": "Get booking and promotion updates",
+    "sms": "SMS messages",
+    "smsText": "Get OTP codes and urgent alerts",
+    "push": "Push notifications",
+    "pushText": "Notifications in your browser",
+    "languageRegion": "Language & region",
+    "security": "Advanced security",
+    "twoFactor": "Two-factor authentication (2FA)",
+    "twoFactorText": "Extra security when you log in",
+    "loginHistory": "View login history",
+    "emailHint": "* E-tickets, invoices and important notices will be sent to this address."
+  },
+  "bookings": {
+    "tabs": {
+      "upcoming": "Upcoming",
+      "cancelled": "Cancelled",
+      "all": "All"
+    },
+    "cancelSuccess": "Booking cancelled!",
+    "cancelError": "Couldn't cancel the booking.",
+    "refundSent": "Refund request sent!",
+    "requestError": "Couldn't send the request.",
+    "loadReviewError": "Couldn't load your previous review.",
+    "missingInfo": "Missing information.",
+    "reviewSent": "Thank you! Your review has been submitted.",
+    "reviewFailed": "Failed to submit the review.",
+    "reviewUpdated": "Review updated!",
+    "updateFailed": "Update failed.",
+    "title": "My bookings",
+    "subtitle": "Manage your upcoming trips and booking history.",
+    "emptyTitle": "No bookings yet",
+    "emptyText": "You have no trips in this section.",
+    "findHotel": "Find a hotel"
+  },
+  "card": {
+    "roomType": "Room type",
+    "refundPending": "Refund pending",
+    "refunded": "Refunded",
+    "total": "Total paid",
+    "writeReview": "Write a review",
+    "viewReview": "View review",
+    "details": "Details"
+  },
+  "detail": {
+    "payAtCounter": "Please pay in the app or at the front desk!",
+    "bookingCode": "Booking code:",
+    "hotelName": "Hotel name",
+    "stayInfo": "Stay details",
+    "guestCount": "Number of guests",
+    "people": "{{count}} people",
+    "addressPending": "Address coming soon",
+    "contact": "Contact details",
+    "booker": "Booked by",
+    "paymentDetails": "Payment details",
+    "orderValue": "Order value",
+    "penalty": "Cancellation fee",
+    "totalReceived": "Total refunded",
+    "totalPaid": "Total paid",
+    "policyNote": "Free cancellation within 15 minutes of booking. After that, the hotel's refund policy applies. Contact support if you need help.",
+    "cancel": "Cancel booking",
+    "payNow": "Pay now",
+    "requestRefund": "Request refund",
+    "review": "Review"
+  },
+  "cancel": {
+    "title": "Cancel booking",
+    "processing": "Processing your cancellation...",
+    "confirmTitle": "Confirm cancellation",
+    "confirmText": "You're about to cancel an active booking. This <b>cannot be undone</b>.",
+    "beforeTitle": "Before you cancel",
+    "before1": "Current deals may not be available if you rebook",
+    "before2": "The refund depends on when you cancel",
+    "before3": "Some included benefits may be lost",
+    "tip": "💡 <b>Tip:</b> If you just want to change your plans, check the cancellation/change policy first.",
+    "stillCancel": "Cancel anyway",
+    "keep": "Keep booking",
+    "freeTitle": "Free cancellation",
+    "feeTitle": "Cancellation fees may apply",
+    "freeText": "You won't be charged if you cancel now.",
+    "checkPolicy": "Please check the cancellation policy details.",
+    "chooseReason": "Please choose a reason.",
+    "otherRequired": "Please give more details for 'Other'.",
+    "reasonTitle": "Reason for cancelling",
+    "reasonText": "This helps us improve our service.",
+    "reasonLabel": "Reason:",
+    "moreDetails": "Please give more details",
+    "continue": "Continue",
+    "reasons": {
+      "NO_CONFIRMATION": "Booking wasn't confirmed in time",
+      "NO_TRUST": "I don't fully trust the service",
+      "SAFETY_CONCERNS": "Safety concerns about the hotel's location",
+      "FOUND_ELSEWHERE": "Decided on another hotel",
+      "POLICY_DISLIKE": "Don't like the cancellation policy",
+      "PAYMENT_DISLIKE": "Unhappy with the payment method",
+      "FORCED_CANCEL": "Had to cancel or postpone the trip",
+      "FOUND_CHEAPER_ONLINE": "Found a lower price online",
+      "FOUND_CHEAPER_LOCAL": "Found a lower price locally",
+      "NATURAL_DISASTER": "Natural disaster",
+      "BOOK_ANOTHER": "Will book another hotel on this site",
+      "BOOK_DIRECT": "Will book directly with the hotel",
+      "OTHER": "Other"
+    }
+  },
+  "membership": {
+    "benefits": {
+      "BRONZE": [
+        "Earn 1 point per 1,000₫",
+        "Early access to deal alerts",
+        "Special offers and discount codes based on your rank"
+      ],
+      "SILVER": [
+        "All Bronze benefits",
+        "Priority early check-in",
+        "Birthday gift",
+        "5% voucher"
+      ],
+      "GOLD": [
+        "All Silver benefits",
+        "Free room upgrade",
+        "Free breakfast",
+        "Free cancellation"
+      ],
+      "DIAMOND": [
+        "All Gold benefits",
+        "24/7 personal butler",
+        "Airport transfer",
+        "10% off your total bill"
+      ]
+    },
+    "hello": "Hello, {{name}}",
+    "points": "points earned",
+    "progress": "Progress to next rank",
+    "target": "Target: {{points}}",
+    "needMore": "Earn <b>{{points}}</b> more points to reach <b>{{rank}}</b>",
+    "top": "You've reached the top rank!",
+    "ranks": "Membership ranks",
+    "minPoints": ">= {{points}} points",
+    "default": "Default",
+    "yours": "Yours",
+    "benefitsOf": "Benefits:",
+    "viewMine": "View my rank",
+    "goal": "Goal",
+    "next": "Next: {{rank}}",
+    "unlock": "Unlock {{count}} more exclusive benefits!",
+    "viewBenefits": "View benefits",
+    "autoUpdate": "Points are updated automatically after a booking is completed."
+  },
+  "review": {
+    "errors": {
+      "stars": "Please choose a star rating.",
+      "short": "Your review is too short (at least 10 characters).",
+      "generic": "Something went wrong. Please try again."
+    },
+    "titleCreate": "RATE YOUR STAY",
+    "titleView": "YOUR REVIEW",
+    "bookingCode": "Booking: BK-{{id}}",
+    "alreadyReviewed": "You've reviewed this booking",
+    "shareHonestly": "Share your honest experience",
+    "overall": "Overall satisfaction",
+    "stars": {
+      "0": "Tap to choose a rating",
+      "1": "1 star – Terrible 😡",
+      "2": "2 stars – Disappointing 😞",
+      "3": "3 stars – Okay 😐",
+      "4": "4 stars – Good 🙂",
+      "5": "5 stars – Amazing 😍"
+    },
+    "experience": "Your experience at the property",
+    "placeholder": "E.g. clean room, friendly staff, convenient location...",
+    "enterContent": "Please write something.",
+    "tooShort": "Too short (min 10).",
+    "valid": "Looks good.",
+    "chars": "{{count}} characters",
+    "uploaded": "Uploaded photos",
+    "replaceNote": "Note: uploading new photos will replace all the photos above.",
+    "changeMedia": "Change photos / video",
+    "addMedia": "Add photos / video",
+    "mediaCount": "{{images}}/5 photos • {{videos}}/1 video",
+    "chooseFiles": "Choose files",
+    "newImages": "New photos",
+    "newVideos": "New video",
+    "edit": "Edit",
+    "saveChanges": "Save changes",
+    "submit": "Submit review"
+  },
+  "refund": {
+    "errors": {
+      "required": "Please fill in all required fields.",
+      "reasonShort": "Please give a more detailed reason (at least 10 characters).",
+      "account": "Invalid account number (digits only, 6-25 characters).",
+      "holder": "The account holder name can't contain numbers or special characters.",
+      "generic": "Something went wrong, please try again."
+    },
+    "title": "Request a refund",
+    "order": "Booking:",
+    "expected": "Expected refund",
+    "accurate": "Please provide the correct details of an account in your name.",
+    "reason": "Reason for refund",
+    "reasonPlaceholder": "E.g. urgent matter, flight cancelled... (at least 10 characters)",
+    "payoutInfo": "Payout details",
+    "bank": "Bank",
+    "accountNumber": "Account number",
+    "digitsOnly": "Digits only",
+    "holder": "Account holder (no accents)",
+    "sending": "Sending...",
+    "send": "Send request"
+  },
+  "refunds": {
+    "status": {
+      "APPROVED": "Refunded",
+      "REJECTED": "Rejected",
+      "PENDING": "Processing"
+    },
+    "title": "Refund requests",
+    "subtitle": "Manage your refund requests.",
+    "emptyTitle": "No requests yet",
+    "emptyText": "You haven't sent any refund requests recently.",
+    "sentAt": "Requested on",
+    "details": "Refund details",
+    "amount": "Amount requested",
+    "yourReason": "Your reason:",
+    "payoutAccount": "Payout account",
+    "holder": "Account holder",
+    "adminReply": "Admin response:"
+  },
+  "owner": {
+    "validation": {
+      "fileRequired": "Please upload a file",
+      "fileType": "Only JPG, PNG, WEBP are accepted",
+      "nameRequired": "Full name is required",
+      "emailInvalid": "Invalid email",
+      "emailRequired": "Email is required",
+      "phoneRequired": "Phone number is required",
+      "idRequired": "ID/passport number is required",
+      "dobRequired": "Date of birth is required",
+      "dobInvalid": "Invalid date of birth",
+      "hometownRequired": "Hometown is required",
+      "addressRequired": "Permanent address is required",
+      "licenseRequired": "Business registration number is required",
+      "licenseMin": "Business registration number must have at least 5 characters"
+    },
+    "steps": {
+      "personal": "Personal info",
+      "business": "Business info",
+      "review": "Review",
+      "done": "Done"
+    },
+    "submitError": "System error. Please try again.",
+    "submitting": "Submitting your application...",
+    "backHome": "Back to home",
+    "next": "Next",
+    "submit": "Submit application",
+    "step1": {
+      "title": "1. Personal information"
+    },
+    "fields": {
+      "fullName": "Full name",
+      "email": "Contact email",
+      "phone": "Phone number",
+      "idCard": "ID/passport number",
+      "dob": "Date of birth",
+      "hometown": "Hometown",
+      "address": "Permanent address",
+      "cardFront": "ID card (front)",
+      "cardBack": "ID card (back)",
+      "licenseNumber": "Business registration number",
+      "licenseUpload": "Upload business licence"
+    },
+    "step2": {
+      "title": "Legal & business information",
+      "formats": "PDF, PNG and JPG accepted."
+    },
+    "step3": {
+      "notUploaded": "{{title}}: not uploaded",
+      "notProvided": "Not provided",
+      "title": "3. Review & confirm",
+      "business": "Business information",
+      "licenseShort": "Business reg. number",
+      "documents": "Attached documents",
+      "license": "Business licence",
+      "agree": "By clicking \"Submit application\", you confirm the information above is accurate and agree to our terms."
+    },
+    "step4": {
+      "failTitle": "Submission failed",
+      "failText": "Something went wrong while submitting your application. Please try again.",
+      "error": "Error: {{error}}",
+      "successTitle": "Application submitted!",
+      "successText": "Thanks for applying. The TravelMate team will review your application and reply by email within 24-48 hours."
+    }
+  },
+  "linked": {
+    "unlinked": "{{provider}} disconnected!",
+    "needPassword": "Create a password before disconnecting this account!",
+    "onlyMethod": "This is your only login method.",
+    "linkedWith": "Linked with your {{provider}} account.",
+    "createPassword": "Create password",
+    "disconnect": "Disconnect",
+    "connect": "Connect {{provider}}",
+    "title": "Linked accounts",
+    "subtitle": "Manage additional login methods",
+    "noPasswordWarning": "<b>Note:</b> You haven't set a password. Please <b>create a password</b> to protect your account and avoid losing access.",
+    "googleText": "Use your Google account for one-tap login.",
+    "facebookText": "Connect Facebook for easy login.",
+    "confirmTitle": "Disconnect account",
+    "confirmText": "Are you sure you want to disconnect your {{provider}} account?"
+  },
+  "password": {
+    "mismatch": "Passwords do not match.",
+    "failed": "Couldn't change the password. Check your current password.",
+    "title": "Change password",
+    "current": "Current password",
+    "new": "New password (at least 8 characters)",
+    "confirm": "Confirm new password",
+    "changed": "✅ Password changed!",
+    "save": "Save password"
+  },
+  "avatarModal": {
+    "tooLarge": "File too large! Please choose an image under 5MB.",
+    "cropError": "Couldn't crop the image.",
+    "title": "Update profile photo",
+    "none": "No image selected",
+    "choose": "Choose from device",
+    "chooseAnother": "Choose another",
+    "uploading": "Uploading...",
+    "save": "Save & update"
+  },
+  "emailModal": {
+    "required": "Please enter an email address.",
+    "invalid": "Invalid email address.",
+    "titleEdit": "UPDATE EMAIL",
+    "titleAdd": "ADD EMAIL",
+    "textEdit": "Changing your email will require verifying it again.",
+    "textAdd": "Add an email you use to log in and receive notifications",
+    "placeholder": "E.g. yourname@email.com"
+  },
+  "phoneModal": {
+    "required": "Please enter a phone number.",
+    "invalid": "Invalid phone number (10-11 digits).",
+    "titleEdit": "UPDATE MOBILE NUMBER",
+    "titleAdd": "ADD MOBILE NUMBER",
+    "text": "Add your mobile number to log in and receive urgent alerts",
+    "placeholder": "E.g. 0901234567"
+  },
+  "tx": {
+    "status": {
+      "SUCCESS": "Successful",
+      "PENDING": "Processing",
+      "FAILED": "Failed",
+      "REFUNDED": "Refunded"
+    },
+    "tabs": {
+      "ALL": "All"
+    },
+    "description": "Booking payment: {{name}}",
+    "title": "Transaction history",
+    "subtitle": "Track your payments and their status.",
+    "emptyTitle": "No transactions yet",
+    "notFound": "No transactions found",
+    "emptyText": "You haven't made any payments yet. Book a stay to get started!",
+    "noMatch": "No transactions match the current filters.",
+    "explore": "Explore hotels",
+    "id": "Transaction ID",
+    "total": "Total",
+    "detailTitle": "Transaction details",
+    "amount": "Amount",
+    "idLabel": "Transaction ID",
+    "content": "Description",
+    "time": "Date & time",
+    "method": "Payment method",
+    "searchPlaceholder": "Search ID, description..."
+  }
+}

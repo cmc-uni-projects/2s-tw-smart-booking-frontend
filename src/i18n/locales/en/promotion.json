@@ -1,0 +1,56 @@
+{
+  "discount": "{{amount}} off",
+  "endsIn": "Ends in:",
+  "hotTag": "Hot deal",
+  "fallbackAlt": "Promotion",
+  "fallbackName": "Promotion",
+  "unsave": "Unsave",
+  "save": "Save deal",
+  "fallbackDescription": "A special deal just for you",
+  "used": "Used: {{count}}",
+  "use": "Use",
+  "details": "Details",
+  "member": "Member",
+  "all": "All",
+  "allMembers": "members",
+  "superDeal": "SUPER DEAL - HUGE SAVINGS",
+  "hotDeal": "HOT DEAL",
+  "daysLeft": "{{count}} days left",
+  "expired": "Expired",
+  "voucherCode": "Voucher code",
+  "copied": "Copied!",
+  "copy": "Copy",
+  "info": "Details",
+  "conditions": "Terms & conditions",
+  "eligible": "Eligible members:",
+  "minOrder": "Minimum order:",
+  "maxDiscount": "Maximum discount:",
+  "unlimited": "Unlimited",
+  "validity": "Valid:",
+  "validRange": "From <start>{{start}}</start> to <end>{{end}}</end>",
+  "now": "now",
+  "forever": "no end date",
+  "filter": {
+    "all": "All promotions ({{count}})",
+    "placeholder": "Search by name or code..."
+  },
+  "list": {
+    "emptyTitle": "No promotions found",
+    "emptyText": "Please try again or change your filters."
+  },
+  "page": {
+    "tabs": {
+      "all": "All deals",
+      "exclusive": "Exclusive deals",
+      "saved": "My saved deals"
+    },
+    "cardDescription": "{{amount}} off orders from {{min}}₫",
+    "title": "Deals & promotions",
+    "subtitle": "Grab thousands of exclusive discount codes for loyal customers.",
+    "exclusiveTitle": "Exclusive collection",
+    "exclusiveText": "Special offers from TravelMate's partner hotels.",
+    "noExclusive": "No exclusive promotions yet.",
+    "noResults": "No promotions found.",
+    "showing": "Showing <b>{{shown}}</b> of <b>{{total}}</b> results"
+  }
+}

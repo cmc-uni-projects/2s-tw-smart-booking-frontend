@@ -1,0 +1,104 @@
+{
+  "inbox": {
+    "types": {
+      "GENERAL": "General",
+      "ACCOUNT_UPDATE": "Account",
+      "SECURITY_ALERT": "Security",
+      "BOOKING_SUCCESS": "Booking confirmed",
+      "BOOKING_CANCELLED": "Booking cancelled",
+      "BOOKING_FAILED": "Booking failed",
+      "PAYMENT_SUCCESS": "Payment successful",
+      "REFUND_PROCESSED": "Refund",
+      "PROMOTION": "Promotion",
+      "REMINDER_CHECKIN": "Reminder",
+      "APPROVAL": "Application approved",
+      "REJECTION": "Application rejected"
+    },
+    "notification": "Notification",
+    "loadError": "Couldn't load notifications. Please try again later.",
+    "allRead": "All marked as read",
+    "updateError": "Something went wrong while updating",
+    "stillPending": "Your application is still pending or hasn't been approved.",
+    "reLogin": "Something went wrong, please log in again.",
+    "hidden": "Notification hidden",
+    "loading": "Loading notifications...",
+    "emptyAlt": "Empty inbox",
+    "emptyTitle": "Your inbox is empty",
+    "emptyText": "You have no notifications yet.",
+    "noneOnPage": "No notifications found on this page.",
+    "markAll": "Mark all as read",
+    "searchPlaceholder": "Search this page...",
+    "unread": "Unread",
+    "hide": "Hide notification",
+    "title": "Inbox",
+    "all": "All",
+    "read": "Read",
+    "pageTitle": "My notifications",
+    "ownerChannel": "Go to Owner portal",
+    "hideConfirmTitle": "Hide this notification?",
+    "hideConfirmText": "The notification will be hidden from the list for now.",
+    "cancel": "Cancel",
+    "hideShort": "Hide",
+    "filterNote": "* Filters and search only apply to the list currently shown."
+  },
+  "commitments": {
+    "title": "Our commitments & policies",
+    "viewDetails": "View details",
+    "items": {
+      "safety": {
+        "title": "Safety & reliability",
+        "short": "TravelMate only works with partners that meet top quality and trust standards.",
+        "full": "We carefully select licensed hotels, resorts and travel providers that are highly rated by guests and follow international safety standards.\n\nEvery partner must pass a review of its facilities, service process and refund policy. TravelMate makes sure you always get reliable, transparent, quality service."
+      },
+      "refund": {
+        "title": "Flexible refund policy",
+        "short": "Change or cancel bookings easily, with fast refunds.",
+        "full": "If you need to change your plans or cancel a booking, TravelMate will help you according to each hotel's policy.\n\nRefunds are processed quickly and transparently to protect your rights in every case. We also keep you updated on the refund status by email and in your account."
+      },
+      "privacy": {
+        "title": "Customer data privacy",
+        "short": "Your personal data is encrypted to the highest security standards.",
+        "full": "TravelMate is committed to protecting your information. All personal data, payment details and transaction history are kept secure.\n\nWe never share your information with third parties without your consent."
+      },
+      "support": {
+        "title": "24/7 customer support",
+        "short": "Our support team is always available.",
+        "full": "You can reach the TravelMate support team anytime via hotline, email or live chat.\n\nOur specialists and 24/7 chatbot are ready to answer your questions and quickly handle issues such as refunds, booking changes or complaints."
+      }
+    }
+  },
+  "contact": {
+    "title": "Contact & support",
+    "info": "Contact information",
+    "address": "Address: 120 An Lieng",
+    "support": "24/7 support – here for every trip.",
+    "team": "Development team",
+    "teamText": "Project team — 2S_TW."
+  },
+  "system": {
+    "title": "About the platform",
+    "intro": "Our booking platform is built to make travel smart, convenient and safe. Using AI, we suggest the destinations that suit you best and help you pick the best hotel at a fair price.",
+    "smartTitle": "Smart booking",
+    "smartText": "AI-powered hotel suggestions for a better experience.",
+    "payTitle": "Secure payment",
+    "payText": "Fast and secure payment methods.",
+    "supportTitle": "24/7 support",
+    "supportText": "Our customer care team is always ready to help."
+  },
+  "help": {
+    "docTitle": "Help center | TravelMate",
+    "faq": "Frequently asked questions",
+    "list": "Questions",
+    "showing": "Showing {{shown}} of {{total}} results",
+    "more": "Show more questions",
+    "noResults": "No matching results.",
+    "clear": "Clear filters"
+  },
+  "partners": {
+    "title": "Hotel & accommodation partners"
+  },
+  "about": {
+    "title": "About us",
+    "text": "TravelMate – a smart travel booking platform connecting you with trusted, quality hotels nationwide."
+  }
+}

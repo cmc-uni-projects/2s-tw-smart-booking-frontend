@@ -1,0 +1,174 @@
+{
+  "loadError": "Couldn't load the details. Please try again later.",
+  "imageCaption": "{{name}} - Photo {{index}}",
+  "reviewImageCaption": "Review photo {{index}}",
+  "confirmUnpin": "Unpin this review?",
+  "gallery": {
+    "viewAll": "View all {{count}} photos"
+  },
+  "header": {
+    "typeHotel": "Hotel",
+    "save": "Save to wishlist",
+    "share": "Share",
+    "bookNow": "Book now"
+  },
+  "info": {
+    "description": "Description",
+    "amenities": "Amenities",
+    "noReviews": "No reviews yet",
+    "beFirst": "Be the first to stay and review this hotel!",
+    "policiesPending": "Policies coming soon",
+    "contactHotel": "Please contact the hotel directly for details."
+  },
+  "reviewSidebar": {
+    "title": "Ratings & reviews",
+    "subtitle": "See what guests say about us"
+  },
+  "nav": {
+    "overview": "Overview",
+    "rooms": "Rooms",
+    "policies": "Policies",
+    "reviews": "Reviews"
+  },
+  "rooms": {
+    "available": "Available room types ({{count}})",
+    "chipSuggested": "Suggested",
+    "chipLowest": "Lowest price",
+    "colInfo": "Room details & amenities",
+    "colCapacity": "Capacity",
+    "colPrice": "Price per night"
+  },
+  "ratingLabel": {
+    "none": "No ratings yet",
+    "excellent": "Excellent",
+    "veryGood": "Very good",
+    "good": "Good",
+    "needsWork": "Needs improvement"
+  },
+  "reviews": {
+    "count": "{{count}} reviews",
+    "featured": "Featured reviews",
+    "viewAll": "View all {{count}} reviews",
+    "confirmDelete": "Delete this review?",
+    "basedOn": "Based on {{count}} reviews",
+    "searchPlaceholder": "Search reviews...",
+    "sort": {
+      "newest": "Newest",
+      "oldest": "Oldest",
+      "highest": "Highest rated",
+      "lowest": "Lowest rated"
+    },
+    "filter": {
+      "all": "All",
+      "withPhotos": "With photos"
+    },
+    "noMatch": "No matching reviews found.",
+    "clearFilters": "Clear filters & search",
+    "loadOlder": "Load older reviews",
+    "anonymous": "Anonymous",
+    "unpin": "Unpin this review",
+    "pin": "Pin this review to the top (max 3)",
+    "show": "Show review",
+    "hide": "Hide review",
+    "deleteForever": "Delete review permanently",
+    "hiddenNotice": "This review is hidden from guests",
+    "showLess": "Show less",
+    "showMore": "Show more",
+    "propertyReply": "Response from the property"
+  },
+  "sidebar": {
+    "viewMap": "View on map",
+    "highlights": "Highlights",
+    "central": "Central location, easy to get around",
+    "reception": "24/7 front desk",
+    "freeCancel": "Free cancellation (policy dependent)",
+    "bestPriceFrom": "Best price from",
+    "chooseRoom": "Choose a room"
+  },
+  "dates": {
+    "title": "Plan your trip",
+    "errors": {
+      "soldOut": "Some of the dates you picked are sold out. Please choose again!",
+      "booked": "You can't book these dates because they're already taken!"
+    },
+    "weekdayShort": "Weekday",
+    "cheaperThan": "{{percent}}% cheaper than {{than}}",
+    "cheaperThanWeekend": "weekends",
+    "cheaperThanWeekday": "weekdays",
+    "cheaperShort": " ({{percent}}% cheaper)",
+    "tip": "<b>Smart tip:</b> Book on <hl>{{days}}</hl> to save up to <save>{{percent}}%</save>!",
+    "tipWeekdays": "weekdays",
+    "tipWeekends": "weekends",
+    "stable": "<b>Book with confidence:</b> the price is the same every day of the week.",
+    "trend": "Price trend for the next 14 days",
+    "hoverHint": "Hover over a bar to see the price",
+    "standardPrice": "Standard price",
+    "stay": "Your stay",
+    "from": "From {{time}}",
+    "before": "Before {{time}}",
+    "paymentDetails": "Price details",
+    "totalNights": "Total nights",
+    "subtotal": "Subtotal",
+    "taxIncluded": "*Taxes & fees included",
+    "confirm": "Confirm booking",
+    "keepBrowsing": "Keep browsing"
+  },
+  "overview": {
+    "intro": "About",
+    "amenities": "Top amenities & services",
+    "otherAmenity": "Other amenity"
+  },
+  "amenity": {
+    "pool": "Swimming pool",
+    "parking": "Parking",
+    "sauna": "Sauna",
+    "non_smoking": "Non-smoking",
+    "wifi": "Free Wi-Fi",
+    "airport_transfer": "Airport transfer",
+    "pets": "Pets allowed",
+    "gym": "Fitness center",
+    "smoking_area": "Smoking area",
+    "reception_24h": "24h front desk",
+    "ac": "Air conditioning"
+  },
+  "policies": {
+    "title": "House rules",
+    "time": "Times",
+    "other": "Other rules",
+    "cancellation": "Cancellation: ",
+    "freeBefore": "Free up to {{count}} days before",
+    "nonRefundable": "Non-refundable",
+    "smoking": "Smoking:",
+    "pets": "Pets:",
+    "children": "Children:",
+    "allowed": "Allowed",
+    "forbidden": "Not allowed",
+    "no": "No",
+    "suitable": "Welcome",
+    "notSuitable": "Not suitable",
+    "note": "Additional notes: ",
+    "deposit": " • Deposit required: {{amount}}₫",
+    "pending": "Policies are being updated..."
+  },
+  "room": {
+    "loadingTitle": "Loading details...",
+    "imageCaption": "{{name}} - Photo {{index}}",
+    "title": "Room details",
+    "descriptionPending": "Description coming soon...",
+    "standardCapacity": "Standard capacity",
+    "adults": "{{count}} adults",
+    "amenities": "Room amenities",
+    "pricePerNightFrom": "Price per night from",
+    "choose": "Choose this room",
+    "morePhotos": "+{{count}} photos",
+    "defaultBed": "Double bed",
+    "freeWifi": "Free high-speed Wi-Fi",
+    "freeCancel3": "Free cancellation (3 days before)",
+    "breakfast": "Breakfast included",
+    "viewDetails": "View room details",
+    "capacityLabel": "Capacity:",
+    "discount": "{{percent}}% OFF",
+    "taxIncluded": "taxes & fees included",
+    "onlyLeft": "Only {{count}} rooms left!"
+  }
+}

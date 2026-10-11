@@ -1,0 +1,104 @@
+{
+  "inbox": {
+    "types": {
+      "GENERAL": "Thông báo chung",
+      "ACCOUNT_UPDATE": "Tài khoản",
+      "SECURITY_ALERT": "Bảo mật",
+      "BOOKING_SUCCESS": "Đặt phòng thành công",
+      "BOOKING_CANCELLED": "Đã hủy phòng",
+      "BOOKING_FAILED": "Đặt phòng thất bại",
+      "PAYMENT_SUCCESS": "Thanh toán thành công",
+      "REFUND_PROCESSED": "Hoàn tiền",
+      "PROMOTION": "Khuyến mãi",
+      "REMINDER_CHECKIN": "Nhắc nhở",
+      "APPROVAL": "Đơn được duyệt",
+      "REJECTION": "Đơn bị từ chối"
+    },
+    "notification": "Thông báo",
+    "loadError": "Không thể tải thông báo. Vui lòng thử lại sau.",
+    "allRead": "Đã đánh dấu tất cả là đã đọc",
+    "updateError": "Có lỗi xảy ra khi cập nhật",
+    "stillPending": "Đơn của bạn vẫn đang chờ hoặc chưa được duyệt.",
+    "reLogin": "Có lỗi xảy ra, vui lòng đăng nhập lại.",
+    "hidden": "Đã ẩn thông báo",
+    "loading": "Đang tải thông báo...",
+    "emptyAlt": "Hộp thư trống",
+    "emptyTitle": "Hộp thư trống",
+    "emptyText": "Bạn chưa có thông báo nào.",
+    "noneOnPage": "Không tìm thấy thông báo nào trong trang này.",
+    "markAll": "Đánh dấu tất cả là đã đọc",
+    "searchPlaceholder": "Tìm trong trang này...",
+    "unread": "Chưa đọc",
+    "hide": "Ẩn thông báo",
+    "title": "Hộp thư",
+    "all": "Tất cả",
+    "read": "Đã đọc",
+    "pageTitle": "Thông báo của tôi",
+    "ownerChannel": "Truy cập Kênh Chủ nhà",
+    "hideConfirmTitle": "Ẩn thông báo này?",
+    "hideConfirmText": "Thông báo sẽ bị ẩn khỏi danh sách hiển thị tạm thời.",
+    "cancel": "Huỷ",
+    "hideShort": "Ẩn",
+    "filterNote": "* Bộ lọc và tìm kiếm hiện chỉ áp dụng trên danh sách hiển thị."
+  },
+  "commitments": {
+    "title": "Cam kết & Chính sách",
+    "viewDetails": "Xem chi tiết",
+    "items": {
+      "safety": {
+        "title": "Đảm bảo an toàn & uy tín",
+        "short": "TravelMate chỉ hợp tác với các đối tác đạt chuẩn chất lượng và uy tín hàng đầu.",
+        "full": "Chúng tôi luôn lựa chọn kỹ lưỡng các khách sạn, khu nghỉ dưỡng và nhà cung cấp dịch vụ du lịch có giấy phép hợp pháp, được khách hàng đánh giá cao và tuân thủ các tiêu chuẩn quốc tế về an toàn.\n\nMọi đơn vị hợp tác đều phải vượt qua quá trình kiểm duyệt về cơ sở vật chất, quy trình phục vụ và chính sách hoàn tiền. TravelMate đảm bảo bạn luôn được sử dụng dịch vụ uy tín, minh bạch và chất lượng."
+      },
+      "refund": {
+        "title": "Chính sách hoàn tiền linh hoạt",
+        "short": "Bạn có thể thay đổi hoặc hủy đặt phòng dễ dàng, hoàn tiền nhanh chóng.",
+        "full": "Nếu bạn cần thay đổi lịch trình hoặc hủy đặt phòng, TravelMate sẽ hỗ trợ bạn thực hiện theo chính sách của từng khách sạn.\n\nQuy trình hoàn tiền được thực hiện tự động, nhanh chóng và minh bạch, đảm bảo quyền lợi khách hàng trong mọi trường hợp. Chúng tôi cũng cung cấp thông báo chi tiết về trạng thái hoàn tiền qua email và tài khoản người dùng."
+      },
+      "privacy": {
+        "title": "Bảo mật thông tin khách hàng",
+        "short": "Dữ liệu cá nhân của bạn được mã hóa theo chuẩn bảo mật cao nhất.",
+        "full": "TravelMate cam kết bảo mật tuyệt đối thông tin người dùng. Toàn bộ dữ liệu cá nhân, thông tin thanh toán và lịch sử giao dịch đều được bảo mật.\n\nChúng tôi không chia sẻ thông tin cho bất kỳ bên thứ ba nào khi chưa được sự đồng ý của bạn."
+      },
+      "support": {
+        "title": "Hỗ trợ khách hàng 24/7",
+        "short": "Đội ngũ hỗ trợ của chúng tôi luôn sẵn sàng mọi lúc.",
+        "full": "Bạn có thể liên hệ với đội ngũ hỗ trợ của TravelMate bất kỳ lúc nào qua nhiều kênh: hotline, email, hoặc chat trực tuyến.\n\nChúng tôi có đội ngũ chuyên viên trực cùng với chatbot 24/7, sẵn sàng giải đáp mọi thắc mắc và hỗ trợ xử lý nhanh các sự cố như hoàn tiền, thay đổi lịch đặt phòng hoặc khiếu nại dịch vụ."
+      }
+    }
+  },
+  "contact": {
+    "title": "Liên hệ & Hỗ trợ",
+    "info": "Thông tin liên hệ",
+    "address": "Địa chỉ: 120 An Liễng",
+    "support": "Hỗ trợ 24/7 – sẵn sàng đồng hành cùng chuyến đi của bạn.",
+    "team": "Đội ngũ phát triển",
+    "teamText": "Nhóm phát triển dự án — 2S_TW."
+  },
+  "system": {
+    "title": "Giới thiệu hệ thống",
+    "intro": "Nền tảng đặt phòng của chúng tôi được xây dựng nhằm mang đến trải nghiệm du lịch thông minh, tiện lợi và an toàn. Với công nghệ AI, chúng tôi gợi ý cho bạn những điểm đến phù hợp nhất, giúp bạn dễ dàng lựa chọn khách sạn tốt nhất với mức giá hợp lý.",
+    "smartTitle": "Đặt phòng thông minh",
+    "smartText": "Sử dụng AI để gợi ý khách sạn, tối ưu trải nghiệm người dùng.",
+    "payTitle": "Thanh toán an toàn",
+    "payText": "Tích hợp phương thức thanh toán an toàn, nhanh chóng.",
+    "supportTitle": "Hỗ trợ 24/7",
+    "supportText": "Đội ngũ CSKH sẵn sàng hỗ trợ bạn mọi lúc."
+  },
+  "help": {
+    "docTitle": "Trung tâm trợ giúp | TravelMate",
+    "faq": "Câu hỏi thường gặp",
+    "list": "Danh sách câu hỏi",
+    "showing": "Hiển thị {{shown}} / {{total}} kết quả",
+    "more": "Xem thêm câu hỏi cũ hơn",
+    "noResults": "Không tìm thấy kết quả nào phù hợp.",
+    "clear": "Xóa bộ lọc"
+  },
+  "partners": {
+    "title": "Đối tác khách sạn & chỗ ở"
+  },
+  "about": {
+    "title": "Về Chúng Tôi",
+    "text": "TravelMate – nền tảng đặt lịch du lịch thông minh giúp kết nối bạn với khách sạn uy tín, chất lượng trên toàn quốc."
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "dates": {
+    "label": "Khoảng thời gian lưu trú"
+  },
+  "destination": {
+    "label": "Điểm đến",
+    "placeholder": "Nhập thành phố hoặc khách sạn",
+    "noResults": "Không tìm thấy kết quả."
+  },
+  "guests": {
+    "label": "Số lượng",
+    "adults": "Người lớn",
+    "children": "Trẻ em",
+    "rooms": "Phòng",
+    "pets": "Mang theo thú cưng",
+    "summary": "{{guests}} người • {{rooms}} phòng",
+    "summaryPets": " • có thú cưng"
+  },
+  "filters": {
+    "title": "Bộ lọc",
+    "popularPlaces": "Địa điểm phổ biến",
+    "stars": "Hạng sao",
+    "priceRange": "Khoảng giá (1 đêm)"
+  },
+  "results": {
+    "searching": "Đang tìm kiếm...",
+    "found": "Tìm thấy {{count}} chỗ nghỉ",
+    "sort": {
+      "newest": "Mới nhất",
+      "priceAsc": "Giá thấp đến cao",
+      "priceDesc": "Giá cao đến thấp"
+    },
+    "emptyTitle": "Không tìm thấy chỗ nghỉ nào",
+    "emptyText": "Chúng tôi không tìm thấy chỗ nghỉ nào phù hợp với từ khóa \"{{keyword}}\" của bạn. Hãy thử thay đổi ngày hoặc tìm kiếm địa điểm khác.",
+    "reload": "Tải lại trang"
+  },
+  "map": {
+    "entry": "Khám phá ngay trên bản đồ",
+    "clearFilters": "Xóa lọc",
+    "fourStars": "4 sao trở lên",
+    "cheap": "Giá rẻ (<1tr)",
+    "mid": "Trung bình (1-3tr)",
+    "breakfast": "Ăn sáng",
+    "loading": "Đang tìm phòng tốt...",
+    "searchHere": "Tìm khu vực này",
+    "myLocation": "Vị trí của tôi",
+    "checkInDate": "Ngày nhận phòng",
+    "place": "Địa điểm",
+    "placePlaceholder": "Tìm Tỉnh/Thành phố...",
+    "loadingList": "Đang tải danh sách...",
+    "noPlace": "Không tìm thấy địa điểm nào.",
+    "guests": "Số khách",
+    "guestsSummary": "{{count}} khách, 1 phòng",
+    "adultsHint": "13 tuổi trở lên",
+    "childrenHint": "Dưới 13 tuổi"
+  }
+}

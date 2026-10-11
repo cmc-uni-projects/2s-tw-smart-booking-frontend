@@ -1,0 +1,217 @@
+{
+  "actions": {
+    "cancel": "Cancel",
+    "seeAll": "See all",
+    "exploreNow": "Explore now",
+    "apply": "Apply",
+    "close": "Close",
+    "search": "Search",
+    "back": "Back",
+    "reset": "Reset",
+    "viewDetails": "View details",
+    "confirm": "Confirm",
+    "cancelLong": "Cancel",
+    "done": "Done",
+    "save": "Save",
+    "add": "Add"
+  },
+  "rank": {
+    "BRONZE": "Bronze",
+    "SILVER": "Silver",
+    "GOLD": "Gold",
+    "DIAMOND": "Diamond"
+  },
+  "points_one": "{{count}} point",
+  "points_other": "{{count}} points",
+  "customer": "Customer",
+  "loading": "Loading...",
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{{count}} min ago",
+    "hoursAgo": "{{count}} h ago",
+    "days": "Days",
+    "hours": "Hours",
+    "minutes": "Min",
+    "seconds": "Sec",
+    "yearsAgo": "{{count}} years ago",
+    "monthsAgo": "{{count}} months ago",
+    "daysAgo": "{{count}} days ago",
+    "secondsAgo": "A few seconds ago"
+  },
+  "vietnam": "Vietnam",
+  "processing": "Processing...",
+  "loadingMore": "Loading more...",
+  "perNight": "/night",
+  "contact": "Contact us",
+  "errorPrefix": "Error: ",
+  "nights_one": "{{count}} night",
+  "nights_other": "{{count}} nights",
+  "checkIn": "Check-in",
+  "checkOut": "Check-out",
+  "weekday": "Weekday",
+  "weekend": "Weekend",
+  "pleaseWait": "Please wait a moment...",
+  "updating": "Coming soon...",
+  "guests_one": "{{count}} guest",
+  "guests_other": "{{count}} guests",
+  "included": "Included",
+  "total": "Total",
+  "rankShort": {
+    "BRONZE": "Bronze",
+    "SILVER": "Silver",
+    "GOLD": "Gold",
+    "DIAMOND": "Diamond"
+  },
+  "noExpiry": "No expiry",
+  "home": "Home",
+  "reviews": "({{count}} reviews)",
+  "pricePerNight": "Price / night",
+  "taxIncluded": "Taxes & fees included",
+  "viewRooms": "View rooms",
+  "noItems": "No items",
+  "noOptions": "No options",
+  "noData": "No data",
+  "noDataDescription": "There's nothing to show yet.",
+  "noDataTable": "No data to display",
+  "loadingData": "Loading data...",
+  "loadingShort": "Loading",
+  "notice": "Notice",
+  "choose": "Select...",
+  "chooseItem": "Select an item...",
+  "searchPlaceholder": "Search destinations, hotels...",
+  "dateRange": "Date range",
+  "password": "Password",
+  "confirmPassword": "Confirm password",
+  "passwordMismatch": "Passwords do not match.",
+  "confirm": {
+    "title": "Confirm action",
+    "message": "Are you sure you want to continue?"
+  },
+  "pagination": {
+    "showing": "Showing <b>{{shown}}</b> of <b>{{total}}</b> results",
+    "goTo": "Go to:",
+    "prev": "Previous",
+    "next": "Next",
+    "page": "Page {{page}} / {{total}}"
+  },
+  "upload": {
+    "preview": "Preview",
+    "remove": "Remove file",
+    "prompt": "<b>Click to upload</b> or drag and drop",
+    "formats": "JPG, PNG or WEBP",
+    "cover": "COVER",
+    "addPhoto": "Add photo"
+  },
+  "toggle": {
+    "active": "Active (visible)",
+    "inactive": "Disabled (hidden)"
+  },
+  "accountReview": {
+    "title": "All set!",
+    "text": "Your account is secured. You can now log in with your email and password.",
+    "account": "Account",
+    "loginEmail": "Login email",
+    "security": "Security status",
+    "passwordEnabled": "Password enabled"
+  },
+  "createPassword": {
+    "title": "Create password",
+    "weak": "Password isn't strong enough.",
+    "error": "Something went wrong.",
+    "loginEmail": "Login email",
+    "newPassword": "New password",
+    "placeholder": "Enter password...",
+    "confirmPlaceholder": "Re-enter password...",
+    "rules": {
+      "length": "At least 8 characters",
+      "upper": "Uppercase letter (A-Z)",
+      "lower": "Lowercase letter (a-z)",
+      "number": "Number (0-9)",
+      "special": "Special character (!@#...)"
+    }
+  },
+  "suspend": {
+    "reasonRequired": "Please enter a reason for suspension.",
+    "title": "Confirm suspension",
+    "text": "You are suspending: <b>{{name}}</b>.",
+    "emailNotice": "This will send an email notification to the owner.",
+    "reason": "Reason for suspension",
+    "placeholder": "Enter a detailed reason (e.g. policy violation, unpaid fees...)",
+    "confirm": "Confirm suspension"
+  },
+  "bookingStatus": {
+    "PENDING_PAYMENT": "Awaiting payment",
+    "CONFIRMED": "Confirmed",
+    "CHECKED_IN": "Checked in",
+    "COMPLETED": "Completed",
+    "CANCELLED": "Cancelled"
+  },
+  "paymentStatus": {
+    "UNPAID": "Unpaid",
+    "PAID": "Paid",
+    "REFUNDED": "Refunded",
+    "REFUND_REQUESTED": "Refund pending"
+  },
+  "notUpdated": "Not provided",
+  "CustomerRoutes": {
+    "exploreOnTheMap": "Explore on the map"
+  },
+  "userservice": {
+    "theUploadApiDidNot": "The upload API did not return a valid URL"
+  },
+  "ComponentsPreview": {
+    "fullName": "Full name",
+    "role": "Role",
+    "status": "Status",
+    "nguyenVanA": "Nguyen Van A",
+    "customer": "Customer",
+    "approved": "Approved",
+    "tranThiB": "Tran Thi B",
+    "hotelOwner": "Hotel owner",
+    "pending": "Pending",
+    "book": "Book",
+    "continue": "Continue",
+    "processing": "Processing",
+    "description": "Description",
+    "searchHotelsPlaces": "Search hotels, places...",
+    "arrivalDate": "Arrival date",
+    "checkInTime": "Check-in time",
+    "roomType": "Room type",
+    "singleRoom": "Single room",
+    "doubleRoom": "Double room",
+    "noIcon": "No icon",
+    "systemInformationIsBeingUpdated": "System information is being updated...",
+    "actionCompleted": "Action completed!",
+    "somethingWentWrongPleaseTry": "Something went wrong, please try again!",
+    "requiredInformationIsMissing": "Required information is missing!",
+    "openInfoModal": "Open info modal",
+    "openMainModal": "Open main modal",
+    "confirmAction": "Confirm action",
+    "openConfirmmodal": "Open ConfirmModal",
+    "deleteHotel": "Delete hotel?",
+    "areYouSureYouWant": "Are you sure you want to remove Sunrise Resort from the list?",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "deletedSuccessfully": "Deleted successfully!",
+    "noData": "No data",
+    "pleaseTryAgainLaterOr": "Please try again later or choose different filters.",
+    "showLoadingoverlay": "Show LoadingOverlay",
+    "processingBooking": "Processing booking...",
+    "hotel": "Hotel",
+    "actions": "Actions",
+    "viewDetails": "View details",
+    "copyCode": "Copy code"
+  },
+  "adminservice": {
+    "failedToLoadUsers": "Failed to load users",
+    "failedToUpdateTheUser": "Failed to update the user status",
+    "failedToDeleteTheUser": "Failed to delete the user"
+  },
+  "ownerservice": {
+    "applicationSubmissionFailed": "Application submission failed",
+    "couldNotConnectToThe": "Could not connect to the server"
+  },
+  "paymentservice": {
+    "couldNotLoadTransactionData": "Could not load transaction data"
+  }
+}

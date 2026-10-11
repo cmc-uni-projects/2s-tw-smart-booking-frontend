@@ -1,0 +1,17 @@
+# Local frontend. Start the backend stack first (../2s-tw-smart-booking-backend).
+#   docker compose up -d --build   →  http://localhost:5173
+# The browser calls the backend directly at http://localhost:8386 (CORS allows localhost:*).
+name: smart-booking-frontend
+
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        VITE_API_URL: ${LOCAL_API_URL:-http://localhost:8386/api/v1}
+        # Read from this folder's .env if present (Explore map needs it)
+        VITE_MAPBOX_TOKEN: ${VITE_MAPBOX_TOKEN:-}
+    image: smart-booking-frontend:local
+    restart: unless-stopped
+    ports:
+      - "5173:80"

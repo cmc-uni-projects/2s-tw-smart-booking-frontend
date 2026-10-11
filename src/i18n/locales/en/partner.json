@@ -1,0 +1,29 @@
+{
+  "PartnerRoute": {
+    "incompleteInformation": "Incomplete information",
+    "loginRequired": "Login required",
+    "youNeedToSignIn": "You need to sign in to register as a partner.",
+    "signInNow": "Sign in now",
+    "later": "Later",
+    "profileIncomplete": "Profile incomplete",
+    "toBecomeAPartnerPlease": "To become a partner, please update the following information:",
+    "cancel": "Cancel",
+    "continue": "Continue"
+  },
+  "PartnerHeroSection": {
+    "becomeATravelmatePartner": "Become a TravelMate partner",
+    "growYourBusinessWithUs": "Grow your business with us. Reach millions of customers and manage your property easily and efficiently.",
+    "registerNow": "Register now",
+    "hotelPartnership": "Hotel partnership"
+  },
+  "PartnerCTASection": {
+    "partnerBenefits": "Partner benefits",
+    "reachMillionsOfPotentialCustomers": "Reach millions of potential customers on TravelMate.",
+    "intuitiveEasyToUseBooking": "Intuitive, easy-to-use booking and pricing management tools.",
+    "detailedRevenueReportsAndAnalytics": "Detailed revenue reports and analytics.",
+    "professional247PartnerSupport": "Professional 24/7 partner support team.",
+    "readyToGetStarted": "Ready to get started?",
+    "itOnlyTakesAFew": "It only takes a few minutes to fill in the information. Join our partner community and grow your revenue now!",
+    "fillInTheRegistrationForm": "Fill in the registration form now"
+  }
+}

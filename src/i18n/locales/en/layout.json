@@ -1,0 +1,84 @@
+{
+  "language": {
+    "switch": "Change language"
+  },
+  "nav": {
+    "home": "Home",
+    "promotions": "Promotions",
+    "support": "Support",
+    "helpCenter": "Help center",
+    "contactSupport": "Contact support",
+    "partnerWithUs": "Partner with us",
+    "adminPortal": "Admin portal",
+    "ownerPortal": "Owner portal"
+  },
+  "auth": {
+    "register": "Sign up",
+    "login": "Log in",
+    "logout": "Log out",
+    "logoutConfirm": "Are you sure you want to log out?"
+  },
+  "footer": {
+    "tagline": "Discover amazing destinations and enjoy your dream vacation at the best price. We're with you on every journey.",
+    "newsletterTitle": "Get exclusive deals",
+    "newsletterText": "Receive exclusive offers with up to 50% off.",
+    "emailPlaceholder": "Enter your email...",
+    "subscribe": "Subscribe",
+    "contact": "Contact",
+    "address": "12th Floor, Bitexco Tower, District 1, Ho Chi Minh City, Vietnam",
+    "aboutUs": "About us",
+    "customerSupport": "Customer support",
+    "connect": "Connect",
+    "paymentPartners": "Payment partners",
+    "copyright": "© {{year}} TravelMate. All rights reserved by TravelMate Vietnam Co., Ltd.",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "links": {
+      "aboutTravelMate": "About TravelMate",
+      "careers": "Careers",
+      "termsOfUse": "Terms of use",
+      "privacyPolicy": "Privacy policy",
+      "helpCenter": "Help center",
+      "bookingPolicy": "Booking policy",
+      "contactSupport": "Contact support",
+      "partnerSignup": "Become a partner"
+    }
+  },
+  "sidebar": {
+    "profile": "My profile",
+    "bookings": "Booking history",
+    "transactions": "Transaction history",
+    "refunds": "Refunds",
+    "wishlist": "Wishlist",
+    "settings": "Settings"
+  },
+  "profileMenu": {
+    "profile": "My profile",
+    "membership": "Membership & points",
+    "bookings": "My bookings"
+  },
+  "notifications": {
+    "title": "Your notifications",
+    "markAllRead": "Mark all as read",
+    "empty": "No notifications yet",
+    "emptyHint": "Booking and promotion updates will appear here.",
+    "viewAll": "View all in inbox"
+  },
+  "chat": {
+    "welcome": "Hi! I'm the TravelMate virtual assistant. How can I help you today?",
+    "loginRequired": "Please log in to use the chatbot.",
+    "loginRequiredLong": "You need to log in to use this smart assistant",
+    "error": "Something went wrong. Please try again later.",
+    "typing": "Typing...",
+    "inputPlaceholder": "Type a message...",
+    "inputDisabled": "Messaging unavailable",
+    "fabTooltip": "Chat with our AI assistant!",
+    "open": "Open chat",
+    "close": "Close chat",
+    "suggestionsFor": "Suggestions for {{place}}",
+    "place": "this place",
+    "foundStays": "Found {{count}} stays in {{city}}",
+    "guests": "{{count}} guests",
+    "viewDetails": "View details"
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "loadError": "Không thể tải thông tin. Vui lòng thử lại sau.",
+  "imageCaption": "{{name}} - Ảnh {{index}}",
+  "reviewImageCaption": "Ảnh đánh giá {{index}}",
+  "confirmUnpin": "Bỏ ghim bình luận này?",
+  "gallery": {
+    "viewAll": "Xem tất cả {{count}} ảnh"
+  },
+  "header": {
+    "typeHotel": "Khách sạn",
+    "save": "Lưu yêu thích",
+    "share": "Chia sẻ",
+    "bookNow": "Đặt phòng ngay"
+  },
+  "info": {
+    "description": "Mô tả",
+    "amenities": "Tiện ích",
+    "noReviews": "Chưa có đánh giá nào",
+    "beFirst": "Hãy là người đầu tiên trải nghiệm và đánh giá khách sạn này!",
+    "policiesPending": "Chính sách đang cập nhật",
+    "contactHotel": "Vui lòng liên hệ trực tiếp với khách sạn để biết thêm chi tiết."
+  },
+  "reviewSidebar": {
+    "title": "Đánh giá & Nhận xét",
+    "subtitle": "Xem khách hàng nói gì về chúng tôi"
+  },
+  "nav": {
+    "overview": "Tổng quan",
+    "rooms": "Phòng nghỉ",
+    "policies": "Chính sách",
+    "reviews": "Đánh giá"
+  },
+  "rooms": {
+    "available": "Các loại phòng có sẵn ({{count}})",
+    "chipSuggested": "Gợi ý",
+    "chipLowest": "Giá thấp nhất",
+    "colInfo": "Thông tin phòng & Tiện nghi",
+    "colCapacity": "Sức chứa",
+    "colPrice": "Giá mỗi đêm"
+  },
+  "ratingLabel": {
+    "none": "Chưa có đánh giá",
+    "excellent": "Tuyệt vời",
+    "veryGood": "Rất tốt",
+    "good": "Hài lòng",
+    "needsWork": "Cần cải thiện"
+  },
+  "reviews": {
+    "count": "{{count}} đánh giá",
+    "featured": "Đánh giá nổi bật",
+    "viewAll": "Xem tất cả {{count}} đánh giá",
+    "confirmDelete": "Xóa đánh giá này?",
+    "basedOn": "Dựa trên {{count}} nhận xét",
+    "searchPlaceholder": "Tìm trong đánh giá...",
+    "sort": {
+      "newest": "Mới nhất",
+      "oldest": "Cũ nhất",
+      "highest": "Điểm cao nhất",
+      "lowest": "Điểm thấp nhất"
+    },
+    "filter": {
+      "all": "Tất cả",
+      "withPhotos": "Có hình ảnh"
+    },
+    "noMatch": "Không tìm thấy đánh giá nào phù hợp.",
+    "clearFilters": "Xóa bộ lọc & tìm kiếm",
+    "loadOlder": "Xem thêm đánh giá cũ hơn",
+    "anonymous": "Người dùng ẩn danh",
+    "unpin": "Bỏ ghim đánh giá này",
+    "pin": "Ghim đánh giá này lên đầu (Max 3)",
+    "show": "Hiện đánh giá",
+    "hide": "Ẩn đánh giá",
+    "deleteForever": "Xóa đánh giá vĩnh viễn",
+    "hiddenNotice": "Đánh giá này đang bị ẩn với khách hàng",
+    "showLess": "Thu gọn",
+    "showMore": "Xem thêm",
+    "propertyReply": "Phản hồi từ chỗ nghỉ"
+  },
+  "sidebar": {
+    "viewMap": "Xem trên bản đồ",
+    "highlights": "Điểm nổi bật",
+    "central": "Vị trí trung tâm, thuận tiện di chuyển",
+    "reception": "Lễ tân phục vụ 24/7",
+    "freeCancel": "Hủy phòng miễn phí (tuỳ chính sách)",
+    "bestPriceFrom": "Giá tốt nhất chỉ từ",
+    "chooseRoom": "Chọn phòng ngay"
+  },
+  "dates": {
+    "title": "Lên lịch chuyến đi",
+    "errors": {
+      "soldOut": "Khoảng thời gian bạn chọn có ngày đã hết phòng. Vui lòng chọn lại!",
+      "booked": "Bạn không thể đặt phòng vì khoảng thời gian này đã có người đặt!"
+    },
+    "weekdayShort": "Trong tuần",
+    "cheaperThan": "Rẻ hơn {{percent}}% so với {{than}}",
+    "cheaperThanWeekend": "cuối tuần",
+    "cheaperThanWeekday": "ngày thường",
+    "cheaperShort": " (Rẻ hơn {{percent}}%)",
+    "tip": "<b>Mẹo thông minh:</b> Đặt phòng vào các ngày <hl>{{days}}</hl> để tiết kiệm tới <save>{{percent}}%</save>!",
+    "tipWeekdays": "Trong tuần",
+    "tipWeekends": "Cuối tuần",
+    "stable": "<b>Yên tâm đặt phòng:</b> Giá phòng ổn định tất cả các ngày trong tuần.",
+    "trend": "Xu hướng giá 14 ngày tới",
+    "hoverHint": "Di chuột vào cột để xem chi tiết giá",
+    "standardPrice": "Giá tiêu chuẩn",
+    "stay": "Thời gian lưu trú",
+    "from": "Từ {{time}}",
+    "before": "Trước {{time}}",
+    "paymentDetails": "Chi tiết thanh toán",
+    "totalNights": "Tổng số đêm",
+    "subtotal": "Tổng tạm tính",
+    "taxIncluded": "*Giá đã bao gồm thuế & phí",
+    "confirm": "Xác nhận đặt phòng",
+    "keepBrowsing": "Tôi muốn xem thêm"
+  },
+  "overview": {
+    "intro": "Giới thiệu",
+    "amenities": "Tiện nghi & Dịch vụ nổi bật",
+    "otherAmenity": "Tiện nghi khác"
+  },
+  "amenity": {
+    "pool": "Hồ bơi",
+    "parking": "Bãi đỗ xe",
+    "sauna": "Phòng xông hơi",
+    "non_smoking": "Không hút thuốc",
+    "wifi": "Wi-Fi (miễn phí)",
+    "airport_transfer": "Đưa đón sân bay",
+    "pets": "Cho phép thú cưng",
+    "gym": "Trung tâm thể dục",
+    "smoking_area": "Khu vực hút thuốc",
+    "reception_24h": "Lễ tân 24h",
+    "ac": "Điều hòa không khí"
+  },
+  "policies": {
+    "title": "Chính sách lưu trú",
+    "time": "Thời gian",
+    "other": "Quy định khác",
+    "cancellation": "Hủy phòng: ",
+    "freeBefore": "Miễn phí trước {{count}} ngày",
+    "nonRefundable": "Không hoàn tiền",
+    "smoking": "Hút thuốc:",
+    "pets": "Thú cưng:",
+    "children": "Trẻ em:",
+    "allowed": "Cho phép",
+    "forbidden": "Cấm",
+    "no": "Không",
+    "suitable": "Phù hợp",
+    "notSuitable": "Không phù hợp",
+    "note": "Lưu ý thêm: ",
+    "deposit": " • Yêu cầu đặt cọc: {{amount}}₫",
+    "pending": "Đang cập nhật chính sách..."
+  },
+  "room": {
+    "loadingTitle": "Đang tải thông tin...",
+    "imageCaption": "{{name}} - Ảnh {{index}}",
+    "title": "Chi tiết phòng nghỉ",
+    "descriptionPending": "Đang cập nhật mô tả...",
+    "standardCapacity": "Sức chứa chuẩn",
+    "adults": "{{count}} người lớn",
+    "amenities": "Tiện nghi phòng",
+    "pricePerNightFrom": "Giá mỗi đêm từ",
+    "choose": "Chọn phòng này",
+    "morePhotos": "+{{count}} ảnh",
+    "defaultBed": "Giường đôi",
+    "freeWifi": "Miễn phí Wifi tốc độ cao",
+    "freeCancel3": "Hủy miễn phí (trước 3 ngày)",
+    "breakfast": "Bao gồm ăn sáng",
+    "viewDetails": "Xem chi tiết phòng",
+    "capacityLabel": "Sức chứa:",
+    "discount": "GIẢM {{percent}}%",
+    "taxIncluded": "đã bao gồm thuế & phí",
+    "onlyLeft": "Chỉ còn {{count}} phòng trống!"
+  }
+}
